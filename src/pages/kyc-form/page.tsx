@@ -207,7 +207,12 @@ const KYCFormPage = () => {
       updatedOwners.splice(index, 1);
       setBeneficialOwners(updatedOwners);
       
+      const updatedFiles = [...beneficialOwnerIdFiles];
+      updatedFiles.splice(index, 1);
       setBeneficialOwnerIdFiles(updatedFiles);
+
+      // Also splice the refs array to keep it in sync
+      beneficialOwnerIdRefs.current.splice(index, 1);
     }
   };
 
