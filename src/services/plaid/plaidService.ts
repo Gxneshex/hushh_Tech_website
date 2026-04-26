@@ -345,7 +345,10 @@ export const saveFinancialDataToSupabase = async (
       fetch_errors: Object.keys(errors).length > 0 ? errors : null,
       updated_at: new Date().toISOString(),
     }, { onConflict: 'user_id' });
-    if (upsertError) console.error('[Plaid] ❌ DB upsert failed:', upsertError.message);
+    if (upsertError) {
+      console.error('[Plaid] ❌ DB upsert failed:', upsertError.message);
+      throw upsertError;
+    }
 
     console.log('[Plaid] ✅ Data saved to Supabase');
   } catch (err) {
