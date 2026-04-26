@@ -47,16 +47,10 @@ import KycAgentDetailModal from './KycAgentDetailModal';
 // Environment Configuration
 // =====================================================
 
-// Type assertion for Vite env
-declare const import_meta_env: {
-  VITE_KYC_API_BASE?: string;
-  VITE_KYC_ENV?: string;
-  VITE_KYC_DEMO_MODE?: string;
-};
 
 const getEnvVar = (key: string, fallback: string): string => {
   try {
-    // @ts-ignore - Vite specific
+    // @ts-expect-error - Vite specific
     return import.meta.env?.[key] || fallback;
   } catch {
     return fallback;
@@ -215,12 +209,11 @@ async function callKycCheckApi(request: KycCheckRequest): Promise<KycCheckRespon
 
     return kycResponse;
 
-  } catch (error: any) {
-    const latencyMs = Date.now() - startTime;
+  } catch (error: unknown) {
     console.error('[KYC API] Error:', error);
     
     // Return honest error response - no fake data
-    throw new Error(error.message || 'Failed to verify KYC status. Please try again.');
+    throw new Error(error instanceof Error ? error.message : 'Failed to verify KYC status. Please try again.', { cause: error });
   }
 }
 
@@ -346,13 +339,13 @@ export const KycFlowContainer: React.FC<KycFlowContainerProps> = ({
         onComplete(response);
       }
       
-    } catch (error: any) {
-      console.error('KYC check error:', error);
+    } catch (error: unknown) {
+      console.error('[KycFlow] Error loading data from Supabase:', error);
       setState(prev => ({
         ...prev,
         step: 'ERROR',
         isLoading: false,
-        error: error.message || 'An error occurred during KYC verification.',
+        error: error instanceof Error ? error.message : 'An error occurred during KYC verification.',
       }));
     }
   }, [bankName, onComplete]);
