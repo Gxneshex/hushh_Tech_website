@@ -1096,7 +1096,10 @@ const KYCFormPage = () => {
                       size="sm" 
                       colorScheme="red" 
                       variant="ghost"
-                      onClick={() => handleRemoveBeneficialOwner(index)}
+                      onClick={() => {
+                        // eslint-disable-next-line react-hooks/refs
+                        handleRemoveBeneficialOwner(index);
+                      }}
                     >
                       Remove
                     </Button>

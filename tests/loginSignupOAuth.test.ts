@@ -9,10 +9,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const startOAuthMock = vi.fn();
 const redirectToUrlMock = vi.fn();
 const resolveOAuthHostMock = vi.fn();
-var actualResolveOAuthHost: typeof import("../src/auth/authHost").resolveOAuthHost;
-const authState = {
-  status: "anonymous",
-};
+const { mocks, authState } = vi.hoisted(() => ({
+  mocks: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    actualResolveOAuthHost: null as any
+  },
+  authState: {
+    status: "anonymous",
+  }
+}));
 
 vi.mock("../src/auth/AuthSessionProvider", () => ({
   useAuthSession: () => ({
@@ -25,7 +30,7 @@ vi.mock("../src/auth/authHost", async () => {
   const actual = await vi.importActual<typeof import("../src/auth/authHost")>(
     "../src/auth/authHost"
   );
-  actualResolveOAuthHost = actual.resolveOAuthHost;
+  mocks.actualResolveOAuthHost = actual.resolveOAuthHost;
   return {
     ...actual,
     redirectToUrl: (...args: unknown[]) => redirectToUrlMock(...args),
