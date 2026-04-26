@@ -43,7 +43,21 @@ app.use((_req, res, next) => {
       "font-src 'self' https://fonts.gstatic.com https://fonts.googleapis.com data:",
       "img-src 'self' data: blob: https: http:",
       // Wallet upstream traffic must stay behind same-origin /api proxies to avoid CSP regressions.
-      `connect-src 'self' https://*.plaid.com https://*.supabase.co wss://*.supabase.co ... https://www.recaptcha.net ${(process.env.NDA_SERVICE_URL && process.env.NDA_SERVICE_URL.startsWith('https://')) ? process.env.NDA_SERVICE_URL : 'https://hushhtech-nda-generation-53407187172.us-central1.run.app'}`,
+      (() => {
+        const serviceUrl = process.env.NDA_SERVICE_URL;
+        const defaultUrl = 'https://hushhtech-nda-generation-53407187172.us-central1.run.app';
+        if (serviceUrl) {
+          try {
+            const url = new URL(serviceUrl);
+            if (url.protocol === 'https:' && url.hostname.endsWith('.run.app')) {
+              return serviceUrl;
+            }
+          } catch (e) {
+            // Invalid URL, fall through to default
+          }
+        }
+        return defaultUrl;
+      })()
       "frame-src 'self' https://cdn.plaid.com https://*.plaid.com https://www.google.com https://www.gstatic.com https://calendly.com https://www.recaptcha.net https://lookerstudio.google.com https://datastudio.google.com",
       "media-src 'self' blob: data:",
       "worker-src 'self' blob:",
