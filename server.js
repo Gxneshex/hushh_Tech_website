@@ -43,7 +43,7 @@ app.use((_req, res, next) => {
       "font-src 'self' https://fonts.gstatic.com https://fonts.googleapis.com data:",
       "img-src 'self' data: blob: https: http:",
       // Wallet upstream traffic must stay behind same-origin /api proxies to avoid CSP regressions.
-      "connect-src 'self' https://*.plaid.com https://*.supabase.co wss://*.supabase.co https://www.google.com https://www.gstatic.com https://www.google-analytics.com https://www.googletagmanager.com https://api.emailjs.com https://generativelanguage.googleapis.com https://*.googleapis.com https://www.walletlink.org wss://www.walletlink.org wss://mainnet.infura.io wss://*.infura.io https://*.seondnsresolve.com https://www.recaptcha.net https://hushhtech-nda-generation-53407187172.us-central1.run.app",
+      `connect-src 'self' https://*.plaid.com https://*.supabase.co wss://*.supabase.co https://www.google.com https://www.gstatic.com https://www.google-analytics.com https://www.googletagmanager.com https://api.emailjs.com https://generativelanguage.googleapis.com https://*.googleapis.com https://www.walletlink.org wss://www.walletlink.org wss://mainnet.infura.io wss://*.infura.io https://*.seondnsresolve.com https://www.recaptcha.net ${process.env.NDA_SERVICE_URL || 'https://hushhtech-nda-generation-53407187172.us-central1.run.app'}`,
       "frame-src 'self' https://cdn.plaid.com https://*.plaid.com https://www.google.com https://www.gstatic.com https://calendly.com https://www.recaptcha.net https://lookerstudio.google.com https://datastudio.google.com",
       "media-src 'self' blob: data:",
       "worker-src 'self' blob:",
@@ -81,7 +81,6 @@ const loadApi = async (name) => import(`./api/${name}.js`);
 
 app.all('/api/career-application', async (req, res) => wrapHandler(await loadApi('career-application'))(req, res));
 app.all('/api/enrich-preferences', async (req, res) => wrapHandler(await loadApi('enrich-preferences'))(req, res));
-app.all('/api/gemini-chat', async (req, res) => wrapHandler(await loadApi('gemini-chat'))(req, res));
 app.all('/api/gemini-ephemeral-token', async (req, res) => wrapHandler(await loadApi('gemini-ephemeral-token'))(req, res));
 app.all('/api/generate-investor-profile', async (req, res) => wrapHandler(await loadApi('generate-investor-profile'))(req, res));
 app.all('/api/delete-account', async (req, res) => wrapHandler(await loadApi('delete-account'))(req, res));
