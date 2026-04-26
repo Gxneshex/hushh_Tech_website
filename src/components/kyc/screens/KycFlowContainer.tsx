@@ -443,7 +443,7 @@ export const KycFlowContainer: React.FC<KycFlowContainerProps> = ({
               setState(prev => ({
                 ...prev,
                 step: 'INTRO',
-                financialVerified: true,
+                financialVerified: false,
                 financialData: null,
               }));
             }}
