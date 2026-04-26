@@ -221,7 +221,7 @@ const KYCFormPage = () => {
     }]);
     
     // Add a new ref for file upload
-    setBeneficialOwnerIdRefs([...beneficialOwnerIdRefs, useRef<HTMLInputElement>(null)]);
+    setBeneficialOwnerIdRefs([...beneficialOwnerIdRefs, React.createRef<HTMLInputElement>()]);
     
     // Add a null file placeholder
     setBeneficialOwnerIdFiles([...beneficialOwnerIdFiles, null]);
