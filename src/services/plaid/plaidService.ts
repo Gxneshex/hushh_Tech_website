@@ -14,7 +14,7 @@ export type ProductFetchStatus = 'idle' | 'loading' | 'success' | 'unavailable' 
 
 export interface ProductResult {
   available: boolean;
-  data: any | null;
+  data: unknown | null;
   error: string | null;
   reason: 'not_supported' | 'error' | null;
 }
@@ -43,7 +43,7 @@ const SUPABASE_FUNCTIONS_URL = `${SUPABASE_URL}/functions/v1`;
 
 const getAnonKey = (): string => {
   try {
-    // @ts-ignore
+    // @ts-expect-error meta.env is not fully typed
     return import.meta.env?.VITE_SUPABASE_ANON_KEY || '';
   } catch { return ''; }
 };
@@ -84,7 +84,7 @@ export const createLinkToken = async (
   console.log('[Plaid:createLinkToken] 🚀 Starting...', { userId: userId?.slice(0, 8), userEmail, redirectUri, receivedRedirectUri: receivedRedirectUri?.slice(0, 50) });
   const token = await getUserAccessToken();
   console.log('[Plaid:createLinkToken] Auth token:', token ? `${token.slice(0, 20)}...` : 'MISSING');
-  const body: Record<string, any> = { userId, userEmail };
+  const body: Record<string, unknown> = { userId, userEmail };
   if (redirectUri) body.redirectUri = redirectUri;
   if (receivedRedirectUri) body.receivedRedirectUri = receivedRedirectUri;
 
@@ -143,8 +143,9 @@ export const fetchAuthNumbers = async (accessToken: string) => {
       accounts: Array<{ account_id: string; name: string; subtype: string; type: string }>;
       numbers: { ach: Array<{ account: string; routing: string; wire_routing: string; account_id: string }> };
     };
-  } catch (e: any) {
-    console.error('[Plaid] Auth numbers fetch failed:', e.message);
+  } catch (e: unknown) {
+    const err = e as Error;
+    console.error('[Plaid] Auth numbers fetch failed:', err.message);
     return null;
   }
 };
@@ -163,8 +164,9 @@ const fetchBalance = async (accessToken: string, userId: string): Promise<Produc
       return { available: false, data: null, error: err.error || 'Failed', reason: 'error' };
     }
     return { available: true, data: await res.json(), error: null, reason: null };
-  } catch (e: any) {
-    return { available: false, data: null, error: e.message, reason: 'error' };
+  } catch (e: unknown) {
+    const err = e as Error;
+    return { available: false, data: null, error: err.message, reason: 'error' };
   }
 };
 
@@ -184,8 +186,9 @@ const fetchAssets = async (accessToken: string, userId: string): Promise<Product
     const data = await res.json();
     if (data.status === 'pending') return { available: false, data, error: null, reason: null };
     return { available: true, data, error: null, reason: null };
-  } catch (e: any) {
-    return { available: false, data: null, error: e.message, reason: 'error' };
+  } catch (e: unknown) {
+    const err = e as Error;
+    return { available: false, data: null, error: err.message, reason: 'error' };
   }
 };
 
@@ -204,8 +207,9 @@ const fetchInvestments = async (accessToken: string, userId: string): Promise<Pr
       return { available: false, data: null, error: err.error || 'Failed', reason: 'error' };
     }
     return { available: true, data: await res.json(), error: null, reason: null };
-  } catch (e: any) {
-    return { available: false, data: null, error: e.message, reason: 'error' };
+  } catch (e: unknown) {
+    const err = e as Error;
+    return { available: false, data: null, error: err.message, reason: 'error' };
   }
 };
 
@@ -223,15 +227,16 @@ const fetchIdentity = async (accessToken: string): Promise<ProductResult> => {
       return { available: false, data: null, error: err.error || 'Failed', reason: 'error' };
     }
     return { available: true, data: await res.json(), error: null, reason: null };
-  } catch (e: any) {
-    return { available: false, data: null, error: e.message, reason: 'error' };
+  } catch (e: unknown) {
+    const err = e as Error;
+    return { available: false, data: null, error: err.message, reason: 'error' };
   }
 };
 
 /** Match user identity against bank account owner data */
 export const fetchIdentityMatch = async (
   accessToken: string,
-  userData?: { legal_name?: string; phone_number?: string; email_address?: string; address?: any },
+  userData?: { legal_name?: string; phone_number?: string; email_address?: string; address?: unknown },
 ): Promise<ProductResult> => {
   try {
     const token = await getUserAccessToken();
@@ -245,8 +250,9 @@ export const fetchIdentityMatch = async (
       return { available: false, data: null, error: err.error || 'Failed', reason: 'error' };
     }
     return { available: true, data: await res.json(), error: null, reason: null };
-  } catch (e: any) {
-    return { available: false, data: null, error: e.message, reason: 'error' };
+  } catch (e: unknown) {
+    const err = e as Error;
+    return { available: false, data: null, error: err.message, reason: 'error' };
   }
 };
 
@@ -256,8 +262,9 @@ const fetchAuth = async (accessToken: string): Promise<ProductResult> => {
     const data = await fetchAuthNumbers(accessToken);
     if (!data) return { available: false, data: null, error: null, reason: 'not_supported' };
     return { available: true, data, error: null, reason: null };
-  } catch (e: any) {
-    return { available: false, data: null, error: e.message, reason: 'error' };
+  } catch (e: unknown) {
+    const err = e as Error;
+    return { available: false, data: null, error: err.message, reason: 'error' };
   }
 };
 
@@ -299,7 +306,7 @@ export const checkAssetReport = async (assetReportToken: string, userId: string)
     body: JSON.stringify({ assetReportToken, userId, action: 'get' }),
   });
   if (!res.ok) throw new Error('Failed to check asset report');
-  return res.json() as Promise<{ status: 'complete' | 'pending'; data?: any }>;
+  return res.json() as Promise<{ status: 'complete' | 'pending'; data?: unknown }>;
 };
 
 /** Save financial data to Supabase */
@@ -402,9 +409,10 @@ export const signalPrepare = async (accessToken: string) => {
     }
     console.log('[Plaid] ✅ Signal prepared for Item');
     return { success: true, ...(await res.json()) };
-  } catch (e: any) {
-    console.warn('[Plaid] Signal prepare error:', e.message);
-    return { success: false, error: e.message };
+  } catch (e: unknown) {
+    const err = e as Error;
+    console.warn('[Plaid] Signal prepare error:', err.message);
+    return { success: false, error: err.message };
   }
 };
 
@@ -418,7 +426,7 @@ export const signalEvaluate = async (params: {
   isRecurring?: boolean;
   defaultPaymentMethod?: 'SAME_DAY_ACH' | 'STANDARD_ACH' | 'MULTIPLE_PAYMENT_METHODS';
   rulesetKey?: string;
-  user?: { name?: { given_name?: string; family_name?: string }; phone_number?: string; email_address?: string; address?: any };
+  user?: { name?: { given_name?: string; family_name?: string }; phone_number?: string; email_address?: string; address?: unknown };
   device?: { ip_address?: string; user_agent?: string };
 }) => {
   const token = await getUserAccessToken();
@@ -446,9 +454,9 @@ export const signalEvaluate = async (params: {
       customer_initiated_return_risk: { score: number; risk_tier: number };
       bank_initiated_return_risk: { score: number; risk_tier: number };
     };
-    core_attributes: Record<string, any>;
-    ruleset?: { ruleset_key: string; result: 'ACCEPT' | 'REROUTE' | 'REVIEW'; triggered_rule_details?: any };
-    warnings: any[];
+    core_attributes: Record<string, unknown>;
+    ruleset?: { ruleset_key: string; result: 'ACCEPT' | 'REROUTE' | 'REVIEW'; triggered_rule_details?: unknown };
+    warnings: unknown[];
     request_id: string;
   }>;
 };
