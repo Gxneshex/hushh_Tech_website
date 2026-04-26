@@ -20,9 +20,6 @@ import {
   Checkbox,
   Textarea,
   Select,
-  Stack,
-  Divider,
-  useColorModeValue,
   SimpleGrid,
   FormHelperText,
   InputGroup,
@@ -30,10 +27,10 @@ import {
 } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import config from "../../resources/config/config";
+
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
-// @ts-ignore
+// @ts-expect-error react-select-country-list does not have types
 import countryList from "react-select-country-list";
 
 // Country option type definition
@@ -47,8 +44,8 @@ const KYCFormPage = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [investorType, setInvestorType] = useState("individual");
-  const [formData, setFormData] = useState<any>({});
-  const [formErrors, setFormErrors] = useState<any>({});
+  const [formData, setFormData] = useState<Record<string, unknown>>({});
+  const [formErrors, setFormErrors] = useState<Record<string, string | null>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [acceptedDeclarations, setAcceptedDeclarations] = useState<Record<string, boolean>>({});
   const [eddScreening, setEddScreening] = useState({
@@ -57,7 +54,7 @@ const KYCFormPage = () => {
     investmentAmountExceeds10m: false,
     hasComplexStructure: false
   });
-  const [beneficialOwners, setBeneficialOwners] = useState<any[]>([{ 
+  const [beneficialOwners, setBeneficialOwners] = useState<Record<string, unknown>[]>([{ 
     fullLegalName: "", 
     residentialAddress: { street: "", city: "", state: "", postalCode: "", country: "" },
     dateOfBirth: "",
@@ -65,7 +62,7 @@ const KYCFormPage = () => {
     idNumber: "",
     ownershipPercentage: ""
   }]);
-  const [authorizedSignatories, setAuthorizedSignatories] = useState<any[]>([{ 
+  const [authorizedSignatories, setAuthorizedSignatories] = useState<Record<string, unknown>[]>([{ 
     fullLegalName: "", 
     position: "" 
   }]);
@@ -99,7 +96,7 @@ const KYCFormPage = () => {
   });
 
   // Arrays of beneficial owner document refs and files
-  const [beneficialOwnerIdRefs, setBeneficialOwnerIdRefs] = useState<React.RefObject<HTMLInputElement>[]>([useRef<HTMLInputElement>(null)]);
+  const beneficialOwnerIdRefs = useRef<(HTMLInputElement | null)[]>([]);
   const [beneficialOwnerIdFiles, setBeneficialOwnerIdFiles] = useState<(File | null)[]>([null]);
 
   // Declaration statements
@@ -121,21 +118,21 @@ const KYCFormPage = () => {
   // Country list options
   const countryOptions = useMemo(() => countryList().getData(), []);
 
-  const handleInputChange = (field: string, value: any) => {
-    setFormData((prev: any) => ({ ...prev, [field]: value }));
+  const handleInputChange = (field: string, value: unknown) => {
+    setFormData((prev: Record<string, unknown>) => ({ ...prev, [field]: value }));
     // Clear error for the field being changed
     if (formErrors[field]) {
-      setFormErrors((prevErrors: any) => ({ ...prevErrors, [field]: null }));
+      setFormErrors((prevErrors: Record<string, string | null>) => ({ ...prevErrors, [field]: null }));
     }
   };
 
   // Handle country select changes
   const handleCountrySelectChange = (field: string, event: React.ChangeEvent<HTMLSelectElement>) => {
     const value = event.target.value;
-    setFormData((prev: any) => ({ ...prev, [field]: value }));
+    setFormData((prev: Record<string, unknown>) => ({ ...prev, [field]: value }));
     // Clear error for the field being changed
     if (formErrors[field]) {
-      setFormErrors((prevErrors: any) => ({ ...prevErrors, [field]: null }));
+      setFormErrors((prevErrors: Record<string, string | null>) => ({ ...prevErrors, [field]: null }));
     }
   };
 
@@ -150,38 +147,9 @@ const KYCFormPage = () => {
     setBeneficialOwners(updatedOwners);
   };
 
-  const handleNestedInputChange = (parent: string, field: string, value: any) => {
-    setFormData((prev: any) => ({
-      ...prev,
-      [parent]: {
-        ...prev[parent],
-        [field]: value
-      }
-    }));
-    // Clear nested field error if exists
-    if (formErrors[`${parent}.${field}`]) {
-      setFormErrors((prevErrors: any) => ({
-        ...prevErrors,
-        [`${parent}.${field}`]: null
-      }));
-    }
-  };
 
-  const handleAddressChange = (parent: string, field: string, value: any) => {
-    setFormData((prev: any) => ({
-      ...prev,
-      [parent]: {
-        ...prev[parent],
-        [field]: value
-      }
-    }));
-    if (formErrors[`${parent}.${field}`]) {
-      setFormErrors((prevErrors: any) => ({
-        ...prevErrors,
-        [`${parent}.${field}`]: null
-      }));
-    }
-  };
+
+
 
   const handleFileChange = (fieldName: string, event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
@@ -195,7 +163,7 @@ const KYCFormPage = () => {
     }
   };
 
-  const handleBeneficialOwnerChange = (index: number, field: string, value: any) => {
+  const handleBeneficialOwnerChange = (index: number, field: string, value: unknown) => {
     const updatedOwners = [...beneficialOwners];
     if (field.includes('.')) {
       // Handle nested field (address)
@@ -220,9 +188,6 @@ const KYCFormPage = () => {
       ownershipPercentage: ""
     }]);
     
-    // Add a new ref for file upload
-    setBeneficialOwnerIdRefs([...beneficialOwnerIdRefs, React.createRef<HTMLInputElement>()]);
-    
     // Add a null file placeholder
     setBeneficialOwnerIdFiles([...beneficialOwnerIdFiles, null]);
   };
@@ -242,17 +207,11 @@ const KYCFormPage = () => {
       updatedOwners.splice(index, 1);
       setBeneficialOwners(updatedOwners);
       
-      const updatedRefs = [...beneficialOwnerIdRefs];
-      updatedRefs.splice(index, 1);
-      setBeneficialOwnerIdRefs(updatedRefs);
-      
-      const updatedFiles = [...beneficialOwnerIdFiles];
-      updatedFiles.splice(index, 1);
       setBeneficialOwnerIdFiles(updatedFiles);
     }
   };
 
-  const handleSignatoryChange = (index: number, field: string, value: any) => {
+  const handleSignatoryChange = (index: number, field: string, value: unknown) => {
     const updatedSignatories = [...authorizedSignatories];
     updatedSignatories[index][field] = value;
     setAuthorizedSignatories(updatedSignatories);
@@ -539,7 +498,7 @@ const KYCFormPage = () => {
       // Explicitly execute a POST request to the API endpoint
       const response = await axios({
         method: 'post',
-        url: 'https://hushh-techh.onrender.com/api/admin/kyc-verification',
+        url: `${import.meta.env.VITE_API_BASE_URL || ''}/api/admin/kyc-verification`,
         data: formDataToSubmit,
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -560,13 +519,14 @@ const KYCFormPage = () => {
       // Redirect to profile page
       navigate("/profile");
       
-    } catch (error: any) {
-      console.error("Error submitting KYC verification:", error);
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
+      console.error("Error submitting KYC verification:", err);
       
       // Handle error
       toast({
         title: "Submission Error",
-        description: error.response?.data?.message || "Failed to submit KYC information. Please try again later.",
+        description: err.response?.data?.message || "Failed to submit KYC information. Please try again later.",
         status: "error",
         duration: 5000,
         isClosable: true,
@@ -1246,12 +1206,12 @@ const KYCFormPage = () => {
                   <Input
                     type="file"
                     display="none"
-                    ref={beneficialOwnerIdRefs[index]}
+                    ref={(el) => (beneficialOwnerIdRefs.current[index] = el)}
                     onChange={(e) => handleBeneficialOwnerFileChange(index, e)}
                     accept=".pdf,.jpg,.jpeg,.png"
                   />
                   <Button 
-                    onClick={() => beneficialOwnerIdRefs[index].current?.click()}
+                    onClick={() => beneficialOwnerIdRefs.current[index]?.click()}
                     colorScheme="cyan"
                     variant="outline"
                     width="100%"
