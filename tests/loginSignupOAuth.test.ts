@@ -9,7 +9,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const startOAuthMock = vi.fn();
 const redirectToUrlMock = vi.fn();
 const resolveOAuthHostMock = vi.fn();
-var actualResolveOAuthHost: typeof import("../src/auth/authHost").resolveOAuthHost;
+let actualResolveOAuthHost: typeof import("../src/auth/authHost").resolveOAuthHost;
 const authState = {
   status: "anonymous",
 };
