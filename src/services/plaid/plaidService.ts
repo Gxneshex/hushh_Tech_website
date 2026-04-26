@@ -320,7 +320,7 @@ export const saveFinancialDataToSupabase = async (
     if (data.authNumbers?.error) errors.auth = data.authNumbers.error;
     if (data.identityMatch?.error) errors.identity_match = data.identityMatch.error;
 
-    await supabase.from('user_financial_data').upsert({
+    const { error: upsertError } = await supabase.from('user_financial_data').upsert({
       user_id: userId,
       plaid_item_id: itemId || null,
       plaid_access_token: accessToken || null,
@@ -345,6 +345,7 @@ export const saveFinancialDataToSupabase = async (
       fetch_errors: Object.keys(errors).length > 0 ? errors : null,
       updated_at: new Date().toISOString(),
     }, { onConflict: 'user_id' });
+    if (upsertError) console.error('[Plaid] ❌ DB upsert failed:', upsertError.message);
 
     console.log('[Plaid] ✅ Data saved to Supabase');
   } catch (err) {
@@ -459,7 +460,7 @@ export const signalDecisionReport = async (params: {
   amountInstantlyAvailable?: number;
 }) => {
   const token = await getUserAccessToken();
-  const res = await fetch(`${SUPABASE_URL}/signal-decision-report`, {
+  const res = await fetch(`${getFunctionsUrl()}/signal-decision-report`, {
     method: 'POST', headers: getHeaders(token),
     body: JSON.stringify({
       client_transaction_id: params.clientTransactionId,
@@ -484,7 +485,7 @@ export const signalReturnReport = async (params: {
   returnedAt?: string;
 }) => {
   const token = await getUserAccessToken();
-  const res = await fetch(`${SUPABASE_URL}/signal-return-report`, {
+  const res = await fetch(`${getFunctionsUrl()}/signal-return-report`, {
     method: 'POST', headers: getHeaders(token),
     body: JSON.stringify({
       client_transaction_id: params.clientTransactionId,
@@ -530,7 +531,7 @@ export const createSandboxTestItem = async (
   institutionId = 'ins_109508',
 ): Promise<SandboxTestResult> => {
   const token = await getUserAccessToken();
-  const res = await fetch(`${SUPABASE_URL}/sandbox-create-test-item`, {
+  const res = await fetch(`${getFunctionsUrl()}/sandbox-create-test-item`, {
     method: 'POST',
     headers: getHeaders(token),
     body: JSON.stringify({ userId, institutionId }),
