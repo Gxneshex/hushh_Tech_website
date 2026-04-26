@@ -52,12 +52,12 @@ app.use((_req, res, next) => {
             if (url.protocol === 'https:' && url.hostname.endsWith('.run.app')) {
               return serviceUrl;
             }
-          } catch (e) {
+          } catch {
             // Invalid URL, fall through to default
           }
         }
         return defaultUrl;
-      })()
+      })(),
       "frame-src 'self' https://cdn.plaid.com https://*.plaid.com https://www.google.com https://www.gstatic.com https://calendly.com https://www.recaptcha.net https://lookerstudio.google.com https://datastudio.google.com",
       "media-src 'self' blob: data:",
       "worker-src 'self' blob:",
