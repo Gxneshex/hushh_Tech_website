@@ -11,6 +11,7 @@ const redirectToUrlMock = vi.fn();
 const resolveOAuthHostMock = vi.fn();
 const { mocks, authState } = vi.hoisted(() => ({
   mocks: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     actualResolveOAuthHost: null as any
   },
   authState: {
