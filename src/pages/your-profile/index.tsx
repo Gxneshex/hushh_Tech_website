@@ -122,7 +122,7 @@ const ProfilePage = () => {
       console.log('🔍 Checking user in database with email:', email);
       
       const response = await axios.get(
-        `https://hushh-api-53407187172.us-central1.run.app/api/check-user?email=${email}`,
+        `${import.meta.env.VITE_API_BASE_URL || ''}/api/check-user?email=${email}`,
         {
           headers: {
             'Content-Type': 'application/json'
