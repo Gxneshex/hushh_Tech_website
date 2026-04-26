@@ -539,7 +539,7 @@ const KYCFormPage = () => {
       // Explicitly execute a POST request to the API endpoint
       const response = await axios({
         method: 'post',
-        url: 'https://hushh-techh.onrender.com/api/admin/kyc-verification',
+        url: `${import.meta.env.VITE_API_BASE_URL || ''}/api/admin/kyc-verification`,
         data: formDataToSubmit,
         headers: {
           'Content-Type': 'multipart/form-data',
