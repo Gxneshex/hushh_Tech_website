@@ -348,10 +348,6 @@ const reflectOnResponse = (
   
   // Check 3: If phone was WRONG, are we hinting at the correct value?
   if (matchResult?.mismatchedFields.includes('phone') && providedPhone) {
-    // Make sure we're not giving hints about what the correct phone should be
-    const phoneDigits = providedPhone.replace(/\D/g, '');
-    const storedDigits = matchResult.user?.phone_number?.replace(/\D/g, '') || '';
-    
     // Check if we're showing which digits are wrong (that would be a leak)
     if (draftResponse.includes('first digit') || 
         draftResponse.includes('last digit') ||
@@ -413,7 +409,7 @@ interface RoutingResult {
 /**
  * ROUTING: Smart intent detection and routing
  */
-const routeRequest = (body: Record<string, any>): RoutingResult => {
+const routeRequest = (body: Record<string, unknown>): RoutingResult => {
   const intentFromBody = (body.intent || body.payload?.intent || '').toLowerCase();
   const message = (body.message || body.query || '').toLowerCase();
   
@@ -722,7 +718,7 @@ const generateChallengeMessage = (
   matchResult: MatchResult,
   subjectName: string
 ): string => {
-  const { mismatchedFields, matchedFields, confidence } = matchResult;
+  const { mismatchedFields, confidence } = matchResult;
   
   let message = `I found a KYC record for "${subjectName}" with ${(confidence * 100).toFixed(0)}% name confidence. `;
   
@@ -742,49 +738,6 @@ const generateChallengeMessage = (
 };
 
 // ============================================================================
-// DATABASE QUERY FUNCTIONS
-// ============================================================================
-
-async function searchByName(firstName: string, lastName: string): Promise<DatabaseUser | null> {
-  console.log(`[A2A TOOL] searchByName: ${firstName} ${lastName}`);
-  
-  const { data, error } = await supabase
-    .from('onboarding_data')
-    .select('*')
-    .ilike('legal_first_name', `%${firstName}%`)
-    .ilike('legal_last_name', `%${lastName}%`)
-    .limit(1);
-  
-  if (error || !data || data.length === 0) {
-    // Also check investor_profiles
-    const { data: profileData } = await supabase
-      .from('investor_profiles')
-      .select('*')
-      .ilike('name', `%${firstName}%${lastName}%`)
-      .limit(1);
-    
-    if (!profileData || profileData.length === 0) return null;
-    return profileData[0] as DatabaseUser;
-  }
-  
-  return data[0] as DatabaseUser;
-}
-
-async function searchByPhone(phoneNumber: string): Promise<DatabaseUser | null> {
-  const cleanPhone = phoneNumber.replace(/\D/g, '');
-  console.log(`[A2A TOOL] searchByPhone: ${cleanPhone}`);
-  
-  const { data } = await supabase
-    .from('onboarding_data')
-    .select('*')
-    .eq('phone_number', cleanPhone)
-    .limit(1);
-  
-  if (!data || data.length === 0) return null;
-  return data[0] as DatabaseUser;
-}
-
-// ============================================================================
 // A2A PROTOCOL CONVERSATION ENGINE
 // ============================================================================
 
@@ -798,9 +751,9 @@ async function runA2AConversation(request: KycRequest): Promise<{
   const messages: A2AMessage[] = [];
   const taskId = generateTaskId();
   let sequence = 0;
-  let foundUser: DatabaseUser | null = null;
-  let trustScore = 0;
-  let riskBand: A2ARiskBand = 'HIGH';
+  let foundUser: DatabaseUser | null;
+  let trustScore: number;
+  let riskBand: A2ARiskBand;
 
   // Parse subject name
   const nameParts = request.subject.trim().split(/\s+/);
