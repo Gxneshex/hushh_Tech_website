@@ -90,14 +90,14 @@ interface A2AMessage {
     message?: string;
     requirements?: string[];
     required_fields?: string[];
-    input_data?: Record<string, any>;
+    input_data?: Record<string, unknown>;
     progress?: number;
     estimated_time?: string;
     log?: string;
     trust_score?: number;
     risk_band?: A2ARiskBand;
     available_data?: string[];
-    data?: Record<string, any>;
+    data?: Record<string, unknown>;
     action?: string;
     target?: string;
     public_key?: string;
@@ -751,9 +751,7 @@ async function runA2AConversation(request: KycRequest): Promise<{
   const messages: A2AMessage[] = [];
   const taskId = generateTaskId();
   let sequence = 0;
-  let foundUser: DatabaseUser | null;
-  let trustScore: number;
-  let riskBand: A2ARiskBand;
+
 
   // Parse subject name
   const nameParts = request.subject.trim().split(/\s+/);
@@ -804,7 +802,7 @@ async function runA2AConversation(request: KycRequest): Promise<{
   // Bank Agent provides identifier data
   // ==============================
   sequence++;
-  const inputData: Record<string, any> = {};
+  const inputData: Record<string, unknown> = {};
   if (request.phoneNumber) {
     inputData.phone_number = `${request.phoneCountryCode || '+1'}${request.phoneNumber}`;
     inputData.country_code = request.phoneCountryCode || '+1';
@@ -997,11 +995,11 @@ async function runA2AConversation(request: KycRequest): Promise<{
   // SEQUENCE 7: TASK_RESULT
   // Return verification result with trust score
   // ==============================
-  foundUser = matchResult.user;
+  const foundUser = matchResult.user;
   
   if (matchResult.type === 'PERFECT_MATCH' && foundUser) {
-    trustScore = calculateTrustScore(foundUser);
-    riskBand = calculateRiskBand(trustScore);
+    const trustScore = calculateTrustScore(foundUser);
+    const riskBand = calculateRiskBand(trustScore);
 
     sequence++;
     messages.push({
