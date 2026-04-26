@@ -9,10 +9,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const startOAuthMock = vi.fn();
 const redirectToUrlMock = vi.fn();
 const resolveOAuthHostMock = vi.fn();
-let actualResolveOAuthHost: typeof import("../src/auth/authHost").resolveOAuthHost;
-const authState = {
-  status: "anonymous",
-};
+const { mocks, authState } = vi.hoisted(() => ({
+  mocks: {
+    actualResolveOAuthHost: null as any
+  },
+  authState: {
+    status: "anonymous",
+  }
+}));
 
 vi.mock("../src/auth/AuthSessionProvider", () => ({
   useAuthSession: () => ({
@@ -25,7 +29,7 @@ vi.mock("../src/auth/authHost", async () => {
   const actual = await vi.importActual<typeof import("../src/auth/authHost")>(
     "../src/auth/authHost"
   );
-  actualResolveOAuthHost = actual.resolveOAuthHost;
+  mocks.actualResolveOAuthHost = actual.resolveOAuthHost;
   return {
     ...actual,
     redirectToUrl: (...args: unknown[]) => redirectToUrlMock(...args),
@@ -63,8 +67,8 @@ describe("login/signup OAuth UI", () => {
     vi.clearAllMocks();
     Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
     authState.status = "anonymous";
-    resolveOAuthHostMock.mockImplementation((...args: Parameters<typeof actualResolveOAuthHost>) =>
-      actualResolveOAuthHost(...args)
+    resolveOAuthHostMock.mockImplementation((...args: Parameters<typeof mocks.actualResolveOAuthHost>) =>
+      mocks.actualResolveOAuthHost(...args)
     );
     container = document.createElement("div");
     document.body.appendChild(container);
