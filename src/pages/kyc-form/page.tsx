@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 'use client';
 
 import React, { useState, useRef, useMemo } from "react";
@@ -20,6 +21,8 @@ import {
   Checkbox,
   Textarea,
   Select,
+  Divider,
+  useColorModeValue,
   SimpleGrid,
   FormHelperText,
   InputGroup,
@@ -30,7 +33,6 @@ import axios from "axios";
 
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
-// @ts-expect-error react-select-country-list does not have types
 import countryList from "react-select-country-list";
 
 // Country option type definition
@@ -44,8 +46,10 @@ const KYCFormPage = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [investorType, setInvestorType] = useState("individual");
-  const [formData, setFormData] = useState<Record<string, unknown>>({});
-  const [formErrors, setFormErrors] = useState<Record<string, string | null>>({});
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [formData, setFormData] = useState<Record<string, any>>({});
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [formErrors, setFormErrors] = useState<Record<string, any>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [acceptedDeclarations, setAcceptedDeclarations] = useState<Record<string, boolean>>({});
   const [eddScreening, setEddScreening] = useState({
@@ -54,7 +58,8 @@ const KYCFormPage = () => {
     investmentAmountExceeds10m: false,
     hasComplexStructure: false
   });
-  const [beneficialOwners, setBeneficialOwners] = useState<Record<string, unknown>[]>([{ 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [beneficialOwners, setBeneficialOwners] = useState<any[]>([{ 
     fullLegalName: "", 
     residentialAddress: { street: "", city: "", state: "", postalCode: "", country: "" },
     dateOfBirth: "",
@@ -62,7 +67,8 @@ const KYCFormPage = () => {
     idNumber: "",
     ownershipPercentage: ""
   }]);
-  const [authorizedSignatories, setAuthorizedSignatories] = useState<Record<string, unknown>[]>([{ 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [authorizedSignatories, setAuthorizedSignatories] = useState<any[]>([{ 
     fullLegalName: "", 
     position: "" 
   }]);
@@ -1642,7 +1648,7 @@ const KYCFormPage = () => {
         <FormControl isRequired isInvalid={!!formErrors.contactName}>
           <FormLabel>Contact Name</FormLabel>
           <Input 
-            value={formData.contactName || ''} 
+            value={(formData.contactName as string) || ''} 
             onChange={(e) => handleInputChange('contactName', e.target.value)}
             placeholder="Enter the name of the primary contact person"
           />
@@ -1653,7 +1659,7 @@ const KYCFormPage = () => {
           <FormLabel>Contact Email</FormLabel>
           <Input 
             type="email"
-            value={formData.contactEmail || ''} 
+            value={(formData.contactEmail as string) || ''} 
             onChange={(e) => handleInputChange('contactEmail', e.target.value)}
             placeholder="Enter contact email address"
           />
@@ -1664,7 +1670,7 @@ const KYCFormPage = () => {
           <FormLabel>Contact Phone Number</FormLabel>
           <PhoneInput
             country={'us'}
-            value={formData.contactPhone || ''}
+            value={(formData.contactPhone as string) || ''}
             onChange={(phone) => handleInputChange('contactPhone', phone)}
             inputStyle={{
               width: '100%',
