@@ -30,8 +30,7 @@ const ProfilePage = () => {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [userEmail, setUserEmail] = useState<string>("");
-  const [userId, setUserId] = useState<string | null>(null);
+
   const [preferences, setPreferences] = useState<UserPreferenceProfile | null>(null);
 
   const formatList = (items?: string[]) => (items && items.length > 0 ? items.join(", ") : "unknown");
@@ -75,49 +74,7 @@ const ProfilePage = () => {
     }
   };
 
-  useEffect(() => {
-    // Get user email from Supabase session and fetch profile
-    const fetchUserProfile = async () => {
-      try {
-        console.log('🔍 Fetching user session...');
-        
-        if (!resources.config.supabaseClient) {
-          console.error("Supabase client is not initialized");
-          setError("Authentication service not available");
-          setIsLoading(false);
-          return;
-        }
-        
-        if (status === 'booting') {
-          return;
-        }
-
-        if (!user?.email) {
-          console.log('❌ No user email found, redirecting to login');
-          navigate(buildLoginRedirectPath('/your-profile'), { replace: true });
-          return;
-        }
-        
-        console.log('✅ User email found:', user.email);
-        setUserEmail(user.email);
-        setUserId(user.id);
-
-        await loadPreferences(user.id);
-        
-        // Check if user exists in database using the API
-        await checkUserInDatabase(user.email);
-        
-      } catch (error) {
-        console.error('❌ Error fetching user session:', error);
-        setError("Failed to load user session");
-        setIsLoading(false);
-      }
-    };
-
-    void fetchUserProfile();
-  }, [navigate, status, user]);
-
-  const checkUserInDatabase = async (email: string) => {
+  async function checkUserInDatabase(email: string) {
     try {
       console.log('🔍 Checking user in database with email:', email);
       
@@ -174,13 +131,13 @@ const ProfilePage = () => {
         }
       }
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('❌ Error checking user in database:', error);
       
-      if (error.response) {
+      if (axios.isAxiosError(error) && error.response) {
         console.error('Error response:', error.response.data);
-        setError(`API Error: ${error.response.status} - ${error.response.data?.message || 'Unknown error'}`);
-      } else if (error.request) {
+        setError(`API Error: ${error.response.status} - ${(error.response.data as { message?: string })?.message || 'Unknown error'}`);
+      } else if (axios.isAxiosError(error) && error.request) {
         setError("Network error - please check your connection");
       } else {
         setError("Failed to check user data");
@@ -201,7 +158,48 @@ const ProfilePage = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }
+
+  useEffect(() => {
+    // Get user email from Supabase session and fetch profile
+    const fetchUserProfile = async () => {
+      try {
+        console.log('🔍 Fetching user session...');
+        
+        if (!resources.config.supabaseClient) {
+          console.error("Supabase client is not initialized");
+          setError("Authentication service not available");
+          setIsLoading(false);
+          return;
+        }
+        
+        if (status === 'booting') {
+          return;
+        }
+
+        if (!user?.email) {
+          console.log('❌ No user email found, redirecting to login');
+          navigate(buildLoginRedirectPath('/your-profile'), { replace: true });
+          return;
+        }
+        
+        console.log('✅ User email found:', user.email);
+
+        await loadPreferences(user.id);
+        
+        // Check if user exists in database using the API
+        await checkUserInDatabase(user.email);
+        
+      } catch (error) {
+        console.error('❌ Error fetching user session:', error);
+        setError("Failed to load user session");
+        setIsLoading(false);
+      }
+    };
+
+    void fetchUserProfile();
+  }, [navigate, status, user]);
+
 
   const formatDate = (dateString: string) => {
     if (!dateString) return 'Not provided';
