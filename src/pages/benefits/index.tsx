@@ -3,6 +3,8 @@ import { Check } from "lucide-react";
 
 /** Matches `src/pages/home/ui.tsx` hero `h1` */
 const playfair = { fontFamily: "'Playfair Display', serif" };
+const featureRowClassName = "flex items-start gap-3.5";
+const featureIconClassName = "mt-[3px] h-5 w-5 shrink-0 text-hushh-blue";
 
 const BenefitsPage: React.FC = () => {
   return (
@@ -41,38 +43,38 @@ const BenefitsPage: React.FC = () => {
               </h2>
             </div>
             <ul className="grid grid-cols-1 gap-x-6 gap-y-2 md:grid-cols-2 md:gap-y-3">
-              <li className="flex gap-3">
-                <Check className="mt-0.5 h-5 w-5 shrink-0 text-hushh-blue" aria-hidden />
+              <li className={featureRowClassName}>
+                <Check className={featureIconClassName} aria-hidden />
                 <p className="text-sm font-light leading-relaxed text-gray-500 sm:text-base">
                   Competitive base salaries benchmarked to top-tier firms
                 </p>
               </li>
-              <li className="flex gap-3">
-                <Check className="mt-0.5 h-5 w-5 shrink-0 text-hushh-blue" aria-hidden />
+              <li className={featureRowClassName}>
+                <Check className={featureIconClassName} aria-hidden />
                 <p className="text-sm font-light leading-relaxed text-gray-500 sm:text-base">
                   Access to proprietary investment strategies
                 </p>
               </li>
-              <li className="flex gap-3">
-                <Check className="mt-0.5 h-5 w-5 shrink-0 text-hushh-blue" aria-hidden />
+              <li className={featureRowClassName}>
+                <Check className={featureIconClassName} aria-hidden />
                 <p className="text-sm font-light leading-relaxed text-gray-500 sm:text-base">
                   Performance-based bonuses tied to individual and company success
                 </p>
               </li>
-              <li className="flex gap-3">
-                <Check className="mt-0.5 h-5 w-5 shrink-0 text-hushh-blue" aria-hidden />
+              <li className={featureRowClassName}>
+                <Check className={featureIconClassName} aria-hidden />
                 <p className="text-sm font-light leading-relaxed text-gray-500 sm:text-base">
                   401(k) with generous company matching
                 </p>
               </li>
-              <li className="flex gap-3">
-                <Check className="mt-0.5 h-5 w-5 shrink-0 text-hushh-blue" aria-hidden />
+              <li className={featureRowClassName}>
+                <Check className={featureIconClassName} aria-hidden />
                 <p className="text-sm font-light leading-relaxed text-gray-500 sm:text-base">
                   Equity participation in company growth
                 </p>
               </li>
-              <li className="flex gap-3">
-                <Check className="mt-0.5 h-5 w-5 shrink-0 text-hushh-blue" aria-hidden />
+              <li className={featureRowClassName}>
+                <Check className={featureIconClassName} aria-hidden />
                 <p className="text-sm font-light leading-relaxed text-gray-500 sm:text-base">
                   Financial planning and investment advisory services
                 </p>
@@ -94,38 +96,38 @@ const BenefitsPage: React.FC = () => {
               </h2>
             </div>
             <ul className="grid grid-cols-1 gap-x-6 gap-y-2 md:grid-cols-2 md:gap-y-3">
-              <li className="flex gap-3">
-                <Check className="mt-0.5 h-5 w-5 shrink-0 text-hushh-blue" aria-hidden />
+              <li className={featureRowClassName}>
+                <Check className={featureIconClassName} aria-hidden />
                 <p className="text-sm font-light leading-relaxed text-gray-500 sm:text-base">
                   Premium health, dental, and vision insurance (100% company paid)
                 </p>
               </li>
-              <li className="flex gap-3">
-                <Check className="mt-0.5 h-5 w-5 shrink-0 text-hushh-blue" aria-hidden />
+              <li className={featureRowClassName}>
+                <Check className={featureIconClassName} aria-hidden />
                 <p className="text-sm font-light leading-relaxed text-gray-500 sm:text-base">
                   Generous parental leave policies
                 </p>
               </li>
-              <li className="flex gap-3">
-                <Check className="mt-0.5 h-5 w-5 shrink-0 text-hushh-blue" aria-hidden />
+              <li className={featureRowClassName}>
+                <Check className={featureIconClassName} aria-hidden />
                 <p className="text-sm font-light leading-relaxed text-gray-500 sm:text-base">
                   Mental health and wellness programs
                 </p>
               </li>
-              <li className="flex gap-3">
-                <Check className="mt-0.5 h-5 w-5 shrink-0 text-hushh-blue" aria-hidden />
+              <li className={featureRowClassName}>
+                <Check className={featureIconClassName} aria-hidden />
                 <p className="text-sm font-light leading-relaxed text-gray-500 sm:text-base">
                   Childcare assistance and family support services
                 </p>
               </li>
-              <li className="flex gap-3">
-                <Check className="mt-0.5 h-5 w-5 shrink-0 text-hushh-blue" aria-hidden />
+              <li className={featureRowClassName}>
+                <Check className={featureIconClassName} aria-hidden />
                 <p className="text-sm font-light leading-relaxed text-gray-500 sm:text-base">
                   On-site fitness facilities and wellness stipend
                 </p>
               </li>
-              <li className="flex gap-3">
-                <Check className="mt-0.5 h-5 w-5 shrink-0 text-hushh-blue" aria-hidden />
+              <li className={featureRowClassName}>
+                <Check className={featureIconClassName} aria-hidden />
                 <p className="text-sm font-light leading-relaxed text-gray-500 sm:text-base">
                   Comprehensive life and disability insurance
                 </p>
@@ -147,50 +149,50 @@ const BenefitsPage: React.FC = () => {
               </h2>
             </div>
             <ul className="grid grid-cols-1 gap-x-6 gap-y-2 md:grid-cols-2 md:gap-y-3">
-              <li className="flex gap-3">
-                <Check className="mt-0.5 h-5 w-5 shrink-0 text-hushh-blue" aria-hidden />
+              <li className={featureRowClassName}>
+                <Check className={featureIconClassName} aria-hidden />
                 <p className="text-sm font-light leading-relaxed text-gray-500 sm:text-base">
                   Flexible work arrangements and remote work options
                 </p>
               </li>
-              <li className="flex gap-3">
-                <Check className="mt-0.5 h-5 w-5 shrink-0 text-hushh-blue" aria-hidden />
+              <li className={featureRowClassName}>
+                <Check className={featureIconClassName} aria-hidden />
                 <p className="text-sm font-light leading-relaxed text-gray-500 sm:text-base">
                   Conference attendance and continuing education support
                 </p>
               </li>
-              <li className="flex gap-3">
-                <Check className="mt-0.5 h-5 w-5 shrink-0 text-hushh-blue" aria-hidden />
+              <li className={featureRowClassName}>
+                <Check className={featureIconClassName} aria-hidden />
                 <p className="text-sm font-light leading-relaxed text-gray-500 sm:text-base">
                   Unlimited PTO policy with minimum usage requirements
                 </p>
               </li>
-              <li className="flex gap-3">
-                <Check className="mt-0.5 h-5 w-5 shrink-0 text-hushh-blue" aria-hidden />
+              <li className={featureRowClassName}>
+                <Check className={featureIconClassName} aria-hidden />
                 <p className="text-sm font-light leading-relaxed text-gray-500 sm:text-base">
                   Internal mentorship and leadership development programs
                 </p>
               </li>
-              <li className="flex gap-3">
-                <Check className="mt-0.5 h-5 w-5 shrink-0 text-hushh-blue" aria-hidden />
+              <li className={featureRowClassName}>
+                <Check className={featureIconClassName} aria-hidden />
                 <p className="text-sm font-light leading-relaxed text-gray-500 sm:text-base">
                   Sabbatical opportunities for long-term employees
                 </p>
               </li>
-              <li className="flex gap-3">
-                <Check className="mt-0.5 h-5 w-5 shrink-0 text-hushh-blue" aria-hidden />
+              <li className={featureRowClassName}>
+                <Check className={featureIconClassName} aria-hidden />
                 <p className="text-sm font-light leading-relaxed text-gray-500 sm:text-base">
                   Charitable giving matching program
                 </p>
               </li>
-              <li className="flex gap-3">
-                <Check className="mt-0.5 h-5 w-5 shrink-0 text-hushh-blue" aria-hidden />
+              <li className={featureRowClassName}>
+                <Check className={featureIconClassName} aria-hidden />
                 <p className="text-sm font-light leading-relaxed text-gray-500 sm:text-base">
                   Professional development budget ($10,000+ annually)
                 </p>
               </li>
-              <li className="flex gap-3">
-                <Check className="mt-0.5 h-5 w-5 shrink-0 text-hushh-blue" aria-hidden />
+              <li className={featureRowClassName}>
+                <Check className={featureIconClassName} aria-hidden />
                 <p className="text-sm font-light leading-relaxed text-gray-500 sm:text-base">
                   Volunteer time off for community service
                 </p>
@@ -212,26 +214,26 @@ const BenefitsPage: React.FC = () => {
               </h2>
             </div>
             <ul className="grid grid-cols-1 gap-x-6 gap-y-2 md:grid-cols-2 md:gap-y-3">
-              <li className="flex gap-3">
-                <Check className="mt-0.5 h-5 w-5 shrink-0 text-hushh-blue" aria-hidden />
+              <li className={featureRowClassName}>
+                <Check className={featureIconClassName} aria-hidden />
                 <p className="text-sm font-light leading-relaxed text-gray-500 sm:text-base">
                   State-of-the-art office spaces with premium amenities
                 </p>
               </li>
-              <li className="flex gap-3">
-                <Check className="mt-0.5 h-5 w-5 shrink-0 text-hushh-blue" aria-hidden />
+              <li className={featureRowClassName}>
+                <Check className={featureIconClassName} aria-hidden />
                 <p className="text-sm font-light leading-relaxed text-gray-500 sm:text-base">
                   Team events, retreats, and cultural activities
                 </p>
               </li>
-              <li className="flex gap-3">
-                <Check className="mt-0.5 h-5 w-5 shrink-0 text-hushh-blue" aria-hidden />
+              <li className={featureRowClassName}>
+                <Check className={featureIconClassName} aria-hidden />
                 <p className="text-sm font-light leading-relaxed text-gray-500 sm:text-base">
                   Catered meals and premium coffee/snacks
                 </p>
               </li>
-              <li className="flex gap-3">
-                <Check className="mt-0.5 h-5 w-5 shrink-0 text-hushh-blue" aria-hidden />
+              <li className={featureRowClassName}>
+                <Check className={featureIconClassName} aria-hidden />
                 <p className="text-sm font-light leading-relaxed text-gray-500 sm:text-base">
                   Innovation time for personal projects
                 </p>
