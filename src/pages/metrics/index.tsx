@@ -289,12 +289,28 @@ function SearchPerformanceList({
   rows: Array<Record<string, unknown>>;
   labelKey: string;
 }) {
+  const headingId = `analytics-filter-${title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")}`;
+
   return (
-    <div className="rounded-[1.4rem] border border-[#e8dfcb] bg-white px-4 py-4">
-      <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#244d86]">
+    <section
+      aria-labelledby={headingId}
+      className="rounded-[1.4rem] border border-[#e8dfcb] bg-white px-4 py-4"
+      data-testid="analytics-filter-control"
+    >
+      <p
+        id={headingId}
+        className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#244d86]"
+      >
         {title}
       </p>
-      <div className="mt-3 space-y-3">
+      <div
+        aria-label={`${title} analytics filter results`}
+        className="mt-3 space-y-3"
+        role="list"
+      >
         {rows.length > 0 ? (
           rows.slice(0, 5).map((row, index) => {
             const hasSearchMetrics = "clicks" in row || "impressions" in row;
@@ -305,6 +321,7 @@ function SearchPerformanceList({
               <div
                 key={`${title}-${index}`}
                 className="flex items-start justify-between gap-4 border-b border-gray-100 pb-2 last:border-b-0 last:pb-0"
+                role="listitem"
               >
                 <p className="min-w-0 flex-1 truncate text-sm font-medium text-black">
                   {String(row[labelKey] || "Unknown")}
@@ -323,10 +340,12 @@ function SearchPerformanceList({
             );
           })
         ) : (
-          <p className="text-sm leading-6 text-gray-500">No public-safe rows yet.</p>
+          <p className="text-sm leading-6 text-gray-500" role="listitem">
+            No public-safe rows yet.
+          </p>
         )}
       </div>
-    </div>
+    </section>
   );
 }
 
