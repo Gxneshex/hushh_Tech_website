@@ -3,7 +3,7 @@
   "role": "spoke",
   "owner_family": "repo-operations",
   "primary_scope": "github-ops-report-intake",
-  "description": "Use when generating Hushh Labs GitHub operations reports, contributor activity PDFs, missed-weekday red-alert sheets, or fair contribution and impact comparisons for named GitHub users across Hushh org repositories.",
+  "description": "Use when generating Hushh Labs GitHub operations reports, code-only contributor activity PDFs, weekend-aware missed-weekday red-alert sheets, or fair contribution and impact comparisons for named GitHub users across Hushh org repositories.",
   "owned_paths": [
     ".codex/skills/github-ops-report"
   ],
@@ -50,6 +50,7 @@
   "risk_tags": [
     "activity-misread-risk",
     "line-count-overweight-risk",
-    "github-only-signal-risk"
+    "github-only-signal-risk",
+    "issue-only-overcount-risk"
   ]
 }

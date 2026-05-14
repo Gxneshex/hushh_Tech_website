@@ -399,6 +399,61 @@ def fetch_issues(client: GitHubClient, org: str, login: str, start: date, end: d
     return issues
 
 
+def empty_code_day() -> dict[str, int]:
+    return {
+        "commits": 0,
+        "commit_lines": 0,
+        "commit_additions": 0,
+        "commit_deletions": 0,
+        "prs_created": 0,
+        "prs_merged": 0,
+        "issues": 0,
+    }
+
+
+def daily_code_activity(user_data: dict[str, Any], start: date, end: date) -> dict[str, dict[str, int]]:
+    daily = {day.isoformat(): empty_code_day() for day in daterange(start, end)}
+    for commit in user_data["commits"]:
+        commit_date = commit.get("date")
+        if not commit_date or commit.get("is_merge") or commit_date not in daily:
+            continue
+        daily[commit_date]["commits"] += 1
+        daily[commit_date]["commit_lines"] += commit["additions"] + commit["deletions"]
+        daily[commit_date]["commit_additions"] += commit["additions"]
+        daily[commit_date]["commit_deletions"] += commit["deletions"]
+
+    for pr in user_data["prs"]:
+        # A PR counts as code contribution only when it carries a code diff.
+        if pr["additions"] + pr["deletions"] <= 0:
+            continue
+        for key, field in (("created_date", "prs_created"), ("merged_date", "prs_merged")):
+            value = pr.get(key)
+            if value in daily:
+                daily[value][field] += 1
+
+    for issue in user_data["issues"]:
+        created = issue.get("created_date")
+        if created in daily:
+            daily[created]["issues"] += 1
+
+    for entry in daily.values():
+        entry["code_events"] = entry["commits"] + entry["prs_created"] + entry["prs_merged"]
+    return daily
+
+
+def compact_day_summary(entry: dict[str, int]) -> str:
+    parts = []
+    if entry["commits"]:
+        parts.append(f"{entry['commits']} commit{'s' if entry['commits'] != 1 else ''}")
+    if entry["prs_created"]:
+        parts.append(f"{entry['prs_created']} PR{'s' if entry['prs_created'] != 1 else ''} raised")
+    if entry["prs_merged"]:
+        parts.append(f"{entry['prs_merged']} PR{'s' if entry['prs_merged'] != 1 else ''} merged")
+    if entry["commit_lines"]:
+        parts.append(f"{entry['commit_lines']} lines")
+    return ", ".join(parts) if parts else "no code"
+
+
 def summarize_window(user_data: dict[str, Any], start: date, end: date) -> dict[str, Any]:
     start_s = start.isoformat()
     end_s = end.isoformat()
@@ -414,12 +469,20 @@ def summarize_window(user_data: dict[str, Any], start: date, end: date) -> dict[
     pr_merged = [pr for pr in prs if pr.get("merged_date") and start_s <= pr["merged_date"] <= end_s]
     pr_line_set = {(pr["repo"], pr["number"]): pr for pr in pr_created + pr_merged}.values()
     issues = [issue for issue in user_data["issues"] if issue.get("created_date") and start_s <= issue["created_date"] <= end_s]
-    daily_map = {entry["date"]: entry["count"] for entry in user_data["contrib"]["daily"]}
+    github_daily_map = {entry["date"]: entry["count"] for entry in user_data["contrib"]["daily"]}
+    code_daily = daily_code_activity(user_data, start, end)
     days = list(daterange(start, end))
     weekdays = [day for day in days if day.weekday() < 5]
-    active_weekdays = [day for day in weekdays if daily_map.get(day.isoformat(), 0) > 0]
-    missed_weekdays = [day for day in weekdays if daily_map.get(day.isoformat(), 0) == 0]
-    active_days = [day for day in days if daily_map.get(day.isoformat(), 0) > 0]
+    weekend_days = [day for day in days if day.weekday() >= 5]
+    active_weekdays = [day for day in weekdays if code_daily[day.isoformat()]["code_events"] > 0]
+    missed_weekdays = [day for day in weekdays if code_daily[day.isoformat()]["code_events"] == 0]
+    active_days = [day for day in days if code_daily[day.isoformat()]["code_events"] > 0]
+    weekend_code_days = [day for day in weekend_days if code_daily[day.isoformat()]["code_events"] > 0]
+    issue_only_days = [
+        day
+        for day in days
+        if code_daily[day.isoformat()]["code_events"] == 0 and code_daily[day.isoformat()]["issues"] > 0
+    ]
 
     repo_lines: Counter[str] = Counter()
     repo_commits: Counter[str] = Counter()
@@ -430,11 +493,21 @@ def summarize_window(user_data: dict[str, Any], start: date, end: date) -> dict[
     return {
         "start": start_s,
         "end": end_s,
-        "github_contributions": sum(daily_map.get(day.isoformat(), 0) for day in days),
+        "official_github_activity_events": sum(github_daily_map.get(day.isoformat(), 0) for day in days),
+        "code_activity_events": sum(code_daily[day.isoformat()]["code_events"] for day in days),
         "active_days": len(active_days),
         "active_weekdays": len(active_weekdays),
         "missed_weekdays": [day.isoformat() for day in missed_weekdays],
         "missed_weekday_count": len(missed_weekdays),
+        "weekend_code_days": [day.isoformat() for day in weekend_code_days],
+        "weekend_code_day_count": len(weekend_code_days),
+        "weekend_code_events": sum(code_daily[day.isoformat()]["code_events"] for day in weekend_code_days),
+        "weekend_code_summaries": [
+            {"date": day.isoformat(), "summary": compact_day_summary(code_daily[day.isoformat()])}
+            for day in weekend_code_days
+        ],
+        "issue_only_days": [day.isoformat() for day in issue_only_days],
+        "issue_only_day_count": len(issue_only_days),
         "authored_commits": len(commits),
         "non_merge_commits": len(non_merge),
         "merge_commits": len(merge),
@@ -456,6 +529,7 @@ def summarize_window(user_data: dict[str, Any], start: date, end: date) -> dict[
         "recent_prs": prs[:8],
         "recent_commits": commits[:8],
         "recent_issues": issues[:5],
+        "daily_code": code_daily,
     }
 
 
@@ -490,7 +564,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
                 for repo in repos
                 if parse_dt(repo.get("pushed_at")) and parse_dt(repo.get("pushed_at")).date() >= report_start
             ),
-            "note": "GitHub-only signal. Weekday absence scoring uses Monday-Friday only; Saturday/Sunday are neutral.",
+            "note": "Code contribution signal only. Weekday scoring uses authored non-merge commits and authored PR created/merged days; issues are issue-only planning signal.",
         },
         "users": {},
     }
@@ -564,16 +638,39 @@ def render_pdf(report: dict[str, Any], out_dir: Path) -> Path:
         current = parse_day(value) if isinstance(value, str) else value
         return f"{month_names[current.month - 1]} {current.day:02d} ({day_names[current.weekday()]})"
 
+    def format_days(values: list[str], limit: int = 7) -> str:
+        labels = [day_label(value) for value in values[:limit]]
+        if len(values) > limit:
+            labels.append(f"+{len(values) - limit} more")
+        return ", ".join(labels)
+
+    def weekend_note(window: dict[str, Any]) -> str:
+        if not window["weekend_code_days"]:
+            return "No weekend code activity in this window."
+        summaries = [
+            f"{day_label(item['date'])}: {item['summary']}"
+            for item in window["weekend_code_summaries"][:4]
+        ]
+        if len(window["weekend_code_summaries"]) > 4:
+            summaries.append(f"+{len(window['weekend_code_summaries']) - 4} more weekend day(s)")
+        return "Weekend code activity captured: " + "; ".join(summaries) + "."
+
     def alert_for(window: dict[str, Any]) -> str:
         if window["non_merge_commits"] == 0 and window["prs_created"] == 0 and window["missed_weekday_count"] >= 5:
-            return "RED ALERT: issue-only or no-execution signal; no authored commits or PRs and most weekdays missed."
+            return (
+                "RED ALERT: issue-only or no-execution signal; no authored commits or PRs and most weekdays missed. "
+                + weekend_note(window)
+            )
         if window["non_merge_commits"] == 0 and window["missed_weekday_count"] >= 5:
-            return "RED ALERT: no non-merge authored code churn and heavy weekday absence."
+            return "RED ALERT: no non-merge authored code churn and heavy weekday absence. " + weekend_note(window)
         if window["missed_weekday_count"]:
-            missed = ", ".join(day_label(day) for day in window["missed_weekdays"][:7])
-            suffix = f" +{len(window['missed_weekdays']) - 7} more" if len(window["missed_weekdays"]) > 7 else ""
-            return f"Watch: missed {window['missed_weekday_count']} weekday(s): {missed}{suffix}."
-        return "No weekday GitHub absence in this window."
+            return (
+                f"Watch: missed {window['missed_weekday_count']} weekday(s): {format_days(window['missed_weekdays'])}. "
+                + weekend_note(window)
+            )
+        if window["weekend_code_days"]:
+            return "No weekday code absence in this window. " + weekend_note(window)
+        return "No weekday code absence in this window."
 
     def metric_table(items: list[tuple[str, str]]) -> Table:
         table = Table(
@@ -586,7 +683,7 @@ def render_pdf(report: dict[str, Any], out_dir: Path) -> Path:
 
     users = list(report["users"].values())
     month_windows = [user["windows"]["last_one_month"] for user in users]
-    team_contrib = sum(window["github_contributions"] for window in month_windows)
+    team_code_events = sum(window["code_activity_events"] for window in month_windows)
     team_lines = sum(window["commit_lines_changed"] for window in month_windows)
     team_pr_created = sum(window["prs_created"] for window in month_windows)
     team_pr_merged = sum(window["prs_merged"] for window in month_windows)
@@ -605,7 +702,7 @@ def render_pdf(report: dict[str, Any], out_dir: Path) -> Path:
     story.append(
         metric_table(
             [
-                (fmt(team_contrib), "GitHub contributions"),
+                (fmt(team_code_events), "code activity events"),
                 (fmt(team_lines), "non-merge commit lines"),
                 (f"{fmt(team_pr_created)} / {fmt(team_pr_merged)}", "PRs created / merged"),
                 (fmt(team_reviews), "PR reviews"),
@@ -614,12 +711,12 @@ def render_pdf(report: dict[str, Any], out_dir: Path) -> Path:
     )
     story.append(Spacer(1, 14))
     story.append(Paragraph("Executive Signal", styles["H1X"]))
-    top = sorted(users, key=lambda user: user["windows"]["last_one_month"]["github_contributions"], reverse=True)
+    top = sorted(users, key=lambda user: user["windows"]["last_one_month"]["code_activity_events"], reverse=True)
     low = sorted(users, key=lambda user: (user["windows"]["last_10_days"]["non_merge_commits"], user["windows"]["last_10_days"]["prs_created"], -user["windows"]["last_10_days"]["missed_weekday_count"]))[0]
     story.append(
         Paragraph(
-            f"{esc(top[0]['name'])} and {esc(top[1]['name']) if len(top) > 1 else 'the next contributor'} carry most of the visible GitHub execution in this window. "
-            "Use line churn as one input only; compare it with PRs, reviews, issues, merged work, and active weekdays.",
+            f"{esc(top[0]['name'])} and {esc(top[1]['name']) if len(top) > 1 else 'the next contributor'} carry most of the visible code contribution in this window. "
+            "Code contribution is counted from authored non-merge commits and authored PR activity; issue-only Kanban work is shown separately and does not satisfy a workday.",
             styles["BodyX"],
         )
     )
@@ -627,7 +724,7 @@ def render_pdf(report: dict[str, Any], out_dir: Path) -> Path:
     story.append(
         Paragraph(
             f"<font color=\"#C00000\"><b>Red alert: {esc(low['name'])} has the weakest recent implementation signal. "
-            f"Last 10 days: {fmt(low_10['github_contributions'])} GitHub contributions, {fmt(low_10['authored_commits'])} authored commits, "
+            f"Last 10 days: {fmt(low_10['code_activity_events'])} code activity events, {fmt(low_10['authored_commits'])} authored commits, "
             f"{fmt(low_10['prs_created'])} PRs created, and {fmt(low_10['missed_weekday_count'])} missed weekdays.</b></font>",
             styles["BodyX"],
         )
@@ -640,7 +737,7 @@ def render_pdf(report: dict[str, Any], out_dir: Path) -> Path:
         story.append(Paragraph(title, styles["H1X"]))
         story.append(
             Paragraph(
-                f"Window: {day_label(first_window['start'])} - {day_label(first_window['end'])}. Weekday absence scoring uses Monday-Friday only.",
+                f"Window: {day_label(first_window['start'])} - {day_label(first_window['end'])}. Weekday absence scoring uses code activity only; weekend code is captured separately.",
                 styles["BodyX"],
             )
         )
@@ -657,8 +754,8 @@ def render_pdf(report: dict[str, Any], out_dir: Path) -> Path:
             story.append(Paragraph(f"<b>{esc(user['name'])} (@{esc(user['login'])})</b>", styles["H2X"]))
             story.append(
                 Paragraph(
-                    f"GitHub contributions: <b>{fmt(window['github_contributions'])}</b>. Active weekdays: <b>{window['active_weekdays']}/{expected}</b>. "
-                    f"Missed weekdays: <b>{window['missed_weekday_count']}</b>.",
+                    f"Code activity events: <b>{fmt(window['code_activity_events'])}</b>. Active weekdays: <b>{window['active_weekdays']}/{expected}</b>. "
+                    f"Missed weekdays: <b>{window['missed_weekday_count']}</b>. Weekend code days: <b>{window['weekend_code_day_count']}</b>.",
                     styles["BodyX"],
                 )
             )
@@ -673,28 +770,42 @@ def render_pdf(report: dict[str, Any], out_dir: Path) -> Path:
             story.append(
                 Paragraph(
                     f"PRs: <b>{fmt(window['prs_created'])}</b> created, <b>{fmt(window['prs_merged'])}</b> merged, <b>{fmt(window['prs_open'])}</b> open. "
-                    f"PR diff churn: <b>+{fmt(window['pr_additions'])} / -{fmt(window['pr_deletions'])}</b> ({fmt(pr_lines)} lines). Issues: <b>{fmt(window['issues_created'])}</b>.",
+                    f"PR diff churn: <b>+{fmt(window['pr_additions'])} / -{fmt(window['pr_deletions'])}</b> ({fmt(pr_lines)} lines). "
+                    f"Issue-only planning items: <b>{fmt(window['issues_created'])}</b> across <b>{fmt(window['issue_only_day_count'])}</b> issue-only day(s).",
                     styles["BodyX"],
                 )
             )
             story.append(Paragraph(f"Top repos: {esc(repos)}.", styles["BodyX"]))
+            if window["weekend_code_days"]:
+                story.append(Paragraph(esc(weekend_note(window)), styles["BodyX"]))
+            if window["issue_only_days"]:
+                story.append(Paragraph(f"Issue-only days do not count as contribution: {esc(format_days(window['issue_only_days']))}.", styles["BodyX"]))
             story.append(Paragraph(f"<font color=\"#C00000\"><b>{esc(alert)}</b></font>" if alert.startswith("RED ALERT") or alert.startswith("Watch") else esc(alert), styles["BodyX"]))
         story.append(PageBreak())
 
     story.append(Paragraph("Segment 4. Complete Activity Sheet", styles["H1X"]))
-    story.append(Paragraph("Monday-Friday misses are red. Saturday and Sunday are neutral off-calendar days.", styles["BodyX"]))
+    story.append(Paragraph("Monday-Friday misses are red only when there is no code activity. Weekend code activity is marked clearly; issue-only days do not count as contribution.", styles["BodyX"]))
     start = parse_day(report["scope"]["report_start"])
     end = parse_day(report["scope"]["report_end"])
-    daily = {user["login"]: {entry["date"]: entry["count"] for entry in user["contrib"]["daily"]} for user in users}
+    daily = {user["login"]: daily_code_activity(user, start, end) for user in users}
     rows = [[Paragraph("Date", styles["CellHeadX"]), Paragraph("Day", styles["CellHeadX"])] + [Paragraph(user["name"].split()[0], styles["CellHeadX"]) for user in users]]
     for current in daterange(start, end):
         row = [Paragraph(day_label(current), styles["CellX"]), Paragraph(day_names[current.weekday()], styles["CellX"])]
         for user in users:
-            count = daily[user["login"]].get(current.isoformat(), 0)
+            entry = daily[user["login"]][current.isoformat()]
+            count = entry["code_events"]
+            detail = compact_day_summary(entry)
             if current.weekday() >= 5:
-                row.append(Paragraph(f"Off + {count}" if count else "Off", styles["CellX"]))
+                if count:
+                    row.append(Paragraph(f"Weekend code {count}: {esc(detail)}", styles["CellX"]))
+                elif entry["issues"]:
+                    row.append(Paragraph(f"Weekend issue-only {entry['issues']}", styles["CellX"]))
+                else:
+                    row.append(Paragraph("Weekend", styles["CellX"]))
             elif count:
-                row.append(Paragraph(f"Active {count}", styles["CellX"]))
+                row.append(Paragraph(f"Code {count}: {esc(detail)}", styles["CellX"]))
+            elif entry["issues"]:
+                row.append(Paragraph(f"MISS; issue-only {entry['issues']}", styles["CellRedX"]))
             else:
                 row.append(Paragraph("MISS", styles["CellRedX"]))
         rows.append(row)
@@ -724,8 +835,9 @@ def render_pdf(report: dict[str, Any], out_dir: Path) -> Path:
         story.append(Spacer(1, 4))
     story.append(Paragraph("Methodology", styles["H1X"]))
     story.append(Paragraph(f"Source: GitHub REST and GraphQL APIs for organization {esc(report['scope']['org'])}. Visible repos in scope: {fmt(report['scope']['visible_repositories'])}; repos with pushes since {esc(report['scope']['report_start'])}: {fmt(report['scope']['active_repositories_since_start'])}.", styles["BodyX"]))
-    story.append(Paragraph("GitHub contributions are official organization-scoped contribution calendar counts. Authored commit churn excludes merge commits. PR diff churn includes authored PRs created or merged in the window.", styles["BodyX"]))
-    story.append(Paragraph("<font color=\"#C00000\"><b>Red missing marks mean no GitHub contribution was recorded on an expected Monday-Friday workday. This is not proof that no non-GitHub work happened.</b></font>", styles["BodyX"]))
+    story.append(Paragraph("Code contribution is counted from authored non-merge commits plus authored PRs created or merged in the window when those PRs carry a diff. Issue-only Kanban activity is reported separately and never satisfies a missed workday.", styles["BodyX"]))
+    story.append(Paragraph("Authored commit churn excludes merge commits. PR diff churn includes authored PRs created or merged in the window. Deployments and GCP operations are not counted unless they appear as authored code commits or PRs in GitHub.", styles["BodyX"]))
+    story.append(Paragraph("<font color=\"#C00000\"><b>Red missing marks mean no code contribution was recorded on an expected Monday-Friday workday. Weekend code activity is shown next to the miss context when present.</b></font>", styles["BodyX"]))
 
     def footer(canvas: Any, doc: Any) -> None:
         canvas.saveState()
