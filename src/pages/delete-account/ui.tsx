@@ -16,6 +16,16 @@ import { DELETE_ACCOUNT_ACCORDION_SECTIONS } from "./content";
 /* ── Playfair heading style ── */
 const playfair = { fontFamily: "'Playfair Display', serif" };
 
+const accordionTriggerClass =
+  "group w-full py-5 border-b border-gray-200 flex items-center justify-between cursor-pointer hover:bg-gray-50/50 transition-colors -mx-2 px-2 rounded-sm focus:outline-none focus-visible:shadow-[0_0_0_3px_rgba(0,169,224,0.45)]";
+
+function accordionIds(sectionId: string) {
+  return {
+    triggerId: `delete-account-accordion-trigger-${sectionId}`,
+    panelId: `delete-account-accordion-panel-${sectionId}`,
+  };
+}
+
 const DeleteAccountPage: React.FC = () => {
   const {
     isOpen,
@@ -57,7 +67,10 @@ const DeleteAccountPage: React.FC = () => {
           {/* ═══ Common Header ═══ */}
           <HushhTechHeader />
 
-          <main className="flex-1 px-6 pt-8 pb-12 flex flex-col max-w-lg mx-auto w-full">
+          <main
+            id="main-content"
+            className="flex-1 px-6 pt-8 pb-12 flex flex-col max-w-lg mx-auto w-full"
+          >
             {/* ── Title Section ── */}
             <div className="mb-12">
               <h1
@@ -112,16 +125,18 @@ const DeleteAccountPage: React.FC = () => {
             <div className="space-y-0">
               {DELETE_ACCOUNT_ACCORDION_SECTIONS.map((section) => {
                 const isExpanded = expandedId === section.id;
+                const { triggerId, panelId } = accordionIds(section.id);
 
                 return (
                   <div key={section.id}>
                     {/* Row trigger */}
                     <button
                       type="button"
+                      id={triggerId}
                       onClick={() => handleToggle(section.id)}
-                      className="group w-full py-5 border-b border-gray-200 flex items-center justify-between cursor-pointer hover:bg-gray-50/50 transition-colors -mx-2 px-2"
+                      className={accordionTriggerClass}
                       aria-expanded={isExpanded}
-                      aria-controls={`accordion-${section.id}`}
+                      aria-controls={panelId}
                     >
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-white group-hover:border-gray-200 border border-transparent transition-all shrink-0">
@@ -131,6 +146,7 @@ const DeleteAccountPage: React.FC = () => {
                               fontVariationSettings:
                                 "'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24",
                             }}
+                            aria-hidden
                           >
                             {section.icon}
                           </span>
@@ -148,6 +164,7 @@ const DeleteAccountPage: React.FC = () => {
                         className={`material-symbols-outlined text-gray-400 text-xl transition-transform duration-300 ${
                           isExpanded ? "rotate-90" : ""
                         }`}
+                        aria-hidden
                       >
                         arrow_forward
                       </span>
@@ -155,7 +172,10 @@ const DeleteAccountPage: React.FC = () => {
 
                     {/* Expandable content */}
                     <div
-                      id={`accordion-${section.id}`}
+                      id={panelId}
+                      role="region"
+                      aria-labelledby={triggerId}
+                      aria-hidden={!isExpanded}
                       className={`overflow-hidden transition-all duration-300 ease-in-out ${
                         isExpanded
                           ? "max-h-[500px] opacity-100"
@@ -194,6 +214,7 @@ const DeleteAccountPage: React.FC = () => {
                   fontVariationSettings:
                     "'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24",
                 }}
+                aria-hidden
               >
                 lock
               </span>
