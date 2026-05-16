@@ -44,4 +44,28 @@ describe("Benefits feature rows", () => {
       expect(icon?.getAttribute("class")).toContain("shrink-0");
     });
   });
+
+  it("uses a responsive card grid with roomier feature-row spacing", async () => {
+    await act(async () => {
+      root.render(React.createElement(BenefitsPage));
+    });
+
+    const cardGrid = container.querySelector('[data-testid="benefits-card-grid"]');
+    const featureLists = Array.from(container.querySelectorAll("ul"));
+    const ctaCard = Array.from(container.querySelectorAll("section")).at(-1);
+
+    expect(cardGrid?.className).toContain("grid");
+    expect(cardGrid?.className).toContain("gap-4");
+    expect(cardGrid?.className).toContain("sm:gap-5");
+    expect(cardGrid?.className).toContain("lg:grid-cols-2");
+    expect(cardGrid?.className).toContain("lg:gap-6");
+    expect(cardGrid?.className).toContain("xl:gap-8");
+    expect(ctaCard?.className).toContain("lg:col-span-2");
+
+    featureLists.forEach((list) => {
+      expect(list.className).toContain("gap-y-3");
+      expect(list.className).toContain("sm:gap-y-3.5");
+      expect(list.className).toContain("md:gap-y-4");
+    });
+  });
 });
