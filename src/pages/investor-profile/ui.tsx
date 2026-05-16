@@ -49,7 +49,7 @@ function InvestorProfilePage() {
     return (
       <Container maxW="container.xl" py={{ base: 12, md: 20 }}>
         <Center>
-          <VStack spacing={4}>
+          <VStack spacing={4} role="status" aria-live="polite">
             <Spinner size="xl" color="blue.500" />
             <Text>Loading your profile...</Text>
           </VStack>
@@ -216,7 +216,7 @@ function InvestorProfilePage() {
                 </Text>
               )}
               {!googleWalletSupported && (
-                <Text mt={3} fontSize="xs" color="gray.500" textAlign="center">
+                <Text mt={!appleWalletSupported ? 1 : 3} fontSize="xs" color="gray.500" textAlign="center">
                   {googleWalletSupportMessage}
                 </Text>
               )}
@@ -246,7 +246,7 @@ function InvestorProfilePage() {
     return (
       <Container maxW="container.xl" py={{ base: 12, md: 20 }}>
         <Center>
-          <VStack spacing={4}>
+          <VStack spacing={4} role="alert" aria-live="assertive">
             <Text fontSize="xl" fontWeight="500" color="red.500">
               Error
             </Text>
