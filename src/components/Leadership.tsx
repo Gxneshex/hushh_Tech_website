@@ -1,8 +1,7 @@
-import React from "react";
+import { Link } from "react-router-dom";
 import img from "../../files/img.png";
 import img2 from "../../files/img (1).png";
-import { Box, Container, Heading, Text, SimpleGrid, Flex, Image, VStack, HStack, Icon } from "@chakra-ui/react";
-import { FaCheckCircle } from "react-icons/fa";
+import { Box, Container, Heading, Text, SimpleGrid, Flex, Image } from "@chakra-ui/react";
 
 export default function Leadership() {
   return (
@@ -260,7 +259,7 @@ export default function Leadership() {
               className="bg-white p-12 rounded-2xl border border-gray-100 hover:shadow-sm transition-all duration-300"
             >
               <Flex className="flex items-start gap-6">
-                <Box className="text-4xl mt-2">
+                <Box className="text-4xl mt-2" role="img" aria-label="Money bag">
                   💰
                 </Box>
                 <Box className="flex-1">
@@ -283,7 +282,7 @@ export default function Leadership() {
               className="bg-white p-12 rounded-2xl border border-gray-100 hover:shadow-sm transition-all duration-300"
             >
               <Flex className="flex items-start gap-6">
-                <Box className="text-4xl mt-2">
+                <Box className="text-4xl mt-2" role="img" aria-label="Office building">
                   🏢
                 </Box>
                 <Box className="flex-1">
@@ -306,7 +305,7 @@ export default function Leadership() {
               className="bg-white p-12 rounded-2xl border border-gray-100 hover:shadow-sm transition-all duration-300"
             >
               <Flex className="flex items-start gap-6">
-                <Box className="text-4xl mt-2">
+                <Box className="text-4xl mt-2" role="img" aria-label="Lightning bolt">
                   ⚡
                 </Box>
                 <Box className="flex-1">
@@ -329,7 +328,7 @@ export default function Leadership() {
               className="bg-white p-12 rounded-2xl border border-gray-100 hover:shadow-sm transition-all duration-300"
             >
               <Flex className="flex items-start gap-6">
-                <Box className="text-4xl mt-2">
+                <Box className="text-4xl mt-2" role="img" aria-label="Glowing star">
                   🌟
                 </Box>
                 <Box className="flex-1">
@@ -352,7 +351,7 @@ export default function Leadership() {
               className="bg-white p-12 rounded-2xl border border-gray-100 hover:shadow-sm transition-all duration-300"
             >
               <Flex className="flex items-start gap-6">
-                <Box className="text-4xl mt-2">
+                <Box className="text-4xl mt-2" role="img" aria-label="Chart increasing">
                   📈
                 </Box>
                 <Box className="flex-1">
@@ -394,32 +393,31 @@ export default function Leadership() {
             // mx="auto"
           >
             <Box 
-              as="button"
+              as={Link}
+              to="/contact"
               background={'linear-gradient(to right, #00A9E0, #6DD3EF)'}
               color="white"
               
               borderRadius="full"
-              onClick={() => window.location.href = "/contact"}
               fontWeight="medium"
               px={{md:16,base:4}}
               py={2}
-              className="bg-[#0891B2] hover:bg-[#4BC0C8]"
+              className="bg-[#0891B2] hover:bg-[#4BC0C8] inline-block"
             >
               Contact Us
             </Box>
             
             <Box 
-              as="button"
+              as={Link}
+              to="/signUp"
               bg="transparent"
               color="#0891B2"
               py={2}
-              onClick={() => window.location.href = "/signUp"}
               px={{md:16,base:4}}
               borderRadius="full"
               fontWeight="medium"
               border="1px solid #0891B2"
-              // _hover={{ bg: "rgba(255,255,255,0.1)" }}
-              // w={{ base: "full", sm: "auto" }}
+              className="inline-block"
             >
               Sign Up Now
             </Box>
