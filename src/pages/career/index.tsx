@@ -18,9 +18,16 @@ import {
 } from "@chakra-ui/react";
 import { MapPin, Clock, ChevronRight, Rocket, DollarSign, Star } from "lucide-react";
 
+const jobCardFocusVisible = {
+  _focusVisible: {
+    outline: "none",
+    boxShadow: "0 0 0 3px rgba(0, 169, 224, 0.45)",
+  },
+};
+
 const CareerList = () => {
   return (
-    <Container maxW="container.xl" px={{ base: 4, md: 6 }}>
+    <Container as="main" id="main-content" maxW="container.xl" px={{ base: 4, md: 6 }}>
       {/* Main Header */}
       <Box 
         textAlign="center" 
@@ -28,7 +35,8 @@ const CareerList = () => {
         flexDirection="column"
         justifyContent="center" 
         alignItems="center" 
-        minHeight="90vh"
+        minHeight={{ base: "auto", md: "90vh" }}
+        py={{ base: 10, md: 0 }}
         my={0}
         bg="rgb(255 255 255 / var(--tw-bg-opacity, 1))"
       >
@@ -118,6 +126,8 @@ const CareerList = () => {
                   }}
                   transition="all 0.2s"
                   className="job-card"
+                  borderRadius="lg"
+                  {...jobCardFocusVisible}
                 >
                   <Flex justify="space-between" align="center">
                     <Box>
@@ -140,7 +150,7 @@ const CareerList = () => {
                         </HStack>
                       </HStack>
                     </Box>
-                    <Icon as={ChevronRight} color="gray.400" boxSize={6} />
+                    <Icon as={ChevronRight} color="gray.400" boxSize={6} aria-hidden />
                   </Flex>
                 </Box>
               ))}
@@ -171,7 +181,7 @@ const CareerList = () => {
               alignItems="center" 
               mb={5}
             >
-              <Icon as={Rocket} boxSize={12} color="#FF7171" />
+              <Icon as={Rocket} boxSize={12} color="#FF7171" aria-hidden />
             </Flex>
             <Heading 
               as="h3" 
@@ -198,7 +208,7 @@ const CareerList = () => {
               alignItems="center" 
               mb={5}
             >
-              <Icon as={DollarSign} boxSize={12} color="#F8B76B" />
+              <Icon as={DollarSign} boxSize={12} color="#F8B76B" aria-hidden />
             </Flex>
             <Heading 
               as="h3" 
@@ -225,7 +235,7 @@ const CareerList = () => {
               alignItems="center" 
               mb={5}
             >
-              <Icon as={Star} boxSize={12} color="#F8ED62" />
+              <Icon as={Star} boxSize={12} color="#F8ED62" aria-hidden />
             </Flex>
             <Heading 
               as="h3" 
@@ -263,6 +273,7 @@ const CareerList = () => {
           boxShadow="md"
           height="auto"
           className="benefits-button"
+          {...jobCardFocusVisible}
         >
           View Full Benefits Package
         </Button>
