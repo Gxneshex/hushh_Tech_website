@@ -29,9 +29,10 @@ class ErrorBoundary extends Component<Props, State> {
     if (this.state.hasError) {
       return this.props.fallback || (
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <div className="text-center p-8 max-w-md">
+          <div className="text-center p-8 max-w-md" role="alert">
             <div className="mb-6">
               <svg
+                aria-hidden="true"
                 className="mx-auto h-16 w-16 text-red-500"
                 fill="none"
                 viewBox="0 0 24 24"
@@ -63,8 +64,9 @@ class ErrorBoundary extends Component<Props, State> {
               </details>
             )}
             <button
+              type="button"
               onClick={() => window.location.reload()}
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2"
             >
               Refresh Page
             </button>
