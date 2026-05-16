@@ -61,14 +61,6 @@ export default function FloatingContactBubble() {
         outline="none"
         onClick={handleClick}
         aria-label="Contact us via email"
-        role="button"
-        tabIndex={0}
-        onKeyDown={(e: React.KeyboardEvent) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            handleClick();
-          }
-        }}
         _hover={{
           bg: '#2579d4',
         }}
@@ -89,13 +81,14 @@ export default function FloatingContactBubble() {
         transition={{
           duration: 0.2,
           ease: 'easeInOut',
-        } as any}
+        }}
       >
         {/* Mail Icon */}
         <Icon 
           as={Mail} 
           boxSize={{ base: '24px', md: '24px' }}
           strokeWidth={2}
+          aria-hidden="true"
         />
       </MotionBox>
     </Tooltip>
