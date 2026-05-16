@@ -28,13 +28,22 @@ vi.mock("../src/pages/discover-fund-a/logic", () => ({
     targetIRRPeriod: "Annually",
     targetIRRDisclaimer: "Disclaimer",
     philosophySectionTitle: "Investment Philosophy",
-    philosophyCards: [{ title: "Risk-First Architecture", description: "Risk" }],
+    philosophyCards: [
+      { title: "Risk-First Architecture", description: "Risk" },
+      { title: "AI-Enhanced Research", description: "Research" },
+    ],
     edgeSectionTitle: "Our Edge",
     sellTheWallHref: "/sell-the-wall",
-    edgeCards: [{ title: "Downside Protection", description: "Protection" }],
+    edgeCards: [
+      { title: "Downside Protection", description: "Protection" },
+      { title: "Income Generation", description: "Income" },
+    ],
     assetFocusSectionTitle: "Asset Focus",
     assetFocusDescription: "Assets",
-    assetPillars: [{ title: "Cash & Equivalents", description: "Cash" }],
+    assetPillars: [
+      { title: "Cash & Equivalents", description: "Cash" },
+      { title: "Strategic Options Overlay", description: "Options" },
+    ],
     alphaStackSectionTitle: "Alpha Stack",
     alphaStackSubtitle: "Breakdown",
     alphaStackRows: [
@@ -42,7 +51,10 @@ vi.mock("../src/pages/discover-fund-a/logic", () => ({
       { label: "Target Net IRR", value: "18-23%", isTotalRow: true },
     ],
     riskSectionTitle: "Risk Management",
-    riskCards: [{ title: "Hedging Framework", description: "Hedge" }],
+    riskCards: [
+      { title: "Hedging Framework", description: "Hedge" },
+      { title: "Liquidity Management", description: "Liquidity" },
+    ],
     keyTermsSectionTitle: "Key Terms",
     keyTermsSubtitle: "Terms",
     keyTerms: [{ title: "Liquidity", content: "Quarterly" }],
@@ -92,6 +104,13 @@ vi.mock("../src/components/hushh-tech-footer/HushhTechFooter", () => ({
 
 import FundA from "../src/pages/discover-fund-a/ui";
 
+const expectClassTokens = (element: Element | null | undefined, tokens: string[]) => {
+  expect(element).toBeTruthy();
+  tokens.forEach((token) => {
+    expect(element?.classList.contains(token)).toBe(true);
+  });
+};
+
 describe("FundA footer shell", () => {
   let container: HTMLDivElement;
   let root: Root;
@@ -121,7 +140,7 @@ describe("FundA footer shell", () => {
     const footer = container.querySelector('[data-testid="fund-a-footer"]');
 
     expect(footer?.getAttribute("data-active-tab")).toBe("fund-a");
-    expect(footer?.parentElement?.className).toContain("lg:hidden");
+    expectClassTokens(footer?.parentElement, ["lg:hidden"]);
   });
 
   it("marks feature card icons as decorative", async () => {
@@ -136,6 +155,30 @@ describe("FundA footer shell", () => {
     expect(featureIcons.length).toBeGreaterThan(0);
     featureIcons.forEach((icon) => {
       expect(icon.getAttribute("aria-hidden")).toBe("true");
+    });
+  });
+
+  it("keeps feature comparison cards comfortably spaced across breakpoints", async () => {
+    await act(async () => {
+      root.render(React.createElement(FundA));
+    });
+
+    const mobileCards = Array.from(
+      container.querySelectorAll('[data-testid="feature-comparison-card"]'),
+    );
+    const desktopTiles = Array.from(
+      container.querySelectorAll('[data-testid="feature-comparison-tile"]'),
+    );
+
+    expect(mobileCards).toHaveLength(8);
+    expect(desktopTiles).toHaveLength(8);
+
+    mobileCards.forEach((card) => {
+      expectClassTokens(card, ["gap-3", "p-4", "sm:gap-4", "sm:p-5"]);
+    });
+
+    desktopTiles.forEach((tile) => {
+      expectClassTokens(tile, ["gap-3", "p-4", "xl:p-5"]);
     });
   });
 
@@ -159,13 +202,11 @@ describe("FundA footer shell", () => {
     expect(pricingMetrics).toHaveLength(pricingCards.length);
 
     pricingHeaders.forEach((pricingHeader) => {
-      expect(pricingHeader.className).toContain("flex-col");
-      expect(pricingHeader.className).toContain("sm:flex-row");
+      expectClassTokens(pricingHeader, ["flex-col", "sm:flex-row"]);
     });
 
     pricingMetrics.forEach((pricingMetricGroup) => {
-      expect(pricingMetricGroup.className).toContain("grid-cols-1");
-      expect(pricingMetricGroup.className).toContain("sm:grid-cols-3");
+      expectClassTokens(pricingMetricGroup, ["grid-cols-1", "sm:grid-cols-3"]);
     });
   });
 });

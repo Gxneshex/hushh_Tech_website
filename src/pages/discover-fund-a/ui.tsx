@@ -50,8 +50,11 @@ const FeatureCard = ({
   description: string;
   iconColor?: string;
 }) => (
-  <div className="group flex items-center gap-4 border border-gray-200 rounded-2xl p-5 hover:border-gray-300 hover:bg-gray-50/50 hover:shadow-sm transition-all">
-    <div className="w-11 h-11 rounded-full border border-gray-200 flex items-center justify-center shrink-0 bg-white group-hover:border-gray-300 transition-colors">
+  <div
+    data-testid="feature-comparison-card"
+    className="group flex items-start gap-3 border border-gray-200 rounded-2xl p-4 hover:border-gray-300 hover:bg-gray-50/50 hover:shadow-sm transition-all sm:gap-4 sm:p-5"
+  >
+    <div className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center shrink-0 bg-white group-hover:border-gray-300 transition-colors sm:w-11 sm:h-11">
       <span
         aria-hidden="true"
         data-testid="feature-card-icon"
@@ -83,7 +86,10 @@ const FeatureHighlightTile = ({
   description: string;
   iconColor?: string;
 }) => (
-  <div className="group flex flex-col items-center text-center gap-3 border border-gray-200/70 rounded-2xl p-5 bg-white hover:border-gray-300 hover:bg-gray-50/40 hover:shadow-sm transition-all">
+  <div
+    data-testid="feature-comparison-tile"
+    className="group flex flex-col items-center text-center gap-3 border border-gray-200/70 rounded-2xl p-4 bg-white hover:border-gray-300 hover:bg-gray-50/40 hover:shadow-sm transition-all xl:p-5"
+  >
     <div className="w-12 h-12 rounded-full border border-gray-200/70 flex items-center justify-center bg-gray-50 group-hover:bg-white group-hover:border-gray-300 transition-colors">
       <span
         aria-hidden="true"
