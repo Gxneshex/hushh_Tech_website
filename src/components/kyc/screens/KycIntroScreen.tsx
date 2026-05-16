@@ -14,7 +14,7 @@ import { KycIntroScreenProps } from '../../../types/kyc';
 
 // Icons
 const ShieldCheckIcon = () => (
-  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
     <path 
       d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" 
       stroke="url(#shield-gradient)" 
@@ -40,7 +40,7 @@ const ShieldCheckIcon = () => (
 );
 
 const CheckIcon = ({ color = '#22C55E' }: { color?: string }) => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
     <path 
       d="M20 6L9 17l-5-5" 
       stroke={color} 
