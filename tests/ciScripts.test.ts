@@ -149,6 +149,15 @@ describe("CI workflow scripts", () => {
     if (supabaseHelper.includes('from "ws"')) {
       expect(runtimePackage.dependencies).toHaveProperty("ws");
     }
+
+    const investorProfileRoute = fs.readFileSync(
+      path.join(repoRoot, "api/generate-investor-profile.js"),
+      "utf8"
+    );
+
+    if (investorProfileRoute.includes('from "@google/genai"')) {
+      expect(runtimePackage.dependencies).toHaveProperty("@google/genai");
+    }
   });
 
   it("accepts a conventional PR title and complete template metadata", () => {

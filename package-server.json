@@ -5,6 +5,7 @@
   "type": "module",
   "description": "Express server for GCP Cloud Run — serves SPA + API routes",
   "dependencies": {
+    "@google/genai": "^1.36.0",
     "@supabase/supabase-js": "^2.46.1",
     "express": "^4.21.0",
     "googleapis": "^164.1.0",
