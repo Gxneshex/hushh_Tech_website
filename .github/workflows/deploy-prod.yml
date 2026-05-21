@@ -154,7 +154,7 @@ jobs:
       - name: Deploy to Cloud Run
         shell: bash
         run: |
-          runtime_env="NODE_ENV=production"
+          runtime_env="NODE_ENV=production,COMMUNITY_CONTENT_BACKEND=gcp,COMMUNITY_CONTENT_COLLECTION=community_posts,COMMUNITY_CONTENT_BUCKET=hushh-tech-community-content-prod,COMMUNITY_CONTENT_CACHE_SECONDS=300"
           runtime_secrets="SUPABASE_URL=hushh-tech-supabase-url:latest"
           runtime_secrets+=",SUPABASE_SERVICE_ROLE_KEY=hushh-tech-supabase-service-role-key:latest"
           runtime_secrets+=",ANALYTICS_HASH_SALT=hushh-tech-analytics-hash-salt:latest"

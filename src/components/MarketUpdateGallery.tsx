@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useId } from 'react';
+import React, { useState, useEffect, useId, useMemo } from 'react';
 import { 
   Box, 
   Heading, 
@@ -16,7 +16,15 @@ import {
   Flex
 } from '@chakra-ui/react';
 import { ChevronLeftIcon, ChevronRightIcon, CloseIcon } from '@chakra-ui/icons';
-import { getSupabaseStoragePublicUrl } from '../services/runtime/mainWeb';
+
+const bundledMarketImages = import.meta.glob(
+  './images/market-updates/**/*.{png,jpg,jpeg}',
+  {
+    eager: true,
+    import: 'default',
+    query: '?url',
+  },
+) as Record<string, string>;
 
 interface MarketUpdateGalleryProps {
   date: string; // Format: 'dmu14mar' or 'DD/MM/YYYY'
@@ -41,9 +49,6 @@ const MarketUpdateGallery: React.FC<MarketUpdateGalleryProps> = ({
   const galleryHeadingId = useId();
   const modalTitleId = useId();
   
-  // Define the base URL for Supabase storage
-  const baseUrl = getSupabaseStoragePublicUrl('website');
-  
   // Format the folder path based on date format
   const formatFolderPath = (dateStr: string, isApiFormat: boolean): string => {
     if (isApiFormat && dateStr.match(/^\d{1,2}\/\d{1,2}\/\d{4}$/)) {
@@ -56,6 +61,16 @@ const MarketUpdateGallery: React.FC<MarketUpdateGalleryProps> = ({
   };
   
   const folderPath = formatFolderPath(date, apiDateFormat);
+  const bundledImagesForFolder = useMemo(
+    () =>
+      Object.entries(bundledMarketImages)
+        .filter(([path]) => path.includes(`/${folderPath}/`))
+        .map(([path, url]) => ({
+          name: path.split('/').pop() || path,
+          url,
+        })),
+    [folderPath],
+  );
   
   // Common image extensions to try
   const extensions = ['.png', '.jpg', '.jpeg'];
@@ -63,15 +78,14 @@ const MarketUpdateGallery: React.FC<MarketUpdateGalleryProps> = ({
   useEffect(() => {
     setIsLoading(true);
     
-    // Generate a comprehensive set of possible image URLs to try
-    const possibleImages = [];
+    const possibleImages = [...bundledImagesForFolder];
     
-    // Try numbers 1-20 with different extensions
-    for (let i = 1; i <= 20; i++) {
+    // Try the expected image count against the same-origin GCP asset API.
+    for (let i = 1; i <= imageCount; i++) {
       for (const ext of extensions) {
         possibleImages.push({
           name: `${i}${ext}`,
-          url: `${baseUrl}/${folderPath}/${i}${ext}`
+          url: `/api/community/assets/${folderPath}/${i}${ext}`
         });
       }
     }
@@ -101,15 +115,15 @@ const MarketUpdateGallery: React.FC<MarketUpdateGalleryProps> = ({
     Promise.all(imagePromises).then(() => {
       // Sort images numerically by name (1.png, 2.png, etc.)
       const sortedImages = loadedImages.sort((a, b) => {
-        const numA = parseInt(a.name.match(/^\d+/)?.[0] || '0', 10);
-        const numB = parseInt(b.name.match(/^\d+/)?.[0] || '0', 10);
+        const numA = parseInt(a.name.match(/\d+/)?.[0] || '0', 10);
+        const numB = parseInt(b.name.match(/\d+/)?.[0] || '0', 10);
         return numA - numB;
       });
       
       setImages(sortedImages);
       setIsLoading(false);
     });
-  }, [date, baseUrl, folderPath, apiDateFormat]);
+  }, [date, folderPath, apiDateFormat, bundledImagesForFolder, imageCount]);
 
   const handleImageLoad = (imageName: string) => {
     setImagesLoaded(prev => ({
@@ -118,7 +132,7 @@ const MarketUpdateGallery: React.FC<MarketUpdateGalleryProps> = ({
     }));
   };
 
-  const getChartLabel = (imageName: string) => imageName.match(/^\d+/)?.[0] || imageName;
+  const getChartLabel = (imageName: string) => imageName.match(/\d+/)?.[0] || imageName;
 
   const handleImageClick = (imageIndex: number) => {
     setSelectedImageIndex(imageIndex);
