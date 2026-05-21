@@ -158,8 +158,6 @@ jobs:
           runtime_secret_names=(
             hushh-tech-supabase-url
             hushh-tech-supabase-service-role-key
-            hushh-tech-gmail-user
-            hushh-tech-gmail-app-password
             hushh-tech-analytics-hash-salt
             hushh-tech-metrics-ga4-allowed-hostnames
             hushh-tech-metrics-gcp-monitoring-project-id
@@ -177,6 +175,27 @@ jobs:
               exit 1
             fi
           done
+
+          gmail_user_secret_present=0
+          gmail_password_secret_present=0
+          if gcloud secrets describe hushh-tech-gmail-user --project=hushh-tech-uat >/dev/null 2>&1; then
+            gmail_user_secret_present=1
+          fi
+          if gcloud secrets describe hushh-tech-gmail-app-password --project=hushh-tech-uat >/dev/null 2>&1; then
+            gmail_password_secret_present=1
+          fi
+
+          if [ "$gmail_user_secret_present" -ne "$gmail_password_secret_present" ]; then
+            echo "::error::UAT Gmail runtime secrets must be configured as a pair."
+            exit 1
+          fi
+
+          if [ "$gmail_user_secret_present" -eq 1 ]; then
+            printf 'GMAIL_RUNTIME_SECRETS_AVAILABLE=1\n' >> "$GITHUB_ENV"
+          else
+            printf 'GMAIL_RUNTIME_SECRETS_AVAILABLE=0\n' >> "$GITHUB_ENV"
+            echo "Optional UAT Gmail runtime secrets are not configured; preserving current Cloud Run behavior without Gmail env bindings."
+          fi
 
       # 3. Build Vite app in runner (FAST — no Docker needed)
       - name: Validate client auth env
@@ -206,8 +225,10 @@ jobs:
           runtime_env="NODE_ENV=staging,COMMUNITY_CONTENT_BACKEND=gcp,COMMUNITY_CONTENT_COLLECTION=community_posts,COMMUNITY_CONTENT_BUCKET=hushh-tech-community-content-uat,COMMUNITY_CONTENT_CACHE_SECONDS=300"
           runtime_secrets="SUPABASE_URL=hushh-tech-supabase-url:latest"
           runtime_secrets+=",SUPABASE_SERVICE_ROLE_KEY=hushh-tech-supabase-service-role-key:latest"
-          runtime_secrets+=",GMAIL_USER=hushh-tech-gmail-user:latest"
-          runtime_secrets+=",GMAIL_APP_PASSWORD=hushh-tech-gmail-app-password:latest"
+          if [ "${GMAIL_RUNTIME_SECRETS_AVAILABLE:-0}" = "1" ]; then
+            runtime_secrets+=",GMAIL_USER=hushh-tech-gmail-user:latest"
+            runtime_secrets+=",GMAIL_APP_PASSWORD=hushh-tech-gmail-app-password:latest"
+          fi
           runtime_secrets+=",ANALYTICS_HASH_SALT=hushh-tech-analytics-hash-salt:latest"
           runtime_secrets+=",GA4_ALLOWED_HOSTNAMES=hushh-tech-metrics-ga4-allowed-hostnames:latest"
           runtime_secrets+=",GCP_MONITORING_PROJECT_ID=hushh-tech-metrics-gcp-monitoring-project-id:latest"
