@@ -169,6 +169,7 @@ export interface PostData {
   image: string;
   accessLevel: string;
   pdfUrl?: string; // Optional PDF URL
+  mediaItems?: Array<string | { object?: string; assetObject?: string; url?: string; type?: "image" | "video"; alt?: string; name?: string }>;
 }
 
 export const posts: PostData[] = [

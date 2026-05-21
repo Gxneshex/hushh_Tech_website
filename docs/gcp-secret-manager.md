@@ -35,6 +35,8 @@ Use the same names in UAT and production wherever possible:
 ```text
 hushh-tech-supabase-url
 hushh-tech-supabase-service-role-key
+hushh-tech-gmail-user
+hushh-tech-gmail-app-password
 hushh-tech-analytics-hash-salt
 hushh-tech-metrics-ga4-allowed-hostnames
 hushh-tech-metrics-ga4-property-id
@@ -48,7 +50,7 @@ hushh-tech-metrics-search-console-site-url
 hushh-tech-metrics-search-console-type
 ```
 
-Build/deploy secrets such as Gemini, OpenAI, Gmail, or Apps Script should follow the same `hushh-tech-*` naming pattern before the Cloud Build configs are promoted.
+Build/deploy secrets such as Gemini, OpenAI, or Apps Script should follow the same `hushh-tech-*` naming pattern before the Cloud Build configs are promoted. Gmail notification credentials are already bound through `hushh-tech-gmail-user` and `hushh-tech-gmail-app-password`.
 
 ## UAT Migration
 
@@ -81,6 +83,17 @@ The audit checks:
 - the private community content bucket exists in each project,
 - sensitive Cloud Run env names use Secret Manager references,
 - community code has no Supabase reports or Vercel dependency references. Legacy Gamma presentation embeds are allowed only until their real deck assets are exported to GCS.
+
+## Contact Form Mail
+
+The public Contact page posts to the same-origin Cloud Run API and expects Gmail credentials from Secret Manager:
+
+```text
+GMAIL_USER=hushh-tech-gmail-user:latest
+GMAIL_APP_PASSWORD=hushh-tech-gmail-app-password:latest
+```
+
+For local Cloud Run deploys with `scripts/deploy-gcp.sh`, pass `GMAIL_USER_SECRET_NAME=hushh-tech-gmail-user` and `GMAIL_APP_PASSWORD_SECRET_NAME=hushh-tech-gmail-app-password` instead of plaintext Gmail values.
 
 ## Safety Rules
 

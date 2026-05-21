@@ -33,6 +33,26 @@ const componentField = (block) => {
   return stringField(block, "Component") || "";
 };
 
+const mediaItemsField = (block) => {
+  const match = block.match(/mediaItems:\s*\[([\s\S]*?)\]\s*,/);
+  if (!match) return undefined;
+
+  const values = [];
+  const stringRegex = /(['"`])([\s\S]*?)\1/g;
+  let stringMatch;
+  while ((stringMatch = stringRegex.exec(match[1]))) {
+    values.push(
+      stringMatch[2]
+        .replace(/\\'/g, "'")
+        .replace(/\\"/g, '"')
+        .replace(/\\n/g, "\n")
+        .trim(),
+    );
+  }
+
+  return values.length ? values : undefined;
+};
+
 const resolveComponentPath = (componentName) => {
   const importPath = importMap.get(componentName);
   if (!importPath) return "";
@@ -81,6 +101,7 @@ const posts = postBlocks
     const category = stringField(block, "category");
     const accessLevel = stringField(block, "accessLevel") || "Public";
     const pdfUrl = stringField(block, "pdfUrl");
+    const mediaItems = mediaItemsField(block);
     const componentName = componentField(block);
 
     if (!slug || !title || !publishedAt || !description || !category) {
@@ -96,6 +117,7 @@ const posts = postBlocks
       accessLevel,
       componentName,
       pdfUrl,
+      mediaItems,
     };
 
     return {

@@ -123,10 +123,12 @@
     ],
     "GMAIL_USER": [
       "api/send-email-notification.js",
+      "api/contact-notification.js",
       "api/metrics/send-report.js"
     ],
     "GMAIL_APP_PASSWORD": [
       "api/send-email-notification.js",
+      "api/contact-notification.js",
       "api/metrics/send-report.js"
     ],
     "GOOGLE_WALLET_ISSUER_ID": [

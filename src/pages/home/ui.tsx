@@ -95,14 +95,14 @@ export default function HomePage() {
             </div>
 
             <div className="relative mt-2 min-w-0 lg:mt-0">
-              <div className="group bg-ios-dark hover:bg-gray-100 text-white hover:text-gray-900 border border-white/10 hover:border-gray-300 p-8 sm:p-10 lg:p-12 rounded-2xl relative overflow-hidden shadow-2xl w-full lg:max-w-[520px] lg:ml-auto transition-all duration-700 ease-out hover:-rotate-[8deg]">
-                <div className="absolute -top-10 -right-10 w-40 h-40 bg-hushh-blue/15 rounded-full blur-3xl" aria-hidden="true" />
-                <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-hushh-blue/5 to-transparent" aria-hidden="true" />
+              <div className="group bg-gradient-to-br from-[#293241] via-[#232b38] to-[#182233] hover:bg-none hover:bg-gray-100 text-white hover:text-gray-900 border border-white/20 hover:border-gray-300 p-8 sm:p-10 lg:p-12 rounded-2xl relative overflow-hidden shadow-[0_28px_80px_-34px_rgba(15,23,42,0.7)] w-full lg:max-w-[520px] lg:ml-auto transition-all duration-700 ease-out hover:-rotate-[8deg]">
+                <div className="absolute -top-10 -right-10 w-40 h-40 bg-hushh-blue/20 rounded-full blur-3xl" aria-hidden="true" />
+                <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-white/10 to-transparent" aria-hidden="true" />
 
                 <div className="relative z-10 flex flex-col gap-6">
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div>
-                      <span className="text-[10px] font-medium tracking-widest uppercase text-white/50 group-hover:text-gray-500 mb-1 block transition-colors duration-700">
+                      <span className="text-[10px] font-medium tracking-widest uppercase text-white/70 group-hover:text-gray-700 mb-1 block transition-colors duration-700">
                         Flagship Product
                       </span>
                       <h2
@@ -119,7 +119,7 @@ export default function HomePage() {
 
                   <div className="space-y-4 my-2 sm:grid sm:grid-cols-2 sm:gap-8 sm:space-y-0">
                     <div>
-                      <span className="text-xs text-white/50 group-hover:text-gray-500 block mb-1 transition-colors duration-700">
+                      <span className="text-xs text-white/70 group-hover:text-gray-700 block mb-1 transition-colors duration-700">
                         Target Net IRR
                       </span>
                       <span
@@ -130,7 +130,7 @@ export default function HomePage() {
                       </span>
                     </div>
                     <div>
-                      <span className="text-xs text-white/50 group-hover:text-gray-500 block mb-1 transition-colors duration-700">
+                      <span className="text-xs text-white/70 group-hover:text-gray-700 block mb-1 transition-colors duration-700">
                         Inception Year
                       </span>
                       <span

@@ -14,6 +14,8 @@ const ENVIRONMENTS = [
     requiredSecrets: [
       "hushh-tech-supabase-url",
       "hushh-tech-supabase-service-role-key",
+      "hushh-tech-gmail-user",
+      "hushh-tech-gmail-app-password",
       "hushh-tech-metrics-ga4-allowed-hostnames",
       "hushh-tech-analytics-hash-salt",
       "hushh-tech-metrics-gcp-cloud-run-region",
@@ -32,6 +34,8 @@ const ENVIRONMENTS = [
     requiredSecrets: [
       "hushh-tech-supabase-url",
       "hushh-tech-supabase-service-role-key",
+      "hushh-tech-gmail-user",
+      "hushh-tech-gmail-app-password",
       "hushh-tech-analytics-hash-salt",
       "hushh-tech-metrics-ga4-allowed-hostnames",
       "hushh-tech-metrics-ga4-property-id",
@@ -50,6 +54,8 @@ const ENVIRONMENTS = [
 const SENSITIVE_ENV_NAMES = new Set([
   "SUPABASE_URL",
   "SUPABASE_SERVICE_ROLE_KEY",
+  "GMAIL_USER",
+  "GMAIL_APP_PASSWORD",
   "GA4_ALLOWED_HOSTNAMES",
   "GA4_PROPERTY_ID",
   "LOOKER_STUDIO_EMBED_URL",

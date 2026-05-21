@@ -119,4 +119,22 @@ describe("MarketUpdateGallery accessibility", () => {
       ),
     ).not.toBeNull();
   });
+
+  it("keeps missing media silent by default on public posts", async () => {
+    await act(async () => {
+      root.render(
+        React.createElement(
+          ChakraProvider,
+          null,
+          React.createElement(MarketUpdateGallery, {
+            date: "dmu-missing",
+            imageCount: 1,
+          }),
+        ),
+      );
+    });
+    await flushPromises();
+
+    expect(container.textContent).not.toContain("No images available");
+  });
 });

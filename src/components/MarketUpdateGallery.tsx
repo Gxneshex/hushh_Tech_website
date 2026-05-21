@@ -26,12 +26,21 @@ const bundledMarketImages = import.meta.glob(
   },
 ) as Record<string, string>;
 
+type MarketMediaItem = {
+  name: string;
+  url: string;
+  type: 'image' | 'video';
+  alt?: string;
+};
+
 interface MarketUpdateGalleryProps {
   date: string; // Format: 'dmu14mar' or 'DD/MM/YYYY'
   showTestImage?: boolean;
   title?: string;
   imageCount?: number;
   apiDateFormat?: boolean; // Flag to indicate if date is in DD/MM/YYYY format
+  mediaItems?: Array<Partial<MarketMediaItem> & { url: string }>;
+  showEmptyState?: boolean;
 }
 
 const MarketUpdateGallery: React.FC<MarketUpdateGalleryProps> = ({
@@ -39,9 +48,11 @@ const MarketUpdateGallery: React.FC<MarketUpdateGalleryProps> = ({
   showTestImage = false,
   title = "Supporting Charts & Data",
   imageCount = 6,
-  apiDateFormat = false
+  apiDateFormat = false,
+  mediaItems,
+  showEmptyState = false,
 }) => {
-  const [images, setImages] = useState<{name: string, url: string}[]>([]);
+  const [images, setImages] = useState<MarketMediaItem[]>([]);
   const [imagesLoaded, setImagesLoaded] = useState<{[key: string]: boolean}>({});
   const [isLoading, setIsLoading] = useState(true);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
@@ -68,8 +79,24 @@ const MarketUpdateGallery: React.FC<MarketUpdateGalleryProps> = ({
         .map(([path, url]) => ({
           name: path.split('/').pop() || path,
           url,
+          type: 'image' as const,
         })),
     [folderPath],
+  );
+
+  const explicitMediaItems = useMemo(
+    () =>
+      mediaItems
+        ? mediaItems
+        .filter((item) => Boolean(item.url))
+        .map((item, index) => ({
+          name: item.name || item.url.split('/').pop() || `media-${index + 1}`,
+          url: item.url,
+          type: item.type || (/\.(mp4|mov|webm)$/i.test(item.url) ? 'video' : 'image'),
+          alt: item.alt,
+        }))
+        : [],
+    [mediaItems],
   );
   
   // Common image extensions to try
@@ -77,25 +104,35 @@ const MarketUpdateGallery: React.FC<MarketUpdateGalleryProps> = ({
   
   useEffect(() => {
     setIsLoading(true);
-    
-    const possibleImages = [...bundledImagesForFolder];
+    let cancelled = false;
+
+    const possibleImages = [...bundledImagesForFolder, ...explicitMediaItems.filter((item) => item.type === 'image')];
+    const explicitVideos = explicitMediaItems.filter((item) => item.type === 'video');
     
     // Try the expected image count against the same-origin GCP asset API.
+    const filenamePrefixes = ['', 'm', 'q'];
     for (let i = 1; i <= imageCount; i++) {
-      for (const ext of extensions) {
-        possibleImages.push({
-          name: `${i}${ext}`,
-          url: `/api/community/assets/${folderPath}/${i}${ext}`
-        });
+      for (const prefix of filenamePrefixes) {
+        for (const ext of extensions) {
+          possibleImages.push({
+            name: `${prefix}${i}${ext}`,
+            url: `/api/community/assets/${folderPath}/${prefix}${i}${ext}`,
+            type: 'image',
+          });
+        }
       }
     }
+
+    const dedupedPossibleImages = Array.from(
+      new Map(possibleImages.map((image) => [image.url, image])).values(),
+    );
     
     // Set up image loading
-    const loadedImages: {name: string, url: string}[] = [];
+    const loadedImages: MarketMediaItem[] = [];
     const imagePromises: Promise<void>[] = [];
     
     // Try to load each possible image
-    possibleImages.forEach(image => {
+    dedupedPossibleImages.forEach(image => {
       const promise = new Promise<void>((resolve) => {
         const img = document.createElement('img');
         img.onload = () => {
@@ -113,17 +150,28 @@ const MarketUpdateGallery: React.FC<MarketUpdateGalleryProps> = ({
     
     // When all images have been tried, update state with the ones that loaded
     Promise.all(imagePromises).then(() => {
+      if (cancelled) return;
+
+      const loadedMedia = Array.from(
+        new Map([...loadedImages, ...explicitVideos].map((image) => [image.url, image])).values(),
+      );
+
       // Sort images numerically by name (1.png, 2.png, etc.)
-      const sortedImages = loadedImages.sort((a, b) => {
+      const sortedImages = loadedMedia.sort((a, b) => {
         const numA = parseInt(a.name.match(/\d+/)?.[0] || '0', 10);
         const numB = parseInt(b.name.match(/\d+/)?.[0] || '0', 10);
-        return numA - numB;
+        const prefixRank = (name: string) => (name.startsWith('m') ? 1 : name.startsWith('q') ? 2 : 0);
+        return numA - numB || prefixRank(a.name) - prefixRank(b.name) || a.name.localeCompare(b.name);
       });
       
       setImages(sortedImages);
       setIsLoading(false);
     });
-  }, [date, folderPath, apiDateFormat, bundledImagesForFolder, imageCount]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [date, folderPath, apiDateFormat, bundledImagesForFolder, explicitMediaItems, imageCount]);
 
   const handleImageLoad = (imageName: string) => {
     setImagesLoaded(prev => ({
@@ -162,6 +210,10 @@ const MarketUpdateGallery: React.FC<MarketUpdateGalleryProps> = ({
   const selectedImage = selectedImageIndex === null ? null : images[selectedImageIndex];
   const hasCarouselControls = images.length > 1 && selectedImageIndex !== null;
 
+  if (!isLoading && images.length === 0 && !showEmptyState) {
+    return null;
+  }
+
   // Generate skeleton placeholders
   const renderSkeletons = () => {
     return Array(imageCount).fill(0).map((_, index) => (
@@ -172,6 +224,7 @@ const MarketUpdateGallery: React.FC<MarketUpdateGalleryProps> = ({
         boxShadow="md"
         bg="white"
         p={2}
+        maxW="100%"
       >
         <Skeleton
           height="300px"
@@ -186,7 +239,7 @@ const MarketUpdateGallery: React.FC<MarketUpdateGalleryProps> = ({
   };
 
   return (
-    <Box as="section" mt={8} aria-labelledby={galleryHeadingId}>
+    <Box as="section" mt={8} maxW="100%" minW={0} overflowX="hidden" aria-labelledby={galleryHeadingId}>
       <Heading
         as="h3"
         id={galleryHeadingId}
@@ -198,7 +251,7 @@ const MarketUpdateGallery: React.FC<MarketUpdateGalleryProps> = ({
       </Heading>
       
       {/* Gallery of images */}
-      <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
+      <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6} minW={0}>
         {isLoading ? (
           // Show skeletons while loading
           renderSkeletons()
@@ -219,6 +272,8 @@ const MarketUpdateGallery: React.FC<MarketUpdateGalleryProps> = ({
               onClick={() => handleImageClick(index)}
               aria-label={`Open market analysis chart ${getChartLabel(image.name)}`}
               textAlign="left"
+              maxW="100%"
+              minW={0}
               transition="transform 0.2s"
               _hover={{ transform: 'scale(1.02)' }}
               _focus={{ outline: 'none' }}
@@ -236,24 +291,41 @@ const MarketUpdateGallery: React.FC<MarketUpdateGalleryProps> = ({
                 endColor="gray.300"
                 speed={1.2}
               >
-                <Image
-                  src={image.url}
-                  alt={`Market Analysis Chart ${getChartLabel(image.name)}`}
-                  borderRadius="md"
-                  objectFit="contain"
-                  w="100%"
-                  minH="300px"
-                  maxH="400px"
-                  loading="lazy"
-                  bg="gray.50"
-                  onLoad={() => handleImageLoad(image.name)}
-                  onError={(e) => {
-                    const parent = e.currentTarget.parentElement?.parentElement;
-                    if (parent) {
-                      parent.style.display = 'none';
-                    }
-                  }}
-                />
+                {image.type === 'video' ? (
+                  <Box
+                    as="video"
+                    src={image.url}
+                    aria-label={image.alt || `Market analysis video ${getChartLabel(image.name)}`}
+                    controls
+                    borderRadius="md"
+                    w="100%"
+                    maxW="100%"
+                    minH="300px"
+                    maxH="400px"
+                    bg="black"
+                    onLoadedData={() => handleImageLoad(image.name)}
+                  />
+                ) : (
+                  <Image
+                    src={image.url}
+                    alt={image.alt || `Market Analysis Chart ${getChartLabel(image.name)}`}
+                    borderRadius="md"
+                    objectFit="contain"
+                    w="100%"
+                    maxW="100%"
+                    minH="300px"
+                    maxH="400px"
+                    loading="lazy"
+                    bg="gray.50"
+                    onLoad={() => handleImageLoad(image.name)}
+                    onError={(e) => {
+                      const parent = e.currentTarget.parentElement?.parentElement;
+                      if (parent) {
+                        parent.style.display = 'none';
+                      }
+                    }}
+                  />
+                )}
               </Skeleton>
 
               {/* Optional loading spinner overlay */}
@@ -374,10 +446,10 @@ const MarketUpdateGallery: React.FC<MarketUpdateGalleryProps> = ({
                 />
               </>
             )}
-            {selectedImage && (
+            {selectedImage && selectedImage.type === 'image' && (
               <Image
                 src={selectedImage.url}
-                alt={`Full-screen market analysis chart ${getChartLabel(selectedImage.name)}`}
+                alt={selectedImage.alt || `Full-screen market analysis chart ${getChartLabel(selectedImage.name)}`}
                 maxH="95vh"
                 maxW="95vw"
                 objectFit="contain"

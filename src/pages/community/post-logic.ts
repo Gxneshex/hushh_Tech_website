@@ -130,6 +130,30 @@ export const useCommunityPostLogic = () => {
         assetUrl: foundPost.pdfUrl
           ? `/api/community/assets/public/${encodeURIComponent(foundPost.pdfUrl.replace(/^\/+/, ""))}`
           : undefined,
+        mediaItems: foundPost.mediaItems?.map((item, index) => {
+          if (typeof item === "string") {
+            return {
+              name: item.split("/").pop() || `media-${index + 1}`,
+              url: `/api/community/assets/${encodeURIComponent(item).replace(/%2F/g, "/")}`,
+              type: /\.(mp4|mov|webm)$/i.test(item) ? "video" : "image",
+            };
+          }
+
+          const objectName = item.object || item.assetObject;
+          const sameOriginAssetUrl = item.url?.startsWith("/api/community/assets/")
+            ? item.url
+            : "";
+          return {
+            name: item.name || objectName?.split("/").pop() || `media-${index + 1}`,
+            url:
+              sameOriginAssetUrl ||
+              (objectName
+                ? `/api/community/assets/${encodeURIComponent(objectName).replace(/%2F/g, "/")}`
+                : ""),
+            type: item.type || (/\.(mp4|mov|webm)$/i.test(objectName || item.url || "") ? "video" : "image"),
+            alt: item.alt,
+          };
+        }).filter((item) => item.url),
       });
       setLegacyPost(foundPost);
       setLoading(false);

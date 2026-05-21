@@ -6,6 +6,7 @@
  */
 import ReactMarkdown from "react-markdown";
 import { useCommunityPostLogic } from "./post-logic";
+import type { CommunityMediaItem } from "../../services/communityContent";
 import HushhTechBackHeader from "../../components/hushh-tech-back-header/HushhTechBackHeader";
 import HushhTechFooter, {
   HushhFooterTab,
@@ -13,6 +14,52 @@ import HushhTechFooter, {
 
 /* ── Playfair heading style ── */
 const playfair = { fontFamily: "'Playfair Display', serif" };
+const richContentClassName = [
+  "prose prose-neutral max-w-none prose-headings:font-serif prose-a:text-hushh-blue",
+  "min-w-0 overflow-x-hidden break-words",
+  "[&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-xl",
+  "[&_video]:max-w-full [&_video]:h-auto",
+  "[&_iframe]:block [&_iframe]:w-full [&_iframe]:max-w-full [&_iframe]:min-w-0",
+  "[&_table]:block [&_table]:w-full [&_table]:max-w-full [&_table]:overflow-x-auto",
+  "[&_pre]:max-w-full [&_pre]:overflow-x-auto",
+  "[&_code]:break-words [&_a]:break-words",
+].join(" ");
+
+function DocumentMediaPages({
+  mediaItems,
+  title,
+}: {
+  mediaItems: CommunityMediaItem[];
+  title: string;
+}) {
+  return (
+    <article className="mx-auto w-full max-w-[960px] min-w-0 space-y-4">
+      {mediaItems.map((item, index) => (
+        <figure
+          key={`${item.url}-${index}`}
+          className="w-full min-w-0 overflow-hidden rounded-xl border border-gray-200 bg-gray-50"
+        >
+          {item.type === "video" ? (
+            <video
+              src={item.url}
+              controls
+              className="block w-full max-w-full h-auto bg-black"
+              aria-label={item.alt || `${title} video ${index + 1}`}
+            />
+          ) : (
+            <img
+              src={item.url}
+              alt={item.alt || `${title} page ${index + 1}`}
+              className="block w-full max-w-full h-auto object-contain"
+              loading="lazy"
+              decoding="async"
+            />
+          )}
+        </figure>
+      ))}
+    </article>
+  );
+}
 
 export default function CommunityPostPage() {
   const { post, legacyPost, loading, handleBack } = useCommunityPostLogic();
@@ -44,6 +91,7 @@ export default function CommunityPostPage() {
     post.sourceKind === "deck"
       ? "flex-1 w-full pb-24"
       : "flex-1 max-w-[900px] mx-auto w-full px-4 md:px-8 py-6 md:py-10 pb-32";
+  const documentMediaItems = post.mediaItems?.filter((item) => item.url) || [];
 
   /* ── Document Post ── */
   if (post.sourceKind === "document" && post.assetUrl) {
@@ -54,18 +102,28 @@ export default function CommunityPostPage() {
           rightType="hamburger"
         />
 
-        <main className="flex-1 px-4 md:px-8 py-4 pb-32">
+        <main className="flex-1 w-full min-w-0 max-w-full overflow-x-hidden px-3 sm:px-4 md:px-8 py-4 pb-32">
           <h1
             className="sr-only"
             style={playfair}
           >
             {post.title}
           </h1>
-          <iframe
-            src={`${post.assetUrl}#toolbar=1&navpanes=1&scrollbar=1&view=FitH`}
-            className="w-full h-[calc(100vh-120px)] min-h-[70vh] rounded-2xl border border-gray-200 bg-white"
-            title={post.title}
-          />
+          {documentMediaItems.length > 0 ? (
+            <DocumentMediaPages
+              mediaItems={documentMediaItems}
+              title={post.title}
+            />
+          ) : null}
+          <section className={documentMediaItems.length > 0 ? "mt-8" : ""}>
+            <div className="w-full min-w-0 max-w-full overflow-hidden rounded-2xl border border-gray-200 bg-white">
+              <iframe
+                src={`${post.assetUrl}#toolbar=1&navpanes=1&scrollbar=1&view=FitH`}
+                className="block w-full min-w-0 max-w-full h-[calc(100dvh-120px)] min-h-[70dvh] border-0 bg-white"
+                title={post.title}
+              />
+            </div>
+          </section>
         </main>
 
         <HushhTechFooter activeTab={HushhFooterTab.COMMUNITY} />
@@ -119,11 +177,11 @@ export default function CommunityPostPage() {
 
           {post.bodyHtml ? (
             <article
-              className="prose prose-neutral max-w-none prose-headings:font-serif prose-a:text-hushh-blue"
+              className={richContentClassName}
               dangerouslySetInnerHTML={{ __html: post.bodyHtml }}
             />
           ) : (
-            <article className="prose prose-neutral max-w-none prose-headings:font-serif prose-a:text-hushh-blue">
+            <article className={richContentClassName}>
               <ReactMarkdown>{post.bodyMarkdown || ""}</ReactMarkdown>
             </article>
           )}

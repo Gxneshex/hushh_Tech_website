@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import postsHandler from "../api/community/posts.js";
 import postDetailHandler from "../api/community/post-detail.js";
+import { normalizePost } from "../api/community/content-service.js";
 
 const createRes = () => {
   const res: any = {
@@ -52,5 +53,35 @@ describe("community API routes", () => {
       accessLevel: "Public",
       sourceKind: "deck",
     });
+  });
+
+  it("normalizes media object names to same-origin community asset URLs", () => {
+    const post = normalizePost({
+      slug: "market/hushh-market-update-7-april",
+      title: "Hushh Market Update - 7 April",
+      publishedAt: "2025-04-07",
+      mediaItems: [
+        "market-updates/dmu7apr/1.png",
+        {
+          object: "market-updates/dmu7apr/m2.png",
+          alt: "Momentum chart",
+        },
+      ],
+    });
+
+    expect(post.mediaItems).toEqual([
+      {
+        name: "1.png",
+        url: "/api/community/assets/market-updates/dmu7apr/1.png",
+        type: "image",
+        alt: "",
+      },
+      {
+        name: "m2.png",
+        url: "/api/community/assets/market-updates/dmu7apr/m2.png",
+        type: "image",
+        alt: "Momentum chart",
+      },
+    ]);
   });
 });

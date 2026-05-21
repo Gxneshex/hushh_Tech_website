@@ -10,6 +10,19 @@ Use it with:
 - `CONTRIBUTING.md`
 - `SECURITY.md`
 
+## Canonical Domains And Typo Recovery
+
+Use these lower-case hostnames as the canonical spellings for production and UAT work:
+
+| Surface | Production | UAT |
+| --- | --- | --- |
+| HushhTech web | `https://hushhtech.com` | `https://uat.hushhtech.com` |
+| Hushh AI | `https://hushh.ai` | `https://uat.hushh.ai` |
+
+- Treat `hashtag.com`, `hustag`, `hushtech`, `hushhTech.com`, and similar variants as likely prompt typos unless a checked-in file proves otherwise.
+- For smoke tests, sitemap generation, robots generation, and deploy evidence, prefer the canonical domains above.
+- If a user uses a misspelling while clearly referring to the HushhTech public site, resolve the task to `hushhtech.com` or `uat.hushhtech.com` based on the requested environment.
+
 ## Main-Branch Grounding
 
 - Treat `main` as the repository source of truth for current behavior, runtime wiring, and CI policy.

@@ -44,6 +44,37 @@ const fieldValue = (field) => {
   return undefined;
 };
 
+const communityAssetUrl = (objectName) =>
+  `/api/community/assets/${encodeURIComponent(String(objectName).replace(/^\/+/, "")).replace(/%2F/g, "/")}`;
+
+const mediaTypeFor = (value) => (/\.(mp4|mov|webm)$/i.test(value || "") ? "video" : "image");
+
+const normalizeMediaItems = (items) => {
+  if (!Array.isArray(items)) return [];
+
+  return items
+    .map((item, index) => {
+      const value = typeof item === "string" ? { object: item } : item || {};
+      const objectName = value.object || value.assetObject || "";
+      const suppliedUrl = typeof value.url === "string" ? value.url : "";
+      const url = objectName
+        ? communityAssetUrl(objectName)
+        : suppliedUrl.startsWith("/api/community/assets/")
+          ? suppliedUrl
+          : "";
+
+      if (!url) return null;
+
+      return {
+        name: value.name || objectName.split("/").pop() || `media-${index + 1}`,
+        url,
+        type: value.type || mediaTypeFor(objectName || url),
+        alt: value.alt || "",
+      };
+    })
+    .filter(Boolean);
+};
+
 const firestoreDocToPost = (doc) => {
   const fields = doc.fields || {};
   return normalizePost({
@@ -60,6 +91,7 @@ const firestoreDocToPost = (doc) => {
     contentObject: fieldValue(fields.contentObject),
     assetObject: fieldValue(fields.assetObject),
     assetUrl: fieldValue(fields.assetUrl),
+    mediaItems: fieldValue(fields.mediaItems),
   });
 };
 
@@ -84,6 +116,7 @@ export const normalizePost = (post) => {
     contentObject: post.contentObject || "",
     assetObject: post.assetObject || "",
     assetUrl,
+    mediaItems: normalizeMediaItems(post.mediaItems),
     bodyMarkdown: post.bodyMarkdown || "",
     bodyHtml: post.bodyHtml || "",
   };

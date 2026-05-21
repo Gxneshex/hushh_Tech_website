@@ -158,6 +158,8 @@ jobs:
           runtime_secret_names=(
             hushh-tech-supabase-url
             hushh-tech-supabase-service-role-key
+            hushh-tech-gmail-user
+            hushh-tech-gmail-app-password
             hushh-tech-analytics-hash-salt
             hushh-tech-metrics-ga4-allowed-hostnames
             hushh-tech-metrics-gcp-monitoring-project-id
@@ -204,6 +206,8 @@ jobs:
           runtime_env="NODE_ENV=staging,COMMUNITY_CONTENT_BACKEND=gcp,COMMUNITY_CONTENT_COLLECTION=community_posts,COMMUNITY_CONTENT_BUCKET=hushh-tech-community-content-uat,COMMUNITY_CONTENT_CACHE_SECONDS=300"
           runtime_secrets="SUPABASE_URL=hushh-tech-supabase-url:latest"
           runtime_secrets+=",SUPABASE_SERVICE_ROLE_KEY=hushh-tech-supabase-service-role-key:latest"
+          runtime_secrets+=",GMAIL_USER=hushh-tech-gmail-user:latest"
+          runtime_secrets+=",GMAIL_APP_PASSWORD=hushh-tech-gmail-app-password:latest"
           runtime_secrets+=",ANALYTICS_HASH_SALT=hushh-tech-analytics-hash-salt:latest"
           runtime_secrets+=",GA4_ALLOWED_HOSTNAMES=hushh-tech-metrics-ga4-allowed-hostnames:latest"
           runtime_secrets+=",GCP_MONITORING_PROJECT_ID=hushh-tech-metrics-gcp-monitoring-project-id:latest"

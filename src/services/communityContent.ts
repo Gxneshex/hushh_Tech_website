@@ -1,3 +1,10 @@
+export interface CommunityMediaItem {
+  name?: string;
+  url: string;
+  type?: "image" | "video";
+  alt?: string;
+}
+
 export interface CommunityPostSummary {
   id: string;
   slug: string;
@@ -11,6 +18,7 @@ export interface CommunityPostSummary {
   sourceKind: "article" | "deck" | "document" | "legacy" | string;
   componentName?: string;
   assetUrl?: string;
+  mediaItems?: CommunityMediaItem[];
 }
 
 export interface CommunityPostDetail extends CommunityPostSummary {
