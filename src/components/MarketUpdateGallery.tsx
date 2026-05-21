@@ -16,6 +16,7 @@ import {
   Flex
 } from '@chakra-ui/react';
 import { ChevronLeftIcon, ChevronRightIcon, CloseIcon } from '@chakra-ui/icons';
+import { getMarketUpdateMediaItems } from '../content/marketUpdateMedia';
 
 const bundledMarketImages = import.meta.glob(
   './images/market-updates/**/*.{png,jpg,jpeg}',
@@ -45,7 +46,6 @@ interface MarketUpdateGalleryProps {
 
 const MarketUpdateGallery: React.FC<MarketUpdateGalleryProps> = ({
   date,
-  showTestImage = false,
   title = "Supporting Charts & Data",
   imageCount = 6,
   apiDateFormat = false,
@@ -59,7 +59,7 @@ const MarketUpdateGallery: React.FC<MarketUpdateGalleryProps> = ({
   const { isOpen, onOpen, onClose } = useDisclosure();
   const galleryHeadingId = useId();
   const modalTitleId = useId();
-  
+
   // Format the folder path based on date format
   const formatFolderPath = (dateStr: string, isApiFormat: boolean): string => {
     if (isApiFormat && dateStr.match(/^\d{1,2}\/\d{1,2}\/\d{4}$/)) {
@@ -98,80 +98,29 @@ const MarketUpdateGallery: React.FC<MarketUpdateGalleryProps> = ({
         : [],
     [mediaItems],
   );
-  
-  // Common image extensions to try
-  const extensions = ['.png', '.jpg', '.jpeg'];
+
+  const manifestMediaItems = useMemo(
+    () => getMarketUpdateMediaItems(date),
+    [date],
+  );
+
+  const knownMediaItems = useMemo(() => {
+    const media = [...bundledImagesForFolder, ...manifestMediaItems, ...explicitMediaItems];
+
+    return Array.from(new Map(media.map((item) => [item.url, item])).values()).sort((a, b) => {
+      const numA = parseInt(a.name.match(/\d+/)?.[0] || '0', 10);
+      const numB = parseInt(b.name.match(/\d+/)?.[0] || '0', 10);
+      const prefixRank = (name: string) => (name.startsWith('m') ? 1 : name.startsWith('q') ? 2 : 0);
+      return numA - numB || prefixRank(a.name) - prefixRank(b.name) || a.name.localeCompare(b.name);
+    });
+  }, [bundledImagesForFolder, manifestMediaItems, explicitMediaItems]);
   
   useEffect(() => {
     setIsLoading(true);
-    let cancelled = false;
-
-    const possibleImages = [...bundledImagesForFolder, ...explicitMediaItems.filter((item) => item.type === 'image')];
-    const explicitVideos = explicitMediaItems.filter((item) => item.type === 'video');
-    
-    // Try the expected image count against the same-origin GCP asset API.
-    const filenamePrefixes = ['', 'm', 'q'];
-    for (let i = 1; i <= imageCount; i++) {
-      for (const prefix of filenamePrefixes) {
-        for (const ext of extensions) {
-          possibleImages.push({
-            name: `${prefix}${i}${ext}`,
-            url: `/api/community/assets/${folderPath}/${prefix}${i}${ext}`,
-            type: 'image',
-          });
-        }
-      }
-    }
-
-    const dedupedPossibleImages = Array.from(
-      new Map(possibleImages.map((image) => [image.url, image])).values(),
-    );
-    
-    // Set up image loading
-    const loadedImages: MarketMediaItem[] = [];
-    const imagePromises: Promise<void>[] = [];
-    
-    // Try to load each possible image
-    dedupedPossibleImages.forEach(image => {
-      const promise = new Promise<void>((resolve) => {
-        const img = document.createElement('img');
-        img.onload = () => {
-          loadedImages.push(image);
-          resolve();
-        };
-        img.onerror = () => {
-          resolve();
-        };
-        img.src = image.url;
-      });
-      
-      imagePromises.push(promise);
-    });
-    
-    // When all images have been tried, update state with the ones that loaded
-    Promise.all(imagePromises).then(() => {
-      if (cancelled) return;
-
-      const loadedMedia = Array.from(
-        new Map([...loadedImages, ...explicitVideos].map((image) => [image.url, image])).values(),
-      );
-
-      // Sort images numerically by name (1.png, 2.png, etc.)
-      const sortedImages = loadedMedia.sort((a, b) => {
-        const numA = parseInt(a.name.match(/\d+/)?.[0] || '0', 10);
-        const numB = parseInt(b.name.match(/\d+/)?.[0] || '0', 10);
-        const prefixRank = (name: string) => (name.startsWith('m') ? 1 : name.startsWith('q') ? 2 : 0);
-        return numA - numB || prefixRank(a.name) - prefixRank(b.name) || a.name.localeCompare(b.name);
-      });
-      
-      setImages(sortedImages);
-      setIsLoading(false);
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [date, folderPath, apiDateFormat, bundledImagesForFolder, explicitMediaItems, imageCount]);
+    setImages(knownMediaItems);
+    setImagesLoaded({});
+    setIsLoading(false);
+  }, [knownMediaItems]);
 
   const handleImageLoad = (imageName: string) => {
     setImagesLoaded(prev => ({
@@ -216,7 +165,9 @@ const MarketUpdateGallery: React.FC<MarketUpdateGalleryProps> = ({
 
   // Generate skeleton placeholders
   const renderSkeletons = () => {
-    return Array(imageCount).fill(0).map((_, index) => (
+    const skeletonCount = Math.max(imageCount, knownMediaItems.length || 0);
+
+    return Array(skeletonCount).fill(0).map((_, index) => (
       <Box 
         key={`skeleton-${index}`} 
         borderRadius="lg" 

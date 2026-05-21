@@ -6,7 +6,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useToast } from "@chakra-ui/react";
-import { getPostBySlug, PostData } from "../../data/posts";
+import { getPostBySlug, getPostBySlugOrComponentName, PostData } from "../../data/posts";
 import { useAuthSession } from "../../auth/AuthSessionProvider";
 import { checkAccessStatus } from "../../services/access/accessControlApi";
 import {
@@ -48,7 +48,7 @@ export const useCommunityPostLogic = () => {
 
       if (gcpPost) {
         setPost(gcpPost);
-        setLegacyPost(foundPost || null);
+        setLegacyPost(getPostBySlugOrComponentName(activeSlug, gcpPost.componentName) || null);
         setLoading(false);
         return;
       }

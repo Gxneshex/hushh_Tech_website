@@ -192,7 +192,36 @@ export default function CommunityPostPage() {
     );
   }
 
-  if (!LegacyPostComponent) return null;
+  if (!LegacyPostComponent) {
+    return (
+      <div className="bg-white text-gray-900 min-h-screen antialiased flex flex-col selection:bg-hushh-blue selection:text-white">
+        <HushhTechBackHeader
+          onBackClick={handleBack}
+          rightType="hamburger"
+        />
+
+        <main
+          className="flex-1 max-w-[900px] mx-auto w-full px-4 md:px-8 py-8 md:py-12 pb-32"
+          data-testid="community-post-missing-content"
+        >
+          <p className="text-[10px] tracking-[0.15em] uppercase font-medium text-hushh-blue/70 mb-3">
+            {post.category}
+          </p>
+          <h1
+            className="text-[2.35rem] md:text-[3.1rem] leading-[1.1] font-normal text-black tracking-tight font-serif mb-4"
+            style={playfair}
+          >
+            {post.title}
+          </h1>
+          <article className={richContentClassName}>
+            <p>{post.description || "Article details are currently unavailable."}</p>
+          </article>
+        </main>
+
+        <HushhTechFooter activeTab={HushhFooterTab.COMMUNITY} />
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white text-gray-900 min-h-screen antialiased flex flex-col selection:bg-hushh-blue selection:text-white">
