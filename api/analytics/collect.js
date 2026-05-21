@@ -121,6 +121,15 @@ function createAdminClient(env = process.env) {
   return createSupabaseServerClient(supabaseUrl, serviceRoleKey);
 }
 
+function isMissingAnalyticsTableError(error, tableName) {
+  const message = `${error?.message || ""}`.toLowerCase();
+  return (
+    error?.code === "42P01" ||
+    error?.code === "PGRST205" ||
+    message.includes(`${tableName}`.toLowerCase())
+  );
+}
+
 function getBearerToken(req) {
   const raw = trimValue(req.headers?.authorization || req.headers?.Authorization);
   return raw.startsWith("Bearer ") ? raw.slice("Bearer ".length).trim() : "";
@@ -429,6 +438,14 @@ async function persistAnalytics(client, sessionRow, eventRows) {
     .single();
 
   if (sessionResponse.error) {
+    if (isMissingAnalyticsTableError(sessionResponse.error, "site_analytics_sessions")) {
+      return {
+        accepted: 0,
+        stored: false,
+        reason: "analytics_tables_missing",
+      };
+    }
+
     throw new Error(`Failed to upsert analytics session: ${sessionResponse.error.message}`);
   }
 
@@ -445,11 +462,20 @@ async function persistAnalytics(client, sessionRow, eventRows) {
     });
 
   if (eventResponse.error) {
+    if (isMissingAnalyticsTableError(eventResponse.error, "site_analytics_events")) {
+      return {
+        accepted: 0,
+        stored: false,
+        reason: "analytics_tables_missing",
+      };
+    }
+
     throw new Error(`Failed to insert analytics events: ${eventResponse.error.message}`);
   }
 
   return {
     accepted: rowsWithSession.length,
+    stored: true,
   };
 }
 
@@ -499,9 +525,21 @@ export default async function handler(req, res) {
     const payload = normalizePayload(body, req, userId);
     const result = await persistAnalytics(client, payload.sessionRow, payload.eventRows);
 
+    if (result.stored === false) {
+      console.warn("analytics collect skipped:", result.reason);
+      return res.status(202).json({
+        success: false,
+        accepted: result.accepted,
+        stored: false,
+        reason: result.reason,
+        storedAt: null,
+      });
+    }
+
     return res.status(202).json({
       success: true,
       accepted: result.accepted,
+      stored: true,
       storedAt: new Date().toISOString(),
     });
   } catch (error) {
