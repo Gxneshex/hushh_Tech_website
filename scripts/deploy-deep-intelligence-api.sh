@@ -93,7 +93,9 @@ DEPLOY_ARGS=(
   --project "$PROJECT_ID"
   --region "$REGION"
   --platform managed
-  --no-allow-unauthenticated
+  # Keep the service publicly reachable so the HushhTech web runtime can call it
+  # without Google-issued ID tokens; /v1 routes still require the internal API key.
+  --allow-unauthenticated
   --memory "$MEMORY"
   --cpu "$CPU"
   --min-instances "$MIN_INSTANCES"
