@@ -1,0 +1,207 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+const getUser = vi.fn();
+const createClient = vi.fn(() => ({
+  auth: { getUser },
+}));
+const fetchMock = vi.fn();
+
+vi.mock("@supabase/supabase-js", () => ({
+  createClient,
+}));
+
+const createResponse = () => {
+  const headers = new Map<string, string>();
+  let statusCode = 200;
+  let body: any;
+  let ended = false;
+
+  return {
+    headers,
+    get statusCode() {
+      return statusCode;
+    },
+    get body() {
+      return body;
+    },
+    get ended() {
+      return ended;
+    },
+    status(code: number) {
+      statusCode = code;
+      return this;
+    },
+    json(payload: any) {
+      body = payload;
+      return this;
+    },
+    setHeader(name: string, value: string) {
+      headers.set(name, value);
+      return this;
+    },
+    end() {
+      ended = true;
+      return this;
+    },
+  };
+};
+
+const validRequest = {
+  method: "POST",
+  headers: {
+    authorization: "Bearer profile-token",
+  },
+  body: {
+    input: {
+      name: "Ada Lovelace",
+      email: "ada@example.com",
+      zipCode: "10001",
+    },
+  },
+};
+
+const importHandler = async () => {
+  const module = await import("../api/generate-profile-intelligence.js");
+  return module.default;
+};
+
+describe("generate profile intelligence route", () => {
+  beforeEach(() => {
+    process.env.SUPABASE_URL = "https://ibsisfnjxeowvdtvgzff.supabase.co";
+    process.env.SUPABASE_SERVICE_ROLE_KEY = "service-role";
+    process.env.PROFILE_INTELLIGENCE_API_BASE_URL = "https://profile-intelligence.example";
+    process.env.PROFILE_INTELLIGENCE_TIMEOUT_MS = "1000";
+    getUser.mockResolvedValue({ data: { user: { id: "user-1" } }, error: null });
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        summary: "Public sources show a technical founder profile with limited investment signals.",
+        missingInformation: ["verified investment history", "current firm affiliation"],
+        model: "husshone-intelligence-v1",
+        sources: [
+          {
+            title: "Ada Example Profile",
+            uri: "https://example.com/ada",
+          },
+          {
+            title: "Duplicate Source",
+            url: "https://example.com/ada",
+          },
+          {
+            title: "Unsafe Source",
+            url: "javascript:alert(1)",
+          },
+        ],
+      }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    delete process.env.SUPABASE_URL;
+    delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+    delete process.env.PROFILE_INTELLIGENCE_API_BASE_URL;
+    delete process.env.PROFILE_INTELLIGENCE_TIMEOUT_MS;
+    vi.unstubAllGlobals();
+    vi.clearAllMocks();
+    vi.resetModules();
+    vi.restoreAllMocks();
+  });
+
+  it("requires a Supabase bearer token", async () => {
+    const handler = await importHandler();
+    const res = createResponse();
+
+    await handler({ ...validRequest, headers: {} }, res);
+
+    expect(res.statusCode).toBe(401);
+    expect(res.body.error).toBe("Missing authorization header");
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects invalid input before calling the upstream intelligence backend", async () => {
+    const handler = await importHandler();
+    const res = createResponse();
+
+    await handler(
+      {
+        ...validRequest,
+        body: {
+          input: {
+            name: "Ada Lovelace",
+            email: "not-an-email",
+            zipCode: "",
+          },
+        },
+      },
+      res,
+    );
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.error).toBe("Missing required fields: zipCode");
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("normalizes a valid response into the safe profileIntelligence shape", async () => {
+    const handler = await importHandler();
+    const res = createResponse();
+
+    await handler(validRequest, res);
+
+    expect(res.statusCode).toBe(200);
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://profile-intelligence.example/v1/intelligence/osint-profile",
+      expect.objectContaining({
+        method: "POST",
+        headers: expect.objectContaining({
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        }),
+        body: JSON.stringify({
+          name: "Ada Lovelace",
+          email: "ada@example.com",
+          zipCode: "10001",
+        }),
+      }),
+    );
+    expect(res.body.success).toBe(true);
+    expect(res.body.intelligence).toMatchObject({
+      summary: "Public sources show a technical founder profile with limited investment signals.",
+      missingInformation: ["verified investment history", "current firm affiliation"],
+      model: "husshone-intelligence-v1",
+      sources: [
+        {
+          title: "Ada Example Profile",
+          url: "https://example.com/ada",
+          domain: "example.com",
+        },
+      ],
+    });
+    expect(res.body.shadow_profile).toMatchObject({
+      confidence: expect.any(Number),
+      profileIntelligence: res.body.intelligence,
+    });
+  });
+
+  it("returns a safe browser error when the upstream backend fails", async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: false,
+      status: 503,
+      json: async () => ({
+        detail: "internal provider stack: secret token exhausted",
+      }),
+    });
+    const handler = await importHandler();
+    const res = createResponse();
+
+    await handler(validRequest, res);
+
+    expect(res.statusCode).toBe(502);
+    expect(res.body.error).toBe(
+      "Profile intelligence is temporarily unavailable. Please try again shortly.",
+    );
+    expect(JSON.stringify(res.body)).not.toMatch(/secret|token|provider/i);
+  });
+});

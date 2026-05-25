@@ -30,6 +30,13 @@ Use these lower-case hostnames as the canonical spellings for production and UAT
 - If a behavior, service, or invariant is not visible in this repository, say that it is not shown here.
 - Do not assume hidden infrastructure, hidden schemas, or hidden secrets unless a checked-in file explicitly proves them.
 
+## Protected Branch Ownership
+
+- GitHub repository rulesets are the enforcement surface for `main` and `develop`; classic branch protection is not the source of truth.
+- Only `@ankitkumarsingh1702` (GitHub user id `94732725`) may bypass protected-branch pull request review rules or merge into `main` or `develop`.
+- Other collaborators may push topic branches and open PRs, but they must not update protected refs or merge protected-branch PRs.
+- If live GitHub settings disagree with this section, treat the live settings as drift and repair the ruleset or repository access before relying on the merge path.
+
 ## What This Repository Owns
 
 - Public Hushh web surfaces built with Vite + React under `src/`

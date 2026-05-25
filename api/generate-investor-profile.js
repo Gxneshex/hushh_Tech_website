@@ -7,6 +7,9 @@ import { GoogleGenAI } from "@google/genai";
 import { createSupabaseServerClient } from "./shared/supabaseServerClient.js";
 
 const DEFAULT_MODEL = "gemini-2.5-flash";
+const DEFAULT_LOCATION = "us-central1";
+const PROVIDER_VERTEX = "vertex";
+const PROVIDER_API_KEY = "api-key";
 const USER_SAFE_UPSTREAM_ERROR =
   "Investor profile intelligence is temporarily unavailable. Please try again shortly.";
 
@@ -151,6 +154,41 @@ function getModel(env = process.env) {
   return trimValue(env.GEMINI_INVESTOR_PROFILE_MODEL) || DEFAULT_MODEL;
 }
 
+function getGeminiProvider(env = process.env) {
+  const configured = trimValue(env.GEMINI_INVESTOR_PROFILE_PROVIDER).toLowerCase();
+  if (["vertex", "vertexai", "vertex-ai"].includes(configured)) {
+    return PROVIDER_VERTEX;
+  }
+  if (["api-key", "apikey", "developer", "developer-api"].includes(configured)) {
+    return PROVIDER_API_KEY;
+  }
+  if (trimValue(env.GOOGLE_GENAI_USE_VERTEXAI).toLowerCase() === "true") {
+    return PROVIDER_VERTEX;
+  }
+  return getGeminiKeys(env).length > 0 ? PROVIDER_API_KEY : PROVIDER_VERTEX;
+}
+
+function getVertexConfig(env = process.env) {
+  const project =
+    trimValue(env.GOOGLE_CLOUD_PROJECT) ||
+    trimValue(env.GCP_PROJECT_ID) ||
+    trimValue(env.GCLOUD_PROJECT);
+  const location = trimValue(env.GOOGLE_CLOUD_LOCATION) || DEFAULT_LOCATION;
+
+  if (!project) {
+    return null;
+  }
+
+  return { project, location };
+}
+
+function getProviderOrder(env = process.env) {
+  const primary = getGeminiProvider(env);
+  return primary === PROVIDER_VERTEX
+    ? [PROVIDER_VERTEX, PROVIDER_API_KEY]
+    : [PROVIDER_API_KEY, PROVIDER_VERTEX];
+}
+
 function getSupabaseConfig(env = process.env) {
   const supabaseUrl = trimValue(env.SUPABASE_URL) || trimValue(env.VITE_SUPABASE_URL);
   const serviceRoleKey = trimValue(env.SUPABASE_SERVICE_ROLE_KEY);
@@ -253,15 +291,35 @@ function validateProfile(profile) {
   });
 }
 
-async function generateWithGemini(userPrompt, env = process.env) {
+async function runGeminiRequest(ai, userPrompt, model) {
+  const response = await ai.models.generateContent({
+    model,
+    contents: userPrompt,
+    config: {
+      systemInstruction: SYSTEM_PROMPT,
+      temperature: 0.3,
+      maxOutputTokens: 4096,
+      responseMimeType: "application/json",
+    },
+  });
+  return extractResponseText(response);
+}
+
+function logGeminiError(provider, error) {
+  console.error("Gemini investor profile generation failed:", {
+    provider,
+    code: error?.code,
+    status: error?.status,
+    message: error?.message || String(error),
+  });
+}
+
+async function generateWithApiKeyGemini(userPrompt, model, env = process.env) {
   const keys = getGeminiKeys(env);
   if (keys.length === 0) {
-    const error = new Error("Investor profile AI is not configured on server");
-    error.statusCode = 500;
-    throw error;
+    return { skipped: true, reason: "missing Gemini API key" };
   }
 
-  const model = getModel(env);
   const startIndex = keyIndex % keys.length;
   keyIndex = (keyIndex + 1) % keys.length;
   let lastError;
@@ -270,21 +328,66 @@ async function generateWithGemini(userPrompt, env = process.env) {
     const apiKey = keys[(startIndex + offset) % keys.length];
     try {
       const ai = new GoogleGenAI({ apiKey });
-      const response = await ai.models.generateContent({
-        model,
-        contents: userPrompt,
-        config: {
-          systemInstruction: SYSTEM_PROMPT,
-          temperature: 0.3,
-          maxOutputTokens: 4096,
-          responseMimeType: "application/json",
-        },
-      });
-      return await extractResponseText(response);
+      return { text: await runGeminiRequest(ai, userPrompt, model) };
     } catch (error) {
       lastError = error;
-      console.error("Gemini investor profile generation failed:", error);
+      logGeminiError(PROVIDER_API_KEY, error);
     }
+  }
+
+  return { error: lastError };
+}
+
+async function generateWithVertexGemini(userPrompt, model, env = process.env) {
+  const config = getVertexConfig(env);
+  if (!config) {
+    return { skipped: true, reason: "missing Google Cloud project" };
+  }
+
+  try {
+    const ai = new GoogleGenAI({
+      vertexai: true,
+      project: config.project,
+      location: config.location,
+      apiVersion: "v1",
+    });
+    return { text: await runGeminiRequest(ai, userPrompt, model) };
+  } catch (error) {
+    logGeminiError(PROVIDER_VERTEX, error);
+    return { error };
+  }
+}
+
+async function generateWithGemini(userPrompt, env = process.env) {
+  const model = getModel(env);
+  let attempted = false;
+  let lastError;
+
+  for (const provider of getProviderOrder(env)) {
+    const result =
+      provider === PROVIDER_VERTEX
+        ? await generateWithVertexGemini(userPrompt, model, env)
+        : await generateWithApiKeyGemini(userPrompt, model, env);
+
+    if (result?.skipped) {
+      continue;
+    }
+
+    attempted = true;
+
+    if (result?.text !== undefined) {
+      return result.text;
+    }
+
+    if (result?.error) {
+      lastError = result.error;
+    }
+  }
+
+  if (!attempted) {
+    const error = new Error("Investor profile AI is not configured on server");
+    error.statusCode = 500;
+    throw error;
   }
 
   const upstreamError = new Error(USER_SAFE_UPSTREAM_ERROR);

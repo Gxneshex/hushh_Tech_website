@@ -114,7 +114,7 @@ const MarketUpdateGallery: React.FC<MarketUpdateGalleryProps> = ({
       return numA - numB || prefixRank(a.name) - prefixRank(b.name) || a.name.localeCompare(b.name);
     });
   }, [bundledImagesForFolder, manifestMediaItems, explicitMediaItems]);
-  
+
   useEffect(() => {
     setIsLoading(true);
     setImages(knownMediaItems);

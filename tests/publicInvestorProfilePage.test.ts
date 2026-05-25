@@ -237,4 +237,82 @@ describe("PublicInvestorProfilePage", () => {
     expect(container.textContent).not.toContain("Verified Investor Profile");
     expect(container.textContent).not.toContain("AI Analyzed");
   });
+
+  it("renders the safe profile intelligence shape without the legacy dark block", async () => {
+    fetchPublicInvestorProfileBySlugMock.mockResolvedValue({
+      slug: "ada-lovelace-1234",
+      profile_url: "https://hushhtech.com/investor/ada-lovelace-1234",
+      is_confirmed: true,
+      basic_info: {
+        name: "Ada Lovelace",
+        email: "a***a@example.com",
+        age: 36,
+        organisation: "Hushh",
+      },
+      investor_profile: null,
+      onboarding_data: null,
+      shadow_profile: {
+        confidence: 0.74,
+        profileIntelligence: {
+          summary: "Public sources show a technical founder profile with limited investment signals.",
+          sources: [
+            {
+              title: "Ada public profile",
+              url: "https://example.com/ada",
+              domain: "example.com",
+            },
+          ],
+          missingInformation: ["verified investment history"],
+          generatedAt: "2026-05-24T12:00:00.000Z",
+          model: "husshone-intelligence-v1",
+        },
+      },
+    });
+
+    await renderPage("ada-lovelace-1234");
+
+    expect(container.textContent).toContain("Profile Intelligence");
+    expect(container.textContent).toContain("AI Researched");
+    expect(container.textContent).toContain(
+      "Public sources show a technical founder profile with limited investment signals.",
+    );
+    expect(container.textContent).toContain("Ada public profile");
+    expect(container.textContent).toContain("verified investment history");
+    expect(container.textContent).not.toContain("Deep Profile Intelligence");
+    expect(container.textContent).not.toContain("Shadow Investigator");
+  });
+
+  it("keeps legacy shadow profile rendering for old rows", async () => {
+    fetchPublicInvestorProfileBySlugMock.mockResolvedValue({
+      slug: "legacy-investor-1234",
+      profile_url: "https://hushhtech.com/investor/legacy-investor-1234",
+      is_confirmed: true,
+      basic_info: {
+        name: "Legacy Investor",
+        email: "l***y@example.com",
+        age: 44,
+        organisation: "Hushh",
+      },
+      investor_profile: null,
+      onboarding_data: null,
+      shadow_profile: {
+        confidence: 0.61,
+        occupation: "Founder",
+        knownFor: ["AI products"],
+        socialMedia: [
+          {
+            platform: "LinkedIn",
+            url: "https://example.com/legacy",
+          },
+        ],
+      },
+    });
+
+    await renderPage("legacy-investor-1234");
+
+    expect(container.textContent).toContain("Deep Profile Intelligence");
+    expect(container.textContent).toContain("Powered by Shadow Investigator AI");
+    expect(container.textContent).toContain("Founder");
+    expect(container.textContent).not.toContain("AI Researched");
+  });
 });

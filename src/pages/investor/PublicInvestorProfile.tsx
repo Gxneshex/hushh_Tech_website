@@ -24,7 +24,7 @@ import {
   PublicInvestorProfileRecord,
   VALUE_LABELS,
 } from "../../types/investorProfile";
-import type { ShadowProfile } from "../../types/shadowProfile";
+import type { ProfileIntelligence, ShadowProfile } from "../../types/shadowProfile";
 import { FINANCIAL_LINK_ROUTE } from "../../services/onboarding/flow";
 import {
   APPLE_WALLET_SUPPORT_MESSAGE,
@@ -37,6 +37,27 @@ import {
 } from "../../services/walletPass";
 
 type TabType = 'home' | 'chat';
+
+const formatGeneratedAt = (value?: string) => {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(date);
+};
+
+const getSourceLabel = (source: ProfileIntelligence["sources"][number]) => {
+  if (source.title) return source.title;
+  if (source.domain) return source.domain;
+  try {
+    return new URL(source.url).hostname.replace(/^www\./, "");
+  } catch {
+    return "Source";
+  }
+};
 
 const PublicInvestorProfilePage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -252,6 +273,25 @@ const PublicInvestorProfilePage: React.FC = () => {
         );
   const investorProfile = profileData.investor_profile;
   const shadowProfile: ShadowProfile | null = profileData.shadow_profile;
+  const profileIntelligence = shadowProfile?.profileIntelligence;
+  const profileIntelligenceSources = profileIntelligence?.sources || [];
+  const profileIntelligenceMissing = profileIntelligence?.missingInformation || [];
+  const hasProfileIntelligence = Boolean(
+    profileIntelligence?.summary || profileIntelligenceSources.length
+  );
+  const hasLegacyShadowProfile = Boolean(
+    shadowProfile &&
+      !hasProfileIntelligence &&
+      (
+        shadowProfile.occupation ||
+        shadowProfile.nationality ||
+        (shadowProfile.netWorthScore || 0) > 0 ||
+        (shadowProfile.hobbies?.length || 0) > 0 ||
+        (shadowProfile.knownFor?.length || 0) > 0 ||
+        (shadowProfile.associates?.length || 0) > 0 ||
+        (shadowProfile.socialMedia?.length || 0) > 0
+      )
+  );
   const onboardingData: PublicInvestorOnboardingData | null = profileData.onboarding_data;
   const displayName = basicInfo.name || "Public Investor";
   const profileEyebrow = isConfirmedProfile
@@ -638,8 +678,89 @@ const PublicInvestorProfilePage: React.FC = () => {
                   </section>
                 )}
 
+                {hasProfileIntelligence && profileIntelligence && (
+                  <section className="mb-8 border border-gray-200 rounded-2xl p-5 bg-white">
+                    <div className="flex items-start justify-between gap-4 mb-5">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-10 h-10 rounded-full bg-hushh-blue/10 flex items-center justify-center shrink-0">
+                          <Brain className="w-5 h-5 text-hushh-blue" />
+                        </div>
+                        <div className="min-w-0">
+                          <h2 className="text-lg font-semibold text-gray-900">Profile Intelligence</h2>
+                          <p className="text-xs text-gray-500">Public signals</p>
+                        </div>
+                      </div>
+                      <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 text-[10px] font-semibold rounded-full uppercase tracking-wide">
+                        AI Researched
+                      </span>
+                    </div>
+
+                    {profileIntelligence.summary && (
+                      <p className="mb-5 text-sm text-gray-700 leading-relaxed whitespace-pre-line">
+                        {profileIntelligence.summary}
+                      </p>
+                    )}
+
+                    {profileIntelligenceSources.length > 0 && (
+                      <div className="mb-5">
+                        <div className="flex items-center gap-2 mb-3">
+                          <Globe className="w-4 h-4 text-hushh-blue" />
+                          <span className="text-sm font-medium text-gray-800">Verified public sources</span>
+                        </div>
+                        <div className="space-y-2">
+                          {profileIntelligenceSources.slice(0, 4).map((source) => (
+                            <a
+                              key={source.url}
+                              href={source.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center justify-between gap-3 rounded-lg border border-gray-100 px-3 py-2 text-sm text-hushh-blue hover:border-hushh-blue/30"
+                            >
+                              <span className="min-w-0 truncate">{getSourceLabel(source)}</span>
+                              <ExternalLink className="w-3.5 h-3.5 shrink-0" />
+                            </a>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {profileIntelligenceMissing.length > 0 && (
+                      <div className="mb-5">
+                        <div className="flex items-center gap-2 mb-3">
+                          <Search className="w-4 h-4 text-amber-500" />
+                          <span className="text-sm font-medium text-gray-800">Missing signals</span>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {profileIntelligenceMissing.slice(0, 6).map((item) => (
+                            <span key={item} className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs text-amber-700">
+                              {item}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {(profileIntelligence.generatedAt || profileIntelligence.model) && (
+                      <div className="border-t border-gray-100 pt-4 text-xs text-gray-400 space-y-1.5">
+                        {profileIntelligence.generatedAt && (
+                          <div className="flex items-center justify-between gap-3">
+                            <span>Generated At</span>
+                            <span className="text-right">{formatGeneratedAt(profileIntelligence.generatedAt)}</span>
+                          </div>
+                        )}
+                        {profileIntelligence.model && (
+                          <div className="flex items-center justify-between gap-3">
+                            <span>Model</span>
+                            <span className="text-right">{profileIntelligence.model}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </section>
+                )}
+
                 {/* Shadow Profile Deep Intelligence Section */}
-                {shadowProfile && (
+                {hasLegacyShadowProfile && shadowProfile && (
                   <section className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-5 shadow-lg border border-slate-700">
                     <div className="flex items-center justify-between mb-5">
                       <div className="flex items-center gap-3">
@@ -677,7 +798,7 @@ const PublicInvestorProfilePage: React.FC = () => {
                     </div>
 
                     {/* Net Worth Section */}
-                    {shadowProfile.netWorthScore > 0 && (
+                    {(shadowProfile.netWorthScore || 0) > 0 && (
                       <div className="mb-5 bg-gradient-to-r from-amber-500/10 to-yellow-500/10 rounded-xl p-4 border border-amber-500/20">
                         <div className="flex items-center gap-2 mb-2">
                           <TrendingUp className="w-4 h-4 text-amber-400" />
@@ -688,11 +809,11 @@ const PublicInvestorProfilePage: React.FC = () => {
                             <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
                               <div 
                                 className="h-full bg-gradient-to-r from-amber-400 to-yellow-400 rounded-full"
-                                style={{ width: `${Math.min(shadowProfile.netWorthScore, 100)}%` }}
+                                style={{ width: `${Math.min(shadowProfile.netWorthScore || 0, 100)}%` }}
                               />
                             </div>
                           </div>
-                          <span className="text-lg font-bold text-amber-400">{shadowProfile.netWorthScore}/100</span>
+                          <span className="text-lg font-bold text-amber-400">{shadowProfile.netWorthScore || 0}/100</span>
                         </div>
                       </div>
                     )}

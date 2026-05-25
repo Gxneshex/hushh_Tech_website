@@ -6,7 +6,7 @@
  */
 import React from "react";
 import { useHushhUserProfileLogic, FIELD_LABELS, VALUE_LABELS } from "./logic";
-import { Copy, Check, Pencil } from "lucide-react";
+import { Copy, Check, ExternalLink, Pencil } from "lucide-react";
 import { FaApple } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import HushhTechBackHeader from "../../components/hushh-tech-back-header/HushhTechBackHeader";
@@ -15,6 +15,7 @@ import HushhTechFooter, { HushhFooterTab } from "../../components/hushh-tech-foo
 import NWSScoreBadge from "../../components/profile/NWSScoreBadge";
 import { PrivacyShield } from "../../components/profile/PrivacyShield";
 import WalletCardPreviewModal from "../../components/wallet/WalletCardPreviewModal";
+import type { ProfileIntelligence } from "../../types/shadowProfile";
 
 /* ── Playfair heading style ── */
 const playfair = { fontFamily: "'Playfair Display', serif" };
@@ -35,13 +36,150 @@ const SectionLabel = ({ children }: { children: React.ReactNode }) => (
   <p className="text-[10px] uppercase tracking-[0.2em] text-gray-400 mb-4 mt-2 font-medium">{children}</p>
 );
 
+const formatGeneratedAt = (value?: string) => {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(date);
+};
+
+const getSourceLabel = (source: ProfileIntelligence["sources"][number]) => {
+  if (source.title) return source.title;
+  if (source.domain) return source.domain;
+  try {
+    return new URL(source.url).hostname.replace(/^www\./, "");
+  } catch {
+    return "Source";
+  }
+};
+
+const getStatusText = (status: string, runningLabel: string) => {
+  if (status === "running") return `${runningLabel}...`;
+  if (status === "done") return "Ready";
+  if (status === "error") return "Failed";
+  if (status === "skipped") return "Skipped";
+  return "Waiting";
+};
+
+const getStatusClass = (status: string) => {
+  if (status === "running") return "text-gray-400";
+  if (status === "done") return "text-ios-green";
+  if (status === "error") return "text-red-500";
+  if (status === "skipped") return "text-amber-600";
+  return "text-gray-300";
+};
+
+const ProfileIntelligenceSection = ({
+  intelligence,
+}: {
+  intelligence: ProfileIntelligence;
+}) => {
+  const sources = intelligence.sources || [];
+  const topSources = sources.slice(0, 4);
+  const missingSignals = (intelligence.missingInformation || []).slice(0, 6);
+  const generatedAt = formatGeneratedAt(intelligence.generatedAt);
+
+  if (!intelligence.summary && topSources.length === 0) {
+    return null;
+  }
+
+  return (
+    <section className="mb-12">
+      <div className="mb-8">
+        <div className="flex items-center justify-between gap-4 mb-2">
+          <h2 className="text-2xl font-medium text-black tracking-tight font-serif" style={playfair}>
+            Profile{" "}
+            <span className="text-gray-400 italic font-light">Intelligence.</span>
+          </h2>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-emerald-200 bg-emerald-50">
+            <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
+            <span className="text-[10px] tracking-[0.14em] uppercase text-emerald-700 font-medium">AI Researched</span>
+          </span>
+        </div>
+      </div>
+
+      <div className="py-1">
+        <SectionLabel>Summary</SectionLabel>
+        {intelligence.summary && (
+          <p className="border-b border-gray-100 pb-4 text-sm leading-relaxed text-gray-700 whitespace-pre-line">
+            {intelligence.summary}
+          </p>
+        )}
+
+        <SectionLabel>Sources</SectionLabel>
+        <div className="border-b border-gray-100 pb-4">
+          <p className="mb-3 text-sm font-medium text-black">
+            {sources.length} {sources.length === 1 ? "source" : "sources"}
+          </p>
+          {topSources.length > 0 ? (
+            <div className="space-y-2">
+              {topSources.map((source) => (
+                <a
+                  key={source.url}
+                  href={source.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between gap-3 text-sm text-hushh-blue hover:text-hushh-blue/80"
+                >
+                  <span className="min-w-0 truncate">{getSourceLabel(source)}</span>
+                  <ExternalLink className="w-3.5 h-3.5 shrink-0" />
+                </a>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-gray-400">No source links returned.</p>
+          )}
+        </div>
+
+        <SectionLabel>Missing Signals</SectionLabel>
+        <div className="border-b border-gray-100 pb-4">
+          {missingSignals.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {missingSignals.map((item) => (
+                <span key={item} className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs text-amber-700">
+                  {item}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-gray-400">No major gaps returned.</p>
+          )}
+        </div>
+
+        {(generatedAt || intelligence.model) && (
+          <div className="pt-4 space-y-2 text-xs text-gray-400">
+            {generatedAt && (
+              <div className="flex items-center justify-between gap-4">
+                <span>Generated At</span>
+                <span className="text-right">{generatedAt}</span>
+              </div>
+            )}
+            {intelligence.model && (
+              <div className="flex items-center justify-between gap-4">
+                <span>Model</span>
+                <span className="text-right">{intelligence.model}</span>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+};
+
 /* Inline input class */
 const inlineInput = "text-right text-sm font-medium bg-transparent border-none focus:ring-0 p-0 text-black w-full";
 
 /* ── Page ── */
 const HushhUserProfilePage: React.FC = () => {
   const {
-    form, investorProfile, loading, loadingSeconds, isProcessing, investorStatus,
+    form, investorProfile, shadowProfile, loading, loadingSeconds, isProcessing, investorStatus, intelligenceStatus,
     hasOnboardingData, isApplePassLoading, isGooglePassLoading, nwsResult, nwsLoading,
     isWalletPreviewOpen, appleWalletSupported, appleWalletSupportMessage,
     googleWalletSupported, googleWalletSupportMessage, walletPreview,
@@ -55,6 +193,7 @@ const HushhUserProfilePage: React.FC = () => {
   } = useHushhUserProfileLogic();
 
   const firstName = form.name?.split(" ")[0] || "Investor";
+  const profileIntelligence = shadowProfile?.profileIntelligence;
 
   return (
     <div className="bg-white text-gray-900 min-h-screen antialiased flex flex-col selection:bg-hushh-blue selection:text-white">
@@ -114,12 +253,14 @@ const HushhUserProfilePage: React.FC = () => {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs text-gray-500">Investor Profile</span>
-                <span className={`text-[10px] uppercase tracking-widest font-medium ${
-                  investorStatus === 'running' ? 'text-gray-400' :
-                  investorStatus === 'done' ? 'text-ios-green' : 'text-red-500'
-                }`}>
-                  {investorStatus === 'running' ? 'Analyzing...' :
-                   investorStatus === 'done' ? 'Ready ✓' : investorStatus === 'error' ? 'Failed' : '—'}
+                <span className={`text-[10px] uppercase tracking-widest font-medium ${getStatusClass(investorStatus)}`}>
+                  {getStatusText(investorStatus, "Analyzing")}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-gray-500">Profile Intelligence</span>
+                <span className={`text-[10px] uppercase tracking-widest font-medium ${getStatusClass(intelligenceStatus)}`}>
+                  {getStatusText(intelligenceStatus, "Researching")}
                 </span>
               </div>
             </div>
@@ -247,6 +388,10 @@ const HushhUserProfilePage: React.FC = () => {
               })}
             </div>
           </section>
+        )}
+
+        {profileIntelligence && (
+          <ProfileIntelligenceSection intelligence={profileIntelligence} />
         )}
 
         {/* ── Your Hushh Profile (editable section) ── */}

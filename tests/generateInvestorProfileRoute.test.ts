@@ -120,6 +120,12 @@ describe("generate investor profile GCP route", () => {
     process.env.SUPABASE_URL = "https://ibsisfnjxeowvdtvgzff.supabase.co";
     process.env.SUPABASE_SERVICE_ROLE_KEY = "service-role";
     process.env.GEMINI_API_KEY = "gemini-key";
+    delete process.env.GEMINI_INVESTOR_PROFILE_PROVIDER;
+    delete process.env.GOOGLE_CLOUD_PROJECT;
+    delete process.env.GCP_PROJECT_ID;
+    delete process.env.GCLOUD_PROJECT;
+    delete process.env.GOOGLE_CLOUD_LOCATION;
+    delete process.env.GOOGLE_GENAI_USE_VERTEXAI;
     delete process.env.OPENAI_API_KEY;
     getUser.mockResolvedValue({ data: { user: { id: "user-1" } }, error: null });
     generateContent.mockResolvedValue({
@@ -133,12 +139,18 @@ describe("generate investor profile GCP route", () => {
     delete process.env.SUPABASE_SERVICE_ROLE_KEY;
     delete process.env.GEMINI_API_KEY;
     delete process.env.GEMINI_INVESTOR_PROFILE_MODEL;
+    delete process.env.GEMINI_INVESTOR_PROFILE_PROVIDER;
+    delete process.env.GOOGLE_CLOUD_PROJECT;
+    delete process.env.GCP_PROJECT_ID;
+    delete process.env.GCLOUD_PROJECT;
+    delete process.env.GOOGLE_CLOUD_LOCATION;
+    delete process.env.GOOGLE_GENAI_USE_VERTEXAI;
     vi.clearAllMocks();
     vi.resetModules();
     vi.restoreAllMocks();
   });
 
-  it("generates the 12-field profile through server-side Gemini", async () => {
+  it("generates the 12-field profile through server-side Gemini API key fallback", async () => {
     const handler = await importHandler();
     const res = createResponse();
 
@@ -164,6 +176,60 @@ describe("generate investor profile GCP route", () => {
         }),
       }),
     );
+  });
+
+  it("generates through Vertex AI when configured for deployed Cloud Run", async () => {
+    delete process.env.GEMINI_API_KEY;
+    process.env.GEMINI_INVESTOR_PROFILE_PROVIDER = "vertex";
+    process.env.GOOGLE_CLOUD_PROJECT = "hushh-tech-prod";
+    process.env.GOOGLE_CLOUD_LOCATION = "us-central1";
+    const handler = await importHandler();
+    const res = createResponse();
+
+    await handler(validRequest, res);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toEqual({ success: true, profile: validProfile });
+    expect(GoogleGenAI).toHaveBeenCalledWith({
+      vertexai: true,
+      project: "hushh-tech-prod",
+      location: "us-central1",
+      apiVersion: "v1",
+    });
+    expect(generateContent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        model: "gemini-2.5-flash",
+        contents: expect.stringContaining('"financial_context"'),
+        config: expect.objectContaining({
+          responseMimeType: "application/json",
+        }),
+      }),
+    );
+  });
+
+  it("falls back to a Gemini API key when Vertex is temporarily unavailable", async () => {
+    process.env.GEMINI_INVESTOR_PROFILE_PROVIDER = "vertex";
+    process.env.GOOGLE_CLOUD_PROJECT = "hushh-tech-prod";
+    process.env.GOOGLE_CLOUD_LOCATION = "us-central1";
+    generateContent
+      .mockRejectedValueOnce(new Error("Vertex access temporarily denied"))
+      .mockResolvedValueOnce({
+        text: JSON.stringify({ investor_profile: validProfile }),
+      });
+    const handler = await importHandler();
+    const res = createResponse();
+
+    await handler(validRequest, res);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toEqual({ success: true, profile: validProfile });
+    expect(GoogleGenAI).toHaveBeenNthCalledWith(1, {
+      vertexai: true,
+      project: "hushh-tech-prod",
+      location: "us-central1",
+      apiVersion: "v1",
+    });
+    expect(GoogleGenAI).toHaveBeenNthCalledWith(2, { apiKey: "gemini-key" });
   });
 
   it("keeps the request contract validation on missing input or context", async () => {
@@ -219,8 +285,12 @@ describe("generate investor profile GCP route", () => {
     const combined = files
       .map((file) => readFileSync(join(process.cwd(), file), "utf8"))
       .join("\n");
+    const serverManifest = JSON.parse(
+      readFileSync(join(process.cwd(), "package-server.json"), "utf8"),
+    );
 
     expect(combined).toMatch(/GEMINI_API_KEY/);
+    expect(serverManifest.dependencies).toHaveProperty("@google/genai");
     expect(combined).not.toMatch(/OPENAI_API_KEY|api\.openai\.com|gpt-/i);
     expect(combined).not.toMatch(/functions\/v1\/generate-investor-profile/);
     expect(combined).not.toMatch(/VITE_GEMINI_API_KEY/);
