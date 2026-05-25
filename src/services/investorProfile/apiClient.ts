@@ -6,6 +6,7 @@ import { InvestorProfileInput, DerivedContext, InvestorProfile } from "../../typ
 import { enrichContext, enrichWithPlaidData } from "./enrichContext";
 import resources from "../../resources/resources";
 import { getAuthenticatedSession } from "../../auth/session";
+import { getSafeInvestorProfileErrorMessage } from "./errorMessages";
 
 export interface GenerateProfileResponse {
   success: boolean;
@@ -58,7 +59,10 @@ export async function generateInvestorProfile(
     const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-      const errorMessage = data.error || `Investor profile service failed with status ${response.status}`;
+      const errorMessage = getSafeInvestorProfileErrorMessage(
+        data.error || `Investor profile service failed with status ${response.status}`,
+        response.status
+      );
       throw new Error(errorMessage);
     }
 
@@ -113,7 +117,7 @@ export async function generateInvestorProfile(
     return {
       success: false,
       profile: {} as InvestorProfile,
-      error: error instanceof Error ? error.message : 'Unknown error occurred',
+      error: getSafeInvestorProfileErrorMessage(error),
     };
   }
 }
