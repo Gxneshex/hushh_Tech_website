@@ -254,7 +254,32 @@ describe("PublicInvestorProfilePage", () => {
       shadow_profile: {
         confidence: 0.74,
         profileIntelligence: {
+          status: "completed",
+          headline: "Technical founder profile with limited investment signals",
           summary: "Public sources show a technical founder profile with limited investment signals.",
+          summaryBullets: [
+            "Public sources show a technical founder profile with limited investment signals.",
+          ],
+          identityMatch: {
+            label: "possible",
+            explanation: "The public signals are useful but should be treated as a possible match.",
+          },
+          publicProfiles: [
+            {
+              platform: "Website",
+              title: "Ada public profile",
+              url: "https://example.com/ada",
+              confidence: "medium",
+            },
+          ],
+          evidence: [
+            {
+              title: "Ada public profile",
+              domain: "example.com",
+              url: "https://example.com/ada",
+              supports: "Public web signal",
+            },
+          ],
           sources: [
             {
               title: "Ada public profile",
@@ -263,6 +288,11 @@ describe("PublicInvestorProfilePage", () => {
             },
           ],
           missingInformation: ["verified investment history"],
+          missingSignals: ["verified investment history"],
+          riskFlags: [],
+          redactions: [],
+          warnings: [],
+          confidenceLabel: "Medium",
           generatedAt: "2026-05-24T12:00:00.000Z",
           model: "husshone-intelligence-v1",
         },
@@ -271,12 +301,13 @@ describe("PublicInvestorProfilePage", () => {
 
     await renderPage("ada-lovelace-1234");
 
-    expect(container.textContent).toContain("Profile Intelligence");
-    expect(container.textContent).toContain("AI Researched");
+    expect(container.textContent).toContain("Public Signals");
+    expect(container.textContent).toContain("Medium");
     expect(container.textContent).toContain(
       "Public sources show a technical founder profile with limited investment signals.",
     );
     expect(container.textContent).toContain("Ada public profile");
+    expect(container.textContent).toContain("Possible match");
     expect(container.textContent).toContain("verified investment history");
     expect(container.textContent).not.toContain("Deep Profile Intelligence");
     expect(container.textContent).not.toContain("Shadow Investigator");

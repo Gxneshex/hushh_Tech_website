@@ -9,7 +9,10 @@ import type { ProfileIntelligence, ShadowProfile } from "../../types/shadowProfi
 export interface GenerateProfileIntelligenceInput {
   name: string;
   email: string;
-  zipCode: string;
+  zipCode?: string;
+  city?: string;
+  region?: string;
+  country?: string;
 }
 
 export interface GenerateProfileIntelligenceResponse {
@@ -23,12 +26,21 @@ export interface GenerateProfileIntelligenceResponse {
 export async function generateProfileIntelligence(
   input: GenerateProfileIntelligenceInput
 ): Promise<GenerateProfileIntelligenceResponse> {
-  const zipCode = input.zipCode.trim();
-  if (!zipCode) {
+  const zipCode = input.zipCode?.trim() || "";
+  const location = {
+    city: input.city?.trim() || "",
+    region: input.region?.trim() || "",
+    country: input.country?.trim() || "",
+  };
+  const hasCoarseLocation = Boolean(
+    location.city || location.region || location.country || zipCode
+  );
+
+  if (!hasCoarseLocation) {
     return {
       success: false,
       skipped: true,
-      error: "ZIP code is required for profile intelligence.",
+      error: "City, region, country, or ZIP code is required for profile intelligence.",
     };
   }
 
@@ -55,6 +67,7 @@ export async function generateProfileIntelligence(
           name: input.name,
           email: input.email,
           zipCode,
+          location,
         },
       }),
     });

@@ -18,12 +18,61 @@ export interface ProfileIntelligenceSource {
   domain?: string;
 }
 
+export type ProfileIntelligenceStatus = 'completed' | 'partial' | 'failed';
+export type ProfileIntelligenceConfidenceLabel = 'High' | 'Medium' | 'Low';
+export type ProfileIntelligenceIdentityLabel = 'strong' | 'possible' | 'ambiguous' | 'low';
+export type ProfileIntelligenceProfileConfidence = 'high' | 'medium' | 'low';
+
+export interface ProfileIntelligenceIdentityMatch {
+  label: ProfileIntelligenceIdentityLabel;
+  explanation: string;
+}
+
+export interface ProfileIntelligencePublicProfile {
+  platform: string;
+  title: string;
+  url: string;
+  confidence: ProfileIntelligenceProfileConfidence;
+}
+
+export interface ProfileIntelligenceEvidence {
+  title: string;
+  domain: string;
+  url: string;
+  supports: string;
+}
+
 export interface ProfileIntelligence {
   summary: string;
   sources: ProfileIntelligenceSource[];
   missingInformation: string[];
   generatedAt: string;
   model?: string;
+  status?: ProfileIntelligenceStatus;
+  headline?: string;
+  summaryBullets?: string[];
+  identityMatch?: ProfileIntelligenceIdentityMatch;
+  publicProfiles?: ProfileIntelligencePublicProfile[];
+  evidence?: ProfileIntelligenceEvidence[];
+  riskFlags?: string[];
+  missingSignals?: string[];
+  redactions?: string[];
+  warnings?: string[];
+  confidenceLabel?: ProfileIntelligenceConfidenceLabel;
+}
+
+export interface ProfileIntelligenceViewModel extends ProfileIntelligence {
+  status: ProfileIntelligenceStatus;
+  headline: string;
+  summaryBullets: string[];
+  identityMatch: ProfileIntelligenceIdentityMatch;
+  publicProfiles: ProfileIntelligencePublicProfile[];
+  evidence: ProfileIntelligenceEvidence[];
+  riskFlags: string[];
+  missingSignals: string[];
+  redactions: string[];
+  warnings: string[];
+  confidenceLabel: ProfileIntelligenceConfidenceLabel;
 }
 
 export interface ShadowProfile {

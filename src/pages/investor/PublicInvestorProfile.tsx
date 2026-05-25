@@ -6,7 +6,7 @@ import {
   ArrowLeft, Share2, Link, Copy, Check, ExternalLink, 
   Home, MessageCircle, User, TrendingUp, 
   Target, Clock, Gauge, Droplets, Briefcase, Layers, Zap, Activity,
-  Brain, ChevronDown, ChevronUp, Search, Globe, Coffee, Heart, Users, Newspaper
+  Brain, ChevronDown, ChevronUp, Search, Globe, Coffee, Heart, Users, Newspaper, ShieldCheck
 } from "lucide-react";
 import { FaApple, FaWhatsapp, FaLinkedin, FaGoogle } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
@@ -57,6 +57,19 @@ const getSourceLabel = (source: ProfileIntelligence["sources"][number]) => {
   } catch {
     return "Source";
   }
+};
+
+const getConfidencePillClass = (label?: string) => {
+  if (label === "High") return "bg-emerald-50 text-emerald-700 border-emerald-200";
+  if (label === "Medium") return "bg-amber-50 text-amber-700 border-amber-200";
+  return "bg-gray-50 text-gray-600 border-gray-200";
+};
+
+const getIdentityLabel = (label?: string) => {
+  if (label === "strong") return "Strong match";
+  if (label === "possible") return "Possible match";
+  if (label === "ambiguous") return "Ambiguous match";
+  return "Low signal";
 };
 
 const PublicInvestorProfilePage: React.FC = () => {
@@ -275,9 +288,29 @@ const PublicInvestorProfilePage: React.FC = () => {
   const shadowProfile: ShadowProfile | null = profileData.shadow_profile;
   const profileIntelligence = shadowProfile?.profileIntelligence;
   const profileIntelligenceSources = profileIntelligence?.sources || [];
-  const profileIntelligenceMissing = profileIntelligence?.missingInformation || [];
+  const profileIntelligenceEvidence = profileIntelligence?.evidence?.length
+    ? profileIntelligence.evidence
+    : profileIntelligenceSources.map((source) => ({
+        title: source.title,
+        domain: source.domain || getSourceLabel(source),
+        url: source.url,
+        supports: "Public web signal",
+      }));
+  const profileIntelligenceSummaryBullets =
+    profileIntelligence?.summaryBullets?.length
+      ? profileIntelligence.summaryBullets
+      : profileIntelligence?.summary
+        ? [profileIntelligence.summary]
+        : [];
+  const profileIntelligencePublicProfiles = profileIntelligence?.publicProfiles || [];
+  const profileIntelligenceMissing =
+    profileIntelligence?.missingSignals?.length
+      ? profileIntelligence.missingSignals
+      : profileIntelligence?.missingInformation || [];
   const hasProfileIntelligence = Boolean(
-    profileIntelligence?.summary || profileIntelligenceSources.length
+    profileIntelligenceSummaryBullets.length ||
+      profileIntelligenceEvidence.length ||
+      profileIntelligencePublicProfiles.length
   );
   const hasLegacyShadowProfile = Boolean(
     shadowProfile &&
@@ -686,29 +719,96 @@ const PublicInvestorProfilePage: React.FC = () => {
                           <Brain className="w-5 h-5 text-hushh-blue" />
                         </div>
                         <div className="min-w-0">
-                          <h2 className="text-lg font-semibold text-gray-900">Profile Intelligence</h2>
-                          <p className="text-xs text-gray-500">Public signals</p>
+                          <h2 className="text-lg font-semibold text-gray-900">Public Signals</h2>
+                          <p className="text-xs text-gray-500">Safe profile intelligence</p>
                         </div>
                       </div>
-                      <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 text-[10px] font-semibold rounded-full uppercase tracking-wide">
-                        AI Researched
+                      <span className={`px-2.5 py-1 text-[10px] font-semibold rounded-full uppercase tracking-wide border ${getConfidencePillClass(profileIntelligence.confidenceLabel)}`}>
+                        {profileIntelligence.confidenceLabel || "Low"}
                       </span>
                     </div>
 
-                    {profileIntelligence.summary && (
-                      <p className="mb-5 text-sm text-gray-700 leading-relaxed whitespace-pre-line">
-                        {profileIntelligence.summary}
-                      </p>
+                    {(profileIntelligence.headline || profileIntelligence.generatedAt) && (
+                      <div className="mb-5 rounded-xl border border-gray-100 bg-gray-50 px-3 py-3">
+                        {profileIntelligence.headline && (
+                          <p className="text-sm font-medium text-gray-900 leading-relaxed">
+                            {profileIntelligence.headline}
+                          </p>
+                        )}
+                        {(profileIntelligence.generatedAt || profileIntelligence.model) && (
+                          <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-gray-400">
+                            {profileIntelligence.generatedAt && (
+                              <span>{formatGeneratedAt(profileIntelligence.generatedAt)}</span>
+                            )}
+                            {profileIntelligence.model && <span>{profileIntelligence.model}</span>}
+                          </div>
+                        )}
+                      </div>
                     )}
 
-                    {profileIntelligenceSources.length > 0 && (
+                    {profileIntelligenceSummaryBullets.length > 0 && (
+                      <div className="mb-5">
+                        <div className="space-y-2">
+                          {profileIntelligenceSummaryBullets.slice(0, 4).map((item) => (
+                            <div key={item} className="flex gap-2 text-sm text-gray-700 leading-relaxed">
+                              <Check className="mt-0.5 w-4 h-4 shrink-0 text-emerald-500" />
+                              <span>{item}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {profileIntelligence.identityMatch && (
+                      <div className="mb-5 rounded-xl border border-blue-100 bg-blue-50/50 px-3 py-3">
+                        <div className="flex items-start gap-2">
+                          <ShieldCheck className="mt-0.5 w-4 h-4 shrink-0 text-hushh-blue" />
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">
+                              {getIdentityLabel(profileIntelligence.identityMatch.label)}
+                            </p>
+                            <p className="mt-1 text-xs leading-relaxed text-gray-500">
+                              {profileIntelligence.identityMatch.explanation}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {profileIntelligencePublicProfiles.length > 0 && (
+                      <div className="mb-5">
+                        <div className="flex items-center gap-2 mb-3">
+                          <User className="w-4 h-4 text-hushh-blue" />
+                          <span className="text-sm font-medium text-gray-800">Public profiles</span>
+                        </div>
+                        <div className="space-y-2">
+                          {profileIntelligencePublicProfiles.slice(0, 3).map((profile) => (
+                            <a
+                              key={profile.url}
+                              href={profile.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center justify-between gap-3 rounded-lg border border-gray-100 px-3 py-2 text-sm hover:border-hushh-blue/30"
+                            >
+                              <div className="min-w-0">
+                                <p className="truncate font-medium text-gray-900">{profile.platform}</p>
+                                <p className="truncate text-xs text-gray-500">{profile.title}</p>
+                              </div>
+                              <ExternalLink className="w-3.5 h-3.5 shrink-0 text-hushh-blue" />
+                            </a>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {profileIntelligenceEvidence.length > 0 && (
                       <div className="mb-5">
                         <div className="flex items-center gap-2 mb-3">
                           <Globe className="w-4 h-4 text-hushh-blue" />
-                          <span className="text-sm font-medium text-gray-800">Verified public sources</span>
+                          <span className="text-sm font-medium text-gray-800">Cited evidence</span>
                         </div>
                         <div className="space-y-2">
-                          {profileIntelligenceSources.slice(0, 4).map((source) => (
+                          {profileIntelligenceEvidence.slice(0, 4).map((source) => (
                             <a
                               key={source.url}
                               href={source.url}
@@ -716,7 +816,7 @@ const PublicInvestorProfilePage: React.FC = () => {
                               rel="noopener noreferrer"
                               className="flex items-center justify-between gap-3 rounded-lg border border-gray-100 px-3 py-2 text-sm text-hushh-blue hover:border-hushh-blue/30"
                             >
-                              <span className="min-w-0 truncate">{getSourceLabel(source)}</span>
+                              <span className="min-w-0 truncate">{source.title} · {source.supports}</span>
                               <ExternalLink className="w-3.5 h-3.5 shrink-0" />
                             </a>
                           ))}
@@ -737,23 +837,6 @@ const PublicInvestorProfilePage: React.FC = () => {
                             </span>
                           ))}
                         </div>
-                      </div>
-                    )}
-
-                    {(profileIntelligence.generatedAt || profileIntelligence.model) && (
-                      <div className="border-t border-gray-100 pt-4 text-xs text-gray-400 space-y-1.5">
-                        {profileIntelligence.generatedAt && (
-                          <div className="flex items-center justify-between gap-3">
-                            <span>Generated At</span>
-                            <span className="text-right">{formatGeneratedAt(profileIntelligence.generatedAt)}</span>
-                          </div>
-                        )}
-                        {profileIntelligence.model && (
-                          <div className="flex items-center justify-between gap-3">
-                            <span>Model</span>
-                            <span className="text-right">{profileIntelligence.model}</span>
-                          </div>
-                        )}
                       </div>
                     )}
                   </section>
