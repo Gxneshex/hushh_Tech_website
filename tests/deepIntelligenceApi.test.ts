@@ -1,17 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const interactionsCreate = vi.fn();
-const interactionsGet = vi.fn();
-const GoogleGenAI = vi.fn(() => ({
-  interactions: {
-    create: interactionsCreate,
-    get: interactionsGet,
-  },
-}));
-
-vi.mock("@google/genai", () => ({
-  GoogleGenAI,
-}));
+const fetchMock = vi.fn();
 
 const servicePath = "../cloud-run/deep-intelligence-api";
 
@@ -110,8 +99,11 @@ describe("deep intelligence request validation", () => {
 
 describe("Gemini Deep Research client", () => {
   beforeEach(() => {
-    interactionsCreate.mockResolvedValue({ id: "interaction-123", status: "in_progress" });
-    interactionsGet.mockResolvedValue({ id: "interaction-123", status: "in_progress" });
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ id: "interaction-123", status: "in_progress" }),
+    });
   });
 
   afterEach(() => {
@@ -123,6 +115,7 @@ describe("Gemini Deep Research client", () => {
     const client = new GeminiDeepResearchClient({
       apiKey: "gemini-key",
       model: "deep-research-preview-04-2026",
+      fetchImpl: fetchMock,
     });
 
     const interaction = await client.startReport({
@@ -134,27 +127,39 @@ describe("Gemini Deep Research client", () => {
     });
 
     expect(interaction).toMatchObject({ id: "interaction-123" });
-    expect(GoogleGenAI).toHaveBeenCalledWith({ apiKey: "gemini-key" });
-    expect(interactionsCreate).toHaveBeenCalledWith(
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://generativelanguage.googleapis.com/v1beta/interactions",
       expect.objectContaining({
-        agent: "deep-research-preview-04-2026",
-        background: true,
-        store: true,
-        agent_config: expect.objectContaining({
-          type: "deep-research",
-          thinking_summaries: "auto",
-          visualization: "off",
-          collaborative_planning: false,
+        method: "POST",
+        headers: expect.objectContaining({
+          "Api-Revision": "2026-05-20",
+          "x-goog-api-key": "gemini-key",
         }),
-        tools: [{ type: "google_search" }, { type: "url_context" }, { type: "code_execution" }],
       }),
     );
+    const requestBody = JSON.parse(fetchMock.mock.calls[0][1].body as string);
+    expect(requestBody).toMatchObject({
+      agent: "deep-research-preview-04-2026",
+      background: true,
+      store: true,
+      agent_config: {
+        type: "deep-research",
+        thinking_summaries: "auto",
+        visualization: "off",
+        collaborative_planning: false,
+      },
+      tools: [{ type: "google_search" }, { type: "url_context" }, { type: "code_execution" }],
+    });
   });
 
   it("fails cleanly when Gemini does not return an interaction id", async () => {
-    interactionsCreate.mockResolvedValueOnce({ status: "in_progress" });
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({ status: "in_progress" }),
+    });
     const { GeminiDeepResearchClient } = await importFresh(`${servicePath}/src/geminiClient.js`);
-    const client = new GeminiDeepResearchClient({ apiKey: "gemini-key" });
+    const client = new GeminiDeepResearchClient({ apiKey: "gemini-key", fetchImpl: fetchMock });
 
     await expect(
       client.startReport({
@@ -168,17 +173,18 @@ describe("Gemini Deep Research client", () => {
   });
 
   it("returns an actionable error when Gemini project access is denied", async () => {
-    interactionsCreate.mockRejectedValueOnce({
+    fetchMock.mockResolvedValueOnce({
+      ok: false,
       status: 403,
-      error: {
+      json: async () => ({
         error: {
           code: "permission_denied",
           message: "Your project has been denied access. Please contact support.",
         },
-      },
+      }),
     });
     const { GeminiDeepResearchClient } = await importFresh(`${servicePath}/src/geminiClient.js`);
-    const client = new GeminiDeepResearchClient({ apiKey: "gemini-key" });
+    const client = new GeminiDeepResearchClient({ apiKey: "gemini-key", fetchImpl: fetchMock });
 
     await expect(
       client.startReport({
@@ -192,17 +198,18 @@ describe("Gemini Deep Research client", () => {
   });
 
   it("redacts secret-like values from Gemini upstream errors", async () => {
-    interactionsGet.mockRejectedValueOnce({
+    fetchMock.mockResolvedValueOnce({
+      ok: false,
       status: 500,
-      error: {
+      json: async () => ({
         error: {
           code: "internal",
           message: "Request failed for ?key=AIzaSySecretValueThatMustNotLeak",
         },
-      },
+      }),
     });
     const { GeminiDeepResearchClient } = await importFresh(`${servicePath}/src/geminiClient.js`);
-    const client = new GeminiDeepResearchClient({ apiKey: "gemini-key" });
+    const client = new GeminiDeepResearchClient({ apiKey: "gemini-key", fetchImpl: fetchMock });
 
     await expect(client.getReport("interaction-123")).rejects.toThrow(
       /Gemini Deep Research request failed: status 500; code internal; Request failed for \?key=\[redacted\]/,

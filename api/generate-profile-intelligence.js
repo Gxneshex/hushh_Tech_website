@@ -4,6 +4,7 @@
  * service, and returns only the formatted profile display model.
  */
 
+import { GoogleGenAI } from "@google/genai";
 import { formatProfileIntelligenceReport } from "./shared/profileIntelligenceFormatter.js";
 import { createSupabaseServerClient } from "./shared/supabaseServerClient.js";
 
@@ -11,6 +12,8 @@ const DEFAULT_PROFILE_INTELLIGENCE_API_BASE_URL =
   "https://hushh-ria-intelligence-api-53407187172.us-central1.run.app";
 const DEFAULT_PROFILE_INTELLIGENCE_TIMEOUT_MS = 180000;
 const DEFAULT_PROFILE_INTELLIGENCE_POLL_INTERVAL_MS = 5000;
+const DEFAULT_PROFILE_INTELLIGENCE_FALLBACK_MODEL = "gemini-2.5-flash";
+const DEFAULT_VERTEX_LOCATION = "us-central1";
 const USER_SAFE_UPSTREAM_ERROR =
   "Profile intelligence is temporarily unavailable. Please try again shortly.";
 
@@ -83,6 +86,29 @@ function getInternalApiKey(env = process.env) {
   }
 
   return key;
+}
+
+function getVertexConfig(env = process.env) {
+  const project =
+    trimValue(env.PROFILE_INTELLIGENCE_VERTEX_PROJECT) ||
+    trimValue(env.GOOGLE_CLOUD_PROJECT) ||
+    trimValue(env.GCP_PROJECT_ID) ||
+    trimValue(env.GCLOUD_PROJECT);
+  const location =
+    trimValue(env.PROFILE_INTELLIGENCE_VERTEX_LOCATION) ||
+    trimValue(env.GOOGLE_CLOUD_LOCATION) ||
+    DEFAULT_VERTEX_LOCATION;
+
+  if (!project) return null;
+  return { project, location };
+}
+
+function getFallbackModel(env = process.env) {
+  return (
+    trimValue(env.PROFILE_INTELLIGENCE_FALLBACK_MODEL) ||
+    trimValue(env.GEMINI_INVESTOR_PROFILE_MODEL) ||
+    DEFAULT_PROFILE_INTELLIGENCE_FALLBACK_MODEL
+  );
 }
 
 function parseTimeoutMs(env = process.env) {
@@ -200,6 +226,7 @@ async function fetchJson(url, options = {}) {
     error.statusCode = 502;
     error.upstreamStatus = response.status;
     error.upstreamCode = payload?.error?.code;
+    error.upstreamMessage = payload?.error?.message;
     throw error;
   }
 
@@ -277,6 +304,131 @@ async function fetchProfileIntelligence(input, env = process.env) {
   }
 }
 
+function buildFallbackPrompt(input) {
+  const location = [input.location.city, input.location.region, input.location.country]
+    .filter(Boolean)
+    .join(", ");
+
+  return `Generate a consent-gated public-web self-audit for the user below.
+
+Subject:
+- Name: ${input.name}
+- Coarse location: ${location || input.zipCode || "unknown coarse region"}
+
+Rules:
+- Use public web signals only.
+- This is for the user's own profile audit, not for surveillance or eligibility decisions.
+- Do not expose home addresses, private phone numbers, private emails, identity documents, credentials, family targeting, minors, or unverified accusations.
+- If identity matching is ambiguous, say that plainly.
+- Prefer official/professional sources: LinkedIn, GitHub, personal sites, company pages, publications, talks, and public directories.
+- Include source URLs inline for every meaningful public signal so the formatter can cite them.
+
+Return concise sections:
+1. Summary
+2. Public profiles found
+3. Source citations
+4. Confidence
+5. Risk flags
+6. Missing signals
+7. Redactions and warnings`;
+}
+
+async function extractResponseText(response) {
+  if (typeof response?.text === "string") {
+    return response.text;
+  }
+
+  if (typeof response?.text === "function") {
+    return await response.text();
+  }
+
+  const parts = response?.candidates?.[0]?.content?.parts;
+  if (Array.isArray(parts)) {
+    return parts.map((part) => part?.text || "").join("");
+  }
+
+  return "";
+}
+
+function extractGroundingSources(response) {
+  const sources = [];
+  const candidates = Array.isArray(response?.candidates) ? response.candidates : [];
+
+  for (const candidate of candidates) {
+    const chunks = candidate?.groundingMetadata?.groundingChunks;
+    if (!Array.isArray(chunks)) continue;
+
+    for (const chunk of chunks) {
+      const source = chunk?.web || chunk?.retrievedContext || {};
+      const url = trimValue(source.uri || source.url);
+      if (!url) continue;
+      sources.push({
+        title: trimValue(source.title) || url,
+        uri: url,
+      });
+    }
+  }
+
+  return sources;
+}
+
+async function generateVertexFallbackReport(input, env = process.env) {
+  const vertexConfig = getVertexConfig(env);
+  if (!vertexConfig) {
+    const error = new Error("Profile intelligence Vertex fallback is not configured");
+    error.statusCode = 503;
+    throw error;
+  }
+
+  const model = getFallbackModel(env);
+  const ai = new GoogleGenAI({
+    vertexai: true,
+    project: vertexConfig.project,
+    location: vertexConfig.location,
+    apiVersion: "v1",
+  });
+  const response = await ai.models.generateContent({
+    model,
+    contents: buildFallbackPrompt(input),
+    config: {
+      temperature: 0.2,
+      maxOutputTokens: 4096,
+      tools: [{ googleSearch: {} }],
+    },
+  });
+  const summary = await extractResponseText(response);
+
+  if (!summary.trim()) {
+    const error = new Error("Profile intelligence Vertex fallback returned no text");
+    error.statusCode = 502;
+    throw error;
+  }
+
+  return {
+    success: true,
+    jobId: "vertex-fallback",
+    status: "completed",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    report: {
+      summary,
+      sourceCitations: extractGroundingSources(response),
+      confidence: "medium",
+      riskFlags: ["deep_research_unavailable", "vertex_search_fallback"],
+      redactions: [],
+      warnings: [
+        "Gemini Deep Research was unavailable, so this used Vertex Gemini with Google Search grounding as a fallback.",
+      ],
+      model,
+      provider: "vertex-gemini-search-fallback",
+    },
+  };
+}
+
+function shouldUseVertexFallback(error) {
+  return error?.statusCode === 502 || error?.statusCode === 504;
+}
+
 function sendCorsHeaders(res) {
   res.setHeader("Access-Control-Allow-Credentials", "true");
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -308,9 +460,33 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: inputError });
     }
 
-    const payload = await fetchProfileIntelligence(input);
+    let payload;
+    try {
+      payload = await fetchProfileIntelligence(input);
+    } catch (error) {
+      if (!shouldUseVertexFallback(error)) {
+        throw error;
+      }
+
+      console.warn("Profile intelligence upstream unavailable; using Vertex fallback", {
+        upstreamStatus: error?.upstreamStatus,
+        upstreamCode: error?.upstreamCode,
+      });
+      try {
+        payload = await generateVertexFallbackReport(input);
+      } catch (fallbackError) {
+        const safeError = new Error(USER_SAFE_UPSTREAM_ERROR);
+        safeError.statusCode = 502;
+        safeError.cause = fallbackError;
+        throw safeError;
+      }
+    }
+
     const formatted = formatProfileIntelligenceReport(payload, {
-      model: process.env.PROFILE_INTELLIGENCE_MODEL || process.env.DEEP_INTELLIGENCE_MODEL,
+      model:
+        payload?.report?.model ||
+        process.env.PROFILE_INTELLIGENCE_MODEL ||
+        process.env.DEEP_INTELLIGENCE_MODEL,
     });
     const profileIntelligence = formatted.intelligence;
 

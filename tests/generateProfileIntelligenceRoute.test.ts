@@ -5,9 +5,17 @@ const createClient = vi.fn(() => ({
   auth: { getUser },
 }));
 const fetchMock = vi.fn();
+const generateContent = vi.fn();
+const GoogleGenAI = vi.fn(() => ({
+  models: { generateContent },
+}));
 
 vi.mock("@supabase/supabase-js", () => ({
   createClient,
+}));
+
+vi.mock("@google/genai", () => ({
+  GoogleGenAI,
 }));
 
 const createResponse = () => {
@@ -73,7 +81,27 @@ describe("generate profile intelligence route", () => {
     process.env.PROFILE_INTELLIGENCE_API_KEY = "internal-profile-key";
     process.env.PROFILE_INTELLIGENCE_TIMEOUT_MS = "1000";
     process.env.PROFILE_INTELLIGENCE_POLL_INTERVAL_MS = "1";
+    process.env.GOOGLE_CLOUD_PROJECT = "hushh-tech-prod";
+    process.env.GOOGLE_CLOUD_LOCATION = "us-central1";
     getUser.mockResolvedValue({ data: { user: { id: "user-1" } }, error: null });
+    generateContent.mockResolvedValue({
+      text:
+        "Summary: Public web fallback found a professional profile at https://example.com/fallback. Confidence: medium.",
+      candidates: [
+        {
+          groundingMetadata: {
+            groundingChunks: [
+              {
+                web: {
+                  title: "Fallback Profile",
+                  uri: "https://example.com/fallback",
+                },
+              },
+            ],
+          },
+        },
+      ],
+    });
     fetchMock.mockResolvedValueOnce({
       ok: true,
       status: 202,
@@ -133,6 +161,9 @@ describe("generate profile intelligence route", () => {
     delete process.env.PROFILE_INTELLIGENCE_API_KEY;
     delete process.env.PROFILE_INTELLIGENCE_TIMEOUT_MS;
     delete process.env.PROFILE_INTELLIGENCE_POLL_INTERVAL_MS;
+    delete process.env.GOOGLE_CLOUD_PROJECT;
+    delete process.env.GOOGLE_CLOUD_LOCATION;
+    delete process.env.PROFILE_INTELLIGENCE_FALLBACK_MODEL;
     vi.unstubAllGlobals();
     vi.clearAllMocks();
     vi.resetModules();
@@ -241,9 +272,56 @@ describe("generate profile intelligence route", () => {
       confidence: expect.any(Number),
       profileIntelligence: res.body.intelligence,
     });
+    expect(generateContent).not.toHaveBeenCalled();
   });
 
-  it("returns a safe browser error when the upstream backend fails", async () => {
+  it("falls back to Vertex Gemini search when the standalone backend is unavailable", async () => {
+    fetchMock.mockReset();
+    fetchMock.mockResolvedValueOnce({
+      ok: false,
+      status: 503,
+      json: async () => ({
+        error: {
+          code: "upstream_error",
+          message: "Gemini API project is denied access to Deep Research/Interactions.",
+        },
+      }),
+    });
+    const handler = await importHandler();
+    const res = createResponse();
+
+    await handler(validRequest, res);
+
+    expect(res.statusCode).toBe(200);
+    expect(GoogleGenAI).toHaveBeenCalledWith(
+      expect.objectContaining({
+        vertexai: true,
+        project: "hushh-tech-prod",
+        location: "us-central1",
+      }),
+    );
+    expect(generateContent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        model: "gemini-2.5-flash",
+        config: expect.objectContaining({
+          tools: [{ googleSearch: {} }],
+        }),
+      }),
+    );
+    expect(res.body.intelligence).toMatchObject({
+      status: "completed",
+      model: "gemini-2.5-flash",
+      riskFlags: expect.arrayContaining(["deep_research_unavailable", "vertex_search_fallback"]),
+      evidence: [
+        expect.objectContaining({
+          title: "Fallback Profile",
+          url: "https://example.com/fallback",
+        }),
+      ],
+    });
+  });
+
+  it("returns a safe browser error when both upstream and fallback fail", async () => {
     fetchMock.mockReset();
     fetchMock.mockResolvedValueOnce({
       ok: false,
@@ -252,6 +330,7 @@ describe("generate profile intelligence route", () => {
         detail: "internal provider stack: secret token exhausted",
       }),
     });
+    generateContent.mockRejectedValueOnce(new Error("provider secret token exhausted"));
     const handler = await importHandler();
     const res = createResponse();
 
