@@ -206,6 +206,7 @@ jobs:
             --min-instances=1 \
             --max-instances=10 \
             --port=8080 \
+            --timeout=240s \
             --update-env-vars="$runtime_env" \
             --update-secrets="$runtime_secrets" \
             --clear-base-image \
