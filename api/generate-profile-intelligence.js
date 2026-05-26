@@ -83,6 +83,10 @@ function normalizeBaseUrl(env = process.env) {
   ).replace(/\/+$/, "");
 }
 
+function isProfileIntelligenceDisabled(env = process.env) {
+  return /^(1|true|yes|on)$/i.test(trimValue(env.PROFILE_INTELLIGENCE_DISABLED));
+}
+
 function normalizeWhitespace(value) {
   return trimValue(value).replace(/\s+/g, " ");
 }
@@ -250,6 +254,14 @@ export default async function handler(req, res) {
 
   try {
     await authenticateRequest(req);
+
+    if (isProfileIntelligenceDisabled()) {
+      return res.status(200).json({
+        success: false,
+        skipped: true,
+        error: "Profile intelligence is currently paused.",
+      });
+    }
 
     const input = normalizeInput(req.body || {});
     const inputError = validateInput(input);
