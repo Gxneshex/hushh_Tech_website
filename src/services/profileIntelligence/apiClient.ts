@@ -10,6 +10,20 @@ export interface GenerateProfileIntelligenceInput {
   name: string;
   email: string;
   zipCode?: string;
+  context?: {
+    legalName?: string;
+    organisation?: string;
+    accountType?: string;
+    selectedFund?: string;
+    referralSource?: string;
+    citizenshipCountry?: string;
+    residenceCountry?: string;
+    accountStructure?: string;
+    city?: string;
+    state?: string;
+    country?: string;
+    addressCountry?: string;
+  };
 }
 
 export interface GenerateProfileIntelligenceResponse {
@@ -56,6 +70,7 @@ export async function generateProfileIntelligence(
           name: input.name,
           email: input.email,
           zipCode,
+          context: input.context,
         },
       }),
     });

@@ -12,6 +12,21 @@ const DEFAULT_PROFILE_INTELLIGENCE_API_BASE_URL =
 const DEFAULT_PROFILE_INTELLIGENCE_TIMEOUT_MS = 180000;
 const USER_SAFE_UPSTREAM_ERROR =
   "Profile intelligence is temporarily unavailable. Please try again shortly.";
+const MAX_CONTEXT_LENGTH = 1500;
+const SAFE_CONTEXT_LABELS = {
+  legalName: "Legal name",
+  organisation: "Organisation",
+  accountType: "Account type",
+  selectedFund: "Selected fund",
+  referralSource: "Referral source",
+  citizenshipCountry: "Citizenship country",
+  residenceCountry: "Residence country",
+  accountStructure: "Account structure",
+  city: "City",
+  state: "State",
+  country: "Country",
+  addressCountry: "Address country",
+};
 
 function trimValue(value) {
   return typeof value === "string" ? value.trim() : "";
@@ -68,6 +83,46 @@ function normalizeBaseUrl(env = process.env) {
   ).replace(/\/+$/, "");
 }
 
+function normalizeWhitespace(value) {
+  return trimValue(value).replace(/\s+/g, " ");
+}
+
+function sanitizeContextValue(value) {
+  if (Array.isArray(value)) {
+    return value.map(sanitizeContextValue).filter(Boolean).join(", ");
+  }
+
+  if (typeof value === "number" || typeof value === "boolean") {
+    return String(value);
+  }
+
+  if (typeof value !== "string") {
+    return "";
+  }
+
+  return normalizeWhitespace(value).slice(0, 160);
+}
+
+function normalizeProfileContext(rawContext) {
+  if (typeof rawContext === "string") {
+    return normalizeWhitespace(rawContext).slice(0, MAX_CONTEXT_LENGTH);
+  }
+
+  if (!rawContext || typeof rawContext !== "object" || Array.isArray(rawContext)) {
+    return "";
+  }
+
+  const parts = [];
+  for (const [key, label] of Object.entries(SAFE_CONTEXT_LABELS)) {
+    const value = sanitizeContextValue(rawContext[key]);
+    if (value) {
+      parts.push(`${label}: ${value}`);
+    }
+  }
+
+  return parts.join("; ").slice(0, MAX_CONTEXT_LENGTH);
+}
+
 function parseTimeoutMs(env = process.env) {
   return parseInteger(
     env.PROFILE_INTELLIGENCE_TIMEOUT_MS,
@@ -82,6 +137,7 @@ function normalizeInput(body = {}) {
     name: trimValue(raw.name),
     email: trimValue(raw.email).toLowerCase(),
     zipCode: trimValue(raw.zipCode || raw.zip_code || raw.postalCode),
+    context: normalizeProfileContext(raw.context || raw.profileContext),
   };
 }
 
@@ -136,14 +192,17 @@ async function fetchProfileIntelligence(input, env = process.env) {
   };
 
   try {
+    const body = {
+      name: input.name,
+      email: input.email,
+      zipCode: input.zipCode,
+      ...(input.context ? { context: input.context } : {}),
+    };
+
     return await fetchJson(`${baseUrl}/v1/intelligence/osint-profile`, {
       method: "POST",
       headers,
-      body: JSON.stringify({
-        name: input.name,
-        email: input.email,
-        zipCode: input.zipCode,
-      }),
+      body: JSON.stringify(body),
       signal: controller.signal,
     });
   } catch (error) {

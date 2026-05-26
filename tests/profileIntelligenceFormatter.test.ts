@@ -73,4 +73,39 @@ describe("profile intelligence formatter", () => {
     expect(intelligence.riskFlags).toContain("identity_match_ambiguous");
     expect(intelligence.riskFlags).toContain("source_coverage_low");
   });
+
+  it("parses markdown OSINT reports into UI sections", () => {
+    const { intelligence } = formatProfileIntelligenceReport({
+      summary: `# OSINT Profile Report: Ada Lovelace
+
+## 1. **Geographical & Contextual Intelligence**
+- Submitted zip code \`10001\` resolves to New York.
+- Context is used only for disambiguation.
+
+## 2. **Digital Persona & OSINT Overview**
+- Public source [Example Profile](https://example.com/ada) mentions analytical engines.
+- Email ada@example.com is redacted before display.`,
+      missingInformation: ["verified public profile links"],
+      sources: [{ title: "Example Profile", uri: "https://example.com/ada" }],
+    });
+
+    expect(intelligence.summarySections).toEqual([
+      {
+        title: "Geographical & Contextual Intelligence",
+        items: [
+          "Submitted zip code 10001 resolves to New York.",
+          "Context is used only for disambiguation.",
+        ],
+      },
+      {
+        title: "Digital Persona & OSINT Overview",
+        items: [
+          "Public source Example Profile (https://example.com/ada) mentions analytical engines.",
+          "Email [redacted-email] is redacted before display.",
+        ],
+      },
+    ]);
+    expect(intelligence.summaryBullets[0]).toBe("Submitted zip code 10001 resolves to New York.");
+    expect(intelligence.redactions).toContain("email");
+  });
 });

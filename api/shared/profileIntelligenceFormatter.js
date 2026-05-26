@@ -191,15 +191,93 @@ function normalizeSummaryText(report) {
   );
 }
 
+function stripInlineMarkdown(text) {
+  return trimValue(text)
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, "$1 ($2)")
+    .replace(/\*\*([^*]+)\*\*/g, "$1")
+    .replace(/__([^_]+)__/g, "$1")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/\s+/g, " ");
+}
+
+function cleanSummaryLine(line) {
+  return stripInlineMarkdown(
+    line
+      .replace(/^#{1,6}\s*/, "")
+      .replace(/^[-*]\s*/, "")
+      .replace(/^\d+\.\s*/, "")
+      .replace(/^[:\s-]+/, "")
+      .trim(),
+  );
+}
+
+function headingFromLine(line) {
+  const trimmed = trimValue(line);
+  const markdownHeading = trimmed.match(/^#{1,6}\s+(.+)$/);
+  if (markdownHeading) return cleanSummaryLine(markdownHeading[1]);
+
+  const numberedBoldHeading = trimmed.match(/^\d+\.\s+\*\*([^*]+)\*\*:?\s*$/);
+  if (numberedBoldHeading) return cleanSummaryLine(numberedBoldHeading[1]);
+
+  const boldHeading = trimmed.match(/^\*\*([^*]+)\*\*:?\s*$/);
+  if (boldHeading) return cleanSummaryLine(boldHeading[1]);
+
+  return "";
+}
+
+function parseSummarySections(summary) {
+  const sections = [];
+  let current = null;
+
+  const ensureCurrent = () => {
+    if (!current) {
+      current = { title: "Summary", items: [] };
+      sections.push(current);
+    }
+    return current;
+  };
+
+  for (const rawLine of String(summary || "").split(/\n+/)) {
+    const line = trimValue(rawLine);
+    if (!line) continue;
+
+    const heading = headingFromLine(line);
+    if (heading) {
+      if (/^osint profile report\b/i.test(heading)) {
+        continue;
+      }
+      current = { title: heading.replace(/:$/, ""), items: [] };
+      sections.push(current);
+      continue;
+    }
+
+    const item = cleanSummaryLine(line);
+    if (!item) continue;
+    ensureCurrent().items.push(item);
+  }
+
+  return sections
+    .map((section) => ({
+      title: section.title,
+      items: uniqueStrings(section.items).slice(0, 6),
+    }))
+    .filter((section) => section.items.length > 0)
+    .slice(0, 8);
+}
+
 function buildSummaryBullets(summary) {
+  const sections = parseSummarySections(summary);
+  if (sections.length > 0) {
+    return sections
+      .flatMap((section) => section.items)
+      .filter(Boolean)
+      .slice(0, 5);
+  }
+
   const cleanedLines = summary
     .split(/\n+/)
     .map((line) =>
-      line
-        .replace(/^#{1,6}\s*/, "")
-        .replace(/^[-*]\s*/, "")
-        .replace(/^\d+\.\s*/, "")
-        .trim(),
+      cleanSummaryLine(line),
     )
     .filter((line) => line && !/^(summary|public profiles found|source citations|confidence|risk flags|redactions|warnings):?$/i.test(line));
 
@@ -301,6 +379,7 @@ export function formatProfileIntelligenceReport(payload = {}, options = {}) {
 
   const confidenceLabel = confidenceLabelFromReport(report, evidence, riskFlags);
   const publicProfiles = normalizePublicProfiles(report.publicProfiles || report.public_profiles, evidence, confidenceLabel);
+  const summarySections = parseSummarySections(summaryRedaction.text);
   const summaryBullets = buildSummaryBullets(summaryRedaction.text);
   const status = statusFromSignals(summaryRedaction.text, evidence, riskFlags, confidenceLabel);
   const missingSignals = uniqueStrings([
@@ -328,6 +407,7 @@ export function formatProfileIntelligenceReport(payload = {}, options = {}) {
     ...(model ? { model } : {}),
     headline: headlineFromSignals(summaryBullets, status),
     summary: summaryRedaction.text,
+    summarySections,
     summaryBullets,
     identityMatch: identityMatchFromSignals(confidenceLabel, riskFlags, evidence.length),
     publicProfiles,
