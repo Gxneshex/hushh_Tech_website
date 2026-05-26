@@ -56,6 +56,14 @@ const validRequest = {
       name: "Ada Lovelace",
       email: "ada@example.com",
       zipCode: "10001",
+      context: {
+        legalName: "Ada Byron Lovelace",
+        organisation: "Analytical Engines Lab",
+        city: "New York",
+        state: "New York",
+        residenceCountry: "United States",
+        phoneNumber: "should-not-forward",
+      },
     },
   },
 };
@@ -188,9 +196,12 @@ describe("generate profile intelligence route", () => {
           name: "Ada Lovelace",
           email: "ada@example.com",
           zipCode: "10001",
+          context:
+            "Legal name: Ada Byron Lovelace; Organisation: Analytical Engines Lab; Residence country: United States; City: New York; State: New York",
         }),
       }),
     );
+    expect(fetchMock.mock.calls[0][1].body).not.toContain("should-not-forward");
     expect(fetchMock.mock.calls[0][1].headers).not.toHaveProperty("Authorization");
     expect(res.body.success).toBe(true);
     expect(res.body.intelligence).toMatchObject({

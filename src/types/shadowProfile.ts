@@ -42,6 +42,11 @@ export interface ProfileIntelligenceEvidence {
   supports: string;
 }
 
+export interface ProfileIntelligenceSummarySection {
+  title: string;
+  items: string[];
+}
+
 export interface ProfileIntelligence {
   summary: string;
   sources: ProfileIntelligenceSource[];
@@ -50,6 +55,7 @@ export interface ProfileIntelligence {
   model?: string;
   status?: ProfileIntelligenceStatus;
   headline?: string;
+  summarySections?: ProfileIntelligenceSummarySection[];
   summaryBullets?: string[];
   identityMatch?: ProfileIntelligenceIdentityMatch;
   publicProfiles?: ProfileIntelligencePublicProfile[];
@@ -64,6 +70,7 @@ export interface ProfileIntelligence {
 export interface ProfileIntelligenceViewModel extends ProfileIntelligence {
   status: ProfileIntelligenceStatus;
   headline: string;
+  summarySections: ProfileIntelligenceSummarySection[];
   summaryBullets: string[];
   identityMatch: ProfileIntelligenceIdentityMatch;
   publicProfiles: ProfileIntelligencePublicProfile[];

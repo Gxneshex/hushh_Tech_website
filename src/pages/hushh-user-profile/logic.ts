@@ -545,6 +545,28 @@ export const useHushhUserProfileLogic = () => {
     setIsDirty(true);
   };
 
+  const buildProfileIntelligenceContext = () => {
+    const legalName = [form.legalFirstName, form.legalLastName]
+      .map((value) => value.trim())
+      .filter(Boolean)
+      .join(" ");
+    const country = form.residenceCountry || form.citizenshipCountry;
+
+    return {
+      ...(legalName ? { legalName } : {}),
+      ...(form.organisation ? { organisation: form.organisation } : {}),
+      ...(form.accountType ? { accountType: form.accountType } : {}),
+      ...(form.selectedFund ? { selectedFund: form.selectedFund } : {}),
+      ...(form.referralSource ? { referralSource: form.referralSource } : {}),
+      ...(form.citizenshipCountry ? { citizenshipCountry: form.citizenshipCountry } : {}),
+      ...(form.residenceCountry ? { residenceCountry: form.residenceCountry } : {}),
+      ...(form.accountStructure ? { accountStructure: form.accountStructure } : {}),
+      ...(form.city ? { city: form.city } : {}),
+      ...(form.state ? { state: form.state } : {}),
+      ...(country ? { country } : {}),
+    };
+  };
+
   // Helper: save partial profile data to Supabase (called by each API independently)
   const saveToSupabase = async (
     partialPayload: Record<string, unknown>
@@ -664,6 +686,7 @@ export const useHushhUserProfileLogic = () => {
         name: form.name,
         email: form.email,
         zipCode,
+        context: buildProfileIntelligenceContext(),
       }).then((result) => {
         if (result.success && result.shadowProfile) {
           setShadowProfile(result.shadowProfile);

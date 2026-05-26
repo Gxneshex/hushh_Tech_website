@@ -109,11 +109,16 @@ const ProfileIntelligenceSection = ({
       }));
   const topEvidence = evidence.slice(0, 4);
   const summaryBullets =
-    intelligence.summaryBullets?.length
+    intelligence.summarySections?.length
+      ? []
+      : intelligence.summaryBullets?.length
       ? intelligence.summaryBullets.slice(0, 5)
       : intelligence.summary
         ? [intelligence.summary]
         : [];
+  const summarySections = (intelligence.summarySections || [])
+    .filter((section) => section.items?.length)
+    .slice(0, 6);
   const publicProfiles = (intelligence.publicProfiles || []).slice(0, 4);
   const missingSignals = (
     intelligence.missingSignals?.length
@@ -143,13 +148,18 @@ const ProfileIntelligenceSection = ({
       <div className="mb-8">
         <div className="flex items-center justify-between gap-4 mb-2">
           <h2 className="text-2xl font-medium text-black tracking-tight font-serif" style={playfair}>
-            Public Web{" "}
-            <span className="text-gray-400 italic font-light">Self-Audit.</span>
+            Profile{" "}
+            <span className="text-gray-400 italic font-light">Intelligence.</span>
           </h2>
-          <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border ${getConfidencePillClass(confidenceLabel)}`}>
-            <span className="w-1.5 h-1.5 rounded-full bg-current" />
-            <span className="text-[10px] tracking-[0.14em] uppercase font-medium">{confidenceLabel}</span>
-          </span>
+          <div className="flex shrink-0 items-center gap-2">
+            <span className="inline-flex items-center rounded-full border border-hushh-blue/20 bg-hushh-blue/5 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.14em] text-hushh-blue">
+              AI Researched
+            </span>
+            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border ${getConfidencePillClass(confidenceLabel)}`}>
+              <span className="w-1.5 h-1.5 rounded-full bg-current" />
+              <span className="text-[10px] tracking-[0.14em] uppercase font-medium">{confidenceLabel}</span>
+            </span>
+          </div>
         </div>
         <p className="text-gray-500 text-xs leading-relaxed">
           A consent-gated, cited view of public signals Hushh found for your own profile.
@@ -177,7 +187,28 @@ const ProfileIntelligenceSection = ({
           </div>
         </div>
 
-        {summaryBullets.length > 0 && (
+        {summarySections.length > 0 && (
+          <div>
+            <SectionLabel>Readable Summary</SectionLabel>
+            <div className="space-y-4 border-b border-gray-100 pb-4">
+              {summarySections.map((section) => (
+                <div key={section.title}>
+                  <p className="mb-2 text-sm font-medium text-black">{section.title}</p>
+                  <ul className="space-y-2">
+                    {section.items.map((item) => (
+                      <li key={item} className="flex gap-3 text-sm leading-relaxed text-gray-700">
+                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {summarySections.length === 0 && summaryBullets.length > 0 && (
           <div>
             <SectionLabel>Readable Summary</SectionLabel>
             <ul className="space-y-3 border-b border-gray-100 pb-4">
@@ -231,7 +262,7 @@ const ProfileIntelligenceSection = ({
         )}
 
         <div>
-          <SectionLabel>Evidence</SectionLabel>
+          <SectionLabel>Sources ({sources.length})</SectionLabel>
           {topEvidence.length > 0 ? (
             <div className="space-y-2 border-b border-gray-100 pb-4">
               {topEvidence.map((source) => (
