@@ -113,6 +113,7 @@ describe("generate profile intelligence route", () => {
     delete process.env.SUPABASE_SERVICE_ROLE_KEY;
     delete process.env.PROFILE_INTELLIGENCE_API_BASE_URL;
     delete process.env.PROFILE_INTELLIGENCE_TIMEOUT_MS;
+    delete process.env.PROFILE_INTELLIGENCE_DISABLED;
     vi.unstubAllGlobals();
     vi.clearAllMocks();
     vi.resetModules();
@@ -173,6 +174,22 @@ describe("generate profile intelligence route", () => {
 
     expect(res.statusCode).toBe(400);
     expect(res.body.error).toBe("Invalid email");
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("skips profile intelligence without calling upstream when disabled", async () => {
+    process.env.PROFILE_INTELLIGENCE_DISABLED = "true";
+    const handler = await importHandler();
+    const res = createResponse();
+
+    await handler(validRequest, res);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toEqual({
+      success: false,
+      skipped: true,
+      error: "Profile intelligence is currently paused.",
+    });
     expect(fetchMock).not.toHaveBeenCalled();
   });
 

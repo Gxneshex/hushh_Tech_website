@@ -83,6 +83,14 @@ export async function generateProfileIntelligence(
       );
     }
 
+    if (data.skipped) {
+      return {
+        success: false,
+        skipped: true,
+        error: data.error || "Profile intelligence is currently paused.",
+      };
+    }
+
     if (!data.success || !data.shadow_profile?.profileIntelligence) {
       throw new Error("Invalid response from profile intelligence service");
     }
