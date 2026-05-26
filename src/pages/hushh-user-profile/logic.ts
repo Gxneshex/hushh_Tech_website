@@ -610,18 +610,8 @@ export const useHushhUserProfileLogic = () => {
     setLoading(true);
     setInvestorStatus('running');
     const zipCode = form.zipCode.trim();
-    const intelligenceLocation = {
-      city: form.city.trim(),
-      region: form.state.trim(),
-      country: (form.residenceCountry || form.citizenshipCountry).trim(),
-    };
-    const hasIntelligenceLocation = Boolean(
-      intelligenceLocation.city ||
-        intelligenceLocation.region ||
-        intelligenceLocation.country ||
-        zipCode
-    );
-    setIntelligenceStatus(hasIntelligenceLocation ? 'running' : 'skipped');
+    const hasIntelligenceZip = Boolean(zipCode);
+    setIntelligenceStatus(hasIntelligenceZip ? 'running' : 'skipped');
     startTimer();
 
     toast({
@@ -632,10 +622,10 @@ export const useHushhUserProfileLogic = () => {
       isClosable: true,
     });
 
-    if (!hasIntelligenceLocation) {
+    if (!hasIntelligenceZip) {
       toast({
         title: "Profile Intelligence skipped",
-        description: "Add a city, state, country, or ZIP code to research public profile signals. Investor profile generation will continue.",
+        description: "Add a ZIP code to research public profile signals. Investor profile generation will continue.",
         status: "warning",
         duration: 5000,
         isClosable: true,
@@ -669,14 +659,11 @@ export const useHushhUserProfileLogic = () => {
     });
 
     // ── API 2: Profile Intelligence (fire-and-forget; independent from investor profile) ──
-    if (hasIntelligenceLocation) {
+    if (hasIntelligenceZip) {
       generateProfileIntelligence({
         name: form.name,
         email: form.email,
         zipCode,
-        city: intelligenceLocation.city,
-        region: intelligenceLocation.region,
-        country: intelligenceLocation.country,
       }).then((result) => {
         if (result.success && result.shadowProfile) {
           setShadowProfile(result.shadowProfile);

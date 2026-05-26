@@ -5,17 +5,9 @@ const createClient = vi.fn(() => ({
   auth: { getUser },
 }));
 const fetchMock = vi.fn();
-const generateContent = vi.fn();
-const GoogleGenAI = vi.fn(() => ({
-  models: { generateContent },
-}));
 
 vi.mock("@supabase/supabase-js", () => ({
   createClient,
-}));
-
-vi.mock("@google/genai", () => ({
-  GoogleGenAI,
 }));
 
 const createResponse = () => {
@@ -78,76 +70,30 @@ describe("generate profile intelligence route", () => {
     process.env.SUPABASE_URL = "https://ibsisfnjxeowvdtvgzff.supabase.co";
     process.env.SUPABASE_SERVICE_ROLE_KEY = "service-role";
     process.env.PROFILE_INTELLIGENCE_API_BASE_URL = "https://profile-intelligence.example";
-    process.env.PROFILE_INTELLIGENCE_API_KEY = "internal-profile-key";
     process.env.PROFILE_INTELLIGENCE_TIMEOUT_MS = "1000";
-    process.env.PROFILE_INTELLIGENCE_POLL_INTERVAL_MS = "1";
-    process.env.GOOGLE_CLOUD_PROJECT = "hushh-tech-prod";
-    process.env.GOOGLE_CLOUD_LOCATION = "us-central1";
     getUser.mockResolvedValue({ data: { user: { id: "user-1" } }, error: null });
-    generateContent.mockResolvedValue({
-      text:
-        "Summary: Public web fallback found a professional profile at https://example.com/fallback. Confidence: medium.",
-      candidates: [
-        {
-          groundingMetadata: {
-            groundingChunks: [
-              {
-                web: {
-                  title: "Fallback Profile",
-                  uri: "https://example.com/fallback",
-                },
-              },
-            ],
-          },
-        },
-      ],
-    });
-    fetchMock.mockResolvedValueOnce({
-      ok: true,
-      status: 202,
-      json: async () => ({
-        success: true,
-        jobId: "job-1",
-        status: "in_progress",
-      }),
-    });
     fetchMock.mockResolvedValueOnce({
       ok: true,
       status: 200,
       json: async () => ({
-        success: true,
-        jobId: "job-1",
-        status: "completed",
-        report: {
-          summary: "Public sources show a technical founder profile with limited investment signals.",
-          missingSignals: ["verified investment history", "current firm affiliation"],
-          confidence: "medium",
-          model: "deep-research-max-preview-04-2026",
-          publicProfiles: [
-            {
-              platform: "Website",
-              title: "Ada Example Profile",
-              url: "https://example.com/ada",
-            },
-          ],
-          sourceCitations: [
-            {
-              title: "Ada Example Profile",
-              uri: "https://example.com/ada",
-            },
-            {
-              title: "Duplicate Source",
-              url: "https://example.com/ada",
-            },
-            {
-              title: "Unsafe Source",
-              url: "javascript:alert(1)",
-            },
-          ],
-          warnings: ["Review ambiguous matches before reuse."],
-          redactions: [],
-          riskFlags: [],
-        },
+        summary: "Public sources show a technical founder profile with limited investment signals.",
+        missingInformation: ["verified investment history", "current firm affiliation"],
+        confidence: "medium",
+        model: "gemini-3.1-pro-preview",
+        sources: [
+          {
+            title: "Ada Example Profile",
+            uri: "https://example.com/ada",
+          },
+          {
+            title: "Duplicate Source",
+            uri: "https://example.com/ada",
+          },
+          {
+            title: "Unsafe Source",
+            uri: "javascript:alert(1)",
+          },
+        ],
       }),
     });
     vi.stubGlobal("fetch", fetchMock);
@@ -158,12 +104,7 @@ describe("generate profile intelligence route", () => {
     delete process.env.SUPABASE_URL;
     delete process.env.SUPABASE_SERVICE_ROLE_KEY;
     delete process.env.PROFILE_INTELLIGENCE_API_BASE_URL;
-    delete process.env.PROFILE_INTELLIGENCE_API_KEY;
     delete process.env.PROFILE_INTELLIGENCE_TIMEOUT_MS;
-    delete process.env.PROFILE_INTELLIGENCE_POLL_INTERVAL_MS;
-    delete process.env.GOOGLE_CLOUD_PROJECT;
-    delete process.env.GOOGLE_CLOUD_LOCATION;
-    delete process.env.PROFILE_INTELLIGENCE_FALLBACK_MODEL;
     vi.unstubAllGlobals();
     vi.clearAllMocks();
     vi.resetModules();
@@ -181,7 +122,30 @@ describe("generate profile intelligence route", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("rejects invalid input before calling the upstream intelligence backend", async () => {
+  it("requires name, email, and ZIP code before calling the upstream intelligence backend", async () => {
+    const handler = await importHandler();
+    const res = createResponse();
+
+    await handler(
+      {
+        ...validRequest,
+        body: {
+          input: {
+            name: "Ada Lovelace",
+            email: "ada@example.com",
+            zipCode: "",
+          },
+        },
+      },
+      res,
+    );
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.error).toBe("Missing required fields: zipCode");
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects invalid email before calling the upstream intelligence backend", async () => {
     const handler = await importHandler();
     const res = createResponse();
 
@@ -192,7 +156,7 @@ describe("generate profile intelligence route", () => {
           input: {
             name: "Ada Lovelace",
             email: "not-an-email",
-            zipCode: "",
+            zipCode: "10001",
           },
         },
       },
@@ -200,41 +164,34 @@ describe("generate profile intelligence route", () => {
     );
 
     expect(res.statusCode).toBe(400);
-    expect(res.body.error).toBe("Missing required fields: location");
+    expect(res.body.error).toBe("Invalid email");
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("normalizes a valid response into the safe profileIntelligence shape", async () => {
+  it("normalizes a valid OSINT response into the profileIntelligence shape", async () => {
     const handler = await importHandler();
     const res = createResponse();
 
     await handler(validRequest, res);
 
     expect(res.statusCode).toBe(200);
-    expect(fetchMock).toHaveBeenNthCalledWith(
-      1,
-      "https://profile-intelligence.example/v1/intelligence/reports",
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://profile-intelligence.example/v1/intelligence/osint-profile",
       expect.objectContaining({
         method: "POST",
         headers: expect.objectContaining({
           Accept: "application/json",
           "Content-Type": "application/json",
-          Authorization: "Bearer internal-profile-key",
         }),
-        body: expect.stringContaining('"purpose":"self_audit"'),
-      }),
-    );
-    expect(fetchMock).toHaveBeenNthCalledWith(
-      2,
-      "https://profile-intelligence.example/v1/intelligence/reports/job-1",
-      expect.objectContaining({
-        method: "GET",
-        headers: expect.objectContaining({
-          Authorization: "Bearer internal-profile-key",
+        body: JSON.stringify({
+          name: "Ada Lovelace",
+          email: "ada@example.com",
+          zipCode: "10001",
         }),
       }),
     );
-    expect(fetchMock.mock.calls[0][1].body).not.toContain("ada@example.com");
+    expect(fetchMock.mock.calls[0][1].headers).not.toHaveProperty("Authorization");
     expect(res.body.success).toBe(true);
     expect(res.body.intelligence).toMatchObject({
       status: "completed",
@@ -242,16 +199,8 @@ describe("generate profile intelligence route", () => {
       summary: "Public sources show a technical founder profile with limited investment signals.",
       summaryBullets: ["Public sources show a technical founder profile with limited investment signals."],
       confidenceLabel: "Medium",
-      model: "deep-research-max-preview-04-2026",
-      missingSignals: ["verified investment history", "current firm affiliation"],
-      publicProfiles: [
-        {
-          platform: "Website",
-          title: "Ada Example Profile",
-          url: "https://example.com/ada",
-          confidence: "medium",
-        },
-      ],
+      model: "gemini-3.1-pro-preview",
+      missingSignals: expect.arrayContaining(["verified investment history", "current firm affiliation"]),
       evidence: [
         {
           title: "Ada Example Profile",
@@ -272,19 +221,19 @@ describe("generate profile intelligence route", () => {
       confidence: expect.any(Number),
       profileIntelligence: res.body.intelligence,
     });
-    expect(generateContent).not.toHaveBeenCalled();
   });
 
-  it("falls back to Vertex Gemini search when the standalone backend is unavailable", async () => {
+  it("does not block upstream safety-validation wording in the returned summary", async () => {
     fetchMock.mockReset();
     fetchMock.mockResolvedValueOnce({
-      ok: false,
-      status: 503,
+      ok: true,
+      status: 200,
       json: async () => ({
-        error: {
-          code: "upstream_error",
-          message: "Gemini API project is denied access to Deep Research/Interactions.",
-        },
+        summary:
+          "Generated summary failed safety validation, so detailed person-level assertions were withheld.",
+        missingInformation: ["source-backed claims"],
+        model: "gemini-3.1-pro-preview",
+        sources: [],
       }),
     });
     const handler = await importHandler();
@@ -293,35 +242,11 @@ describe("generate profile intelligence route", () => {
     await handler(validRequest, res);
 
     expect(res.statusCode).toBe(200);
-    expect(GoogleGenAI).toHaveBeenCalledWith(
-      expect.objectContaining({
-        vertexai: true,
-        project: "hushh-tech-prod",
-        location: "us-central1",
-      }),
-    );
-    expect(generateContent).toHaveBeenCalledWith(
-      expect.objectContaining({
-        model: "gemini-2.5-flash",
-        config: expect.objectContaining({
-          tools: [{ googleSearch: {} }],
-        }),
-      }),
-    );
-    expect(res.body.intelligence).toMatchObject({
-      status: "completed",
-      model: "gemini-2.5-flash",
-      riskFlags: expect.arrayContaining(["deep_research_unavailable", "vertex_search_fallback"]),
-      evidence: [
-        expect.objectContaining({
-          title: "Fallback Profile",
-          url: "https://example.com/fallback",
-        }),
-      ],
-    });
+    expect(res.body.intelligence.summary).toContain("failed safety validation");
+    expect(res.body.intelligence.missingInformation).toContain("source-backed claims");
   });
 
-  it("returns a safe browser error when both upstream and fallback fail", async () => {
+  it("returns a safe browser error when the upstream backend fails", async () => {
     fetchMock.mockReset();
     fetchMock.mockResolvedValueOnce({
       ok: false,
@@ -330,7 +255,6 @@ describe("generate profile intelligence route", () => {
         detail: "internal provider stack: secret token exhausted",
       }),
     });
-    generateContent.mockRejectedValueOnce(new Error("provider secret token exhausted"));
     const handler = await importHandler();
     const res = createResponse();
 
