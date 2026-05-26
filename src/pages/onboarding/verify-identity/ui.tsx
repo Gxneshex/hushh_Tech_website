@@ -67,13 +67,13 @@ function VerifyIdentityPage() {
       <main className="px-6 flex-grow max-w-md mx-auto w-full pb-16">
         {/* Title */}
         <section className="py-8">
-          <h3 className="text-[10px] tracking-[0.2em] text-gray-400 uppercase mb-4 font-medium">Identity</h3>
-          <h1 className="text-[2.75rem] leading-[1.1] font-normal text-black tracking-tight font-serif" style={{ fontFamily: "'Playfair Display', serif" }}>
+          <h3 className="text-[11px] tracking-[1.6px] text-hushh-blue/85 uppercase mb-4 font-medium">Identity</h3>
+          <h1 className="text-[2.75rem] leading-[1.06] font-medium text-black tracking-[-0.028em] font-serif" style={{ fontFamily: "'Playfair Display', serif" }}>
             Verify Your
             <br />
             <span className="text-gray-400 italic font-light">Identity</span>
           </h1>
-          <p className="text-sm text-gray-500 mt-4 leading-relaxed font-light">
+          <p className="text-sm text-black/60 mt-[18px] leading-[1.45] font-light">
             Complete a quick verification to secure your account and unlock all features.
           </p>
         </section>
@@ -107,7 +107,7 @@ function VerifyIdentityPage() {
         {/* What will be verified */}
         <section className="space-y-0 mb-6">
           <div className="py-4">
-            <h3 className="text-[10px] tracking-[0.2em] text-gray-400 uppercase font-medium">What Will Be Verified</h3>
+            <h3 className="text-[11px] tracking-[1.6px] text-hushh-blue/85 uppercase font-medium">What Will Be Verified</h3>
           </div>
           {items.map((item) => (
             <div key={item.icon} className="py-5 border-b border-gray-200">
@@ -134,7 +134,7 @@ function VerifyIdentityPage() {
           </div>
           <div>
             <span className="text-xs font-semibold text-gray-900 block">Secure & Private</span>
-            <p className="text-xs text-gray-500 leading-relaxed font-light mt-0.5">
+            <p className="text-xs text-black/60 leading-[1.45] font-light mt-0.5">
               Your documents are encrypted and processed securely. We never store raw document images.
             </p>
           </div>

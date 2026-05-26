@@ -65,9 +65,8 @@ describe("DocumentViewerPage decorative separators", () => {
       await Promise.resolve();
     });
 
-    const bullet = String.fromCharCode(8226);
     const separator = Array.from(container.querySelectorAll("span")).find(
-      (element) => element.textContent === bullet
+      (element) => element.getAttribute("aria-hidden") === "true"
     );
 
     expect(separator?.getAttribute("aria-hidden")).toBe("true");

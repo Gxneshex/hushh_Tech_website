@@ -38,7 +38,7 @@ export default function OnboardingStep7() {
       <main className="px-6 flex-grow max-w-md mx-auto w-full pb-48">
         {/* ── Progress Bar ── */}
         <div className="py-4">
-          <div className="flex justify-between text-[11px] font-semibold tracking-wide text-gray-500 mb-3">
+          <div className="flex justify-between text-[11px] font-medium uppercase tracking-[1.6px] text-hushh-blue/85 mb-3">
             <span>
               Step {DISPLAY_STEP}/{TOTAL_STEPS}
             </span>
@@ -54,11 +54,11 @@ export default function OnboardingStep7() {
 
         {/* ── Title Section ── */}
         <section className="py-8">
-          <h3 className="text-[10px] tracking-[0.2em] text-gray-400 uppercase mb-4 font-medium">
+          <h3 className="text-[11px] tracking-[1.6px] text-hushh-blue/85 uppercase mb-4 font-medium">
             Identity Verification
           </h3>
           <h1
-            className="text-[2.75rem] leading-[1.1] font-normal text-black tracking-tight font-serif"
+            className="text-[2.75rem] leading-[1.06] font-medium text-black tracking-[-0.028em] font-serif"
             style={{ fontFamily: "'Playfair Display', serif" }}
           >
             Enter Your Full
@@ -67,7 +67,7 @@ export default function OnboardingStep7() {
               Legal Name
             </span>
           </h1>
-          <p className="text-sm text-gray-500 mt-4 leading-relaxed font-light">
+          <p className="text-sm text-black/60 mt-[18px] leading-[1.45] font-light">
             We are required to collect this info for verification purposes.
           </p>
         </section>

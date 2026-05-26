@@ -72,7 +72,7 @@ export default function OnboardingStep13() {
       <main className="px-6 flex-grow max-w-md mx-auto w-full pb-48">
         {/* ── Progress Bar ── */}
         <div className="py-4">
-          <div className="flex justify-between text-[11px] font-semibold tracking-wide text-gray-500 mb-3">
+          <div className="flex justify-between text-[11px] font-medium uppercase tracking-[1.6px] text-hushh-blue/85 mb-3">
             <span>Step {DISPLAY_META.displayStep}/{DISPLAY_META.totalSteps}</span>
             <span>{PROGRESS_PCT}% Complete</span>
           </div>
@@ -83,16 +83,16 @@ export default function OnboardingStep13() {
 
         {/* ── Title Section ── */}
         <section className="py-8">
-          <h3 className="text-[10px] tracking-[0.2em] text-gray-400 uppercase mb-4 font-medium">Final Step</h3>
+          <h3 className="text-[11px] tracking-[1.6px] text-hushh-blue/85 uppercase mb-4 font-medium">Final Step</h3>
           <h1
-            className="text-[2.75rem] leading-[1.1] font-normal text-black tracking-tight font-serif"
+            className="text-[2.75rem] leading-[1.06] font-medium text-black tracking-[-0.028em] font-serif"
             style={{ fontFamily: "'Playfair Display', serif" }}
           >
             Bank
             <br />
             <span className="text-gray-400 italic font-light">Details</span>
           </h1>
-          <p className="text-sm text-gray-500 mt-4 leading-relaxed font-light">
+          <p className="text-sm text-black/60 mt-[18px] leading-[1.45] font-light">
             Provide your banking information for investment transfers securely.
           </p>
         </section>
@@ -134,7 +134,7 @@ export default function OnboardingStep13() {
             {plaidAccounts.length > 1 && (
               <section className="mb-6">
                 <div className="py-4">
-                  <h3 className="text-[10px] tracking-[0.2em] text-gray-400 uppercase font-medium">
+                  <h3 className="text-[11px] tracking-[1.6px] text-hushh-blue/85 uppercase font-medium">
                     {plaidInstitutionName ? `${plaidInstitutionName} — ` : ''}Select Account
                   </h3>
                 </div>
@@ -179,7 +179,7 @@ export default function OnboardingStep13() {
               <section className="mb-8">
                 <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
                   <div className="flex flex-col items-center text-center gap-2">
-                    <span className="text-[10px] tracking-[0.2em] text-gray-400 uppercase font-medium">Investment Amount</span>
+                    <span className="text-[11px] tracking-[1.6px] text-hushh-blue/85 uppercase font-medium">Investment Amount</span>
                     <span className="text-3xl font-bold text-black tracking-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
                       {formatCurrency(totalInvestment)}
                     </span>
@@ -202,7 +202,7 @@ export default function OnboardingStep13() {
             {/* ── Banking Information ── */}
             <section className="space-y-0 mb-6">
               <div className="py-4">
-                <h3 className="text-[10px] tracking-[0.2em] text-gray-400 uppercase font-medium">Banking Information</h3>
+                <h3 className="text-[11px] tracking-[1.6px] text-hushh-blue/85 uppercase font-medium">Banking Information</h3>
               </div>
 
               {/* Bank Name */}
@@ -282,7 +282,7 @@ export default function OnboardingStep13() {
             {/* ── Account Details ── */}
             <section className="space-y-0 mb-6">
               <div className="py-4">
-                <h3 className="text-[10px] tracking-[0.2em] text-gray-400 uppercase font-medium">Account Details</h3>
+                <h3 className="text-[11px] tracking-[1.6px] text-hushh-blue/85 uppercase font-medium">Account Details</h3>
               </div>
 
               {/* Routing Number */}
@@ -357,7 +357,7 @@ export default function OnboardingStep13() {
                 <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
                   <span className="material-symbols-outlined text-gray-500 text-lg" style={{ fontVariationSettings: "'wght' 400" }}>info</span>
                 </div>
-                <p className="text-xs text-gray-500 leading-relaxed font-light pt-2">
+                <p className="text-xs text-black/60 leading-[1.45] font-light pt-2">
                   Routing number can be found on the bottom left of your check. Ensure the holder name matches your ID exactly.
                 </p>
               </div>

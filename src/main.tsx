@@ -9,14 +9,19 @@ import config from './resources/config/config.ts'
 // Initialize i18n for multi-language support
 import './i18n'
 
+const appVersion = typeof __APP_VERSION__ === "undefined" ? "local-dev" : __APP_VERSION__
+const buildTimestamp =
+  typeof __BUILD_TIMESTAMP__ === "undefined" ? new Date().toISOString() : __BUILD_TIMESTAMP__
+const gitCommit = typeof __GIT_COMMIT__ === "undefined" ? "local-dev" : __GIT_COMMIT__
+
 // ─── App Version ────────────────────────────────────────────────────────────
 // Expose version globally so team can check via DevTools console:
 //   Type: __HUSHH_VERSION__  →  { version, built, commit }
 // This survives production minification (unlike console.log which is stripped)
 ;(window as any).__HUSHH_VERSION__ = {
-  version: __APP_VERSION__,
-  built: __BUILD_TIMESTAMP__,
-  commit: __GIT_COMMIT__,
+  version: appVersion,
+  built: buildTimestamp,
+  commit: gitCommit,
 }
 
 function upsertMeta(name: string, content: string) {
@@ -31,9 +36,9 @@ function upsertMeta(name: string, content: string) {
   meta.setAttribute("content", content)
 }
 
-upsertMeta("app-version", __APP_VERSION__)
-upsertMeta("build-commit", __GIT_COMMIT__)
-upsertMeta("deploy-verified", __BUILD_TIMESTAMP__)
+upsertMeta("app-version", appVersion)
+upsertMeta("build-commit", gitCommit)
+upsertMeta("deploy-verified", buildTimestamp)
 
 // Import DM Sans font weights
 import "@fontsource/dm-sans/400.css";

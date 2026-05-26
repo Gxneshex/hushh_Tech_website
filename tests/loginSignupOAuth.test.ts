@@ -38,6 +38,7 @@ vi.mock("../src/components/hushh-tech-header/HushhTechHeader", () => ({
 }));
 
 vi.mock("../src/components/hushh-tech-footer/HushhTechFooter", () => ({
+  HushhFooterTab: { PROFILE: "profile" },
   default: () => React.createElement("div", null, "footer"),
 }));
 

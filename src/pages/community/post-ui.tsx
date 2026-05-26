@@ -1,23 +1,24 @@
-/**
- * Community Post — UI / Presentation (Revamped)
- * Apple iOS colors, Playfair Display headings, proper English.
- * Matches Home + Fund A design language.
- * Logic stays in post-logic.ts — zero data here.
- */
 import ReactMarkdown from "react-markdown";
-import { useCommunityPostLogic } from "./post-logic";
-import type { CommunityMediaItem } from "../../services/communityContent";
+
 import HushhTechBackHeader from "../../components/hushh-tech-back-header/HushhTechBackHeader";
 import HushhTechFooter, {
   HushhFooterTab,
 } from "../../components/hushh-tech-footer/HushhTechFooter";
+import {
+  AppleSection,
+  Display,
+  Eyebrow,
+  Lede,
+  SmallSpinner,
+  appleFont,
+} from "../../components/hushh-tech-ui/HushhAppleUI";
+import type { CommunityMediaItem } from "../../services/communityContent";
+import { useCommunityPostLogic } from "./post-logic";
 
-/* ── Playfair heading style ── */
-const playfair = { fontFamily: "'Playfair Display', serif" };
 const richContentClassName = [
-  "prose prose-neutral max-w-none prose-headings:font-serif prose-a:text-hushh-blue",
+  "prose prose-neutral max-w-none prose-headings:font-medium prose-a:text-[#0066CC]",
   "min-w-0 overflow-x-hidden break-words",
-  "[&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-xl",
+  "[&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-[16px]",
   "[&_video]:max-w-full [&_video]:h-auto",
   "[&_iframe]:block [&_iframe]:w-full [&_iframe]:max-w-full [&_iframe]:min-w-0",
   "[&_table]:block [&_table]:w-full [&_table]:max-w-full [&_table]:overflow-x-auto",
@@ -37,20 +38,20 @@ function DocumentMediaPages({
       {mediaItems.map((item, index) => (
         <figure
           key={`${item.url}-${index}`}
-          className="w-full min-w-0 overflow-hidden rounded-xl border border-gray-200 bg-gray-50"
+          className="w-full min-w-0 overflow-hidden rounded-[16px] border border-[#1D1D1F]/[0.08] bg-[#F5F5F7]"
         >
           {item.type === "video" ? (
             <video
               src={item.url}
               controls
-              className="block w-full max-w-full h-auto bg-black"
+              className="block h-auto w-full max-w-full bg-[#000000]"
               aria-label={item.alt || `${title} video ${index + 1}`}
             />
           ) : (
             <img
               src={item.url}
               alt={item.alt || `${title} page ${index + 1}`}
-              className="block w-full max-w-full h-auto object-contain"
+              className="block h-auto w-full max-w-full object-contain"
               loading="lazy"
               decoding="async"
             />
@@ -64,19 +65,19 @@ function DocumentMediaPages({
 export default function CommunityPostPage() {
   const { post, legacyPost, loading, handleBack } = useCommunityPostLogic();
 
-  /* loading state */
   if (loading) {
     return (
       <div
-        className="bg-white min-h-screen flex items-center justify-center"
-        role="status"
-        aria-live="polite"
+        className="min-h-screen bg-[#FFFFFF] text-[#1D1D1F] antialiased selection:bg-[#0066CC] selection:text-[#F5F5F7]"
+        style={{ fontFamily: appleFont }}
       >
-        <div
-          className="w-8 h-8 border-2 border-gray-200 border-t-hushh-blue rounded-full animate-spin"
-          aria-hidden="true"
-        />
-        <span className="sr-only">Loading community article</span>
+        <AppleSection tone="light" pad="tight" fill>
+          <Eyebrow>Community</Eyebrow>
+          <Display as="h1" size="sm" maxWidth="max-w-[420px]">
+            Loading article.
+          </Display>
+          <SmallSpinner label="Loading article" />
+        </AppleSection>
       </div>
     );
   }
@@ -93,22 +94,23 @@ export default function CommunityPostPage() {
       : "flex-1 max-w-[900px] mx-auto w-full px-4 md:px-8 py-6 md:py-10 pb-32";
   const documentMediaItems = post.mediaItems?.filter((item) => item.url) || [];
 
-  /* ── Document Post ── */
   if (post.sourceKind === "document" && post.assetUrl) {
     return (
-      <div className="bg-white text-gray-900 min-h-screen antialiased flex flex-col selection:bg-hushh-blue selection:text-white">
-        <HushhTechBackHeader
-          onBackClick={handleBack}
-          rightType="hamburger"
-        />
+      <div
+        className="min-h-screen bg-[#FFFFFF] text-[#1D1D1F] antialiased selection:bg-[#0066CC] selection:text-[#F5F5F7]"
+        style={{ fontFamily: appleFont }}
+      >
+        <HushhTechBackHeader onBackClick={handleBack} rightType="hamburger" />
 
-        <main className="flex-1 w-full min-w-0 max-w-full overflow-x-hidden px-3 sm:px-4 md:px-8 py-4 pb-32">
-          <h1
-            className="sr-only"
-            style={playfair}
-          >
-            {post.title}
-          </h1>
+        <main>
+          <AppleSection tone="light" pad="tight">
+            <Eyebrow>{post.category || "Community"}</Eyebrow>
+            <Display as="h1" size="sm" maxWidth="max-w-[760px]">
+              {post.title}
+            </Display>
+            {post.description ? <Lede>{post.description}</Lede> : null}
+          </AppleSection>
+          <section className="flex-1 min-w-0 max-w-full overflow-x-hidden px-3 py-4 pb-32 sm:px-4 md:px-8">
           {documentMediaItems.length > 0 ? (
             <DocumentMediaPages
               mediaItems={documentMediaItems}
@@ -116,13 +118,14 @@ export default function CommunityPostPage() {
             />
           ) : null}
           <section className={documentMediaItems.length > 0 ? "mt-8" : ""}>
-            <div className="w-full min-w-0 max-w-full overflow-hidden rounded-2xl border border-gray-200 bg-white">
+            <div className="w-full min-w-0 max-w-full overflow-hidden rounded-[18px] border border-[#1D1D1F]/[0.08] bg-[#FFFFFF]">
               <iframe
                 src={`${post.assetUrl}#toolbar=1&navpanes=1&scrollbar=1&view=FitH`}
-                className="block w-full min-w-0 max-w-full h-[calc(100dvh-120px)] min-h-[70dvh] border-0 bg-white"
+                className="block h-[calc(100dvh-120px)] min-h-[70dvh] w-full min-w-0 max-w-full border-0 bg-[#FFFFFF]"
                 title={post.title}
               />
             </div>
+          </section>
           </section>
         </main>
 
@@ -138,100 +141,64 @@ export default function CommunityPostPage() {
       !post.bodyMarkdown)
   ) {
     return (
-      <div className="bg-white text-gray-900 min-h-screen antialiased flex flex-col selection:bg-hushh-blue selection:text-white">
-        <HushhTechBackHeader
-          onBackClick={handleBack}
-          rightType="hamburger"
-        />
-
-        <main className={legacyPostLayoutClassName}>
-          <LegacyPostComponent />
+      <div
+        className="min-h-screen bg-[#FFFFFF] text-[#1D1D1F] antialiased selection:bg-[#0066CC] selection:text-[#F5F5F7]"
+        style={{ fontFamily: appleFont }}
+      >
+        <HushhTechBackHeader onBackClick={handleBack} rightType="hamburger" />
+        <main>
+          <AppleSection tone="light" pad="tight">
+            <Eyebrow>{post.category || "Community"}</Eyebrow>
+            <Display as="h1" size="sm" maxWidth="max-w-[760px]">
+              {post.title}
+            </Display>
+            {post.description ? <Lede>{post.description}</Lede> : null}
+          </AppleSection>
+          <section className={legacyPostLayoutClassName}>
+            <LegacyPostComponent />
+          </section>
         </main>
-
         <HushhTechFooter activeTab={HushhFooterTab.COMMUNITY} />
       </div>
     );
   }
 
-  if (post.bodyMarkdown || post.bodyHtml || post.sourceKind === "deck") {
-    return (
-      <div className="bg-white text-gray-900 min-h-screen antialiased flex flex-col selection:bg-hushh-blue selection:text-white">
-        <HushhTechBackHeader
-          onBackClick={handleBack}
-          rightType="hamburger"
-        />
-
-        <main className="flex-1 max-w-[900px] mx-auto w-full px-4 md:px-8 py-8 md:py-12 pb-32">
-          <p className="text-[10px] tracking-[0.15em] uppercase font-medium text-hushh-blue/70 mb-3">
-            {post.category}
-          </p>
-          <h1
-            className="text-[2.35rem] md:text-[3.1rem] leading-[1.1] font-normal text-black tracking-tight font-serif mb-4"
-            style={playfair}
-          >
-            {post.title}
-          </h1>
-          <p className="text-[14px] text-gray-500 font-light leading-relaxed mb-10 max-w-2xl">
-            {post.description}
-          </p>
-
-          {post.bodyHtml ? (
-            <article
-              className={richContentClassName}
-              dangerouslySetInnerHTML={{ __html: post.bodyHtml }}
-            />
-          ) : (
-            <article className={richContentClassName}>
-              <ReactMarkdown>{post.bodyMarkdown || ""}</ReactMarkdown>
-            </article>
-          )}
-        </main>
-
-        <HushhTechFooter activeTab={HushhFooterTab.COMMUNITY} />
-      </div>
-    );
-  }
-
-  if (!LegacyPostComponent) {
-    return (
-      <div className="bg-white text-gray-900 min-h-screen antialiased flex flex-col selection:bg-hushh-blue selection:text-white">
-        <HushhTechBackHeader
-          onBackClick={handleBack}
-          rightType="hamburger"
-        />
-
-        <main
-          className="flex-1 max-w-[900px] mx-auto w-full px-4 md:px-8 py-8 md:py-12 pb-32"
-          data-testid="community-post-missing-content"
-        >
-          <p className="text-[10px] tracking-[0.15em] uppercase font-medium text-hushh-blue/70 mb-3">
-            {post.category}
-          </p>
-          <h1
-            className="text-[2.35rem] md:text-[3.1rem] leading-[1.1] font-normal text-black tracking-tight font-serif mb-4"
-            style={playfair}
-          >
-            {post.title}
-          </h1>
-          <article className={richContentClassName}>
-            <p>{post.description || "Article details are currently unavailable."}</p>
-          </article>
-        </main>
-
-        <HushhTechFooter activeTab={HushhFooterTab.COMMUNITY} />
-      </div>
-    );
-  }
+  const articleBody = post.bodyHtml ? (
+    <article
+      className={richContentClassName}
+      dangerouslySetInnerHTML={{ __html: post.bodyHtml }}
+    />
+  ) : post.bodyMarkdown ? (
+    <article className={richContentClassName}>
+      <ReactMarkdown>{post.bodyMarkdown}</ReactMarkdown>
+    </article>
+  ) : (
+    <article className={richContentClassName}>
+      <p className="community-post-missing-content">
+        {post.description || "Article details are currently unavailable."}
+      </p>
+    </article>
+  );
 
   return (
-    <div className="bg-white text-gray-900 min-h-screen antialiased flex flex-col selection:bg-hushh-blue selection:text-white">
-      <HushhTechBackHeader
-        onBackClick={handleBack}
-        rightType="hamburger"
-      />
+    <div
+      className="min-h-screen bg-[#FFFFFF] text-[#1D1D1F] antialiased selection:bg-[#0066CC] selection:text-[#F5F5F7]"
+      style={{ fontFamily: appleFont }}
+    >
+      <HushhTechBackHeader onBackClick={handleBack} rightType="hamburger" />
 
-      <main className={legacyPostLayoutClassName}>
-        <LegacyPostComponent />
+      <main id="main-content">
+        <AppleSection tone="light" pad="tight">
+          <Eyebrow>{post.category || "Community"}</Eyebrow>
+          <Display as="h1" size="sm" maxWidth="max-w-[760px]">
+            {post.title}
+          </Display>
+          {post.description ? <Lede>{post.description}</Lede> : null}
+        </AppleSection>
+
+        <section className="mx-auto max-w-[900px] px-5 pb-36 pt-4 md:px-8">
+          {articleBody}
+        </section>
       </main>
 
       <HushhTechFooter activeTab={HushhFooterTab.COMMUNITY} />

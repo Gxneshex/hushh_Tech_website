@@ -58,15 +58,16 @@ describe("HomePage focus order", () => {
     const buttons = Array.from(container.querySelectorAll("button"));
 
     expect(buttons.map((button) => button.textContent?.trim())).toEqual([
-      "Invest With Hushharrow_forward",
+      "Invest with Hushh",
       "Discover Fund A",
-      "Performance Detailsarrow_forward",
-      "Explore Our Approacharrow_right_alt",
-      "Learn More",
+      "Performance details",
+      "Holdings",
+      "Read the fund prospectus",
+      "Disclosures",
+      "Privacy",
+      "Terms",
+      "Support",
     ]);
-    expect(buttons[2].getAttribute("aria-label")).toBe(
-      "View performance details",
-    );
     expect(buttons[2].getAttribute("tabindex")).toBeNull();
   });
 });

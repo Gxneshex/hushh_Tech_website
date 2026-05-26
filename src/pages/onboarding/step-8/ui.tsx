@@ -1,11 +1,28 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import {
+  Home,
+  LineChart,
+  MapPin,
+  Phone,
+  ShieldCheck,
+  UserRound,
+  type LucideIcon,
+} from 'lucide-react';
 import config from '../../../resources/config/config';
 import HushhTechBackHeader from '../../../components/hushh-tech-back-header/HushhTechBackHeader';
 import HushhTechCta, {
   HushhTechCtaVariant,
 } from '../../../components/hushh-tech-cta/HushhTechCta';
 import { getOnboardingDisplayMeta } from '../../../services/onboarding/flow';
+import {
+  AppleLineIcon,
+  AppIcon,
+  Display,
+  Eyebrow,
+  Lede,
+  appleFont,
+} from '../../../components/hushh-tech-ui/HushhAppleUI';
 
 interface ReviewSummary {
   legal_first_name: string | null;
@@ -31,6 +48,10 @@ interface ReviewSummary {
 
 const DISPLAY_META = getOnboardingDisplayMeta('/onboarding/step-8');
 const PROGRESS_PCT = Math.round((DISPLAY_META.displayStep / DISPLAY_META.totalSteps) * 100);
+const primaryCtaClass =
+  "!rounded-full !border-[#0066CC] !bg-[#0066CC] !text-white !font-medium !tracking-[-0.01em] !shadow-none";
+const secondaryCtaClass =
+  "!rounded-full !border-[#1D1D1F]/15 !bg-white !text-[#1D1D1F] !font-medium !tracking-[-0.01em] !shadow-none";
 
 const formatCurrency = (amount: number | null | undefined) => {
   if (!amount) return 'Not set';
@@ -60,27 +81,23 @@ const SummaryRow = ({
   editLabel,
   onEdit,
 }: {
-  icon: string;
+  icon: LucideIcon;
   label: string;
   value: string;
   editLabel: string;
   onEdit: () => void;
 }) => (
-  <div className="py-5 border-b border-gray-200">
+  <div className="rounded-[20px] bg-white p-4 shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.10)] sm:rounded-[22px]">
     <div className="flex items-start gap-4">
-      <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
-        <span className="material-symbols-outlined text-gray-700 text-lg" style={{ fontVariationSettings: "'wght' 400" }}>
-          {icon}
-        </span>
-      </div>
+      <AppleLineIcon icon={icon} size={42} />
       <div className="flex-1 min-w-0">
-        <span className="text-sm font-semibold text-gray-900 block mb-1">{label}</span>
-        <span className="text-sm text-gray-600 font-medium leading-relaxed">{value}</span>
+        <span className="mb-1 block text-[14px] font-medium text-[#1D1D1F]">{label}</span>
+        <span className="text-[13px] font-normal leading-relaxed text-[#1D1D1F]/60">{value}</span>
       </div>
       <button
         type="button"
         onClick={onEdit}
-        className="text-xs font-semibold text-hushh-blue hover:underline shrink-0"
+        className="shrink-0 rounded-full bg-[#F5F5F7] px-3 py-1.5 text-[12px] font-medium text-[#0066CC] transition hover:bg-[#ECECF0]"
       >
         {editLabel}
       </button>
@@ -177,108 +194,109 @@ export default function OnboardingReviewStep() {
   ].filter(Boolean).join(' • ') || 'No share units selected';
 
   return (
-    <div className="bg-white text-gray-900 min-h-screen antialiased flex flex-col selection:bg-hushh-blue selection:text-white">
+    <div
+      className="flex min-h-screen flex-col bg-[#FFFFFF] text-[#1D1D1F] antialiased selection:bg-[#0066CC] selection:text-[#F5F5F7]"
+      style={{ fontFamily: appleFont }}
+    >
       <HushhTechBackHeader onBackClick={() => navigate('/onboarding/step-7')} rightLabel="FAQs" />
 
-      <main className="px-6 flex-grow max-w-md mx-auto w-full pb-48">
-        <div className="py-4">
-          <div className="flex justify-between text-[11px] font-semibold tracking-wide text-gray-500 mb-3">
+      <main className="mx-auto w-full max-w-[680px] flex-grow px-4 pb-48 sm:px-5">
+        <div className="pb-6 pt-5">
+          <div className="mb-3 flex justify-between text-[11px] font-medium uppercase tracking-[1.6px] text-[#0066CC]/85">
             <span>Step {DISPLAY_META.displayStep}/{DISPLAY_META.totalSteps}</span>
             <span>{PROGRESS_PCT}% Complete</span>
           </div>
-          <div className="h-0.5 w-full bg-gray-200 rounded-full overflow-hidden">
-            <div className="h-full bg-hushh-blue transition-all duration-500" style={{ width: `${PROGRESS_PCT}%` }} />
+          <div className="h-1 w-full overflow-hidden rounded-full bg-[#1D1D1F]/10">
+            <div className="h-full rounded-full bg-[#0066CC] transition-all duration-500" style={{ width: `${PROGRESS_PCT}%` }} />
           </div>
         </div>
 
-        <section className="py-8">
-          <h3 className="text-[10px] tracking-[0.2em] text-gray-400 uppercase mb-4 font-medium">Review</h3>
-          <h1
-            className="text-[2.75rem] leading-[1.1] font-normal text-black tracking-tight font-serif"
-            style={{ fontFamily: "'Playfair Display', serif" }}
-          >
-            Confirm Your
-            <br />
-            <span className="text-gray-400 italic font-light">Details</span>
-          </h1>
-          <p className="text-sm text-gray-500 mt-4 leading-relaxed font-light">
+        <section className="pb-8 pt-4 text-center">
+          <div className="mb-6 flex justify-center">
+            <AppIcon kind="shield" size={58} />
+          </div>
+          <Eyebrow>Review</Eyebrow>
+          <Display as="h1" size="xs" maxWidth="max-w-[500px]">
+            Confirm your details.
+          </Display>
+          <Lede className="max-w-[500px]">
             We already filled what we could. Review the details once and continue to bank details.
-          </p>
+          </Lede>
         </section>
 
         {loading && (
-          <div className="space-y-4 animate-pulse">
+          <div className="grid animate-pulse gap-3">
             {[1, 2, 3, 4].map((item) => (
-              <div key={item} className="h-20 bg-gray-100 rounded-xl border border-gray-200" />
+              <div key={item} className="h-20 rounded-[20px] bg-[#F5F5F7] shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.08)]" />
             ))}
           </div>
         )}
 
         {!loading && error && (
-          <div className="mb-6 flex items-center gap-3 py-4 px-1 border-b border-red-100">
-            <div className="w-10 h-10 rounded-full bg-red-50 border border-red-200 flex items-center justify-center shrink-0">
-              <span className="material-symbols-outlined text-red-500 text-lg" style={{ fontVariationSettings: "'FILL' 1, 'wght' 600" }}>
-                error
-              </span>
-            </div>
-            <p className="text-sm font-medium text-red-700">{error}</p>
+          <div className="mb-6 flex items-center gap-3 rounded-[18px] bg-[#FF3B30]/10 px-4 py-4 shadow-[inset_0_0_0_1px_rgba(255,59,48,0.18)]">
+            <AppleLineIcon icon={ShieldCheck} size={40} className="text-[#FF3B30]" />
+            <p className="text-[14px] font-medium text-[#B42318]">{error}</p>
           </div>
         )}
 
         {!loading && !error && (
           <>
-            <section className="space-y-0 mb-8">
+            <section className="mb-8 rounded-[24px] bg-[#F5F5F7] p-3 shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.08)] sm:p-4">
               <div className="py-4">
-                <h3 className="text-[10px] tracking-[0.2em] text-gray-400 uppercase font-medium">KYC Summary</h3>
+                <h3 className="px-1 text-[11px] font-medium uppercase tracking-[1.6px] text-[#0066CC]/85">KYC Summary</h3>
               </div>
+              <div className="grid gap-3">
 
               <SummaryRow
-                icon="badge"
+                icon={UserRound}
                 label="Legal Name"
                 value={fullName}
                 editLabel="Edit"
                 onEdit={() => navigate('/onboarding/step-5')}
               />
               <SummaryRow
-                icon="call"
+                icon={Phone}
                 label="Phone Number"
                 value={phone}
                 editLabel="Edit"
                 onEdit={() => navigate('/onboarding/step-4')}
               />
               <SummaryRow
-                icon="public"
+                icon={MapPin}
                 label="Citizenship & Residence"
                 value={residence}
                 editLabel="Edit"
                 onEdit={() => navigate('/onboarding/step-3')}
               />
               <SummaryRow
-                icon="home_pin"
+                icon={Home}
                 label="Address"
                 value={address}
                 editLabel="Edit"
                 onEdit={() => navigate('/onboarding/step-6')}
               />
               <SummaryRow
-                icon="monitoring"
+                icon={LineChart}
                 label="Investment"
                 value={`${formatCurrency(summary?.initial_investment_amount)} • ${shareUnits} • ${formatRecurringSummary(summary || {} as ReviewSummary)}`}
                 editLabel="Edit"
                 onEdit={() => navigate('/onboarding/step-7')}
               />
+              </div>
             </section>
 
             <section className="pb-12 space-y-3">
               <HushhTechCta
                 variant={HushhTechCtaVariant.BLACK}
                 onClick={() => navigate('/onboarding/step-9')}
+                className={primaryCtaClass}
               >
                 Continue to Bank Details
               </HushhTechCta>
               <HushhTechCta
                 variant={HushhTechCtaVariant.WHITE}
                 onClick={() => navigate('/onboarding/step-7')}
+                className={secondaryCtaClass}
               >
                 Back to Investment Summary
               </HushhTechCta>

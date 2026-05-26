@@ -1,47 +1,64 @@
-/**
- * HushhTechNavDrawer — Full-screen navigation drawer (Revamped)
- * Apple iOS colors, proper English capitalization, hushh-blue accents.
- * Slides in from right, covers entire viewport.
- */
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import hushhLogo from "../images/Hushhogo.png";
+
 import { useAuthSession } from "../../auth/AuthSessionProvider";
+import { useHushhProfileCta } from "../../hooks/useHushhProfileCta";
 import { useModalKeyboardNavigation } from "../../hooks/useModalKeyboardNavigation";
 import { moveFocusWithin } from "../../utils/keyboardNavigation";
-import { useHushhProfileCta } from "../../hooks/useHushhProfileCta";
+import DeleteAccountModal from "../DeleteAccountModal";
+import { AppleButton, HushhMark, Icon, SYS, appleFont } from "../hushh-tech-ui/HushhAppleUI";
 
 interface NavItem {
-  icon: string;
+  icon: (color: string, size?: number) => React.ReactNode;
   label: string;
   path: string;
-  highlight?: boolean;
-  subtitle?: string;
 }
 
-const NAV_ITEMS: NavItem[] = [
-  { icon: "home", label: "Home", path: "/" },
-  { icon: "pie_chart", label: "Fund A", path: "/discover-fund-a" },
-  { icon: "groups", label: "Community", path: "/community" },
-];
-
-const HIGHLIGHT_ITEM: NavItem = {
-  icon: "lock",
-  label: "Unlock 300K Coins",
-  subtitle: "$1 or use coupon code",
-  path: "",
-  highlight: true,
-};
-
-const BOTTOM_NAV: NavItem[] = [
-  { icon: "mail", label: "Contact", path: "/contact" },
-  { icon: "help", label: "FAQ", path: "/faq" },
+const PRIMARY_NAV: NavItem[] = [
+  { icon: Icon.home, label: "Home", path: "/" },
+  { icon: Icon.chart, label: "Fund A", path: "/discover-fund-a" },
+  { icon: Icon.community, label: "Community", path: "/community" },
+  { icon: Icon.mail, label: "Contact", path: "/contact" },
+  { icon: Icon.help, label: "FAQ", path: "/faq" },
 ];
 
 interface HushhTechNavDrawerProps {
   isOpen: boolean;
   onClose: () => void;
 }
+
+const MenuRow = ({
+  item,
+  isLast,
+  isActive,
+  onClick,
+}: {
+  item: NavItem;
+  isLast: boolean;
+  isActive: boolean;
+  onClick: () => void;
+}) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className="relative flex w-full items-center gap-3 bg-transparent px-1 py-3.5 text-left transition active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066CC]/35"
+    aria-current={isActive ? "page" : undefined}
+  >
+    <span className="flex h-6 w-6 shrink-0 items-center justify-center">
+      {item.icon(isActive ? SYS.blue : SYS.text, 22)}
+    </span>
+    <span
+      className="min-w-0 flex-1 text-[17px] font-medium tracking-[-0.01em] text-[#1D1D1F]"
+      style={{ fontFamily: appleFont }}
+    >
+      {item.label}
+    </span>
+    {Icon.chevronRight("rgba(60,60,67,0.25)", 13)}
+    {!isLast ? (
+      <span className="absolute bottom-0 left-10 right-0 h-px bg-[#000000]/[0.10]" />
+    ) : null}
+  </button>
+);
 
 const HushhTechNavDrawer: React.FC<HushhTechNavDrawerProps> = ({
   isOpen,
@@ -52,6 +69,7 @@ const HushhTechNavDrawer: React.FC<HushhTechNavDrawerProps> = ({
   const { status, signOut } = useAuthSession();
   const isAuthenticated = status === "authenticated";
   const { primaryCTA } = useHushhProfileCta({ enabled: isOpen });
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const drawerRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -62,13 +80,13 @@ const HushhTechNavDrawer: React.FC<HushhTechNavDrawerProps> = ({
     onClose,
   });
 
-  /* Lock body scroll when drawer is open */
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";
     }
+
     return () => {
       document.body.style.overflow = "";
     };
@@ -85,6 +103,16 @@ const HushhTechNavDrawer: React.FC<HushhTechNavDrawerProps> = ({
     navigate("/login");
   };
 
+  const handleDeleteAccount = () => {
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleAccountDeleted = () => {
+    setIsDeleteModalOpen(false);
+    onClose();
+    navigate("/");
+  };
+
   const handleUnlockCoins = () => {
     onClose();
     primaryCTA.action();
@@ -94,187 +122,150 @@ const HushhTechNavDrawer: React.FC<HushhTechNavDrawerProps> = ({
     moveFocusWithin(drawerRef.current, event);
   };
 
-  const isActive = (path: string) => location.pathname === path;
-
   if (!isOpen) return null;
 
   return (
     <div
-      className="fixed inset-0 z-[100] bg-black/45 backdrop-blur-[1px] pt-20 md:pt-24 px-3 md:px-6 pb-3 md:pb-6 flex items-start justify-end selection:bg-hushh-blue selection:text-white"
+      className="fixed inset-0 z-[100] flex items-end bg-[#000000]/35 backdrop-blur-[10px] selection:bg-[#0066CC] selection:text-[#F5F5F7]"
       onClick={onClose}
     >
       <div
         ref={drawerRef}
-        className="w-full max-w-3xl max-h-[calc(100vh-5.5rem)] md:max-h-[calc(100vh-7.5rem)] overflow-hidden rounded-2xl border border-white/70 bg-white shadow-2xl flex flex-col animate-scaleIn"
         role="dialog"
         aria-modal="true"
         aria-labelledby="hushh-nav-drawer-title"
         tabIndex={-1}
         onKeyDown={handleDrawerKeyDown}
         onClick={(event) => event.stopPropagation()}
+        className="max-h-[calc(100dvh-1rem)] w-full overflow-hidden rounded-t-[32px] bg-[#FFFFFF] shadow-[0_-8px_32px_rgba(29,29,31,0.18)] animate-scaleIn"
       >
-      {/* ── Header ── */}
-      <div className="px-6 py-6 flex justify-between items-center">
-        <div className="flex items-center gap-4">
-          <div className="w-10 h-10 border border-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
-            <img src={hushhLogo} alt="Hushh" className="w-5 h-5 object-contain" />
-          </div>
-          <span
-            id="hushh-nav-drawer-title"
-            className="text-[0.7rem] font-bold tracking-[0.2em] uppercase text-gray-900 pt-0.5"
-          >
-            hushh technologies
-          </span>
-        </div>
-        <button
-          ref={closeButtonRef}
-          onClick={onClose}
-          className="w-10 h-10 rounded-full border border-gray-100 flex items-center justify-center hover:bg-gray-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hushh-blue focus-visible:ring-offset-2"
-          aria-label="Close menu"
-        >
-          <span className="material-symbols-outlined text-gray-500 !text-[1.2rem]">
-            close
-          </span>
-        </button>
-      </div>
+        <div className="mx-auto mt-3 h-1.5 w-9 rounded-full bg-[#000000]/[0.18]" />
 
-      {/* ── Nav Links ── */}
-      <div className="flex-1 px-5 md:px-6 pt-2 pb-6 flex flex-col justify-between overflow-y-auto">
-        <div className="space-y-1">
-          {/* Main nav items */}
-          <div className="grid grid-cols-2 gap-2 md:gap-3">
-            {NAV_ITEMS.map((item) => (
-              <button
-                key={item.path}
-                onClick={() => handleNavigate(item.path)}
-                aria-current={isActive(item.path) ? "page" : undefined}
-                className="group flex items-center gap-3 py-3 px-3 border border-gray-100 hover:border-hushh-blue/20 bg-white hover:bg-hushh-blue/5 transition-colors rounded-xl w-full text-left"
+        <div className="flex items-center justify-between px-5 py-5">
+          <div className="flex items-center gap-3">
+            <HushhMark size={34} />
+            <span className="flex flex-col leading-none">
+              <span
+                id="hushh-nav-drawer-title"
+                className="text-[17px] font-semibold tracking-[-0.015em] text-[#1D1D1F]"
+                style={{ fontFamily: appleFont }}
               >
-                <div className="w-7 h-7 rounded-full bg-gray-50 group-hover:bg-hushh-blue/10 border border-transparent group-hover:border-hushh-blue/20 flex items-center justify-center transition-all shrink-0">
-                  <span className="material-symbols-outlined text-gray-400 group-hover:text-hushh-blue transition-colors !text-[1rem]">
-                    {item.icon}
-                  </span>
-                </div>
-                <span className="text-[0.9rem] font-medium text-gray-900 tracking-wide group-hover:text-hushh-blue transition-colors leading-tight">
-                  {item.label}
-                </span>
-              </button>
-            ))}
+                hushh
+              </span>
+              <span
+                className="mt-1 text-[10px] font-medium uppercase tracking-[0.12em] text-[#1D1D1F]/50"
+                style={{ fontFamily: appleFont }}
+              >
+                Technologies
+              </span>
+            </span>
           </div>
 
-          {/* Highlight card — unlock coins */}
           <button
+            ref={closeButtonRef}
+            type="button"
+            onClick={onClose}
+            className="flex h-[30px] w-[30px] items-center justify-center rounded-full bg-[#767680]/15 text-[#1D1D1F] transition hover:bg-[#767680]/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066CC]/35"
+            aria-label="Close menu"
+          >
+            {Icon.close("#1D1D1F", 13)}
+          </button>
+        </div>
+
+        <div className="max-h-[calc(100dvh-8.5rem)] overflow-y-auto px-5 pb-[calc(env(safe-area-inset-bottom,0px)+2rem)]">
+          <button
+            type="button"
             onClick={handleUnlockCoins}
             disabled={primaryCTA.loading}
-            className="group flex items-center gap-4 py-3.5 my-3 px-3 rounded-xl bg-hushh-blue/5 border border-hushh-blue/20 w-full text-left hover:bg-hushh-blue/10 transition-colors"
+            className="mb-3 flex w-full items-center gap-3 rounded-[14px] px-4 py-3.5 text-left transition active:scale-[0.98] disabled:opacity-55"
+            style={{
+              background:
+                "linear-gradient(135deg, rgba(0,102,204,0.08) 0%, rgba(94,92,230,0.06) 100%)",
+              boxShadow: "inset 0 0 0 1px rgba(0,102,204,0.16)",
+              fontFamily: appleFont,
+            }}
           >
-            <div className="w-8 h-8 rounded-full bg-white border border-hushh-blue/20 flex items-center justify-center">
-              <span className="material-symbols-outlined text-hushh-blue !text-[1rem]">
-                {HIGHLIGHT_ITEM.icon}
+            {Icon.lock(SYS.blue, 22)}
+            <span className="min-w-0 flex-1 leading-tight">
+              <span className="block text-[15px] font-semibold tracking-[-0.01em] text-[#1D1D1F]">
+                Unlock 300K Coins
               </span>
-            </div>
-            <div className="flex flex-col leading-tight">
-              <span className="text-[0.95rem] font-semibold text-gray-900 tracking-wide">
-                {HIGHLIGHT_ITEM.label}
+              <span className="mt-0.5 block text-[12px] font-normal tracking-normal text-[#1D1D1F]/55">
+                $1 or use coupon code
               </span>
-              <span className="text-[0.7rem] text-gray-500 font-medium mt-0.5">
-                {HIGHLIGHT_ITEM.subtitle}
-              </span>
-            </div>
-            <span className="ml-auto material-symbols-outlined text-hushh-blue/40 !text-[1rem]">
-              arrow_forward
             </span>
+            {Icon.arrowRight(SYS.blue, 14)}
           </button>
 
-          {/* Bottom nav items */}
-          <div className="grid grid-cols-2 gap-2 md:gap-3">
-            {BOTTOM_NAV.map((item) => (
-              <button
+          <div className="rounded-[16px] bg-[#FFFFFF]">
+            {PRIMARY_NAV.map((item, index) => (
+              <MenuRow
                 key={item.path}
+                item={item}
+                isLast={index === PRIMARY_NAV.length - 1}
+                isActive={location.pathname === item.path}
                 onClick={() => handleNavigate(item.path)}
-                aria-current={isActive(item.path) ? "page" : undefined}
-                className="group flex items-center gap-3 py-3 px-3 border border-gray-100 hover:border-hushh-blue/20 bg-white hover:bg-hushh-blue/5 transition-colors rounded-xl w-full text-left"
-              >
-                <div className="w-7 h-7 rounded-full bg-gray-50 group-hover:bg-hushh-blue/10 border border-transparent group-hover:border-hushh-blue/20 flex items-center justify-center transition-all shrink-0">
-                  <span className="material-symbols-outlined text-gray-400 group-hover:text-hushh-blue transition-colors !text-[1rem]">
-                    {item.icon}
-                  </span>
-                </div>
-                <span className="text-[0.9rem] font-medium text-gray-900 tracking-wide group-hover:text-hushh-blue transition-colors">
-                  {item.label}
-                </span>
-              </button>
+              />
             ))}
           </div>
-        </div>
 
-        {/* ── Footer section ── */}
-        <div className="mt-12 pt-8 border-t border-gray-100 space-y-6">
-          {isAuthenticated ? (
-            <>
-              <button
-                onClick={() => handleNavigate("/hushh-user-profile")}
-                className="flex items-center gap-5 group w-full text-left"
-              >
-                <div className="w-8 h-8 rounded-full bg-hushh-blue text-white flex items-center justify-center">
-                  <span className="material-symbols-outlined !text-[1.1rem]">person</span>
-                </div>
-                <span className="text-[0.95rem] font-medium text-gray-900 tracking-wide group-hover:text-hushh-blue transition-colors">
+          <div className="pt-7">
+            {isAuthenticated ? (
+              <div className="space-y-3">
+                <AppleButton kind="tinted" onClick={() => handleNavigate("/hushh-user-profile")}>
                   View Profile
-                </span>
-              </button>
-
-              <div className="flex flex-col gap-4 pl-[3.25rem]">
+                </AppleButton>
                 <button
+                  type="button"
                   onClick={() => void handleLogout()}
-                  className="text-left text-[0.85rem] font-medium text-gray-500 hover:text-red-500 transition-colors tracking-wide"
+                  className="w-full py-2 text-center text-[14px] font-normal text-[#FF3B30] transition hover:opacity-80"
+                  style={{ fontFamily: appleFont }}
                 >
                   Log Out
                 </button>
                 <button
-                  onClick={() => handleNavigate("/delete-account")}
-                  className="text-left text-[0.85rem] font-medium text-gray-400 hover:text-red-500 transition-colors tracking-wide"
+                  type="button"
+                  onClick={handleDeleteAccount}
+                  className="w-full py-2 text-center text-[13px] font-normal text-[#8E8E93] transition hover:text-[#FF3B30] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF3B30]/25"
+                  style={{ fontFamily: appleFont }}
                 >
                   Delete Account
                 </button>
               </div>
-            </>
-          ) : (
-            <div className="grid grid-cols-2 gap-2 md:gap-3">
-              <button
-                onClick={() => handleNavigate("/login")}
-                className="group flex items-center gap-3 py-3 px-3 border border-gray-100 hover:border-hushh-blue/20 bg-white hover:bg-hushh-blue/5 transition-colors rounded-xl w-full text-left"
-              >
-                <span className="material-symbols-outlined text-gray-400 group-hover:text-hushh-blue transition-colors !text-[1rem]">
-                  login
-                </span>
-                <span className="text-[0.9rem] font-medium text-gray-900 tracking-wide group-hover:text-hushh-blue transition-colors">
-                  Log In
-                </span>
-              </button>
-              <button
-                onClick={() => handleNavigate("/signup")}
-                className="group flex items-center gap-3 py-3 px-3 border border-gray-100 hover:border-hushh-blue/20 bg-white hover:bg-hushh-blue/5 transition-colors rounded-xl w-full text-left"
-              >
-                <span className="material-symbols-outlined text-gray-400 group-hover:text-hushh-blue transition-colors !text-[1rem]">
-                  person_add
-                </span>
-                <span className="text-[0.9rem] font-medium text-gray-900 tracking-wide group-hover:text-hushh-blue transition-colors">
+            ) : (
+              <>
+                <AppleButton kind="tinted" onClick={() => handleNavigate("/signup")}>
                   Sign Up
-                </span>
-              </button>
-            </div>
-          )}
-
-          {/* Decorative bar */}
-          <div className="flex items-center gap-2 pl-[3.25rem] pt-4 opacity-50 grayscale">
-            <div className="h-3 w-8 bg-gray-200 rounded" />
-            <div className="h-3 w-3 bg-gray-200 rounded-full" />
-            <div className="h-3 w-6 bg-gray-200 rounded" />
+                </AppleButton>
+                <div className="mt-3 text-center">
+                  <span
+                    className="text-[14px] tracking-normal text-[#1D1D1F]/60"
+                    style={{ fontFamily: appleFont }}
+                  >
+                    Already have an account?{" "}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handleNavigate("/login")}
+                    className="text-[14px] font-medium tracking-[-0.01em] text-[#0066CC]"
+                    style={{ fontFamily: appleFont }}
+                  >
+                    Log In
+                  </button>
+                </div>
+              </>
+            )}
           </div>
+
+          <div className="h-6" />
         </div>
       </div>
-      </div>
+
+      <DeleteAccountModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onAccountDeleted={handleAccountDeleted}
+      />
     </div>
   );
 };

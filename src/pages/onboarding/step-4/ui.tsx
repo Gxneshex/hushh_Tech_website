@@ -7,6 +7,16 @@
 import { useRef } from "react";
 import ReactCountryFlag from "react-country-flag";
 import {
+  Building2,
+  Check,
+  CircleUserRound,
+  Landmark,
+  PiggyBank,
+  ShieldCheck,
+  UsersRound,
+  type LucideIcon,
+} from "lucide-react";
+import {
   useStep5Logic,
   CURRENT_STEP,
   TOTAL_STEPS,
@@ -19,16 +29,29 @@ import HushhTechCta, {
   HushhTechCtaVariant,
 } from "../../../components/hushh-tech-cta/HushhTechCta";
 import { useModalKeyboardNavigation } from "../../../hooks/useModalKeyboardNavigation";
+import {
+  AppleLineIcon,
+  AppIcon,
+  Display,
+  Eyebrow,
+  Icon,
+  Lede,
+  appleFont,
+} from "../../../components/hushh-tech-ui/HushhAppleUI";
 
-/** Material icon for each account type */
-const ACCOUNT_ICONS: Record<string, string> = {
-  individual: "person",
-  joint: "group",
-  trust: "verified_user",
-  entity: "domain",
-  ira: "savings",
-  sdira: "account_balance",
+/** Neutral account icons through the shared Apple-style provider. */
+const ACCOUNT_ICONS: Record<string, LucideIcon> = {
+  individual: CircleUserRound,
+  joint: UsersRound,
+  trust: ShieldCheck,
+  entity: Building2,
+  ira: PiggyBank,
+  sdira: Landmark,
 };
+const primaryCtaClass =
+  "!rounded-full !border-[#0066CC] !bg-[#0066CC] !text-white !font-medium !tracking-[-0.01em] !shadow-none";
+const secondaryCtaClass =
+  "!rounded-full !border-[#1D1D1F]/15 !bg-white !text-[#1D1D1F] !font-medium !tracking-[-0.01em] !shadow-none";
 
 export default function OnboardingStep5() {
   const {
@@ -62,7 +85,10 @@ export default function OnboardingStep5() {
   });
 
   return (
-    <div className="bg-white text-gray-900 min-h-screen antialiased flex flex-col selection:bg-hushh-blue selection:text-white relative overflow-hidden">
+    <div
+      className="relative flex min-h-screen flex-col overflow-hidden bg-[#FFFFFF] text-[#1D1D1F] antialiased selection:bg-[#0066CC] selection:text-[#F5F5F7]"
+      style={{ fontFamily: appleFont }}
+    >
       {/* ═══ Background layer (blurs when dial picker is open) ═══ */}
       <div
         className={`flex-1 flex flex-col transition-all duration-300 ${
@@ -74,86 +100,71 @@ export default function OnboardingStep5() {
         {/* ═══ Header ═══ */}
         <HushhTechBackHeader onBackClick={handleBack} rightLabel="FAQs" />
 
-        <main className="px-6 flex-grow max-w-md mx-auto w-full pb-48">
+        <main className="mx-auto w-full max-w-[640px] flex-grow px-4 pb-48 sm:px-5">
           {/* ── Progress Bar ── */}
-          <div className="py-4">
-            <div className="flex justify-between text-[11px] font-semibold tracking-wide text-gray-500 mb-3">
+          <div className="pb-6 pt-5">
+            <div className="mb-3 flex justify-between text-[11px] font-medium uppercase tracking-[1.6px] text-[#0066CC]/85">
               <span>
                 Step {CURRENT_STEP}/{TOTAL_STEPS}
               </span>
               <span>{PROGRESS_PCT}% Complete</span>
             </div>
-            <div className="h-0.5 w-full bg-gray-200 rounded-full overflow-hidden">
+            <div className="h-1 w-full overflow-hidden rounded-full bg-[#1D1D1F]/10">
               <div
-                className="h-full bg-hushh-blue transition-all duration-500"
+                className="h-full rounded-full bg-[#0066CC] transition-all duration-500"
                 style={{ width: `${PROGRESS_PCT}%` }}
               />
             </div>
           </div>
 
           {/* ── Title Section ── */}
-          <section className="py-8">
-            <h3 className="text-[10px] tracking-[0.2em] text-gray-400 uppercase mb-4 font-medium">
-              Account Setup
-            </h3>
-            <h1
-              className="text-[2.75rem] leading-[1.1] font-normal text-black tracking-tight font-serif"
-              style={{ fontFamily: "'Playfair Display', serif" }}
-            >
-              A Few More
-              <br />
-              <span className="text-gray-400 italic font-light">Details</span>
-            </h1>
-            <p className="text-sm text-gray-500 mt-4 leading-relaxed font-light">
+          <section className="pb-8 pt-4 text-center">
+            <div className="mb-6 flex justify-center">
+              <AppIcon kind="person" size={58} />
+            </div>
+            <Eyebrow>Account Setup</Eyebrow>
+            <Display as="h1" size="xs" maxWidth="max-w-[500px]">
+              A few more details.
+            </Display>
+            <Lede className="max-w-[480px]">
               This helps us personalize your account and keep your profile
               secure.
-            </p>
+            </Lede>
           </section>
 
           {/* ── Account Type Selection ── */}
           <section className="mb-10">
-            <h3 className="text-[10px] tracking-[0.2em] text-gray-400 uppercase mb-4 font-medium">
+            <h3 className="mb-4 text-[11px] font-medium uppercase tracking-[1.6px] text-[#0066CC]/85">
               Account Type
             </h3>
-            <div className="space-y-0">
-              {ACCOUNT_TYPE_OPTIONS.map((option, index) => {
+            <div className="grid gap-3">
+              {ACCOUNT_TYPE_OPTIONS.map((option) => {
                 const isSelected = selectedAccountType === option.value;
-                const isLast = index === ACCOUNT_TYPE_OPTIONS.length - 1;
-                const icon =
-                  ACCOUNT_ICONS[option.value] || "account_circle";
+                const IconComponent = ACCOUNT_ICONS[option.value] || CircleUserRound;
                 return (
                   <button
                     key={option.value}
                     onClick={() => setSelectedAccountType(option.value)}
-                    className={`w-full flex items-center gap-4 py-5 text-left transition-colors group ${
-                      !isLast ? "border-b border-gray-200" : ""
+                    className={`group flex w-full items-center gap-4 rounded-[20px] p-4 text-left transition-all sm:rounded-[22px] ${
+                      isSelected
+                        ? "bg-[#F5F5F7] shadow-[inset_0_0_0_1px_rgba(0,102,204,0.24)]"
+                        : "bg-white shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.10)] hover:bg-[#F5F5F7]"
                     }`}
                     role="radio"
                     aria-checked={isSelected}
                     aria-label={`Select ${option.label} account`}
                   >
                     {/* Icon circle */}
-                    <div
-                      className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-colors ${
-                        isSelected
-                          ? "bg-hushh-blue"
-                          : "bg-gray-100 group-hover:bg-gray-200"
-                      }`}
-                    >
-                      <span
-                        className={`material-symbols-outlined text-lg ${
-                          isSelected ? "text-white" : "text-gray-700"
-                        }`}
-                        style={{ fontVariationSettings: "'wght' 400" }}
-                      >
-                        {icon}
-                      </span>
-                    </div>
+                    <AppleLineIcon
+                      icon={IconComponent}
+                      size={44}
+                      className={isSelected ? "ring-1 ring-[#0066CC]/30" : ""}
+                    />
 
                     {/* Label */}
                     <span
-                      className={`text-sm font-semibold flex-1 ${
-                        isSelected ? "text-black" : "text-gray-700"
+                      className={`flex-1 text-[15px] font-medium ${
+                        isSelected ? "text-[#1D1D1F]" : "text-[#1D1D1F]/72"
                       }`}
                     >
                       {option.label}
@@ -161,14 +172,12 @@ export default function OnboardingStep5() {
 
                     {/* Checkmark */}
                     {isSelected && (
-                      <span
-                        className="material-symbols-outlined text-hushh-blue text-lg shrink-0"
-                        style={{
-                          fontVariationSettings: "'FILL' 1, 'wght' 600",
-                        }}
-                      >
-                        check_circle
-                      </span>
+                      <Check
+                        className="shrink-0 text-[#0066CC]"
+                        size={18}
+                        strokeWidth={1.8}
+                        aria-hidden="true"
+                      />
                     )}
                   </button>
                 );
@@ -177,31 +186,31 @@ export default function OnboardingStep5() {
           </section>
 
           {/* ── Phone Number ── */}
-          <section className="mb-12">
-            <div className="flex items-center justify-between mb-1">
-              <h3 className="text-[10px] tracking-[0.2em] text-gray-400 uppercase font-medium">
+          <section className="mb-12 rounded-[22px] bg-[#F5F5F7] p-4 shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.08)]">
+            <div className="mb-1 flex items-center justify-between">
+              <h3 className="text-[11px] font-medium uppercase tracking-[1.6px] text-[#0066CC]/85">
                 Phone Number
               </h3>
               {isAutoDetectingDialCode && (
-                <span className="text-[10px] font-medium text-gray-400">
+                <span className="text-[10px] font-medium text-[#1D1D1F]/45">
                   Detecting...
                 </span>
               )}
             </div>
-            <p className="text-xs text-gray-400 font-light mb-5">
+            <p className="mb-5 text-[12px] font-light text-[#1D1D1F]/50">
               We&apos;ll use this to verify your identity when needed.
             </p>
 
             {/* Phone input row */}
-            <div className="py-5 border-b border-gray-200">
+            <div className="border-b border-[#1D1D1F]/[0.08] py-5">
               <div className="flex items-center gap-4">
                 {/* Dial code selector */}
                 <button
                   onClick={() => setShowDialPicker(true)}
-                  className="flex items-center gap-2 shrink-0 group"
+                  className="group flex shrink-0 items-center gap-2"
                   aria-label="Select country code"
                 >
-                  <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0 group-hover:bg-gray-200 transition-colors overflow-hidden">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-[12px] bg-white transition-colors group-hover:bg-white/75">
                     <ReactCountryFlag
                       countryCode={selectedDialOption.iso}
                       svg
@@ -213,14 +222,11 @@ export default function OnboardingStep5() {
                       aria-label={selectedDialOption.country}
                     />
                   </div>
-                  <span className="text-sm font-semibold text-gray-900">
+                  <span className="text-[14px] font-medium text-[#1D1D1F]">
                     {selectedDialOption.code}
                   </span>
-                  <span
-                    className="material-symbols-outlined text-gray-400 text-base"
-                    style={{ fontVariationSettings: "'wght' 400" }}
-                  >
-                    expand_more
+                  <span className="text-[#1D1D1F]/35" aria-hidden="true">
+                    {Icon.chevronDown("currentColor", 12)}
                   </span>
                 </button>
 
@@ -230,7 +236,7 @@ export default function OnboardingStep5() {
                   value={formatPhoneNumber(phoneNumber)}
                   onChange={handlePhoneChange}
                   placeholder="(000) 000-0000"
-                  className="flex-1 text-sm font-medium text-gray-900 placeholder-gray-400 bg-transparent border-none outline-none p-0"
+                  className="min-w-0 flex-1 border-none bg-transparent p-0 text-[15px] font-medium text-[#1D1D1F] outline-none placeholder:text-[#1D1D1F]/35"
                   aria-label="Phone number"
                 />
               </div>
@@ -238,20 +244,15 @@ export default function OnboardingStep5() {
 
             {/* Pre-filled from bank badge */}
             {isPreFilledFromBank && (
-              <div className="mt-3 flex items-center gap-1.5">
-                <span
-                  className="material-symbols-outlined text-green-600 text-xs"
-                  style={{ fontVariationSettings: "'FILL' 1, 'wght' 400" }}
-                >
-                  verified
-                </span>
-                <span className="text-[10px] text-ios-green font-medium">
+              <div className="mt-3 flex items-center gap-1.5 text-[#34C759]">
+                <Check size={13} strokeWidth={2} aria-hidden="true" />
+                <span className="text-[10px] font-medium">
                   Pre-filled from your bank · tap to edit
                 </span>
               </div>
             )}
 
-            <p className="text-[10px] text-gray-400 mt-2 font-light">
+            <p className="mt-2 text-[10px] font-light text-[#1D1D1F]/45">
               Standard message and data rates may apply.
             </p>
           </section>
@@ -262,6 +263,7 @@ export default function OnboardingStep5() {
               variant={HushhTechCtaVariant.BLACK}
               onClick={handleContinue}
               disabled={!canContinue || isLoading}
+              className={primaryCtaClass}
             >
               {isLoading ? "Saving..." : "Continue"}
             </HushhTechCta>
@@ -269,6 +271,7 @@ export default function OnboardingStep5() {
             <HushhTechCta
               variant={HushhTechCtaVariant.WHITE}
               onClick={handleSkip}
+              className={secondaryCtaClass}
             >
               Skip
             </HushhTechCta>
@@ -277,10 +280,8 @@ export default function OnboardingStep5() {
           {/* ── Trust Badges ── */}
           <section className="flex flex-col items-center justify-center text-center gap-2 pb-8">
             <div className="flex items-center gap-1">
-              <span className="material-symbols-outlined text-[12px] text-hushh-blue">
-                lock
-              </span>
-              <span className="text-[10px] text-gray-500 tracking-wide uppercase font-medium">
+              {Icon.lock("#0066CC", 12)}
+              <span className="text-[10px] font-medium uppercase tracking-[1.6px] text-[#1D1D1F]/50">
                 256 Bit Encryption
               </span>
             </div>
@@ -311,15 +312,15 @@ export default function OnboardingStep5() {
               <div className="flex items-center justify-between p-6 pb-4 border-b border-gray-100">
                 <h2
                   id="dial-picker-title"
-                  className="text-xl text-black tracking-tight font-serif"
-                  style={{ fontFamily: "'Playfair Display', serif" }}
+                  className="text-[18px] font-medium tracking-[-0.02em] text-[#1D1D1F]"
+                  style={{ fontFamily: appleFont }}
                 >
                   Select Country Code
                 </h2>
                 <button
                   ref={doneButtonRef}
                   onClick={() => setShowDialPicker(false)}
-                  className="text-xs font-bold uppercase tracking-widest text-black hover:underline"
+                  className="text-[12px] font-medium uppercase tracking-[1.6px] text-[#0066CC] hover:underline"
                 >
                   Done
                 </button>
@@ -361,15 +362,7 @@ export default function OnboardingStep5() {
                           {option.code}
                         </span>
                         {isActive && (
-                          <span
-                            className="material-symbols-outlined text-black text-lg"
-                            style={{
-                              fontVariationSettings:
-                                "'FILL' 1, 'wght' 600",
-                            }}
-                          >
-                            check
-                          </span>
+                          <Check size={18} strokeWidth={1.8} className="text-[#0066CC]" aria-hidden="true" />
                         )}
                       </div>
                     </button>

@@ -76,9 +76,7 @@ describe("document viewer page accessibility", () => {
       "/document-viewer?title=Quarterly%20Summary&src=https://example.com/file.docx",
     );
 
-    const downloadIcon = container.querySelector(
-      'a[download] .material-symbols-outlined',
-    );
+    const downloadIcon = container.querySelector('a[download] svg');
 
     expect(downloadIcon?.getAttribute("aria-hidden")).toBe("true");
   });

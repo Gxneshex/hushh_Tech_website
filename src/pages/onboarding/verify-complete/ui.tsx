@@ -57,14 +57,14 @@ function VerifyCompletePage() {
 
         {/* Title */}
         <h1
-          className="text-3xl font-normal text-black tracking-tight mb-3"
+          className="text-3xl font-medium leading-[1.06] text-black tracking-[-0.028em] mb-3"
           style={{ fontFamily: "'Playfair Display', serif" }}
         >
           {cfg.title}
         </h1>
 
         {/* Description */}
-        <p className="text-sm text-gray-500 font-light leading-relaxed max-w-xs mb-8">
+        <p className="text-sm text-black/60 font-light leading-[1.45] max-w-xs mb-8">
           {cfg.desc}
         </p>
 

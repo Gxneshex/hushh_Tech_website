@@ -11,6 +11,12 @@ function trimLeadingSlash(value: string): string {
   return value.replace(/^\/+/, "");
 }
 
+function isUsableConfiguredUrl(value: string | undefined): value is string {
+  if (!value) return false;
+  const trimmed = value.trim();
+  return Boolean(trimmed) && !trimmed.includes("YOUR_PROJECT_REF");
+}
+
 export function getSupabaseBaseUrl(): string {
   return trimTrailingSlash(config.SUPABASE_URL);
 }
@@ -37,7 +43,9 @@ export function getSupabaseStoragePublicUrl(
 export function getNdaGenerationBaseUrl(): string {
   const configuredBaseUrl = import.meta.env.VITE_NDA_GENERATION_URL?.trim();
   return trimTrailingSlash(
-    configuredBaseUrl || DEFAULT_NDA_GENERATION_BASE_URL
+    isUsableConfiguredUrl(configuredBaseUrl)
+      ? configuredBaseUrl
+      : DEFAULT_NDA_GENERATION_BASE_URL
   );
 }
 

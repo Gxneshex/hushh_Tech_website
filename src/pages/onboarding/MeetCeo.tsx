@@ -216,7 +216,7 @@ function MeetCeoPage() {
         {/* ── Title Section ── */}
         <section className="py-8">
           <h3 className="text-[11px] tracking-wide text-gray-500 lowercase mb-4 font-semibold">verification</h3>
-          <h1 className="text-[2.75rem] leading-[1.1] font-normal text-black tracking-tight lowercase" style={{ fontFamily: "'Playfair Display', serif" }}>
+          <h1 className="text-[2.75rem] leading-[1.06] font-medium text-black tracking-[-0.028em] lowercase" style={{ fontFamily: "'Playfair Display', serif" }}>
             meet your
             <br />
             <span className="text-gray-400 italic font-normal">fund manager</span>
@@ -467,7 +467,7 @@ function MeetCeoPage() {
             <div className="w-20 h-20 mx-auto mb-5 rounded-full bg-green-50 border border-green-200 flex items-center justify-center">
               <span className="material-symbols-outlined text-green-600 text-[44px]" style={{ fontVariationSettings: "'FILL' 1, 'wght' 600" }}>task_alt</span>
             </div>
-            <h1 className="text-3xl font-normal text-black tracking-tight mb-2 lowercase" style={{ fontFamily: "'Playfair Display', serif" }}>all set!</h1>
+            <h1 className="text-3xl font-medium leading-[1.06] text-black tracking-[-0.028em] mb-2 lowercase" style={{ fontFamily: "'Playfair Display', serif" }}>all set!</h1>
             <p className="text-sm text-gray-500 mb-1 lowercase">your consultation is scheduled with</p>
             <p className="text-base font-semibold text-black">Manish Sainani</p>
             <p className="text-xs text-gray-500 mt-1 lowercase">{hushhCoins.toLocaleString()} hushh coins earned 🪙</p>

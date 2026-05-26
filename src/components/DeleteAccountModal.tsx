@@ -1,9 +1,11 @@
 import { useRef, useState } from "react";
 import { useToast } from "@chakra-ui/react";
 import { useTranslation } from "react-i18next";
+import { Trash2 } from "lucide-react";
 import config from "../resources/config/config";
 import { useAuthSession } from "../auth/AuthSessionProvider";
 import { useModalKeyboardNavigation } from "../hooks/useModalKeyboardNavigation";
+import { AppleLineIcon, appleFont } from "./hushh-tech-ui/HushhAppleUI";
 
 interface DeleteAccountModalProps {
   isOpen: boolean;
@@ -12,8 +14,7 @@ interface DeleteAccountModalProps {
 }
 
 /**
- * Delete Account Modal — Glassmorphism design matching Step 4 location modal.
- * Playfair Display headings, black/white buttons, frosted overlay.
+ * Delete Account Modal — Apple-style destructive confirmation surface.
  * Backend logic is preserved — only UI is redesigned.
  */
 const DeleteAccountModal = ({
@@ -132,21 +133,22 @@ const DeleteAccountModal = ({
   if (!isOpen) return null;
 
   // =====================================================
-  // Glassmorphism Modal — Matches Step 4 location modal
+  // Apple-style destructive modal
   // =====================================================
   return (
     <>
       {/* ── Frosted glass overlay ── */}
       <div
-        className="fixed inset-0 z-40 bg-white/60 backdrop-blur-sm"
+        className="fixed inset-0 z-40 bg-[#000000]/35 backdrop-blur-[14px]"
         onClick={handleClose}
       />
 
       {/* ── Modal card — bottom-sheet on mobile, centered on desktop ── */}
-      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-4 pb-6 sm:pb-0">
+      <div className="fixed inset-0 z-50 flex items-end justify-center px-4 pb-6 sm:items-center sm:pb-0">
         <div
           ref={modalRef}
-          className="relative w-full max-w-sm bg-white rounded-3xl shadow-[0_20px_40px_-10px_rgba(0,0,0,0.08),0_0_1px_rgba(0,0,0,0.04)] p-8 flex flex-col items-center text-center border border-gray-100/50"
+          className="relative flex w-full max-w-[390px] flex-col items-center rounded-[28px] border border-[#1D1D1F]/[0.06] bg-white p-6 text-center shadow-[0_28px_70px_rgba(0,0,0,0.22)] sm:p-7"
+          style={{ fontFamily: appleFont }}
           onClick={(e) => e.stopPropagation()}
           role="dialog"
           aria-modal="true"
@@ -154,37 +156,32 @@ const DeleteAccountModal = ({
           tabIndex={-1}
         >
           {/* ── Warning icon in circle ── */}
-          <div className="mb-8">
-            <div className="w-20 h-20 rounded-full border border-gray-200 bg-white flex items-center justify-center shadow-sm">
-              <span
-                className="material-symbols-outlined text-black text-[2rem]"
-                style={{ fontVariationSettings: "'wght' 200" }}
-              >
-                delete_forever
-              </span>
-            </div>
+          <div className="mb-6">
+            <AppleLineIcon icon={Trash2} size={64} />
           </div>
 
           {/* ── Heading & description ── */}
-          <div className="space-y-4 mb-8 px-2">
+          <div className="mb-7 space-y-3 px-1">
+            <p className="text-[11px] font-medium uppercase leading-tight tracking-[1.6px] text-[#FF3B30]/85">
+              Delete Account
+            </p>
             <h2
               id="delete-account-title"
-              className="text-[1.75rem] leading-[1.2] text-black lowercase tracking-tight"
-              style={{ fontFamily: "'Playfair Display', serif" }}
+              className="text-[28px] font-medium leading-[1.06] tracking-[-0.028em] text-[#1D1D1F] sm:text-[32px]"
             >
-              are you sure?
+              Are you sure?
             </h2>
-            <p className="text-gray-500 text-[0.85rem] leading-relaxed font-normal lowercase max-w-[90%] mx-auto">
-              this permanently deletes your profile, onboarding, plaid,
-              chats, nda, kyc, and stored files. only a minimal de-identified
+            <p className="mx-auto max-w-[320px] text-[13px] font-light leading-[1.45] text-[#1D1D1F]/60">
+              This permanently deletes your profile, onboarding, Plaid,
+              chats, NDA, KYC, and stored files. Only a minimal de-identified
               payment audit may remain for compliance.
             </p>
           </div>
 
           {/* ── Confirmation input ── */}
-          <div className="w-full mb-8">
-            <p className="text-xs text-gray-500 lowercase font-semibold mb-3 tracking-wide">
-              type DELETE to confirm
+          <div className="mb-7 w-full">
+            <p className="mb-3 text-[11px] font-medium uppercase tracking-[1.6px] text-[#1D1D1F]/50">
+              Type DELETE to confirm
             </p>
             <input
               ref={confirmInputRef}
@@ -192,7 +189,7 @@ const DeleteAccountModal = ({
               value={confirmText}
               onChange={(e) => setConfirmText(e.target.value.toUpperCase())}
               placeholder="DELETE"
-              className="w-full h-[52px] border border-gray-200 bg-white px-4 text-sm text-black font-mono tracking-[2px] placeholder:text-gray-300 focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-colors"
+              className="h-[52px] w-full rounded-[16px] border border-[#1D1D1F]/10 bg-[#F5F5F7] px-4 text-center font-mono text-[14px] tracking-[2px] text-[#1D1D1F] outline-none transition placeholder:text-[#1D1D1F]/25 focus:border-[#1D1D1F]/35 focus:bg-white focus:ring-1 focus:ring-[#1D1D1F]/20"
               autoComplete="off"
               autoCorrect="off"
               spellCheck={false}
@@ -201,27 +198,22 @@ const DeleteAccountModal = ({
           </div>
 
           {/* ── Action buttons ── */}
-          <div className="w-full space-y-4">
+          <div className="w-full space-y-3">
             {/* Delete — primary black */}
             <button
               onClick={handleDeleteAccount}
               disabled={!isDeleteEnabled || isDeleting}
-              className="w-full h-12 bg-black text-white font-medium text-[0.8rem] flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transition-all active:scale-[0.99] border border-black hover:bg-black/90 disabled:opacity-30 disabled:cursor-not-allowed disabled:shadow-none lowercase"
+              className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#FF3B30] text-[15px] font-medium text-white transition hover:bg-[#E6352B] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-35"
             >
               {isDeleting ? (
                 <>
-                  <div className="animate-spin h-4 w-4 border-2 border-white/30 border-t-white rounded-full" />
-                  <span>deleting...</span>
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                  <span>Deleting...</span>
                 </>
               ) : (
                 <>
-                  <span
-                    className="material-symbols-outlined text-lg"
-                    style={{ fontVariationSettings: "'wght' 400" }}
-                  >
-                    delete_forever
-                  </span>
-                  <span>delete my account</span>
+                  <Trash2 size={16} strokeWidth={1.8} aria-hidden="true" />
+                  <span>Delete my account</span>
                 </>
               )}
             </button>
@@ -230,9 +222,9 @@ const DeleteAccountModal = ({
             <button
               onClick={handleClose}
               disabled={isDeleting}
-              className="w-full h-12 border border-black bg-white text-black font-medium text-[0.8rem] hover:bg-gray-50 transition-colors active:scale-[0.99] disabled:opacity-50 lowercase"
+              className="h-12 w-full rounded-full border border-[#1D1D1F]/15 bg-white text-[15px] font-medium text-[#1D1D1F] transition hover:bg-[#F5F5F7] active:scale-[0.99] disabled:opacity-50"
             >
-              keep my account
+              Keep my account
             </button>
 
             {/* Cancel — text link */}
@@ -240,9 +232,9 @@ const DeleteAccountModal = ({
               <button
                 onClick={handleClose}
                 disabled={isDeleting}
-                className="text-xs font-medium text-gray-400 hover:text-black transition-colors lowercase disabled:opacity-50"
+                className="text-[12px] font-medium text-[#1D1D1F]/45 transition hover:text-[#1D1D1F] disabled:opacity-50"
               >
-                cancel
+                Cancel
               </button>
             </div>
           </div>

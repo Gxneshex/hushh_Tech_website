@@ -16,24 +16,33 @@ import NWSScoreBadge from "../../components/profile/NWSScoreBadge";
 import { PrivacyShield } from "../../components/profile/PrivacyShield";
 import WalletCardPreviewModal from "../../components/wallet/WalletCardPreviewModal";
 import type { ProfileIntelligence } from "../../types/shadowProfile";
+import {
+  AppIcon,
+  Display,
+  Eyebrow,
+  Lede,
+  appleFont,
+} from "../../components/hushh-tech-ui/HushhAppleUI";
 
-/* ── Playfair heading style ── */
-const playfair = { fontFamily: "'Playfair Display', serif" };
+const primaryCtaClass =
+  "!rounded-full !border-[#0066CC] !bg-[#0066CC] !text-white !font-medium !tracking-[-0.01em] !shadow-none";
+const secondaryCtaClass =
+  "!rounded-full !border-[#1D1D1F]/15 !bg-white !text-[#1D1D1F] !font-medium !tracking-[-0.01em] !shadow-none";
 
 /* ── Tiny reusable row (settings-style) with edit indicator ── */
 const FieldRow = ({ label, children }: { label: string; children: React.ReactNode }) => (
-  <div className="group flex items-center justify-between gap-4 border-b border-gray-100 py-4 hover:bg-gray-50/50 transition-colors">
-    <span className="text-sm text-gray-500 font-light shrink-0">{label}</span>
+  <div className="group flex items-center justify-between gap-4 border-b border-[#1D1D1F]/[0.08] py-4 transition-colors last:border-b-0 hover:bg-white/50">
+    <span className="shrink-0 text-[14px] font-light text-[#1D1D1F]/55">{label}</span>
     <div className="flex items-center gap-2 text-right min-w-0 flex-1 justify-end">
       {children}
       {/* Subtle edit pencil — visible on hover */}
-      <Pencil className="w-3 h-3 text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+      <Pencil className="h-3 w-3 shrink-0 text-[#1D1D1F]/25 opacity-0 transition-opacity group-hover:opacity-100" />
     </div>
   </div>
 );
 
 const SectionLabel = ({ children }: { children: React.ReactNode }) => (
-  <p className="text-[10px] uppercase tracking-[0.2em] text-gray-400 mb-4 mt-2 font-medium">{children}</p>
+  <p className="mb-4 mt-2 text-[11px] font-medium uppercase tracking-[1.6px] text-[#0066CC]/85">{children}</p>
 );
 
 const formatGeneratedAt = (value?: string) => {
@@ -86,11 +95,11 @@ const getStatusText = (status: string, runningLabel: string) => {
 };
 
 const getStatusClass = (status: string) => {
-  if (status === "running") return "text-gray-400";
-  if (status === "done") return "text-ios-green";
-  if (status === "error") return "text-red-500";
-  if (status === "skipped") return "text-amber-600";
-  return "text-gray-300";
+  if (status === "running") return "text-[#1D1D1F]/45";
+  if (status === "done") return "text-[#34C759]";
+  if (status === "error") return "text-[#FF3B30]";
+  if (status === "skipped") return "text-[#FF9500]";
+  return "text-[#1D1D1F]/30";
 };
 
 const ProfileIntelligenceSection = ({
@@ -146,39 +155,45 @@ const ProfileIntelligenceSection = ({
   return (
     <section className="mb-12">
       <div className="mb-8">
-        <div className="flex items-center justify-between gap-4 mb-2">
-          <h2 className="text-2xl font-medium text-black tracking-tight font-serif" style={playfair}>
-            Profile{" "}
-            <span className="text-gray-400 italic font-light">Intelligence.</span>
+        <div className="mb-2 flex items-center justify-between gap-4">
+          <h2 className="text-[24px] font-medium leading-[1.06] tracking-[-0.028em] text-[#1D1D1F]">
+            Profile intelligence.
           </h2>
           <div className="flex shrink-0 items-center gap-2">
-            <span className="inline-flex items-center rounded-full border border-hushh-blue/20 bg-hushh-blue/5 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.14em] text-hushh-blue">
-              AI Researched
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#0066CC]/10 px-3 py-1 shadow-[inset_0_0_0_1px_rgba(0,102,204,0.18)]">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#0066CC]" />
+              <span className="text-[10px] font-medium uppercase tracking-[1.6px] text-[#0066CC]">
+                AI Researched
+              </span>
             </span>
-            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border ${getConfidencePillClass(confidenceLabel)}`}>
-              <span className="w-1.5 h-1.5 rounded-full bg-current" />
-              <span className="text-[10px] tracking-[0.14em] uppercase font-medium">{confidenceLabel}</span>
+            <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 ${getConfidencePillClass(confidenceLabel)}`}>
+              <span className="h-1.5 w-1.5 rounded-full bg-current" />
+              <span className="text-[10px] font-medium uppercase tracking-[1.6px]">{confidenceLabel}</span>
             </span>
           </div>
         </div>
-        <p className="text-gray-500 text-xs leading-relaxed">
+        <p className="text-[12px] leading-[1.45] text-[#1D1D1F]/55">
           A consent-gated, cited view of public signals Hushh found for your own profile.
         </p>
       </div>
 
-      <div className="py-1 space-y-7">
-        <div className="border-y border-gray-100 py-4">
+      <div className="space-y-7 rounded-[22px] bg-[#F5F5F7] p-5 shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.08)]">
+        <div className="border-b border-[#1D1D1F]/[0.08] pb-4">
           <div className="flex items-start gap-3">
-            <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-hushh-blue/10">
-              <Brain className="h-4 w-4 text-hushh-blue" />
+            <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-[14px] bg-white shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.08)]">
+              <Brain className="h-4 w-4 text-[#0066CC]" />
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center justify-between gap-3">
-                <p className="text-sm font-medium text-black">{intelligence.headline || "Public web self-audit is ready"}</p>
-                <span className="shrink-0 text-[10px] uppercase tracking-[0.16em] text-gray-400">{statusLabel}</span>
+                <p className="text-[14px] font-medium text-[#1D1D1F]">
+                  {intelligence.headline || "Public web self-audit is ready"}
+                </p>
+                <span className="shrink-0 text-[10px] font-medium uppercase tracking-[1.6px] text-[#1D1D1F]/45">
+                  {statusLabel}
+                </span>
               </div>
               {(generatedAt || intelligence.model) && (
-                <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-gray-400">
+                <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-[#1D1D1F]/45">
                   {generatedAt && <span>{generatedAt}</span>}
                   {intelligence.model && <span>{intelligence.model}</span>}
                 </div>
@@ -190,14 +205,14 @@ const ProfileIntelligenceSection = ({
         {summarySections.length > 0 && (
           <div>
             <SectionLabel>Readable Summary</SectionLabel>
-            <div className="space-y-4 border-b border-gray-100 pb-4">
+            <div className="space-y-4 border-b border-[#1D1D1F]/[0.08] pb-4">
               {summarySections.map((section) => (
                 <div key={section.title}>
-                  <p className="mb-2 text-sm font-medium text-black">{section.title}</p>
+                  <p className="mb-2 text-[14px] font-medium text-[#1D1D1F]">{section.title}</p>
                   <ul className="space-y-2">
                     {section.items.map((item) => (
-                      <li key={item} className="flex gap-3 text-sm leading-relaxed text-gray-700">
-                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+                      <li key={item} className="flex gap-3 text-[14px] leading-[1.45] text-[#1D1D1F]/70">
+                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-[#34C759]" />
                         <span>{item}</span>
                       </li>
                     ))}
@@ -211,10 +226,10 @@ const ProfileIntelligenceSection = ({
         {summarySections.length === 0 && summaryBullets.length > 0 && (
           <div>
             <SectionLabel>Readable Summary</SectionLabel>
-            <ul className="space-y-3 border-b border-gray-100 pb-4">
+            <ul className="space-y-3 border-b border-[#1D1D1F]/[0.08] pb-4">
               {summaryBullets.map((item) => (
-                <li key={item} className="flex gap-3 text-sm leading-relaxed text-gray-700">
-                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+                <li key={item} className="flex gap-3 text-[14px] leading-[1.45] text-[#1D1D1F]/70">
+                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-[#34C759]" />
                   <span>{item}</span>
                 </li>
               ))}
@@ -223,13 +238,17 @@ const ProfileIntelligenceSection = ({
         )}
 
         {intelligence.identityMatch && (
-          <div className="border-b border-gray-100 pb-4">
+          <div className="border-b border-[#1D1D1F]/[0.08] pb-4">
             <SectionLabel>Identity Match</SectionLabel>
             <div className="flex items-start gap-3">
-              <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-hushh-blue" />
+              <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-[#0066CC]" />
               <div>
-                <p className="text-sm font-medium text-black">{getIdentityLabel(intelligence.identityMatch.label)}</p>
-                <p className="mt-1 text-xs leading-relaxed text-gray-500">{intelligence.identityMatch.explanation}</p>
+                <p className="text-[14px] font-medium text-[#1D1D1F]">
+                  {getIdentityLabel(intelligence.identityMatch.label)}
+                </p>
+                <p className="mt-1 text-[12px] leading-[1.45] text-[#1D1D1F]/55">
+                  {intelligence.identityMatch.explanation}
+                </p>
               </div>
             </div>
           </div>
@@ -245,15 +264,17 @@ const ProfileIntelligenceSection = ({
                   href={profile.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-between gap-3 border-b border-gray-100 py-3 text-sm hover:bg-gray-50/50"
+                  className="flex items-center justify-between gap-3 border-b border-[#1D1D1F]/[0.08] py-3 text-[14px] transition hover:opacity-80"
                 >
                   <div className="min-w-0">
-                    <p className="truncate font-medium text-black">{profile.platform}</p>
-                    <p className="truncate text-xs text-gray-500">{profile.title}</p>
+                    <p className="truncate font-medium text-[#1D1D1F]">{profile.platform}</p>
+                    <p className="truncate text-[12px] text-[#1D1D1F]/55">{profile.title}</p>
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
-                    <span className="text-[10px] uppercase tracking-[0.14em] text-gray-400">{profile.confidence}</span>
-                    <ExternalLink className="h-3.5 w-3.5 text-hushh-blue" />
+                    <span className="text-[10px] uppercase tracking-[1.6px] text-[#1D1D1F]/45">
+                      {profile.confidence}
+                    </span>
+                    <ExternalLink className="h-3.5 w-3.5 text-[#0066CC]" />
                   </div>
                 </a>
               ))}
@@ -264,34 +285,41 @@ const ProfileIntelligenceSection = ({
         <div>
           <SectionLabel>Sources ({sources.length})</SectionLabel>
           {topEvidence.length > 0 ? (
-            <div className="space-y-2 border-b border-gray-100 pb-4">
+            <div className="space-y-2 border-b border-[#1D1D1F]/[0.08] pb-4">
               {topEvidence.map((source) => (
                 <a
                   key={source.url}
                   href={source.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-between gap-3 rounded-lg border border-gray-100 px-3 py-2 text-sm text-hushh-blue hover:border-hushh-blue/30"
+                  className="flex items-center justify-between gap-3 rounded-[14px] bg-white px-3 py-2 text-[14px] text-[#0066CC] shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.08)] transition hover:opacity-80"
                 >
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-medium">{source.title}</p>
-                    <p className="truncate text-[11px] text-gray-400">{source.domain} · {source.supports}</p>
+                    <p className="truncate font-medium">{source.title}</p>
+                    <p className="truncate text-[11px] text-[#1D1D1F]/45">
+                      {source.domain} · {source.supports}
+                    </p>
                   </div>
                   <Globe className="h-3.5 w-3.5 shrink-0" />
                 </a>
               ))}
             </div>
           ) : (
-            <p className="border-b border-gray-100 pb-4 text-sm text-gray-400">Not enough reliable cited sources found.</p>
+            <p className="border-b border-[#1D1D1F]/[0.08] pb-4 text-[14px] text-[#1D1D1F]/45">
+              Not enough reliable cited sources found.
+            </p>
           )}
         </div>
 
         {missingSignals.length > 0 && (
-          <div className="border-b border-gray-100 pb-4">
+          <div className="border-b border-[#1D1D1F]/[0.08] pb-4">
             <SectionLabel>Missing Signals</SectionLabel>
             <div className="flex flex-wrap gap-2">
               {missingSignals.map((item) => (
-                <span key={item} className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs text-amber-700">
+                <span
+                  key={item}
+                  className="rounded-full bg-[#FF9500]/10 px-2.5 py-1 text-[12px] text-[#1D1D1F]/70 shadow-[inset_0_0_0_1px_rgba(255,149,0,0.20)]"
+                >
                   {item}
                 </span>
               ))}
@@ -300,21 +328,21 @@ const ProfileIntelligenceSection = ({
         )}
 
         {(riskFlags.length > 0 || redactions.length > 0 || warnings.length > 0) && (
-          <details className="group border-b border-gray-100 pb-4">
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-medium text-black">
+          <details className="group border-b border-[#1D1D1F]/[0.08] pb-4">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[14px] font-medium text-[#1D1D1F]">
               <span className="flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4 text-amber-500" />
+                <AlertTriangle className="h-4 w-4 text-[#FF9500]" />
                 Risk and privacy notes
               </span>
-              <Search className="h-4 w-4 text-gray-300 transition-transform group-open:rotate-180" />
+              <Search className="h-4 w-4 text-[#1D1D1F]/30 transition-transform group-open:rotate-180" />
             </summary>
             <div className="mt-4 space-y-4">
               {riskFlags.length > 0 && (
                 <div>
-                  <p className="mb-2 text-xs font-medium text-gray-500">Risk flags</p>
+                  <p className="mb-2 text-[12px] font-medium text-[#1D1D1F]/55">Risk flags</p>
                   <div className="flex flex-wrap gap-2">
                     {riskFlags.map((item) => (
-                      <span key={item} className="rounded-full border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs text-gray-600">
+                      <span key={item} className="rounded-full bg-white px-2.5 py-1 text-[12px] text-[#1D1D1F]/65 shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.10)]">
                         {formatMachineLabel(item)}
                       </span>
                     ))}
@@ -323,10 +351,10 @@ const ProfileIntelligenceSection = ({
               )}
               {redactions.length > 0 && (
                 <div>
-                  <p className="mb-2 text-xs font-medium text-gray-500">Redacted</p>
+                  <p className="mb-2 text-[12px] font-medium text-[#1D1D1F]/55">Redacted</p>
                   <div className="flex flex-wrap gap-2">
                     {redactions.map((item) => (
-                      <span key={item} className="rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-xs text-rose-700">
+                      <span key={item} className="rounded-full bg-[#FF3B30]/10 px-2.5 py-1 text-[12px] text-[#1D1D1F]/70 shadow-[inset_0_0_0_1px_rgba(255,59,48,0.18)]">
                         {formatMachineLabel(item)}
                       </span>
                     ))}
@@ -336,7 +364,7 @@ const ProfileIntelligenceSection = ({
               {warnings.length > 0 && (
                 <div className="space-y-2">
                   {warnings.map((item) => (
-                    <p key={item} className="text-xs leading-relaxed text-gray-500">{item}</p>
+                    <p key={item} className="text-[12px] leading-[1.45] text-[#1D1D1F]/55">{item}</p>
                   ))}
                 </div>
               )}
@@ -345,7 +373,7 @@ const ProfileIntelligenceSection = ({
         )}
 
         {intelligence.status === "failed" && (
-          <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-3 text-sm text-gray-500">
+          <div className="rounded-[14px] bg-white px-3 py-3 text-[14px] text-[#1D1D1F]/55 shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.08)]">
             Not enough reliable public signals found yet. Add clearer public profile links or try again later.
           </div>
         )}
@@ -355,7 +383,7 @@ const ProfileIntelligenceSection = ({
 };
 
 /* Inline input class */
-const inlineInput = "text-right text-sm font-medium bg-transparent border-none focus:ring-0 p-0 text-black w-full";
+const inlineInput = "w-full border-none bg-transparent p-0 text-right text-[14px] font-medium text-[#1D1D1F] focus:ring-0 placeholder:text-[#1D1D1F]/35";
 
 /* ── Page ── */
 const HushhUserProfilePage: React.FC = () => {
@@ -377,45 +405,42 @@ const HushhUserProfilePage: React.FC = () => {
   const profileIntelligence = shadowProfile?.profileIntelligence;
 
   return (
-    <div className="bg-white text-gray-900 min-h-screen antialiased flex flex-col selection:bg-hushh-blue selection:text-white">
+    <div
+      className="flex min-h-screen flex-col bg-[#FFFFFF] text-[#1D1D1F] antialiased selection:bg-[#0066CC] selection:text-[#F5F5F7]"
+      style={{ fontFamily: appleFont }}
+    >
       {/* ═══ Header ═══ */}
       <HushhTechBackHeader onBackClick={handleBack} rightType="hamburger" />
 
-      <main className="px-6 flex-grow max-w-md mx-auto w-full pb-48">
+      <main className="mx-auto w-full max-w-[560px] flex-grow px-5 pb-48">
         {/* ── Hero ── */}
-        <section className="py-8">
-          <div className="inline-block px-3 py-1 mb-4 border border-hushh-blue/20 rounded-full bg-hushh-blue/5">
-            <span className="text-[10px] tracking-widest uppercase font-medium text-hushh-blue flex items-center gap-1">
-              <span className="w-1.5 h-1.5 bg-hushh-blue rounded-full" />
-              Premium Member
-            </span>
+        <section className="pb-9 pt-8 text-center">
+          <div className="mb-6 flex justify-center">
+            <AppIcon kind="person" size={62} />
           </div>
-          <h1
-            className="text-[2.25rem] leading-[1.15] font-normal text-black tracking-tight font-serif"
-            style={playfair}
-          >
-            Investor{" "}
-            <span className="text-gray-400 italic font-light">Profile.</span>
-          </h1>
-          <p className="text-gray-500 text-sm font-light mt-2">
+          <Eyebrow>Premium Member</Eyebrow>
+          <Display as="h1" size="sm" maxWidth="max-w-[440px]">
+            Investor profile.
+          </Display>
+          <Lede className="text-[16px] md:text-[18px]">
             Welcome back, {firstName}.
-          </p>
+          </Lede>
         </section>
 
         {/* ── NWS strip ── */}
-        <section className="mb-10 border-t border-b border-gray-100 py-5 flex justify-between items-center">
+        <section className="mb-10 flex items-center justify-between rounded-[22px] bg-[#F5F5F7] p-5 shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.08)]">
           <span
-            className="text-lg italic text-gray-400 font-serif"
-            style={playfair}
+            className="text-[17px] font-medium tracking-[-0.01em] text-[#1D1D1F]"
+            style={{ fontFamily: appleFont }}
           >
             Net Worth Score
           </span>
           {nwsResult ? (
             <NWSScoreBadge result={nwsResult} loading={nwsLoading} size="sm" />
           ) : (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-gray-200 bg-gray-50">
-              <span className="w-1.5 h-1.5 rounded-full bg-gray-300" />
-              <span className="text-[10px] tracking-[0.14em] uppercase text-gray-400 font-medium">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1 shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.10)]">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#1D1D1F]/25" />
+              <span className="text-[10px] font-medium uppercase tracking-[1.6px] text-[#1D1D1F]/45">
                 Non-Verified
               </span>
             </span>
@@ -424,22 +449,22 @@ const HushhUserProfilePage: React.FC = () => {
 
         {/* ── Processing Banner ── */}
         {isProcessing && (
-          <section className="mb-6 border border-hushh-blue/20 rounded-2xl p-4 bg-hushh-blue/5 animate-pulse-slow">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-[10px] uppercase tracking-[0.2em] text-gray-500 font-medium">
+          <section className="mb-6 animate-pulse-slow rounded-[20px] bg-[#0066CC]/10 p-4 shadow-[inset_0_0_0_1px_rgba(0,102,204,0.18)]">
+            <div className="mb-3 flex items-center justify-between">
+              <span className="text-[10px] font-medium uppercase tracking-[1.6px] text-[#1D1D1F]/55">
                 Building Profile · {loadingSeconds}s
               </span>
-              <span className="w-2 h-2 bg-hushh-blue rounded-full animate-ping" />
+              <span className="h-2 w-2 animate-ping rounded-full bg-[#0066CC]" />
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-500">Investor Profile</span>
+                <span className="text-[12px] text-[#1D1D1F]/55">Investor Profile</span>
                 <span className={`text-[10px] uppercase tracking-widest font-medium ${getStatusClass(investorStatus)}`}>
                   {getStatusText(investorStatus, "Analyzing")}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-500">Profile Intelligence</span>
+                <span className="text-[12px] text-[#1D1D1F]/55">Profile Intelligence</span>
                 <span className={`text-[10px] uppercase tracking-widest font-medium ${getStatusClass(intelligenceStatus)}`}>
                   {getStatusText(intelligenceStatus, "Researching")}
                 </span>
@@ -449,18 +474,23 @@ const HushhUserProfilePage: React.FC = () => {
         )}
 
         {/* ── AI Section ── */}
-        <section className="mb-12">
+        <section className="mb-12 rounded-[24px] bg-[#F5F5F7] p-5 shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.08)]">
           <h2
-            className="text-xl font-medium text-black tracking-tight mb-3 font-serif"
-            style={playfair}
+            className="mb-3 text-[24px] font-medium leading-[1.06] tracking-[-0.028em] text-[#1D1D1F]"
+            style={{ fontFamily: appleFont }}
           >
             AI-Powered Profile Intelligence
           </h2>
-          <p className="text-gray-500 text-sm font-light mb-6 leading-relaxed">
+          <p className="mb-6 text-[14px] font-light leading-[1.45] text-[#1D1D1F]/60">
             Hushh AI automatically detects your investment preferences and risk
             appetite to tailor opportunities specifically for you.
           </p>
-          <HushhTechCta variant={HushhTechCtaVariant.BLACK} onClick={handleSave} disabled={loading || isProcessing}>
+          <HushhTechCta
+            variant={HushhTechCtaVariant.BLACK}
+            onClick={handleSave}
+            disabled={loading || isProcessing}
+            className={primaryCtaClass}
+          >
             {loading
               ? `Generating... ${loadingSeconds}s`
               : investorProfile
@@ -477,21 +507,20 @@ const HushhUserProfilePage: React.FC = () => {
           <section className="mb-12">
             <div className="mb-8">
               <div className="flex items-center justify-between mb-2">
-                <h2 className="text-2xl font-medium text-black tracking-tight font-serif" style={playfair}>
-                  Investment{" "}
-                  <span className="text-gray-400 italic font-light">Profile.</span>
+                <h2 className="text-[24px] font-medium leading-[1.06] tracking-[-0.028em] text-[#1D1D1F]">
+                  Investment profile.
                 </h2>
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-hushh-blue/20 bg-hushh-blue/5">
-                  <span className="w-1.5 h-1.5 bg-hushh-blue rounded-full" />
-                  <span className="text-[10px] tracking-[0.14em] uppercase text-hushh-blue font-medium">AI Analyzed</span>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#0066CC]/10 px-3 py-1 shadow-[inset_0_0_0_1px_rgba(0,102,204,0.18)]">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#0066CC]" />
+                  <span className="text-[10px] font-medium uppercase tracking-[1.6px] text-[#0066CC]">AI Analyzed</span>
                 </span>
               </div>
-              <p className="text-gray-500 text-xs leading-relaxed">
+              <p className="text-[12px] leading-[1.45] text-[#1D1D1F]/55">
                 AI-detected preferences based on your profile data. Tap any field to adjust.
               </p>
             </div>
 
-            <div className="py-1">
+            <div className="rounded-[22px] bg-[#F5F5F7] p-5 shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.08)]">
               <SectionLabel>AI Preferences</SectionLabel>
               {Object.entries(investorProfile).map(([fieldName, fieldData]: [string, any]) => {
                 if (!fieldData || typeof fieldData !== 'object') return null;
@@ -508,21 +537,21 @@ const HushhUserProfilePage: React.FC = () => {
                 return (
                   <div key={fieldName}>
                     <div
-                      className="group flex items-center justify-between gap-4 border-b border-gray-100 py-4 hover:bg-gray-50/50 transition-colors cursor-pointer"
+                      className="group flex cursor-pointer items-center justify-between gap-4 border-b border-[#1D1D1F]/[0.08] py-4 transition-colors hover:bg-white/50"
                       onClick={() => options && setEditingField(isEditing ? null : fieldName)}
                       role="button"
                       tabIndex={0}
                       aria-label={`Edit ${label}`}
                       onKeyDown={(e) => { if (e.key === 'Enter' && options) setEditingField(isEditing ? null : fieldName); }}
                     >
-                      <span className="text-sm text-gray-500 font-light shrink-0">{label}</span>
+                      <span className="shrink-0 text-[14px] font-light text-[#1D1D1F]/55">{label}</span>
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-black truncate max-w-[140px]">{valueText || "—"}</span>
+                        <span className="max-w-[140px] truncate text-[14px] font-medium text-[#1D1D1F]">{valueText || "—"}</span>
                         <span className={`text-[9px] px-1.5 py-0.5 rounded-full border shrink-0 ${getConfidenceBadgeClass(confidence)}`}>
                           {confLabel}
                         </span>
                         {options && (
-                          <Pencil className="w-3 h-3 text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                          <Pencil className="h-3 w-3 shrink-0 text-[#1D1D1F]/25 opacity-0 transition-opacity group-hover:opacity-100" />
                         )}
                       </div>
                     </div>
@@ -539,7 +568,7 @@ const HushhUserProfilePage: React.FC = () => {
                                   key={opt.value}
                                   onClick={() => handleMultiSelectToggle(fieldName, opt.value)}
                                   className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
-                                    isSelected ? 'bg-black text-white border-black' : 'bg-white text-gray-600 border-gray-200'
+                                    isSelected ? 'border-[#0066CC] bg-[#0066CC] text-white' : 'border-[#1D1D1F]/10 bg-white text-[#1D1D1F]/65'
                                   }`}
                                 >
                                   {opt.label}
@@ -552,16 +581,16 @@ const HushhUserProfilePage: React.FC = () => {
                             <select
                               value={fieldData.value || ""}
                               onChange={(e) => handleUpdateAIField(fieldName, e.target.value)}
-                              className="appearance-none w-full bg-transparent border-none focus:ring-0 p-0 pr-6 text-sm font-medium text-black text-right cursor-pointer"
+                              className="w-full cursor-pointer appearance-none border-none bg-transparent p-0 pr-6 text-right text-[14px] font-medium text-[#1D1D1F] focus:ring-0"
                             >
                               {options.map((opt) => (
                                 <option key={opt.value} value={opt.value}>{opt.label}</option>
                               ))}
                             </select>
-                            <span className="material-symbols-outlined text-gray-300 text-lg absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+                            <span className="material-symbols-outlined pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-lg text-[#1D1D1F]/25">expand_more</span>
                           </div>
                         )}
-                        <button onClick={() => setEditingField(null)} className="text-[10px] uppercase tracking-widest text-gray-400 font-medium">Done</button>
+                        <button onClick={() => setEditingField(null)} className="text-[10px] font-medium uppercase tracking-[1.6px] text-[#1D1D1F]/45">Done</button>
                       </div>
                     )}
                   </div>
@@ -579,24 +608,23 @@ const HushhUserProfilePage: React.FC = () => {
         <section className="mb-6">
           <div className="mb-8">
             <h2
-              className="text-2xl font-medium text-black tracking-tight mb-2 font-serif"
-              style={playfair}
+              className="mb-2 text-[24px] font-medium leading-[1.06] tracking-[-0.028em] text-[#1D1D1F]"
+              style={{ fontFamily: appleFont }}
             >
-              Your Hushh{" "}
-              <span className="text-gray-400 italic font-light">Profile.</span>
+              Your Hushh profile.
             </h2>
-            <p className="text-gray-500 text-xs leading-relaxed">
+            <p className="text-[12px] leading-[1.45] text-[#1D1D1F]/55">
               Tap any field to edit your details. Changes are saved separately from AI analysis.
             </p>
             {/* Edit hint banner */}
-            <div className="mt-3 flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-50 border border-gray-100">
-              <Pencil className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-              <span className="text-[11px] text-gray-400">Tap any field to edit · click "Save Changes" to update</span>
+            <div className="mt-3 flex items-center gap-2 rounded-[14px] bg-[#F5F5F7] px-3 py-2 shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.08)]">
+              <Pencil className="h-3.5 w-3.5 shrink-0 text-[#1D1D1F]/35" />
+              <span className="text-[11px] text-[#1D1D1F]/45">Tap any field to edit · click "Save Changes" to update</span>
             </div>
           </div>
 
           {/* Personal Information */}
-          <div className="py-1">
+          <div className="rounded-[22px] bg-[#F5F5F7] p-5 shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.08)]">
             <SectionLabel>Personal Information</SectionLabel>
             <FieldRow label="Full Name">
               <input type="text" value={form.name} onChange={(e) => handleChange("name", e.target.value)} className={inlineInput} placeholder="Your Name" />
@@ -621,7 +649,7 @@ const HushhUserProfilePage: React.FC = () => {
                     aria-label="Phone country code"
                     value={form.phoneCountryCode}
                     onChange={(e) => handleChange("phoneCountryCode", e.target.value)}
-                    className="appearance-none bg-transparent border-none focus:ring-0 p-0 text-sm font-medium text-black text-right shrink-0"
+                    className="shrink-0 appearance-none border-none bg-transparent p-0 text-right text-[14px] font-medium text-[#1D1D1F] focus:ring-0"
                   >
                     <option value="+1">+1</option>
                     <option value="+44">+44</option>
@@ -644,42 +672,42 @@ const HushhUserProfilePage: React.FC = () => {
           </div>
 
           {/* Investment Details */}
-          <div className="py-8">
+          <div className="mt-6 rounded-[22px] bg-[#F5F5F7] p-5 shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.08)]">
             <SectionLabel>Investment Details</SectionLabel>
             <FieldRow label="Organisation">
               <input type="text" value={form.organisation} onChange={(e) => handleChange("organisation", e.target.value)} className={inlineInput} placeholder="Company Name" />
             </FieldRow>
             <FieldRow label="Account Type">
               <div className="relative">
-                <select value={form.accountType} onChange={(e) => handleChange("accountType", e.target.value)} className="appearance-none bg-transparent border-none focus:ring-0 p-0 pr-6 text-sm font-medium text-black text-right cursor-pointer">
+                <select value={form.accountType} onChange={(e) => handleChange("accountType", e.target.value)} className="cursor-pointer appearance-none border-none bg-transparent p-0 pr-6 text-right text-[14px] font-medium text-[#1D1D1F] focus:ring-0">
                   <option value="" disabled>Select</option>
                   <option value="individual">Individual</option>
                   <option value="joint">Joint</option>
                   <option value="retirement">Retirement (IRA)</option>
                   <option value="trust">Trust</option>
                 </select>
-                <span className="material-symbols-outlined text-gray-300 text-lg absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+                <span className="material-symbols-outlined pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-lg text-[#1D1D1F]/25">expand_more</span>
               </div>
             </FieldRow>
             <FieldRow label="Account Structure">
               <div className="relative">
-                <select value={form.accountStructure} onChange={(e) => handleChange("accountStructure", e.target.value)} className="appearance-none bg-transparent border-none focus:ring-0 p-0 pr-6 text-sm font-medium text-black text-right cursor-pointer">
+                <select value={form.accountStructure} onChange={(e) => handleChange("accountStructure", e.target.value)} className="cursor-pointer appearance-none border-none bg-transparent p-0 pr-6 text-right text-[14px] font-medium text-[#1D1D1F] focus:ring-0">
                   <option value="" disabled>Select</option>
                   <option value="discretionary">Discretionary</option>
                   <option value="non-discretionary">Non-Discretionary</option>
                 </select>
-                <span className="material-symbols-outlined text-gray-300 text-lg absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+                <span className="material-symbols-outlined pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-lg text-[#1D1D1F]/25">expand_more</span>
               </div>
             </FieldRow>
             <FieldRow label="Selected Fund">
               <div className="relative">
-                <select value={form.selectedFund} onChange={(e) => handleChange("selectedFund", e.target.value)} className="appearance-none bg-transparent border-none focus:ring-0 p-0 pr-6 text-sm font-medium text-black text-right cursor-pointer">
+                <select value={form.selectedFund} onChange={(e) => handleChange("selectedFund", e.target.value)} className="cursor-pointer appearance-none border-none bg-transparent p-0 pr-6 text-right text-[14px] font-medium text-[#1D1D1F] focus:ring-0">
                   <option value="" disabled>Choose</option>
                   <option value="hushh_fund_a">Fund A</option>
                   <option value="hushh_fund_b">Fund B</option>
                   <option value="hushh_fund_c">Fund C</option>
                 </select>
-                <span className="material-symbols-outlined text-gray-300 text-lg absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+                <span className="material-symbols-outlined pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-lg text-[#1D1D1F]/25">expand_more</span>
               </div>
             </FieldRow>
             <FieldRow label="Initial Investment">
@@ -694,15 +722,15 @@ const HushhUserProfilePage: React.FC = () => {
           </div>
 
           {/* Legal & Residential */}
-          <div className="py-2">
+          <div className="mt-6 rounded-[22px] bg-[#F5F5F7] p-5 shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.08)]">
             <SectionLabel>Legal &amp; Residential</SectionLabel>
             <FieldRow label="Country">
               <div className="relative inline-flex">
-                <select value={form.citizenshipCountry} onChange={(e) => handleChange("citizenshipCountry", e.target.value)} className="appearance-none bg-transparent border-none focus:ring-0 p-0 pr-6 text-sm font-medium text-black text-right cursor-pointer">
+                <select value={form.citizenshipCountry} onChange={(e) => handleChange("citizenshipCountry", e.target.value)} className="cursor-pointer appearance-none border-none bg-transparent p-0 pr-6 text-right text-[14px] font-medium text-[#1D1D1F] focus:ring-0">
                   <option value="" disabled>Select</option>
                   {COUNTRIES.map((c) => (<option key={c} value={c}>{c}</option>))}
                 </select>
-                <span className="material-symbols-outlined text-gray-300 text-lg absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+                <span className="material-symbols-outlined pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-lg text-[#1D1D1F]/25">expand_more</span>
               </div>
             </FieldRow>
             <FieldRow label="State">
@@ -721,56 +749,61 @@ const HushhUserProfilePage: React.FC = () => {
 
           {/* Save Changes button — right after editable fields, WHITE variant */}
           <div className="mt-6">
-            <HushhTechCta variant={HushhTechCtaVariant.WHITE} onClick={handleSaveChanges} disabled={!isDirty || isSaving}>
+            <HushhTechCta
+              variant={HushhTechCtaVariant.WHITE}
+              onClick={handleSaveChanges}
+              disabled={!isDirty || isSaving}
+              className={secondaryCtaClass}
+            >
               {isSaving ? (
                 <>Saving... <span className="material-symbols-outlined text-lg animate-spin">progress_activity</span></>
               ) : isDirty ? (
                 <>Save Changes <span className="material-symbols-outlined text-lg">save</span></>
               ) : (
-                <>Profile Saved <Check className="w-4 h-4 text-gray-400" /></>
+                <>Profile Saved <Check className="h-4 w-4 text-[#1D1D1F]/35" /></>
               )}
             </HushhTechCta>
           </div>
         </section>
 
         {/* ── Profile Link + Wallet ── */}
-        <section className="mb-12 border-t border-gray-200 pt-8">
+        <section className="mb-12 rounded-[24px] bg-[#F5F5F7] p-5 shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.08)]">
           <div className="flex items-center justify-between py-3 mb-6">
-            <span className="text-sm text-gray-500 font-light">Profile Link</span>
-            <button type="button" onClick={onCopy} className="flex items-center gap-2 text-hushh-blue cursor-pointer">
-              <span className="text-xs font-medium truncate max-w-[160px]">{profileUrl || "hushhtech.com/investor/..."}</span>
-              {hasCopied ? <Check className="w-4 h-4 text-ios-green" /> : <Copy className="w-4 h-4" />}
+            <span className="text-[14px] font-light text-[#1D1D1F]/55">Profile Link</span>
+            <button type="button" onClick={onCopy} className="flex cursor-pointer items-center gap-2 text-[#0066CC]">
+              <span className="max-w-[160px] truncate text-[12px] font-medium">{profileUrl || "hushhtech.com/investor/..."}</span>
+              {hasCopied ? <Check className="h-4 w-4 text-[#34C759]" /> : <Copy className="h-4 w-4" />}
             </button>
           </div>
           <button
             type="button"
             onClick={openWalletPreview}
-            className="mb-4 w-full border border-gray-200 rounded-2xl py-3 px-4 flex items-center justify-center gap-2 hover:border-hushh-blue/30 transition-colors"
+            className="mb-4 flex w-full items-center justify-center gap-2 rounded-full bg-white px-4 py-3 transition-colors shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.12)] hover:bg-[#FFFFFF]/75"
           >
-            <span className="text-xs font-medium">View Hushh Gold Pass</span>
+            <span className="text-[12px] font-medium">View Hushh Gold Pass</span>
           </button>
           <div className="grid grid-cols-2 gap-4">
             <button
               type="button"
               onClick={handleAppleWalletPass}
               disabled={isApplePassLoading || !appleWalletSupported}
-              className="border border-gray-200 rounded-2xl py-3 px-4 flex items-center justify-center gap-2 hover:border-hushh-blue/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center justify-center gap-2 rounded-full bg-white px-4 py-3 transition-colors shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.12)] hover:bg-[#FFFFFF]/75 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <FaApple className="text-lg" />
-              <span className="text-xs font-medium">{isApplePassLoading ? "Loading..." : "Apple Wallet"}</span>
+              <span className="text-[12px] font-medium">{isApplePassLoading ? "Loading..." : "Apple Wallet"}</span>
             </button>
-            <button type="button" onClick={handleGoogleWalletPass} disabled={isGooglePassLoading || !googleWalletSupported} className="border border-gray-200 rounded-2xl py-3 px-4 flex items-center justify-center gap-2 hover:border-hushh-blue/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+            <button type="button" onClick={handleGoogleWalletPass} disabled={isGooglePassLoading || !googleWalletSupported} className="flex items-center justify-center gap-2 rounded-full bg-white px-4 py-3 transition-colors shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.12)] hover:bg-[#FFFFFF]/75 disabled:cursor-not-allowed disabled:opacity-50">
               <FcGoogle className="text-lg" />
-              <span className="text-xs font-medium">{isGooglePassLoading ? "Loading..." : "Google Wallet"}</span>
+              <span className="text-[12px] font-medium">{isGooglePassLoading ? "Loading..." : "Google Wallet"}</span>
             </button>
           </div>
           {!appleWalletSupported && (
-            <p className="mt-3 text-xs text-gray-500 font-light">
+            <p className="mt-3 text-[12px] font-light text-[#1D1D1F]/55">
               {appleWalletSupportMessage}
             </p>
           )}
           {!googleWalletSupported && (
-            <p className="mt-3 text-xs text-gray-500 font-light">
+            <p className="mt-3 text-[12px] font-light text-[#1D1D1F]/55">
               {googleWalletSupportMessage}
             </p>
           )}
@@ -792,7 +825,11 @@ const HushhUserProfilePage: React.FC = () => {
 
         {/* ── Bottom CTA ── */}
         <section className="pb-12">
-          <HushhTechCta variant={HushhTechCtaVariant.WHITE} onClick={() => navigate("/")}>
+          <HushhTechCta
+            variant={HushhTechCtaVariant.WHITE}
+            onClick={() => navigate("/")}
+            className={secondaryCtaClass}
+          >
             Go to Home
           </HushhTechCta>
         </section>

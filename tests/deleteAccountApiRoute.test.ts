@@ -36,6 +36,8 @@ const createResponse = () => {
 describe("delete-account API route", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
   });
 
   it("rejects non-POST requests", async () => {
@@ -49,6 +51,8 @@ describe("delete-account API route", () => {
   });
 
   it("passes the auth header through to the delete-account service", async () => {
+    vi.stubEnv("VITE_SUPABASE_URL", "https://example.supabase.co");
+    vi.stubEnv("SUPABASE_SERVICE_ROLE_KEY", "service-role-key");
     createDeleteAccountAdminClientFromEnvMock.mockReturnValue({
       adminClient: { marker: "admin" },
       auditSecret: "audit-secret",
@@ -80,10 +84,46 @@ describe("delete-account API route", () => {
     });
   });
 
-  it("fails closed when the server env is missing", async () => {
-    createDeleteAccountAdminClientFromEnvMock.mockImplementation(() => {
-      throw new Error("Supabase server environment variables are missing");
+  it("delegates to the Supabase function when local service-role env is missing", async () => {
+    vi.stubEnv("VITE_SUPABASE_URL", "https://example.supabase.co");
+    vi.stubEnv("VITE_SUPABASE_ANON_KEY", "anon-key");
+    const fetchMock = vi.fn().mockResolvedValue({
+      status: 200,
+      text: () => Promise.resolve(JSON.stringify({ success: true })),
     });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const res = createResponse();
+    await deleteAccountHandler(
+      {
+        method: "POST",
+        headers: { authorization: "Bearer user-token" },
+      },
+      res
+    );
+
+    expect(createDeleteAccountAdminClientFromEnvMock).not.toHaveBeenCalled();
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://example.supabase.co/functions/v1/delete-user-account",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer user-token",
+          apikey: "anon-key",
+        },
+      }
+    );
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toEqual({ success: true });
+  });
+
+  it("fails closed when neither local env nor Supabase function env is configured", async () => {
+    vi.stubEnv("SUPABASE_URL", "");
+    vi.stubEnv("VITE_SUPABASE_URL", "");
+    vi.stubEnv("SUPABASE_SERVICE_ROLE_KEY", "");
+    vi.stubEnv("SUPABASE_ANON_KEY", "");
+    vi.stubEnv("VITE_SUPABASE_ANON_KEY", "");
 
     const res = createResponse();
     await deleteAccountHandler(
@@ -98,7 +138,7 @@ describe("delete-account API route", () => {
     expect(res.body).toEqual({
       success: false,
       error: "Server configuration error",
-      details: "Supabase server environment variables are missing",
+      details: "Supabase URL is missing",
     });
   });
 });

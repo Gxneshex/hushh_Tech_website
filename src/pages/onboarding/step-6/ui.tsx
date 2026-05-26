@@ -46,7 +46,7 @@ export default function OnboardingStep9() {
       <main className="px-6 flex-grow max-w-md mx-auto w-full pb-48">
         {/* ── Progress Bar ── */}
         <div className="py-4">
-          <div className="flex justify-between text-[11px] font-semibold tracking-wide text-gray-500 mb-3">
+          <div className="flex justify-between text-[11px] font-medium uppercase tracking-[1.6px] text-hushh-blue/85 mb-3">
             <span>Step {DISPLAY_STEP}/{TOTAL_STEPS}</span>
             <span>{PROGRESS_PCT}% Complete</span>
           </div>
@@ -57,12 +57,12 @@ export default function OnboardingStep9() {
 
         {/* ── Title Section ── */}
         <section className="py-8">
-          <h3 className="text-[10px] tracking-[0.2em] text-gray-400 uppercase mb-4 font-medium">Verification</h3>
-          <h1 className="text-[2.75rem] leading-[1.1] font-normal text-black tracking-tight font-serif" style={{ fontFamily: "'Playfair Display', serif" }}>
+          <h3 className="text-[11px] tracking-[1.6px] text-hushh-blue/85 uppercase mb-4 font-medium">Verification</h3>
+          <h1 className="text-[2.75rem] leading-[1.06] font-medium text-black tracking-[-0.028em] font-serif" style={{ fontFamily: "'Playfair Display', serif" }}>
             A Few More<br />
             <span className="text-gray-400 italic font-light">Details</span>
           </h1>
-          <p className="text-sm text-gray-500 mt-4 leading-relaxed font-light">
+          <p className="text-sm text-black/60 mt-[18px] leading-[1.45] font-light">
             Federal law requires us to collect this info for tax reporting.
           </p>
         </section>
@@ -113,7 +113,7 @@ export default function OnboardingStep9() {
               <span className="material-symbols-outlined text-gray-400 text-lg transition-transform group-open:rotate-180" style={{ fontVariationSettings: "'wght' 400" }}>expand_more</span>
             </summary>
             <div className="pl-14 pb-5 pr-4">
-              <p className="text-xs text-gray-500 leading-relaxed font-light">
+              <p className="text-xs text-black/60 leading-[1.45] font-light">
                 We are required by federal law to collect this information to prevent fraud and verify your identity before opening an investment account.
               </p>
             </div>
@@ -123,7 +123,7 @@ export default function OnboardingStep9() {
         {/* ── Date of Birth Section ── */}
         <section className="space-y-0 mb-6">
           <div className="py-4">
-            <h3 className="text-[10px] tracking-[0.2em] text-gray-400 uppercase font-medium">Date of Birth</h3>
+            <h3 className="text-[11px] tracking-[1.6px] text-hushh-blue/85 uppercase font-medium">Date of Birth</h3>
           </div>
 
           {/* Month — overlay select */}

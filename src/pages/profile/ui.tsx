@@ -1,17 +1,22 @@
 /**
  * Profile Page — UI / Presentation (Revamped)
- * Apple iOS colors, Playfair Display headings, proper English capitalization.
+ * Apple iOS colors, SF-style headings, proper English capitalization.
  * Matches Home + Fund A + Community design language.
  * Logic stays in logic.ts via useProfileLogic().
  */
 import React from 'react';
 import HushhTechBackHeader from '../../components/hushh-tech-back-header/HushhTechBackHeader';
-import HushhTechCta, { HushhTechCtaVariant } from '../../components/hushh-tech-cta/HushhTechCta';
 import HushhTechFooter, { HushhFooterTab } from '../../components/hushh-tech-footer/HushhTechFooter';
+import {
+  AppIcon,
+  Display,
+  Eyebrow,
+  Icon,
+  Lede,
+  PillButton,
+  appleFont,
+} from '../../components/hushh-tech-ui/HushhAppleUI';
 import { useProfileLogic } from './logic';
-
-/* ── Playfair heading style ── */
-const playfair = { fontFamily: "'Playfair Display', serif" };
 
 const ProfilePage: React.FC = () => {
   const {
@@ -21,74 +26,71 @@ const ProfilePage: React.FC = () => {
   } = useProfileLogic();
 
   return (
-    <div className="flex flex-col min-h-screen bg-white selection:bg-hushh-blue selection:text-white">
+    <div
+      className="flex min-h-screen flex-col bg-[#FFFFFF] text-[#1D1D1F] antialiased selection:bg-[#0066CC] selection:text-[#F5F5F7]"
+      style={{ fontFamily: appleFont }}
+    >
       {/* header */}
       <HushhTechBackHeader rightType="hamburger" />
 
       {/* scrollable content */}
-      <main className="flex-1 flex flex-col items-center justify-center px-5 py-2 sm:px-6 md:px-12 lg:px-20">
-        <div className="w-full max-w-[440px] md:max-w-[560px] lg:max-w-[640px] flex flex-col items-start md:items-center gap-8 md:gap-10">
-
-          {/* pill badge */}
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-hushh-blue/20 bg-hushh-blue/5 px-4 py-1">
-            <span className="material-symbols-outlined text-[10px] text-hushh-blue uppercase">person</span>
-            <span className="text-[10px] tracking-[0.14em] uppercase text-hushh-blue font-medium">
-              Profile
-            </span>
-          </span>
-
-          {/* headline */}
-          <div className="text-left md:text-center space-y-3 lg:space-y-4">
-            <h1
-              className="text-[32px] md:text-[42px] lg:text-[52px] leading-[1.08] tracking-tight text-gray-900 font-serif"
-              style={playfair}
-            >
-              Investing in the{' '}
-              <span className="text-gray-400 italic font-light">Future.</span>
-            </h1>
-            <p className="text-[15px] md:text-[17px] lg:text-[18px] leading-relaxed text-gray-500 max-w-[360px] md:max-w-[480px] lg:max-w-[540px] md:mx-auto">
-              The AI-powered Berkshire Hathaway. We combine AI and human expertise to invest in exceptional businesses for long-term value creation.
-            </p>
+      <main className="flex flex-1 flex-col items-center justify-center px-5 pb-36 pt-8 sm:px-6 md:px-12 lg:px-20">
+        <div className="flex w-full max-w-[640px] flex-col items-center gap-8 text-center">
+          <div className="flex justify-center">
+            <AppIcon kind="person" size={62} />
+          </div>
+          <div>
+            <Eyebrow>Profile</Eyebrow>
+            <Display as="h1" size="md" maxWidth="max-w-[580px]">
+              Investing in the future.
+            </Display>
+            <Lede>
+              The AI-powered Berkshire Hathaway. We combine AI and human
+              expertise to invest in exceptional businesses for long-term value
+              creation.
+            </Lede>
           </div>
 
           {/* action buttons */}
           <div
-            className="w-full max-w-[440px] grid gap-3 mt-2 sm:grid-cols-2 sm:items-stretch"
+            className="mt-1 grid w-full max-w-[460px] grid-cols-1 gap-3 sm:grid-cols-2"
             data-testid="profile-cta-group"
           >
-            <HushhTechCta
+            <PillButton
               onClick={primaryCTA.action}
-              variant={HushhTechCtaVariant.BLACK}
               disabled={onboardingStatus.loading}
+              className="w-full sm:w-auto"
             >
               {onboardingStatus.loading ? 'Loading...' : primaryCTA.text}
-            </HushhTechCta>
-            <HushhTechCta
+            </PillButton>
+            <PillButton
               onClick={handleDiscoverFundA}
-              variant={HushhTechCtaVariant.WHITE}
+              kind="ghost"
+              className="w-full sm:w-auto"
             >
               Discover Fund A
-            </HushhTechCta>
+              {Icon.chevronRight("#0066CC", 14)}
+            </PillButton>
           </div>
 
           {/* trust indicators */}
-          <div className="flex items-center justify-start md:justify-center gap-6 md:gap-8 mt-4">
+          <div className="mt-3 flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-ios-green animate-pulse" />
-              <p className="text-[10px] md:text-[11px] tracking-[0.18em] uppercase text-gray-400 font-medium">
+              <span className="h-2 w-2 rounded-full bg-[#34C759]" />
+              <p className="text-[11px] font-medium uppercase tracking-[1.6px] text-[#1D1D1F]/50">
                 SEC Registered
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-[14px] text-hushh-blue">lock</span>
-              <p className="text-[10px] md:text-[11px] tracking-[0.18em] uppercase text-gray-400 font-medium">
+              {Icon.lock("#0066CC", 14)}
+              <p className="text-[11px] font-medium uppercase tracking-[1.6px] text-[#1D1D1F]/50">
                 Bank Level Security
               </p>
             </div>
           </div>
 
           {/* tagline */}
-          <p className="text-[12px] md:text-[13px] text-gray-400 tracking-wide text-left md:text-center mt-2">
+          <p className="text-[13px] font-light tracking-normal text-[#1D1D1F]/45">
             Secure. Private. AI-Powered.
           </p>
         </div>

@@ -55,8 +55,8 @@ function MeetCeoPage() {
       <main className="px-6 flex-grow max-w-md mx-auto w-full pb-48">
         {/* Title */}
         <section className="py-8">
-          <h3 className="text-[10px] tracking-[0.2em] text-gray-400 uppercase mb-4 font-medium">Verification</h3>
-          <h1 className="text-[2.75rem] leading-[1.1] font-normal text-black tracking-tight font-serif" style={{ fontFamily: "'Playfair Display', serif" }}>
+          <h3 className="text-[11px] tracking-[1.6px] text-hushh-blue/85 uppercase mb-4 font-medium">Verification</h3>
+          <h1 className="text-[2.75rem] leading-[1.06] font-medium text-black tracking-[-0.028em] font-serif" style={{ fontFamily: "'Playfair Display', serif" }}>
             Meet Your
             <br />
             <span className="text-gray-400 italic font-light">Fund Manager</span>
@@ -97,7 +97,7 @@ function MeetCeoPage() {
               <p className="text-sm text-gray-700 leading-relaxed mb-3">
                 Because you've completed the full Hushh KYC onboarding, you've unlocked this as an <span className="font-semibold text-gray-900">exclusive benefit</span> — available for just <span className="font-bold text-black">$1</span>.
               </p>
-              <p className="text-xs text-gray-500 leading-relaxed font-light">
+              <p className="text-xs text-black/60 leading-[1.45] font-light">
                 Your opportunity to sit 1-on-1 with a fund manager for investment strategies, portfolio allocation, and personalized guidance.
               </p>
             </div>
@@ -105,7 +105,7 @@ function MeetCeoPage() {
             {/* Benefits list */}
             <section className="space-y-0 mb-6">
               <div className="py-4">
-                <h3 className="text-[10px] tracking-[0.2em] text-gray-400 uppercase font-medium">What You Unlock</h3>
+                <h3 className="text-[11px] tracking-[1.6px] text-hushh-blue/85 uppercase font-medium">What You Unlock</h3>
               </div>
               {[
                 { icon: 'calendar_month', label: '1-Hour Private Consultation', desc: 'With Manish Sainani', extra: '$3,000', filled: true },
@@ -131,7 +131,7 @@ function MeetCeoPage() {
             <section className="mb-6">
               <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
                 <div className="flex flex-col items-center text-center gap-1">
-                  <span className="text-[10px] tracking-[0.2em] text-gray-400 uppercase font-medium">Your Price Today</span>
+                  <span className="text-[11px] tracking-[1.6px] text-hushh-blue/85 uppercase font-medium">Your Price Today</span>
                   <div className="flex items-baseline gap-3">
                     <span className="text-4xl font-bold text-black tracking-tight" style={{ fontFamily: "'Playfair Display', serif" }}>$1</span>
                     <span className="text-sm text-gray-400 line-through">$3,000</span>
@@ -288,7 +288,7 @@ function MeetCeoPage() {
             <div className="w-20 h-20 mx-auto mb-5 rounded-full bg-ios-green/10 border border-ios-green/20 flex items-center justify-center">
               <span className="material-symbols-outlined text-ios-green text-[44px]" style={{ fontVariationSettings: "'FILL' 1, 'wght' 600" }}>task_alt</span>
             </div>
-            <h1 className="text-3xl font-normal text-black tracking-tight mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>All Set!</h1>
+            <h1 className="text-3xl font-medium leading-[1.06] text-black tracking-[-0.028em] mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>All Set!</h1>
             <p className="text-sm text-gray-500 mb-1 font-light">Your consultation is scheduled with</p>
             <p className="text-base font-semibold text-black">Manish Sainani</p>
             <p className="text-xs text-gray-500 mt-1">{hushhCoins.toLocaleString()} Hushh Coins earned 🪙</p>

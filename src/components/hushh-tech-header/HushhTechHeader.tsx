@@ -1,58 +1,106 @@
-/**
- * HushhTechHeader — Fixed header with hamburger menu + stock ticker
- * Always fixed to top of viewport. Includes spacer div to prevent
- * content from hiding behind it.
- *
- * Left: Hushh logo + brand name. Right: hamburger menu button.
- * Below: Scrolling stock ticker with live quotes (Google, Apple, etc.)
- */
-import React, { useState } from "react";
-import hushhLogo from "../images/Hushhogo.png";
+import React, { useEffect, useState } from "react";
+import { useInRouterContext, useNavigate } from "react-router-dom";
+
 import HushhTechNavDrawer from "../hushh-tech-nav-drawer/HushhTechNavDrawer";
 import { useStockQuotes, StockQuote } from "../../hooks/useStockQuotes";
 import { SkipToContentLink } from "../ui/SkipToContentLink";
+import { GlassPill, HushhMark, Icon, SYS, appleFont } from "../hushh-tech-ui/HushhAppleUI";
 
-/* ── Chip-based ticker component — matches Navbar design ── */
-const TickerChip = ({ quote, isLoading }: { quote: StockQuote; isLoading?: boolean }) => (
-  <div className="group flex h-9 shrink-0 items-center gap-1.5 rounded-full bg-white border border-gray-200 shadow-sm pl-1.5 pr-3 hover:shadow-md transition-all">
-    {/* Logo circle */}
-    <div className="flex w-6 h-6 items-center justify-center rounded-full bg-gray-100 shrink-0 overflow-hidden">
-      {quote.logo ? (
-        <img
-          src={quote.logo}
-          alt={`${quote.displaySymbol} logo`}
-          width="14"
-          height="14"
-          className="w-3.5 h-3.5 object-contain"
-          loading="lazy"
-          onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-        />
-      ) : (
-        <span className="text-[9px] font-bold text-gray-600">
-          {quote.displaySymbol.charAt(0)}
-        </span>
-      )}
-    </div>
+const logoTint = [
+  "#EAF3FF",
+  "#EEFBEF",
+  "#FFF4E6",
+  "#F4ECFF",
+];
 
-    {/* Symbol */}
-    <span className="text-[11px] font-bold text-gray-800 leading-none">
-      {quote.displaySymbol}
-    </span>
-
-    {/* Change arrow + percent */}
-    <div className={`ml-0.5 flex items-center gap-0.5 ${quote.isUp ? "text-green-600" : "text-red-500"}`}>
-      <span className="text-[9px]">{quote.isUp ? "▲" : "▼"}</span>
-      <span className={`text-[10px] font-semibold ${isLoading ? "animate-pulse" : ""}`}>
-        {Math.abs(quote.percentChange).toFixed(1)}%
+const BrandButton = ({ onClick }: { onClick: () => void }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className="flex h-11 items-center gap-2 py-1 pl-1 pr-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066CC]/35 focus-visible:ring-offset-2"
+    aria-label="Go to Hushh Technologies home"
+  >
+    <HushhMark size={36} />
+    <span className="flex flex-col leading-none">
+      <span
+        className="text-[16px] font-semibold tracking-[-0.015em] text-[#1D1D1F]"
+        style={{ fontFamily: appleFont }}
+      >
+        hushh
       </span>
-    </div>
-  </div>
+      <span
+        className="mt-1 text-[9px] font-medium uppercase tracking-[0.12em] text-[#1D1D1F]/55"
+        style={{ fontFamily: appleFont }}
+      >
+        Technologies
+      </span>
+    </span>
+  </button>
 );
 
+const RoutedBrandButton = () => {
+  const navigate = useNavigate();
+  return <BrandButton onClick={() => navigate("/")} />;
+};
+
+const TickerChip = ({
+  quote,
+  isLoading,
+  index,
+}: {
+  quote: StockQuote;
+  isLoading?: boolean;
+  index: number;
+}) => {
+  const tint = quote.isUp ? SYS.green : SYS.red;
+
+  return (
+    <div
+      className="flex h-9 shrink-0 items-center gap-2 rounded-full bg-[#FFFFFF] py-2 pl-2 pr-3"
+      style={{
+        boxShadow:
+          "0 0 0 0.5px rgba(60,60,67,0.08), 0 1px 2px rgba(0,0,0,0.03)",
+        fontFamily: appleFont,
+      }}
+    >
+      <div
+        className="flex h-[22px] w-[22px] shrink-0 items-center justify-center overflow-hidden rounded-full text-[10.5px] font-medium text-[#1D1D1F]"
+        style={{ background: logoTint[index % logoTint.length] }}
+      >
+        {quote.logo ? (
+          <img
+            src={quote.logo}
+            alt={`${quote.displaySymbol} logo`}
+            width="14"
+            height="14"
+            className="h-3.5 w-3.5 object-contain mix-blend-multiply"
+            loading="lazy"
+            onError={(event) => {
+              event.currentTarget.style.display = "none";
+            }}
+          />
+        ) : (
+          quote.displaySymbol.charAt(0)
+        )}
+      </div>
+      <span className="text-[13.5px] font-medium leading-none tracking-[-0.01em] text-[#1D1D1F]">
+        {quote.displaySymbol}
+      </span>
+      <span className="flex items-center gap-1">
+        {quote.isUp ? Icon.triUp(tint) : Icon.triDown(tint)}
+        <span
+          className={`text-[12.5px] font-semibold tabular-nums tracking-[-0.01em] ${isLoading ? "animate-pulse" : ""}`}
+          style={{ color: tint }}
+        >
+          {Math.abs(quote.percentChange).toFixed(1)}%
+        </span>
+      </span>
+    </div>
+  );
+};
+
 interface HushhTechHeaderProps {
-  /** Show the stock ticker strip below header (default: true) */
   showTicker?: boolean;
-  /** Extra classes on the header element */
   className?: string;
 }
 
@@ -61,112 +109,152 @@ const HushhTechHeader: React.FC<HushhTechHeaderProps> = ({
   className = "",
 }) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-
-  // Fetch real-time stock quotes (refreshes every 2 minutes)
+  const [isTickerCollapsed, setIsTickerCollapsed] = useState(false);
+  const hasRouter = useInRouterContext();
   const { quotes, loading: quotesLoading, lastUpdated } = useStockQuotes(120000);
+
+  useEffect(() => {
+    if (!showTicker) {
+      setIsTickerCollapsed(false);
+      return;
+    }
+
+    let animationFrame = 0;
+
+    const updateTickerState = () => {
+      animationFrame = 0;
+      setIsTickerCollapsed(window.scrollY > 24);
+    };
+
+    const handleScroll = () => {
+      if (animationFrame) return;
+      animationFrame = window.requestAnimationFrame(updateTickerState);
+    };
+
+    updateTickerState();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (animationFrame) {
+        window.cancelAnimationFrame(animationFrame);
+      }
+    };
+  }, [showTicker]);
 
   return (
     <>
       <SkipToContentLink />
 
-      {/* Fixed header — always pinned to top */}
       <header
-        className={`fixed top-0 left-0 right-0 z-50 bg-white shadow-sm ${className}`}
+        className={`fixed left-0 right-0 top-0 z-50 transition-transform duration-300 ${className}`}
+        data-hushh-header
       >
-        {/* ── Top bar: Logo + Hamburger ── */}
-        <div className="px-6 py-4 flex justify-between items-center">
-          {/* Logo + Brand */}
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 overflow-hidden">
-              <img
-                src={hushhLogo}
-                alt="Hushh Logo"
-                width="44"
-                height="44"
-                className="w-11 h-11 object-contain"
-              />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-[18px] font-bold tracking-tight text-gray-900">
-                hushh
-              </span>
-              <span className="text-[11px] font-medium tracking-[0.08em] text-gray-400 uppercase">
-                Technologies
-              </span>
+        <div className="pointer-events-none px-3 pt-[max(env(safe-area-inset-top),0.85rem)] sm:px-5">
+          <div className="pointer-events-auto flex items-center justify-between gap-3">
+            <GlassPill>
+              {hasRouter ? (
+                <RoutedBrandButton />
+              ) : (
+                <BrandButton onClick={() => window.location.assign("/")} />
+              )}
+            </GlassPill>
+
+            <div className="flex shrink-0 items-center gap-1.5">
+              <GlassPill>
+                <button
+                  type="button"
+                  onClick={() => setIsDrawerOpen(true)}
+                  className="flex h-[38px] w-[38px] items-center justify-center text-[#1D1D1F] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066CC]/35 focus-visible:ring-offset-2"
+                  aria-label="Open site search"
+                >
+                  {Icon.search("currentColor", 18)}
+                </button>
+              </GlassPill>
+              <GlassPill>
+                <button
+                  type="button"
+                  onClick={() => setIsDrawerOpen(true)}
+                  className="flex h-[38px] w-[38px] items-center justify-center text-[#1D1D1F] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066CC]/35 focus-visible:ring-offset-2"
+                  aria-label="Open menu"
+                >
+                  {Icon.menu("currentColor", 18)}
+                </button>
+              </GlassPill>
             </div>
           </div>
-
-          {/* Hamburger menu button */}
-          <button
-            onClick={() => setIsDrawerOpen(true)}
-            className="w-10 h-10 rounded-full bg-black flex items-center justify-center hover:bg-black/80 transition-colors"
-            aria-label="Open menu"
-            tabIndex={0}
-          >
-            <span className="material-symbols-outlined text-white !text-[1.2rem]">
-              menu
-            </span>
-          </button>
         </div>
 
-        {/* ── Stock Ticker Strip — below header nav ── */}
         {showTicker && (
-          <section className="relative w-full bg-[#F8F9FA] py-2 border-t border-b border-gray-200">
-            {/* Fade-masked marquee */}
+          <section
+            aria-hidden={isTickerCollapsed}
+            className={[
+              "overflow-hidden border-y bg-[#FFFFFF]/95 backdrop-blur-md",
+              "transition-[max-height,margin,padding,opacity,border-color,transform] duration-300 ease-out",
+              isTickerCollapsed
+                ? "pointer-events-none mt-0 max-h-0 -translate-y-2 border-transparent py-0 opacity-0"
+                : "mt-2 max-h-24 translate-y-0 border-[#1D1D1F]/[0.06] py-2 opacity-100",
+            ].join(" ")}
+            data-hushh-ticker
+          >
+            <div className="mb-2 flex items-center justify-center gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#34C759]" />
+              <span
+                className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#1D1D1F]/55"
+                style={{ fontFamily: appleFont }}
+              >
+                Markets Live
+              </span>
+              {lastUpdated ? (
+                <span
+                  className="hidden text-[11px] font-normal text-[#1D1D1F]/35 sm:inline"
+                  style={{ fontFamily: appleFont }}
+                >
+                  {lastUpdated.toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
+              ) : null}
+            </div>
             <div className="hushh-ticker-mask relative flex w-full overflow-hidden">
-              <div className="hushh-ticker-track flex items-center gap-2.5 px-3">
-                {/* First set */}
+              <div className="hushh-ticker-track flex w-max items-center gap-2 px-5">
                 {quotes.map((quote, idx) => (
                   <TickerChip
                     key={`a-${quote.symbol}-${idx}`}
                     quote={quote}
+                    index={idx}
                     isLoading={quotesLoading && quotes.length === 0}
                   />
                 ))}
-                {/* Duplicate for seamless loop */}
                 {quotes.map((quote, idx) => (
                   <TickerChip
                     key={`b-${quote.symbol}-${idx}`}
                     quote={quote}
+                    index={idx}
                     isLoading={quotesLoading && quotes.length === 0}
                   />
                 ))}
               </div>
             </div>
-
-            {/* Live indicator dot */}
-            {lastUpdated && (
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                <span className="text-[9px] font-medium text-gray-400">
-                  {lastUpdated.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                </span>
-              </div>
-            )}
           </section>
         )}
       </header>
 
-      {/* Spacer — prevents content from hiding behind the fixed header */}
-      {/* Nav bar ~72px + ticker strip ~49px = ~121px when ticker shown */}
-      <div className={showTicker ? "h-[121px]" : "h-[72px]"} />
+      <div className={showTicker ? "h-[146px]" : "h-[72px]"} />
 
-      {/* Navigation Drawer */}
       <HushhTechNavDrawer
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
       />
 
-      {/* Ticker animation styles */}
       <style>{`
         .hushh-ticker-mask {
           mask-image: linear-gradient(to right, transparent, black 4%, black 96%, transparent);
           -webkit-mask-image: linear-gradient(to right, transparent, black 4%, black 96%, transparent);
         }
         .hushh-ticker-track {
-          display: flex;
           animation: hushh-ticker-scroll 45s linear infinite;
-          width: max-content;
         }
         @keyframes hushh-ticker-scroll {
           0% { transform: translateX(0); }

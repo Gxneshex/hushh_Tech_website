@@ -63,6 +63,7 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:3000',
         changeOrigin: true,
+        bypass: (req) => (req.url?.startsWith('/api/shared/') ? req.url : undefined),
       },
     },
   },

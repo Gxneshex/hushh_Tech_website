@@ -25,9 +25,23 @@ import {
 /* ── Constants ── */
 export const NDA_OPTION = "Sensitive Documents (NDA approval Req.)";
 export const MARKET_UPDATES_OPTION = "Market Updates";
+export const GENERAL_OPTION = "General";
+export const INVESTMENT_OPTION = "Investment";
+export const FUND_UPDATES_OPTION = "Fund Updates";
+export const INVESTOR_RELATIONS_OPTION = "Investor Relations";
+export const PRODUCT_OPTION = "Product";
 export const PINNED_SLUGS = [
   "general/ai-powered-berkshire-hathaway",
   "general/sell-the-wall-featured",
+];
+
+const CATEGORY_VARIANT_ORDER = [
+  GENERAL_OPTION,
+  INVESTMENT_OPTION,
+  FUND_UPDATES_OPTION,
+  INVESTOR_RELATIONS_OPTION,
+  PRODUCT_OPTION,
+  MARKET_UPDATES_OPTION,
 ];
 
 /* ── Types ── */
@@ -68,6 +82,34 @@ export const formatDisplayDate = (dateStr: string): string =>
 
 export const getPostUrl = (post: UnifiedPost): string => {
   return `/community/${post.slug}`;
+};
+
+const getCategoryVariant = (category = "") => {
+  const lower = category.trim().toLowerCase();
+
+  if (!lower) return "";
+  if (lower.includes("market")) return MARKET_UPDATES_OPTION;
+  if (lower.includes("investment")) return INVESTMENT_OPTION;
+  if (lower.includes("fund")) return FUND_UPDATES_OPTION;
+  if (lower.includes("investor")) return INVESTOR_RELATIONS_OPTION;
+  if (lower.includes("product")) return PRODUCT_OPTION;
+  if (lower.includes("general")) return GENERAL_OPTION;
+
+  return "";
+};
+
+const matchesCategoryVariant = (
+  post: { category?: string; slug?: string },
+  variant: string
+) => {
+  if (variant === MARKET_UPDATES_OPTION) {
+    return (
+      getCategoryVariant(post.category) === MARKET_UPDATES_OPTION ||
+      post.slug?.toLowerCase().includes("market")
+    );
+  }
+
+  return getCategoryVariant(post.category) === variant;
 };
 
 /* ── Hook ── */
@@ -120,16 +162,17 @@ export const useCommunityListLogic = () => {
     [localPosts]
   );
 
-  const categories = useMemo(() => {
-    const cats = Array.from(new Set(publicPosts.map((p) => p.category)));
-    return cats.filter(
-      (c) => !["market", "market updates"].includes(c.trim().toLowerCase())
+  const categoryVariants = useMemo(() => {
+    const variants = new Set(
+      publicPosts.map((p) => getCategoryVariant(p.category)).filter(Boolean)
     );
+
+    return CATEGORY_VARIANT_ORDER.filter((variant) => variants.has(variant));
   }, [publicPosts]);
 
   const dropdownOptions = useMemo(
-    () => ["All", ...categories, MARKET_UPDATES_OPTION, NDA_OPTION],
-    [categories]
+    () => ["All", ...categoryVariants, NDA_OPTION],
+    [categoryVariants]
   );
 
   /* combine + sort all posts */
@@ -183,15 +226,9 @@ export const useCommunityListLogic = () => {
           getPostDescription({ id: p.slug, title: p.title, date: p.publishedAt }),
         category: p.category,
       }));
-    } else if (selectedCategory === MARKET_UPDATES_OPTION) {
-      dataToSearch = pinnedAllContent.filter(
-        (p) =>
-          p.category?.toLowerCase().includes("market") ||
-          p.slug?.toLowerCase().includes("market")
-      );
     } else if (selectedCategory !== "All") {
-      dataToSearch = pinnedAllContent.filter(
-        (p) => p.category === selectedCategory
+      dataToSearch = pinnedAllContent.filter((p) =>
+        matchesCategoryVariant(p, selectedCategory)
       );
     }
 

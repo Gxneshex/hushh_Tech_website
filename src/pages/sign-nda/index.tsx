@@ -1,20 +1,41 @@
 /**
  * Sign NDA + Fund Documents Page
  * User must sign the NDA AND acknowledge all 4 fund documents.
- * Playfair Display headings, HushhTechHeader/Footer.
+ * Apple-style agreement review surface.
  * Backend logic (auth, NDA signing, PDF gen, notification) fully preserved.
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useToast } from '@chakra-ui/react';
+import {
+  ArrowRight,
+  ChevronDown,
+  FileDown,
+  FileSearch2,
+  FileText,
+  LockKeyhole,
+  Signature,
+  ShieldCheck,
+  UserRound,
+} from 'lucide-react';
 import config from '../../resources/config/config';
 import { signNDA, sendNDANotification, generateNDAPdf, uploadSignedNDA } from '../../services/nda/ndaService';
 import HushhTechHeader from '../../components/hushh-tech-header/HushhTechHeader';
 import HushhTechFooter from '../../components/hushh-tech-footer/HushhTechFooter';
-import HushhTechCta, { HushhTechCtaVariant } from '../../components/hushh-tech-cta/HushhTechCta';
 import { useAuthSession } from '../../auth/AuthSessionProvider';
 import { buildLoginRedirectPath } from '../../auth/routePolicy';
+import {
+  AppIcon,
+  AppleLineIcon,
+  AppleSection,
+  Display,
+  Eyebrow,
+  Lede,
+  PillButton,
+  SmallSpinner,
+  appleFont,
+} from '../../components/hushh-tech-ui/HushhAppleUI';
 
 /* ── Fund documents config ── */
 const FUND_DOCUMENTS = [
@@ -76,8 +97,128 @@ const NDA_SECTIONS = [
   },
 ];
 
-/* ── Playfair style shortcut ── */
-const playfair = { fontFamily: "'Playfair Display', serif" };
+const stepRail = [
+  { label: 'NDA', detail: 'Terms', icon: ShieldCheck },
+  { label: 'Fund Docs', detail: 'Review', icon: FileSearch2 },
+  { label: 'Sign', detail: 'Continue', icon: Signature },
+];
+
+type AppIconKind = Parameters<typeof AppIcon>[0]['kind'];
+
+const getDocumentIconKind = (docId: string): AppIconKind => {
+  if (docId.includes('delaware')) return 'balance';
+  if (docId.includes('prospectus')) return 'chart';
+  if (docId.includes('master')) return 'layers';
+  if (docId.includes('ppm')) return 'shield';
+  return 'api';
+};
+
+const stepCardOffsets = [
+  { x: -68, y: 20, rotate: -6 },
+  { x: 0, y: -12, rotate: 0 },
+  { x: 68, y: 20, rotate: 6 },
+];
+
+const StepCardStack = () => (
+  <>
+    <style>
+      {`
+        @keyframes nda-step-card-fan {
+          0%, 10% {
+            opacity: 0;
+            transform: translate(-50%, 44px) scale(0.9) rotate(0deg);
+          }
+          24%, 72% {
+            opacity: 1;
+            transform: translate(calc(-50% + var(--slot-x)), var(--slot-y)) scale(1) rotate(var(--slot-rot));
+          }
+          82%, 100% {
+            opacity: 0;
+            transform: translate(calc(-50% + var(--slot-x)), calc(var(--slot-y) - 16px)) scale(0.98) rotate(var(--slot-rot));
+          }
+        }
+
+        .nda-step-card {
+          animation: nda-step-card-fan 7.2s cubic-bezier(0.23, 1, 0.32, 1) infinite;
+          animation-delay: var(--step-delay);
+          transform-origin: center bottom;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .nda-step-card {
+            animation: none;
+            opacity: 1;
+            transform: translate(calc(-50% + var(--slot-x)), var(--slot-y)) scale(1) rotate(var(--slot-rot));
+          }
+        }
+      `}
+    </style>
+    <AppleSection tone="dark" pad="normal" className="!py-12 md:!py-16">
+      <div className="mx-auto max-w-5xl px-5 sm:px-6">
+        <div className="overflow-hidden rounded-[24px] bg-[#161617] p-4 shadow-[inset_0_0_0_0.5px_rgba(245,245,247,0.08)] sm:p-5">
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_286px] lg:items-center">
+            <div className="relative h-[168px] sm:h-[180px] lg:h-[166px]" aria-label="Agreement steps">
+              {stepRail.map((step, index) => {
+                const offset = stepCardOffsets[index];
+                const IconGlyph = step.icon;
+
+                return (
+                  <div
+                    key={step.label}
+                    className="nda-step-card absolute left-1/2 top-6 flex h-[108px] w-[178px] flex-col justify-between rounded-[24px] border border-[#1D1D1F]/[0.07] bg-white/95 p-4 shadow-[0_18px_45px_rgba(29,29,31,0.13)] backdrop-blur sm:w-[220px]"
+                    style={{
+                      '--slot-x': `${offset.x}px`,
+                      '--slot-y': `${offset.y}px`,
+                      '--slot-rot': `${offset.rotate}deg`,
+                      '--step-delay': `${index * 0.72}s`,
+                      zIndex: 10 + index,
+                    } as React.CSSProperties}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[14px] bg-[#F5F5F7]">
+                        <IconGlyph aria-hidden="true" size={17} strokeWidth={1.55} className="text-[#1D1D1F]/62" />
+                      </span>
+                      <span className="text-[10px] font-semibold uppercase tracking-[1.7px] text-[#1D1D1F]/45">
+                        Step {index + 1}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="text-[18px] font-medium leading-[1.08] tracking-[-0.028em] text-[#1D1D1F]">
+                        {step.label}
+                      </p>
+                      <p className="mt-1 text-[12px] leading-[1.35] text-[#1D1D1F]/60">
+                        {step.detail}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="hidden rounded-[20px] bg-[#000000]/35 p-5 shadow-[inset_0_0_0_0.5px_rgba(245,245,247,0.08)] lg:block">
+              <p className="text-[11px] font-semibold uppercase tracking-[1.8px] text-[#F5F5F7]/55">
+                Agreement packet
+              </p>
+              <div className="mt-4 space-y-2.5">
+                {stepRail.map((step, index) => (
+                  <div key={step.label} className="flex items-center gap-3 rounded-[14px] bg-[#161617] px-3 py-2.5">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#F5F5F7] text-[11px] font-semibold text-[#1D1D1F]/58">
+                      {index + 1}
+                    </span>
+                    <div>
+                      <p className="text-[14px] font-medium leading-none text-[#F5F5F7]">{step.label}</p>
+                      <p className="mt-1 text-[11px] text-[#F5F5F7]/58">{step.detail}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </AppleSection>
+  </>
+);
 
 const SignNDAPage: React.FC = () => {
   const navigate = useNavigate();
@@ -100,6 +241,8 @@ const SignNDAPage: React.FC = () => {
 
   const [nameError, setNameError] = useState('');
   const [termsError, setTermsError] = useState('');
+  const [openNdaItem, setOpenNdaItem] = useState<string | null>(null);
+  const [openFundDocument, setOpenFundDocument] = useState<string | null>(null);
 
   /* Derived: all documents acknowledged? */
   const allDocsAcknowledged = FUND_DOCUMENTS.every((d) => docAcknowledged[d.id]);
@@ -343,316 +486,452 @@ const SignNDAPage: React.FC = () => {
     isSubmitting,
   ]);
 
+  const reviewedCount = FUND_DOCUMENTS.filter((d) => docAcknowledged[d.id]).length;
+  const reviewProgress = (reviewedCount / FUND_DOCUMENTS.length) * 100;
+  const scrollToSection = useCallback((sectionId: string) => {
+    document.getElementById(sectionId)?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    });
+  }, []);
+
   /* Loading state */
   if (isLoading) {
     return (
-      <div className="bg-white min-h-screen flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-hushh-blue border-t-transparent rounded-full animate-spin" />
+      <div
+        className="flex min-h-screen items-center justify-center bg-[#FFFFFF] text-[#1D1D1F] antialiased"
+        style={{ fontFamily: appleFont }}
+      >
+        <SmallSpinner label="Loading agreements" />
       </div>
     );
   }
 
   /* ─── RENDER ─── */
   return (
-    <div className="bg-white text-gray-900 min-h-screen antialiased flex flex-col selection:bg-hushh-blue selection:text-white">
-      {/* ═══ Common Header ═══ */}
+    <div
+      className="flex min-h-screen flex-col bg-white text-[#202124] antialiased selection:bg-[#1D1D1F] selection:text-white"
+      style={{ fontFamily: appleFont }}
+    >
       <HushhTechHeader />
 
-      <main className="px-6 flex-grow max-w-md mx-auto w-full pb-32">
-        {/* ── Icon + Title ── */}
-        <section className="pt-12 pb-8 text-center">
-          <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-hushh-blue flex items-center justify-center">
-            <span
-              className="material-symbols-outlined text-white text-3xl"
-              style={{ fontVariationSettings: "'FILL' 1, 'wght' 500" }}
-            >
-              gavel
-            </span>
-          </div>
-          <h1
-            className="text-[2.5rem] leading-[1.1] font-normal text-black tracking-tight font-serif"
-            style={playfair}
-          >
-            Investor<br />
-            <span className="text-gray-400 italic font-light">Agreements</span>
-          </h1>
-          <p className="text-gray-500 text-sm font-light mt-3 leading-relaxed">
-            Review the NDA, download the fund documents, and sign to access
-            confidential investment materials.
-          </p>
-        </section>
+      <main id="main-content" className="flex-grow">
+        <AppleSection tone="light" pad="tight" fill>
+          <div className="relative z-[1]">
+            <Eyebrow>Investor Agreements</Eyebrow>
+            <Display as="h1" size="md" maxWidth="max-w-[640px]">
+              Review, acknowledge, sign.
+            </Display>
+            <Lede className="max-w-[560px]">
+              Review the NDA, download the fund documents, and sign to access
+              confidential investment materials.
+            </Lede>
+            <div className="mt-7 flex flex-col justify-center gap-3 px-6 sm:flex-row">
+              <PillButton
+                onClick={() => scrollToSection('nda-terms')}
+                className="w-full sm:w-auto"
+              >
+                Start review
+              </PillButton>
+              <PillButton
+                kind="ghost"
+                onClick={() => scrollToSection('signature')}
+                className="w-full sm:w-auto"
+              >
+                Go to signature
+              </PillButton>
+            </div>
 
-        {/* ── Security Badge ── */}
-        <section className="mb-8">
-          <div className="flex items-center justify-center gap-2 py-3 px-4 border border-gray-200 bg-gray-50">
-            <span
-              className="material-symbols-outlined text-hushh-blue text-lg"
-              style={{ fontVariationSettings: "'wght' 400" }}
-            >
-              lock
-            </span>
-            <span className="text-[11px] text-gray-500 tracking-wide uppercase font-medium">
-              Encrypted &amp; Legally Binding · GDPR Compliant
-            </span>
-          </div>
-        </section>
-
-        {/* ── Step indicator ── */}
-        <div className="flex items-center gap-3 mb-6">
-          <div className="flex items-center gap-1.5">
-            <span className="w-6 h-6 rounded-full bg-black text-white text-xs flex items-center justify-center font-semibold">1</span>
-            <span className="text-xs font-medium text-black">NDA</span>
-          </div>
-          <div className="flex-1 h-px bg-gray-200" />
-          <div className="flex items-center gap-1.5">
-            <span className="w-6 h-6 rounded-full bg-black text-white text-xs flex items-center justify-center font-semibold">2</span>
-            <span className="text-xs font-medium text-black">Fund Docs</span>
-          </div>
-          <div className="flex-1 h-px bg-gray-200" />
-          <div className="flex items-center gap-1.5">
-            <span className="w-6 h-6 rounded-full bg-black text-white text-xs flex items-center justify-center font-semibold">3</span>
-            <span className="text-xs font-medium text-black">Sign</span>
-          </div>
-        </div>
-
-        {/* ═══ STEP 1: NDA Agreement Terms ═══ */}
-        <section className="mb-10">
-          <h3 className="text-[10px] tracking-[0.2em] text-gray-400 uppercase mb-4 font-medium">
-            Step 1 · Non-Disclosure Agreement
-          </h3>
-          <div className="border border-gray-200 bg-white">
-            <div className="max-h-80 overflow-y-auto p-5 space-y-5 scrollbar-thin">
-              <p className="text-sm font-bold text-black uppercase tracking-wide">
-                mutual non-disclosure agreement
-              </p>
-              <p className="text-sm text-gray-500 leading-relaxed">
-                This Non-Disclosure Agreement ("Agreement") is entered into between
-                Hushh Technologies LLC ("Hushh") and the undersigned party ("Recipient").
-              </p>
-              {NDA_SECTIONS.map((section) => (
-                <div key={section.title}>
-                  <p className="text-xs font-semibold text-black uppercase tracking-wide mb-1">
-                    {section.title}
-                  </p>
-                  <p className="text-sm text-gray-500 leading-relaxed">
-                    {section.body}
-                  </p>
-                </div>
-              ))}
+            <div className="mt-7 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 px-6 text-center text-[12px] text-[#1D1D1F]/55">
+              <span>NDA</span>
+              <span className="h-1 w-1 rounded-full bg-[#1D1D1F]/25" />
+              <span>Fund documents</span>
+              <span className="h-1 w-1 rounded-full bg-[#1D1D1F]/25" />
+              <span>Digital signature</span>
             </div>
           </div>
-        </section>
+        </AppleSection>
 
-        {/* ═══ STEP 2: Fund Documents ═══ */}
-        <section className="mb-10">
-          <h3 className="text-[10px] tracking-[0.2em] text-gray-400 uppercase mb-2 font-medium">
-            Step 2 · Fund Documents
-          </h3>
-          <p className="text-xs text-gray-500 mb-4 leading-relaxed">
-            Download and review each document. Check the box to confirm you have reviewed it.
-          </p>
+        <StepCardStack />
 
-          <div className="space-y-3">
-            {FUND_DOCUMENTS.map((doc) => {
-              const isChecked = docAcknowledged[doc.id];
-              return (
-                <div
-                  key={doc.id}
-                  className={`border rounded-xl p-4 transition-all ${
-                    isChecked
-                      ? 'border-green-300 bg-green-50/50'
-                      : 'border-gray-200 bg-white'
-                  }`}
-                >
-                  {/* Top row: icon + name + actions */}
-                  <div className="flex items-start gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
-                      <span
-                        className="material-symbols-outlined text-gray-600 text-xl"
-                        style={{ fontVariationSettings: "'FILL' 0, 'wght' 400" }}
-                      >
-                        description
+        <AppleSection tone="gray" pad="normal">
+          <div className="mx-auto mb-8 max-w-3xl text-center sm:mb-10">
+            <Eyebrow>Investor Agreements</Eyebrow>
+            <Display size="sm" maxWidth="max-w-[580px]">
+              Review the NDA, fund documents, and signature.
+            </Display>
+            <Lede className="max-w-[500px]">
+              Review the NDA, download the fund documents, and sign to access confidential investment materials.
+            </Lede>
+          </div>
+          <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 px-5 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-8">
+            <div className="space-y-6">
+              <section
+                id="nda-terms"
+                className="scroll-mt-28 rounded-[30px] border border-[#1D1D1F]/[0.08] bg-white p-4 shadow-[0_18px_60px_rgba(29,29,31,0.05)] sm:p-5"
+              >
+                <div className="flex items-center gap-3 rounded-[24px] bg-[#F5F5F7] px-3 py-3 shadow-[inset_0_0_0_1px_rgba(29,29,31,0.04)]">
+                  <AppleLineIcon icon={ShieldCheck} size={34} iconSize={16} className="shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[10px] font-semibold uppercase tracking-[1.5px] text-[#1D1D1F]/50">
+                      Step 01
+                    </p>
+                    <h2 className="mt-0.5 truncate text-[18px] font-medium leading-[1.1] tracking-[-0.028em] text-[#1D1D1F] sm:text-[21px]">
+                      Non-Disclosure Agreement
+                    </h2>
+                  </div>
+                </div>
+
+                <div className="mt-3 overflow-hidden rounded-[24px] border border-[#1D1D1F]/[0.08] bg-white shadow-[0_6px_24px_rgba(29,29,31,0.03)]">
+                  <button
+                    type="button"
+                    aria-expanded={openNdaItem === 'all'}
+                    onClick={() => setOpenNdaItem((current) => current === 'all' ? null : 'all')}
+                    className="flex w-full items-center gap-3 px-3.5 py-3 text-left transition hover:bg-[#F5F5F7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D1D1F]/20"
+                  >
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-[#F5F5F7] text-[#1D1D1F]/70">
+                      <FileText aria-hidden="true" size={16} strokeWidth={1.55} />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-[13px] font-semibold uppercase tracking-[1.5px] text-[#1D1D1F]/74">
+                        View NDA terms
                       </span>
+                      <span className="mt-0.5 block truncate text-[12px] leading-[1.35] text-[#1D1D1F]/58">
+                        Agreement overview and 6 clauses
+                      </span>
+                    </span>
+                    <ChevronDown
+                      aria-hidden="true"
+                      size={18}
+                      strokeWidth={1.65}
+                      className={`shrink-0 text-[#1D1D1F]/50 transition-transform ${
+                        openNdaItem === 'all' ? 'rotate-180' : ''
+                      }`}
+                    />
+                  </button>
+                  {openNdaItem === 'all' ? (
+                    <div className="max-h-[280px] overflow-y-auto border-t border-[#1D1D1F]/[0.08] bg-[#F5F5F7] px-4 py-4">
+                      <div className="space-y-4">
+                        <div>
+                          <p className="text-[11px] font-semibold uppercase tracking-[1.5px] text-[#1D1D1F]/62">
+                            Mutual non-disclosure agreement
+                          </p>
+                          <p className="mt-2 text-[14px] leading-[1.65] text-[#1D1D1F]/72">
+                            This Non-Disclosure Agreement ("Agreement") is entered into
+                            between Hushh Technologies LLC ("Hushh") and the undersigned
+                            party ("Recipient").
+                          </p>
+                        </div>
+                        {NDA_SECTIONS.map((section) => (
+                          <div key={section.title} className="border-t border-[#1D1D1F]/10 pt-4">
+                            <p className="text-[11px] font-semibold uppercase tracking-[1.5px] text-[#1D1D1F]/62">
+                              {section.title}
+                            </p>
+                            <p className="mt-2 text-[14px] leading-[1.65] text-[#1D1D1F]/72">
+                              {section.body}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-black leading-tight">
-                        {doc.name}
-                      </p>
-                      <p className="text-[11px] text-gray-400 mt-0.5 leading-relaxed">
-                        {doc.description}
-                      </p>
+                  ) : null}
+                </div>
+              </section>
+
+              <section
+                id="fund-documents"
+                className="scroll-mt-28"
+              >
+                <p
+                  className="mb-2 px-1 text-[11px] font-medium uppercase tracking-[1.6px] text-[#0066CC]/85"
+                  style={{ fontFamily: appleFont }}
+                >
+                  Step 02
+                </p>
+
+                <div className="overflow-hidden rounded-[16px] bg-[#FFFFFF] shadow-[0_0_0_0.5px_rgba(29,29,31,0.06)]">
+                  <div className="relative flex items-start gap-3 px-4 py-5 md:px-5">
+                    <div className="mt-0.5 shrink-0">
+                      <AppIcon kind="layers" size={38} />
                     </div>
-                    <div className="shrink-0 flex flex-col gap-2 sm:flex-row sm:items-center">
-                      <button
-                        type="button"
-                        onClick={() => handleReadDocument(doc.url, doc.name)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-gray-700 text-[11px] font-medium hover:border-gray-300 hover:bg-gray-50 transition-colors"
-                        aria-label={`Read ${doc.name}`}
-                        tabIndex={0}
+                    <div className="min-w-0 flex-1">
+                      <h2
+                        className="text-[24px] font-medium leading-[1.06] tracking-[-0.028em] text-[#1D1D1F] sm:text-[30px]"
+                        style={{ fontFamily: appleFont }}
                       >
-                        <span className="material-symbols-outlined text-sm">menu_book</span>
-                        Read
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleDownload(doc.url, `${doc.fullName}.docx`)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-black text-white text-[11px] font-medium hover:bg-black/80 transition-colors"
-                        aria-label={`Download ${doc.name}`}
-                        tabIndex={0}
+                        Fund Documents
+                      </h2>
+                      <p
+                        className="mt-2 max-w-2xl text-[14px] font-normal leading-[1.4] tracking-normal text-[#1D1D1F]/60 sm:text-[15px]"
+                        style={{ fontFamily: appleFont }}
                       >
-                        <span className="material-symbols-outlined text-sm">download</span>
-                        Download
-                      </button>
+                        Download and review each document, then confirm it below.
+                      </p>
                     </div>
+                    <span className="absolute bottom-0 left-5 right-5 h-px bg-[#000000]/[0.10]" />
                   </div>
 
-                  {/* Acknowledge checkbox */}
-                  <label className="flex items-center gap-2.5 cursor-pointer pl-1">
-                    <input
-                      type="checkbox"
-                      checked={isChecked}
-                      onChange={() => handleDocToggle(doc.id)}
-                      className="w-4 h-4 accent-green-600 shrink-0"
-                    />
-                    <span className={`text-xs leading-relaxed ${isChecked ? 'text-green-700 font-medium' : 'text-gray-500'}`}>
-                      {isChecked ? 'Reviewed ✓' : 'I have downloaded and reviewed this document'}
-                    </span>
-                  </label>
+                  {FUND_DOCUMENTS.map((doc) => {
+                    const isChecked = docAcknowledged[doc.id];
+                    const isOpen = openFundDocument === doc.id;
+                    const iconKind = getDocumentIconKind(doc.id);
+                    const docNumber = String(
+                      FUND_DOCUMENTS.findIndex((item) => item.id === doc.id) + 1
+                    ).padStart(2, '0');
+                    const isLastDocument = doc.id === FUND_DOCUMENTS[FUND_DOCUMENTS.length - 1].id;
+
+                    return (
+                      <div
+                        key={doc.id}
+                        className={`relative transition ${isChecked ? 'bg-[#F5F5F7]' : 'bg-[#FFFFFF]'}`}
+                      >
+                        <div className="flex items-start gap-3 px-4 py-4 md:px-5">
+                          <button
+                            type="button"
+                            aria-expanded={isOpen}
+                            onClick={() => setOpenFundDocument((current) => current === doc.id ? null : doc.id)}
+                            className="flex min-w-0 flex-1 items-start gap-3 rounded-[14px] text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066CC]/35"
+                          >
+                            <span className="mt-0.5 shrink-0">
+                              <AppIcon kind={iconKind} size={34} />
+                            </span>
+                            <span className="min-w-0 flex-1">
+                              <span
+                                className="mb-1 block text-[11px] font-semibold tracking-[0.08em] text-[#1D1D1F]/45"
+                                style={{ fontFamily: appleFont }}
+                              >
+                                DOC {docNumber}
+                              </span>
+                              <span
+                                className="block text-[17px] font-medium leading-[1.06] tracking-[-0.028em] text-[#1D1D1F]"
+                                style={{ fontFamily: appleFont }}
+                              >
+                                {doc.name}
+                              </span>
+                              <span
+                                className="mt-1 block text-[14px] leading-[1.4] tracking-normal text-[#1D1D1F]/60"
+                                style={{ fontFamily: appleFont }}
+                              >
+                                {isChecked ? 'Reviewed' : doc.description}
+                              </span>
+                            </span>
+                          </button>
+
+                          <div className="flex shrink-0 items-center gap-2">
+                            <label className={`flex h-9 cursor-pointer items-center gap-2 rounded-full px-3 text-[12px] font-medium tracking-[-0.01em] transition ${
+                              isChecked ? 'bg-[#0066CC] text-white' : 'bg-[#F5F5F7] text-[#1D1D1F]/70'
+                            }`}>
+                              <input
+                                type="checkbox"
+                                checked={isChecked}
+                                onChange={() => handleDocToggle(doc.id)}
+                                className="h-4 w-4 shrink-0 accent-[#0066CC]"
+                                aria-label={`Mark ${doc.name} reviewed`}
+                              />
+                              <span className="hidden md:inline">
+                                {isChecked ? 'Reviewed' : 'Mark'}
+                              </span>
+                            </label>
+
+                            <button
+                              type="button"
+                              aria-label={`${isOpen ? 'Collapse' : 'Expand'} ${doc.name}`}
+                              aria-expanded={isOpen}
+                              onClick={() => setOpenFundDocument((current) => current === doc.id ? null : doc.id)}
+                              className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F5F5F7] text-[#1D1D1F]/55 transition hover:bg-[#ececef] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066CC]/35"
+                            >
+                              <ChevronDown
+                                aria-hidden="true"
+                                size={17}
+                                strokeWidth={1.65}
+                                className={`transition-transform ${isOpen ? 'rotate-180' : ''}`}
+                              />
+                            </button>
+                          </div>
+                        </div>
+
+                        {isOpen ? (
+                          <div className="mx-4 mb-4 rounded-[14px] bg-[#F5F5F7] px-4 py-4 md:ml-[74px] md:mr-5">
+                            <p className="text-[11px] font-medium uppercase tracking-[1.6px] text-[#0066CC]/85">
+                              {doc.fullName}
+                            </p>
+                            <p className="mt-2 text-[14px] leading-[1.45] tracking-normal text-[#1D1D1F]/65">
+                              {doc.description}
+                            </p>
+                            <div className="mt-4 flex flex-wrap gap-2">
+                              <button
+                                type="button"
+                                onClick={() => handleReadDocument(doc.url, doc.name)}
+                                className="inline-flex h-9 items-center gap-1.5 rounded-full bg-white px-3.5 text-[12px] font-medium text-[#0066CC] transition hover:bg-[#ececef] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066CC]/35"
+                                aria-label={`Read ${doc.name}`}
+                              >
+                                <FileSearch2 aria-hidden="true" size={14} strokeWidth={1.65} />
+                                Read
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDownload(doc.url, `${doc.fullName}.docx`)}
+                                className="inline-flex h-9 items-center gap-1.5 rounded-full bg-[#1D1D1F] px-3.5 text-[12px] font-medium text-white transition hover:bg-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066CC]/35"
+                                aria-label={`Download ${doc.name}`}
+                              >
+                                <FileDown aria-hidden="true" size={14} strokeWidth={1.65} />
+                                Download
+                              </button>
+                            </div>
+                          </div>
+                        ) : null}
+                        {!isLastDocument ? (
+                          <span className="absolute bottom-0 left-16 right-0 h-px bg-[#000000]/[0.10] md:left-[74px]" />
+                        ) : null}
+                      </div>
+                    );
+                  })}
                 </div>
-              );
-            })}
-          </div>
 
-          {/* Progress indicator */}
-          <div className="mt-4 flex items-center gap-2">
-            <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-green-500 rounded-full transition-all duration-300"
-                style={{
-                  width: `${(FUND_DOCUMENTS.filter((d) => docAcknowledged[d.id]).length / FUND_DOCUMENTS.length) * 100}%`,
-                }}
-              />
+                <div className="mt-3 rounded-[16px] bg-[#FFFFFF] px-5 py-4 shadow-[0_0_0_0.5px_rgba(29,29,31,0.06)]">
+                  <div className="flex items-center gap-3">
+                    <div className="h-2 flex-1 overflow-hidden rounded-full bg-[#1D1D1F]/10">
+                      <div
+                        className="h-full rounded-full bg-[#0066CC] transition-all duration-300"
+                        style={{ width: `${reviewProgress}%` }}
+                      />
+                    </div>
+                    <span className="shrink-0 text-[11px] font-semibold uppercase tracking-[1.5px] text-[#1D1D1F]/58">
+                      {reviewedCount}/{FUND_DOCUMENTS.length} reviewed
+                    </span>
+                  </div>
+                </div>
+              </section>
             </div>
-            <span className="text-[10px] text-gray-400 font-medium shrink-0">
-              {FUND_DOCUMENTS.filter((d) => docAcknowledged[d.id]).length}/{FUND_DOCUMENTS.length} reviewed
-            </span>
-          </div>
-        </section>
 
-        {/* ═══ STEP 3: Digital Signature ═══ */}
-        <section className="mb-8">
-          <h3 className="text-[10px] tracking-[0.2em] text-gray-400 uppercase mb-4 font-medium">
-            Step 3 · Digital Signature
-          </h3>
-
-          {/* Name input */}
-          <div className="border border-gray-200 mb-2">
-            <div className="flex items-center px-4 py-4 border-b border-gray-100">
-              <label className="text-sm font-semibold text-gray-900 shrink-0 mr-4">
-                Full Legal Name
-              </label>
-              <input
-                type="text"
-                value={signerName}
-                onChange={(e) => {
-                  setSignerName(e.target.value);
-                  if (nameError) setNameError('');
-                }}
-                placeholder="required"
-                className="flex-1 text-right text-sm font-medium text-black placeholder:text-gray-400 bg-transparent outline-none"
-              />
-            </div>
-            {nameError && (
-              <p className="px-4 py-2 text-xs text-red-600 font-medium">{nameError}</p>
-            )}
-
-            {/* Agreement checkbox */}
-            <div
-              className={`px-4 py-4 transition-colors ${
-                agreedToTerms ? 'bg-gray-50' : 'bg-white'
-              }`}
+            <aside
+              id="signature"
+              className="scroll-mt-28 rounded-[30px] bg-[#FFFFFF] p-5 text-[#1D1D1F] shadow-[0_20px_60px_rgba(29,29,31,0.10),inset_0_0_0_0.5px_rgba(29,29,31,0.10)] sm:p-6 lg:sticky lg:top-28 lg:self-start"
             >
-              <label className="flex items-start gap-3 cursor-pointer">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-[11px] font-medium uppercase tracking-[1.6px] text-[#0066CC]/85">
+                    Step 03
+                  </p>
+                  <h2 className="mt-3 text-[30px] font-medium leading-[1.06] tracking-[-0.028em] text-[#1D1D1F] sm:text-[32px]">
+                    Digital Signature
+                  </h2>
+                  <p className="mt-3 text-[15px] font-light leading-[1.45] text-[#1D1D1F]/60">
+                    Use your full legal name to complete the agreement.
+                  </p>
+                </div>
+                <AppleLineIcon icon={Signature} size={52} iconSize={24} className="shrink-0" />
+              </div>
+
+              <div className="mt-6 rounded-[22px] bg-[#F5F5F7] p-4 shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.08)]">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-[11px] font-medium uppercase tracking-[1.5px] text-[#1D1D1F]/55">
+                    Review status
+                  </span>
+                  <span className="text-[13px] font-medium text-[#1D1D1F]">
+                    {reviewedCount}/{FUND_DOCUMENTS.length}
+                  </span>
+                </div>
+                <div className="mt-3 h-2 overflow-hidden rounded-full bg-[#D2D2D7]">
+                  <div
+                    className="h-full rounded-full bg-[#0066CC] transition-all duration-300"
+                    style={{ width: `${reviewProgress}%` }}
+                  />
+                </div>
+              </div>
+
+              <div className="mt-4 rounded-[22px] bg-[#F5F5F7] p-4 shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.08)]">
+                <label className="flex items-center gap-3">
+                  <UserRound aria-hidden="true" size={18} strokeWidth={1.65} className="text-[#1D1D1F]/60" />
+                  <span className="shrink-0 text-[13px] font-medium text-[#1D1D1F]">
+                    Full Legal Name
+                  </span>
+                </label>
                 <input
-                  type="checkbox"
-                  checked={agreedToTerms}
+                  type="text"
+                  value={signerName}
                   onChange={(e) => {
-                    setAgreedToTerms(e.target.checked);
-                    if (termsError) setTermsError('');
+                    setSignerName(e.target.value);
+                    if (nameError) setNameError('');
                   }}
-                  className="mt-0.5 w-5 h-5 accent-black shrink-0"
+                  placeholder="required"
+                  className="mt-4 h-12 w-full rounded-2xl border border-[#1D1D1F]/[0.08] bg-[#FFFFFF] px-4 text-[15px] font-medium text-[#1D1D1F] outline-none transition placeholder:text-[#1D1D1F]/35 focus:border-[#0066CC]/45 focus:bg-white focus:ring-4 focus:ring-[#0066CC]/12"
                 />
-                <span className="text-xs text-gray-500 leading-relaxed">
-                  I have read, understood, and agree to the terms of this Non-Disclosure
-                  Agreement. I acknowledge that I have reviewed all fund documents and
-                  that this constitutes my legal electronic signature.
-                </span>
-              </label>
-            </div>
-            {termsError && (
-              <p className="px-4 py-2 text-xs text-red-600 font-medium">{termsError}</p>
-            )}
-          </div>
+                {nameError ? (
+                  <p className="mt-2 text-[12px] font-medium text-[#BF1D1D]">
+                    {nameError}
+                  </p>
+                ) : null}
+              </div>
 
-          {/* Signing as info */}
-          {userEmail && (
-            <div className="flex items-center justify-center gap-1.5 mt-3">
-              <span
-                className="material-symbols-outlined text-gray-400 text-base"
-                style={{ fontVariationSettings: "'wght' 400" }}
+              <div className="mt-4 rounded-[22px] bg-[#F5F5F7] p-4 text-[#1D1D1F] shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.08)] transition">
+                <label className="flex cursor-pointer items-start gap-3">
+                  <input
+                    type="checkbox"
+                    checked={agreedToTerms}
+                    onChange={(e) => {
+                      setAgreedToTerms(e.target.checked);
+                      if (termsError) setTermsError('');
+                    }}
+                    className="mt-0.5 h-5 w-5 shrink-0 accent-[#0066CC]"
+                  />
+                  <span className="text-[13px] leading-[1.58] text-[#1D1D1F]/72">
+                    I have read, understood, and agree to the terms of this
+                    Non-Disclosure Agreement. I acknowledge that I have reviewed
+                    all fund documents and that this constitutes my legal
+                    electronic signature.
+                  </span>
+                </label>
+                {termsError ? (
+                  <p className="mt-2 text-[12px] font-medium text-[#BF1D1D]">
+                    {termsError}
+                  </p>
+                ) : null}
+              </div>
+
+              {userEmail ? (
+                <div className="mt-4 flex items-center justify-center gap-1.5 text-[#1D1D1F]/55">
+                  <UserRound aria-hidden="true" size={14} strokeWidth={1.65} />
+                  <p className="text-[12px]">
+                    Signing as <span className="font-medium text-[#1D1D1F]">{userEmail}</span>
+                  </p>
+                </div>
+              ) : null}
+
+              {!canSubmit && signerName.trim().length >= 2 ? (
+                <div className="mt-4 rounded-2xl bg-[#F5F5F7] px-4 py-3 text-[13px] leading-[1.55] text-[#1D1D1F]/68 shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.08)]">
+                  {!allDocsAcknowledged ? 'Please acknowledge all fund documents above. ' : ''}
+                  {!agreedToTerms ? 'Please agree to the NDA terms.' : ''}
+                </div>
+              ) : null}
+
+              <button
+                type="button"
+                onClick={handleSignNDA}
+                disabled={!canSubmit}
+                className="mt-5 flex h-[52px] w-full items-center justify-center gap-2 rounded-full bg-[#0066CC] px-6 text-[16px] font-medium text-white transition hover:bg-[#005BB5] active:scale-[0.98] disabled:pointer-events-none disabled:opacity-35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066CC]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
               >
-                person
-              </span>
-              <p className="text-xs text-gray-500">
-                Signing as{' '}
-                <span className="text-black font-semibold">{userEmail}</span>
+                {isSubmitting ? 'Signing...' : 'Sign and Continue'}
+                <ArrowRight aria-hidden="true" size={15} strokeWidth={1.75} />
+              </button>
+
+              <p className="mx-auto mt-4 max-w-[320px] text-center text-[11px] leading-[1.6] text-[#1D1D1F]/48">
+                By signing, you agree that your digital signature has the same
+                legal validity as a handwritten signature under applicable
+                electronic signature laws.
               </p>
-            </div>
-          )}
-        </section>
 
-        {/* ── Validation hint when not ready ── */}
-        {!canSubmit && signerName.trim().length >= 2 && (
-          <div className="mb-4 px-4 py-3 bg-amber-50 border border-amber-200 rounded-lg">
-            <p className="text-xs text-amber-700 leading-relaxed">
-              {!allDocsAcknowledged && '⚠ Please acknowledge all fund documents above. '}
-              {!agreedToTerms && '⚠ Please agree to the NDA terms.'}
-            </p>
+              <div className="mt-5 flex items-center justify-center gap-2 text-[#1D1D1F]/48">
+                <LockKeyhole aria-hidden="true" size={13} strokeWidth={1.65} />
+                <span className="text-[10px] font-semibold uppercase tracking-[1.6px]">
+                  256 bit encryption
+                </span>
+              </div>
+            </aside>
           </div>
-        )}
-
-        {/* ── CTA — Sign & Continue ── */}
-        <section className="space-y-3 mb-8">
-          <HushhTechCta
-            variant={HushhTechCtaVariant.BLACK}
-            onClick={handleSignNDA}
-            disabled={!canSubmit}
-          >
-            {isSubmitting ? 'Signing...' : 'Sign & Continue'}
-          </HushhTechCta>
-        </section>
-
-        {/* ── Legal Footer ── */}
-        <p className="text-[11px] leading-[16px] text-gray-400 text-center font-light">
-          By signing, you agree that your digital signature has the same legal validity
-          as a handwritten signature under applicable electronic signature laws.
-          You also confirm that you have reviewed all fund offering documents.
-        </p>
-
-        {/* ── Trust Badges ── */}
-        <section className="flex flex-col items-center justify-center text-center gap-2 pt-12 pb-4">
-          <div className="flex items-center gap-1">
-            <span className="material-symbols-outlined text-[12px] text-hushh-blue">
-              lock
-            </span>
-            <span className="text-[10px] text-gray-500 tracking-wide uppercase font-medium">
-              256 Bit Encryption
-            </span>
-          </div>
-        </section>
+        </AppleSection>
       </main>
 
-      {/* ═══ Common Footer ═══ */}
       <HushhTechFooter />
     </div>
   );

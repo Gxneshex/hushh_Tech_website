@@ -1,5 +1,7 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 
+const isDevelopment = import.meta.env.DEV;
+
 interface Props {
   children: ReactNode;
   fallback?: ReactNode;
@@ -52,7 +54,7 @@ class ErrorBoundary extends Component<Props, State> {
             <p className="text-gray-600 mb-6">
               We're sorry for the inconvenience. Please refresh the page to continue.
             </p>
-            {this.state.error && process.env.NODE_ENV === 'development' && (
+            {this.state.error && isDevelopment && (
               <details className="mb-6 text-left bg-gray-100 p-4 rounded-lg">
                 <summary className="cursor-pointer font-semibold text-gray-700 mb-2">
                   Error Details (Development Only)

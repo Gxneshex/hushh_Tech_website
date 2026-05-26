@@ -17,8 +17,19 @@ import HushhTechCta, {
 } from "../../../components/hushh-tech-cta/HushhTechCta";
 import PermissionHelpModal from "../../../components/PermissionHelpModal";
 import { useModalKeyboardNavigation } from "../../../hooks/useModalKeyboardNavigation";
+import {
+  AppIcon,
+  Display,
+  Eyebrow,
+  Lede,
+  appleFont,
+} from "../../../components/hushh-tech-ui/HushhAppleUI";
 
 const DISPLAY_STEP = 3;
+const primaryCtaClass =
+  "!rounded-full !border-[#0066CC] !bg-[#0066CC] !text-white !font-medium !tracking-[-0.01em] !shadow-none";
+const secondaryCtaClass =
+  "!rounded-full !border-[#1D1D1F]/15 !bg-white !text-[#1D1D1F] !font-medium !tracking-[-0.01em] !shadow-none";
 
 export default function OnboardingStep3Combined() {
   const s = useCombinedLocationLogic();
@@ -33,7 +44,10 @@ export default function OnboardingStep3Combined() {
   });
 
   return (
-    <div className="bg-white text-gray-900 min-h-screen antialiased flex flex-col selection:bg-hushh-blue selection:text-white relative overflow-hidden">
+    <div
+      className="relative flex min-h-screen flex-col overflow-hidden bg-[#FFFFFF] text-[#1D1D1F] antialiased selection:bg-[#0066CC] selection:text-[#F5F5F7]"
+      style={{ fontFamily: appleFont }}
+    >
       {/* ═══ Background layer (blurs when location modal is open) ═══ */}
       <div
         className={`flex-1 flex flex-col transition-all duration-300 ${
@@ -45,71 +59,65 @@ export default function OnboardingStep3Combined() {
         {/* ═══ Header ═══ */}
         <HushhTechBackHeader onBackClick={s.handleBack} rightLabel="FAQs" />
 
-        <main className="px-6 flex-grow max-w-md mx-auto w-full pb-48">
+        <main className="mx-auto w-full max-w-[640px] flex-grow px-4 pb-48 sm:px-5">
           {/* ── Progress Bar ── */}
-          <div className="py-4">
-            <div className="flex justify-between text-[11px] font-semibold tracking-wide text-gray-500 mb-3">
+          <div className="pb-6 pt-5">
+            <div className="mb-3 flex justify-between text-[11px] font-medium uppercase tracking-[1.6px] text-[#0066CC]/85">
               <span>
                 Step {DISPLAY_STEP}/{TOTAL_STEPS}
               </span>
               <span>{PROGRESS_PCT}% Complete</span>
             </div>
-            <div className="h-0.5 w-full bg-gray-200 rounded-full overflow-hidden">
+            <div className="h-1 w-full overflow-hidden rounded-full bg-[#1D1D1F]/10">
               <div
-                className="h-full bg-hushh-blue transition-all duration-500"
+                className="h-full rounded-full bg-[#0066CC] transition-all duration-500"
                 style={{ width: `${PROGRESS_PCT}%` }}
               />
             </div>
           </div>
 
           {/* ── Title Section ── */}
-          <section className="py-8">
-            <h3 className="text-[10px] tracking-[0.2em] text-gray-400 uppercase mb-4 font-medium">
-              Verification
-            </h3>
-            <h1
-              className="text-[2.75rem] leading-[1.1] font-normal text-black tracking-tight font-serif"
-              style={{ fontFamily: "'Playfair Display', serif" }}
-            >
-              Confirm Your
-              <br />
-              <span className="text-gray-400 italic font-light">
-                Residence
-              </span>
-            </h1>
-            <p className="text-sm text-gray-500 mt-4 leading-relaxed font-light">
+          <section className="pb-8 pt-4 text-center">
+            <div className="mb-6 flex justify-center">
+              <AppIcon kind="shield" size={58} />
+            </div>
+            <Eyebrow>Verification</Eyebrow>
+            <Display as="h1" size="xs" maxWidth="max-w-[500px]">
+              Confirm your residence.
+            </Display>
+            <Lede className="max-w-[500px]">
               We need to know where you live and pay taxes to open your
               investment account. Your location auto-fills the details below.
-            </p>
+            </Lede>
           </section>
 
           {/* ── Location Status Banners ── */}
           {s.locationStatus === "detecting" && (
-            <div className="flex items-center gap-3 py-4 px-1 mb-4 border-b border-gray-100">
-              <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
-                <div className="animate-spin h-5 w-5 border-2 border-hushh-blue border-t-transparent rounded-full" />
+            <div className="mb-4 flex items-center gap-3 rounded-[18px] bg-[#F5F5F7] px-4 py-4 shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.08)]">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-white">
+                <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#0066CC]/25 border-t-[#0066CC]" />
               </div>
-              <p className="text-sm font-medium text-gray-700">
+              <p className="text-[14px] font-medium text-[#1D1D1F]/70">
                 Detecting your location...
               </p>
             </div>
           )}
 
           {s.isSuccessStatus && !s.isAutoFilling && !s.detectionStatus && (
-            <div className="flex items-center gap-4 py-5 px-1 mb-6 border-b border-gray-100">
-              <div className="w-10 h-10 rounded-full bg-ios-green/10 border border-ios-green/20 flex items-center justify-center shrink-0">
+            <div className="mb-6 flex items-center gap-4 rounded-[18px] bg-[#34C759]/10 px-4 py-4 shadow-[inset_0_0_0_1px_rgba(52,199,89,0.20)]">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-white">
                 <span
-                  className="material-symbols-outlined text-ios-green text-lg"
+                  className="material-symbols-outlined text-lg text-[#34C759]"
                   style={{ fontVariationSettings: "'FILL' 1, 'wght' 600" }}
                 >
                   check
                 </span>
               </div>
               <div>
-                <p className="text-sm font-semibold text-gray-900">
+                <p className="text-[14px] font-medium text-[#1D1D1F]">
                   Location Detected
                 </p>
-                <p className="text-xs text-gray-500 font-medium">
+                <p className="text-[12px] font-normal text-[#1D1D1F]/55">
                   {s.detectedLocation}
                 </p>
               </div>
@@ -118,16 +126,16 @@ export default function OnboardingStep3Combined() {
 
           {/* Auto-fill status */}
           {s.detectionStatus && (
-            <div className="flex items-center gap-3 py-4 px-1 mb-4 border-b border-green-100 transition-colors">
-              <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center shrink-0">
+            <div className="mb-4 flex items-center gap-3 rounded-[18px] bg-[#34C759]/10 px-4 py-4 transition-colors shadow-[inset_0_0_0_1px_rgba(52,199,89,0.20)]">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-white">
                 <span
-                  className="material-symbols-outlined text-ios-green text-lg"
+                  className="material-symbols-outlined text-lg text-[#34C759]"
                   style={{ fontVariationSettings: "'FILL' 1, 'wght' 600" }}
                 >
                   check
                 </span>
               </div>
-              <p className="text-sm font-medium text-green-700">
+              <p className="text-[14px] font-medium text-[#1D1D1F]/70">
                 {s.detectionStatus}
               </p>
             </div>
@@ -135,17 +143,17 @@ export default function OnboardingStep3Combined() {
 
           {s.isErrorStatus && (
             <div className="mb-6">
-              <div className="flex items-center justify-between py-4 px-1 border-b border-gray-100">
+              <div className="flex items-center justify-between rounded-[18px] bg-[#FF3B30]/10 px-4 py-4 shadow-[inset_0_0_0_1px_rgba(255,59,48,0.18)]">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-red-50 border border-red-200 flex items-center justify-center shrink-0">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-white">
                     <span
-                      className="material-symbols-outlined text-red-500 text-lg"
+                      className="material-symbols-outlined text-lg text-[#FF3B30]"
                       style={{ fontVariationSettings: "'FILL' 1, 'wght' 600" }}
                     >
                       error
                     </span>
                   </div>
-                  <p className="text-sm font-medium text-gray-700">
+                  <p className="text-[14px] font-medium text-[#1D1D1F]/70">
                     {s.locationStatus === "denied"
                       ? "Location access denied"
                       : "Could not detect location"}
@@ -153,7 +161,7 @@ export default function OnboardingStep3Combined() {
                 </div>
                 <button
                   onClick={s.handleRetry}
-                  className="text-black text-xs font-bold uppercase tracking-wide shrink-0 hover:underline"
+                  className="shrink-0 text-[12px] font-medium uppercase tracking-[1.2px] text-[#1D1D1F] hover:underline"
                 >
                   Retry
                 </button>
@@ -164,7 +172,7 @@ export default function OnboardingStep3Combined() {
                     e.preventDefault();
                     s.setShowPermissionHelp(true);
                   }}
-                  className="mt-2 ml-14 text-[11px] font-semibold text-gray-500 hover:text-hushh-blue transition-colors underline"
+                  className="ml-14 mt-2 text-[11px] font-medium text-[#1D1D1F]/55 underline transition-colors hover:text-[#0066CC]"
                 >
                   How to enable location
                 </button>
@@ -174,38 +182,38 @@ export default function OnboardingStep3Combined() {
 
           {/* ── General Error ── */}
           {s.error && (
-            <div className="mb-6 flex items-center gap-3 py-4 px-1 border-b border-red-100">
-              <div className="w-10 h-10 rounded-full bg-red-50 border border-red-200 flex items-center justify-center shrink-0">
+            <div className="mb-6 flex items-center gap-3 rounded-[18px] bg-[#FF3B30]/10 px-4 py-4 shadow-[inset_0_0_0_1px_rgba(255,59,48,0.18)]">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-white">
                 <span
-                  className="material-symbols-outlined text-red-500 text-lg"
+                  className="material-symbols-outlined text-lg text-[#FF3B30]"
                   style={{ fontVariationSettings: "'FILL' 1, 'wght' 600" }}
                 >
                   error
                 </span>
               </div>
-              <p className="text-sm font-medium text-red-700">{s.error}</p>
+              <p className="text-[14px] font-medium text-[#B42318]">{s.error}</p>
             </div>
           )}
 
           {/* ═══ SECTION 1: Country Selection ═══ */}
-          <section className="space-y-2 mb-6">
-            <h3 className="text-[10px] tracking-[0.15em] text-gray-400 uppercase font-medium mb-2">
+          <section className="mb-6 overflow-hidden rounded-[22px] bg-[#F5F5F7] p-4 shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.08)]">
+            <h3 className="mb-2 text-[11px] font-medium uppercase tracking-[1.6px] text-[#0066CC]/85">
               Citizenship & Residence
             </h3>
 
             {/* Citizenship Country */}
-            <div className="py-5 border-b border-gray-200">
+            <div className="border-b border-[#1D1D1F]/[0.08] py-5">
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-white">
                   <span
-                    className="material-symbols-outlined text-gray-700 text-lg"
+                    className="material-symbols-outlined text-lg text-[#1D1D1F]/70"
                     style={{ fontVariationSettings: "'wght' 400" }}
                   >
                     flag
                   </span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-gray-900 mb-0.5">
+                  <p className="mb-0.5 text-[14px] font-medium text-[#1D1D1F]">
                     Country of Citizenship
                   </p>
                   <div className="relative">
@@ -215,7 +223,7 @@ export default function OnboardingStep3Combined() {
                         s.handleCitizenshipChange(e.target.value)
                       }
                       disabled={s.isDetectingLocation}
-                      className="w-full text-xs text-gray-500 font-medium bg-transparent border-none outline-none cursor-pointer appearance-none pr-6 p-0"
+                      className="w-full cursor-pointer appearance-none border-none bg-transparent p-0 pr-6 text-[13px] font-normal text-[#1D1D1F]/55 outline-none"
                       aria-label="Select citizenship country"
                     >
                       <option disabled value="">
@@ -227,7 +235,7 @@ export default function OnboardingStep3Combined() {
                         </option>
                       ))}
                     </select>
-                    <span className="material-symbols-outlined absolute right-0 top-1/2 -translate-y-1/2 text-gray-400 text-base pointer-events-none">
+                    <span className="material-symbols-outlined pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-base text-[#1D1D1F]/35">
                       expand_more
                     </span>
                   </div>
@@ -236,18 +244,18 @@ export default function OnboardingStep3Combined() {
             </div>
 
             {/* Residence Country */}
-            <div className="py-5 border-b border-gray-200">
+            <div className="py-5">
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-white">
                   <span
-                    className="material-symbols-outlined text-gray-700 text-lg"
+                    className="material-symbols-outlined text-lg text-[#1D1D1F]/70"
                     style={{ fontVariationSettings: "'wght' 400" }}
                   >
                     home
                   </span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-gray-900 mb-0.5">
+                  <p className="mb-0.5 text-[14px] font-medium text-[#1D1D1F]">
                     Country of Residence
                   </p>
                   <div className="relative">
@@ -257,7 +265,7 @@ export default function OnboardingStep3Combined() {
                         s.handleResidenceChange(e.target.value)
                       }
                       disabled={s.isDetectingLocation}
-                      className="w-full text-xs text-gray-500 font-medium bg-transparent border-none outline-none cursor-pointer appearance-none pr-6 p-0"
+                      className="w-full cursor-pointer appearance-none border-none bg-transparent p-0 pr-6 text-[13px] font-normal text-[#1D1D1F]/55 outline-none"
                       aria-label="Select residence country"
                     >
                       <option disabled value="">
@@ -269,7 +277,7 @@ export default function OnboardingStep3Combined() {
                         </option>
                       ))}
                     </select>
-                    <span className="material-symbols-outlined absolute right-0 top-1/2 -translate-y-1/2 text-gray-400 text-base pointer-events-none">
+                    <span className="material-symbols-outlined pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-base text-[#1D1D1F]/35">
                       expand_more
                     </span>
                   </div>
@@ -279,33 +287,33 @@ export default function OnboardingStep3Combined() {
           </section>
 
           {/* ═══ SECTION 2: Full Address ═══ */}
-          <section className="mb-6">
-            <h3 className="text-[10px] tracking-[0.15em] text-gray-400 uppercase font-medium mb-2">
+          <section className="mb-6 overflow-hidden rounded-[22px] bg-[#F5F5F7] p-4 shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.08)]">
+            <h3 className="mb-2 text-[11px] font-medium uppercase tracking-[1.6px] text-[#0066CC]/85">
               Your Address
             </h3>
 
             {/* Use Current Location button */}
-            <div className="py-5 border-b border-gray-200 mb-2">
+            <div className="mb-2 border-b border-[#1D1D1F]/[0.08] py-5">
               <button
                 type="button"
                 onClick={s.handleDetectClick}
                 disabled={s.isDetectingLocation || s.isAutoFilling}
-                className="flex items-center gap-4 w-full text-left group disabled:opacity-50"
+                className="group flex w-full items-center gap-4 text-left disabled:opacity-50"
                 aria-label="Use my current location"
               >
-                <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0 group-hover:bg-gray-200 transition-colors">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-white transition-colors group-hover:bg-white/75">
                   <span
-                    className="material-symbols-outlined text-gray-700 text-lg"
+                    className="material-symbols-outlined text-lg text-[#1D1D1F]/70"
                     style={{ fontVariationSettings: "'wght' 400" }}
                   >
                     my_location
                   </span>
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-gray-900">
+                  <p className="text-[14px] font-medium text-[#1D1D1F]">
                     Use My Current Location
                   </p>
-                  <p className="text-xs text-gray-500 font-medium">
+                  <p className="text-[12px] font-normal text-[#1D1D1F]/50">
                     Auto-fill address using GPS
                   </p>
                 </div>
@@ -313,11 +321,11 @@ export default function OnboardingStep3Combined() {
             </div>
 
             {/* Address Line 1 */}
-            <div className="py-5 border-b border-gray-200">
+            <div className="border-b border-[#1D1D1F]/[0.08] py-5">
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-white">
                   <span
-                    className="material-symbols-outlined text-gray-700 text-lg"
+                    className="material-symbols-outlined text-lg text-[#1D1D1F]/70"
                     style={{ fontVariationSettings: "'wght' 400" }}
                   >
                     location_on
@@ -326,7 +334,7 @@ export default function OnboardingStep3Combined() {
                 <div className="flex-1 min-w-0">
                   <label
                     htmlFor="addressLine1"
-                    className="text-sm font-semibold text-gray-900 block mb-1"
+                    className="mb-1 block text-[14px] font-medium text-[#1D1D1F]"
                   >
                     Address Line 1
                   </label>
@@ -337,24 +345,24 @@ export default function OnboardingStep3Combined() {
                     onChange={(e) => s.handleAddressLine1Change(e.target.value)}
                     onBlur={() => s.handleBlur("addressLine1", s.addressLine1)}
                     placeholder="Street address"
-                    className="w-full text-sm text-gray-700 font-medium bg-transparent border-none outline-none p-0 placeholder-gray-400 focus:ring-0"
+                    className="w-full border-none bg-transparent p-0 text-[14px] font-normal text-[#1D1D1F]/70 outline-none placeholder:text-[#1D1D1F]/35 focus:ring-0"
                     autoComplete="address-line1"
                   />
                 </div>
               </div>
             </div>
             {s.touched.addressLine1 && s.errors.addressLine1 && (
-              <p className="text-xs text-red-500 pl-14 py-1">
+              <p className="py-1 pl-14 text-[12px] text-[#FF3B30]">
                 {s.errors.addressLine1}
               </p>
             )}
 
             {/* Address Line 2 */}
-            <div className="py-5 border-b border-gray-200">
+            <div className="py-5">
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-white">
                   <span
-                    className="material-symbols-outlined text-gray-700 text-lg"
+                    className="material-symbols-outlined text-lg text-[#1D1D1F]/70"
                     style={{ fontVariationSettings: "'wght' 400" }}
                   >
                     apartment
@@ -363,7 +371,7 @@ export default function OnboardingStep3Combined() {
                 <div className="flex-1 min-w-0">
                   <label
                     htmlFor="addressLine2"
-                    className="text-sm font-semibold text-gray-900 block mb-1"
+                    className="mb-1 block text-[14px] font-medium text-[#1D1D1F]"
                   >
                     Address Line 2
                   </label>
@@ -373,7 +381,7 @@ export default function OnboardingStep3Combined() {
                     value={s.addressLine2}
                     onChange={(e) => s.handleAddressLine2Change(e.target.value)}
                     placeholder="City, State"
-                    className="w-full text-sm text-gray-700 font-medium bg-transparent border-none outline-none p-0 placeholder-gray-400 focus:ring-0"
+                    className="w-full border-none bg-transparent p-0 text-[14px] font-normal text-[#1D1D1F]/70 outline-none placeholder:text-[#1D1D1F]/35 focus:ring-0"
                     autoComplete="address-line2"
                   />
                 </div>
@@ -382,13 +390,13 @@ export default function OnboardingStep3Combined() {
           </section>
 
           {/* ═══ SECTION 3: ZIP Code ═══ */}
-          <section className="mb-6">
+          <section className="mb-6 overflow-hidden rounded-[22px] bg-[#F5F5F7] p-4 shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.08)]">
             {/* ZIP Code */}
-            <div className="py-5 border-b border-gray-200">
+            <div className="py-5">
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-white">
                   <span
-                    className="material-symbols-outlined text-gray-700 text-lg"
+                    className="material-symbols-outlined text-lg text-[#1D1D1F]/70"
                     style={{ fontVariationSettings: "'wght' 400" }}
                   >
                     pin
@@ -397,7 +405,7 @@ export default function OnboardingStep3Combined() {
                 <div className="flex-1 min-w-0">
                   <label
                     htmlFor="zipCode"
-                    className="text-sm font-semibold text-gray-900 block mb-1"
+                    className="mb-1 block text-[14px] font-medium text-[#1D1D1F]"
                   >
                     ZIP / Postal Code
                   </label>
@@ -409,18 +417,18 @@ export default function OnboardingStep3Combined() {
                     onChange={(e) => s.handleZipCodeChange(e.target.value)}
                     onBlur={() => s.handleBlur("zipCode", s.zipCode)}
                     placeholder="e.g. 10001"
-                    className="w-full text-sm text-gray-700 font-medium bg-transparent border-none outline-none p-0 placeholder-gray-400 focus:ring-0"
+                    className="w-full border-none bg-transparent p-0 text-[14px] font-normal text-[#1D1D1F]/70 outline-none placeholder:text-[#1D1D1F]/35 focus:ring-0"
                     autoComplete="postal-code"
                   />
                 </div>
               </div>
             </div>
             {s.touched.zipCode && s.errors.zipCode ? (
-              <p className="text-xs text-red-500 pl-14 py-1">
+              <p className="py-1 pl-14 text-[12px] text-[#FF3B30]">
                 {s.errors.zipCode}
               </p>
             ) : (
-              <p className="text-[10px] text-gray-400 pl-14 pt-1 font-light">
+              <p className="pl-14 pt-1 text-[10px] font-light text-[#1D1D1F]/40">
                 Supports numeric and alphanumeric codes based on region.
               </p>
             )}
@@ -434,6 +442,7 @@ export default function OnboardingStep3Combined() {
               disabled={
                 !s.canContinue || s.isLoading || s.isDetectingLocation || s.isAutoFilling
               }
+              className={primaryCtaClass}
             >
               {s.isDetectingLocation
                 ? "Detecting..."
@@ -447,6 +456,7 @@ export default function OnboardingStep3Combined() {
             <HushhTechCta
               variant={HushhTechCtaVariant.WHITE}
               onClick={s.handleSkip}
+              className={secondaryCtaClass}
             >
               Skip
             </HushhTechCta>
@@ -455,10 +465,10 @@ export default function OnboardingStep3Combined() {
           {/* ── Trust Badges ── */}
           <section className="flex flex-col items-center justify-center text-center gap-2 pb-8">
             <div className="flex items-center gap-1">
-              <span className="material-symbols-outlined text-[12px] text-hushh-blue">
+              <span className="material-symbols-outlined text-[12px] text-[#0066CC]">
                 lock
               </span>
-              <span className="text-[10px] text-gray-500 tracking-wide uppercase font-medium">
+              <span className="text-[10px] font-medium uppercase tracking-[1.6px] text-[#1D1D1F]/50">
                 256 Bit Encryption
               </span>
             </div>
@@ -473,31 +483,31 @@ export default function OnboardingStep3Combined() {
           <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-4 pb-6 sm:pb-0">
             <div
               ref={locationModalRef}
-              className="relative w-full max-w-sm bg-white rounded-3xl shadow-[0_20px_40px_-10px_rgba(0,0,0,0.08),0_0_1px_rgba(0,0,0,0.04)] p-8 flex flex-col items-center text-center border border-gray-100/50"
+              className="relative flex w-full max-w-sm flex-col items-center rounded-[28px] bg-white p-8 text-center shadow-[0_24px_60px_rgba(29,29,31,0.18),inset_0_0_0_0.5px_rgba(29,29,31,0.08)]"
               role="dialog"
               aria-modal="true"
               aria-labelledby="step3-location-modal-title"
               tabIndex={-1}
             >
               <div className="mb-8">
-                <div className="w-20 h-20 rounded-full border border-gray-200 bg-white flex items-center justify-center shadow-sm">
+                <div className="flex h-20 w-20 items-center justify-center rounded-[24px] bg-[#F5F5F7] shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.08)]">
                   <span
-                    className="material-symbols-outlined text-black text-[2rem]"
+                    className="material-symbols-outlined text-[2rem] text-[#1D1D1F]"
                     style={{ fontVariationSettings: "'wght' 200" }}
                   >
                     location_on
                   </span>
                 </div>
               </div>
-              <div className="space-y-4 mb-10 px-2">
+              <div className="mb-10 space-y-4 px-2">
                 <h2
                   id="step3-location-modal-title"
-                  className="text-[1.75rem] leading-[1.2] text-black tracking-tight font-serif"
-                  style={{ fontFamily: "'Playfair Display', serif" }}
+                  className="text-[28px] font-medium leading-[1.06] tracking-[-0.028em] text-[#1D1D1F]"
+                  style={{ fontFamily: appleFont }}
                 >
                   Enable Location Access
                 </h2>
-                <p className="text-gray-500 text-[0.85rem] leading-relaxed font-light max-w-[90%] mx-auto">
+                <p className="mx-auto max-w-[90%] text-[14px] font-light leading-[1.45] text-[#1D1D1F]/60">
                   Hushh uses your location to automatically fill your country,
                   address, and streamline the secure verification process.
                 </p>
@@ -506,20 +516,20 @@ export default function OnboardingStep3Combined() {
                 <button
                   ref={allowLocationButtonRef}
                   onClick={s.handleAllowLocation}
-                  className="w-full h-12 bg-hushh-blue text-white font-medium text-[0.8rem] flex items-center justify-center shadow-lg hover:shadow-xl transition-all active:scale-[0.99] border border-hushh-blue rounded-2xl hover:bg-hushh-blue/90"
+                  className="flex h-12 w-full items-center justify-center rounded-full border border-[#0066CC] bg-[#0066CC] text-[14px] font-medium text-white transition-all hover:opacity-90 active:scale-[0.99]"
                 >
                   Allow while using app
                 </button>
                 <button
                   onClick={s.handleAllowLocation}
-                  className="w-full h-12 border border-gray-200 bg-white text-black font-medium text-[0.8rem] rounded-2xl hover:bg-gray-50 transition-colors active:scale-[0.99]"
+                  className="h-12 w-full rounded-full border border-[#1D1D1F]/15 bg-white text-[14px] font-medium text-[#1D1D1F] transition-colors hover:bg-[#F5F5F7] active:scale-[0.99]"
                 >
                   Allow once
                 </button>
                 <div className="pt-2">
                   <button
                     onClick={s.handleDontAllow}
-                    className="text-xs font-medium text-gray-400 hover:text-black transition-colors"
+                    className="text-[12px] font-medium text-[#1D1D1F]/45 transition-colors hover:text-[#1D1D1F]"
                   >
                     Don&apos;t allow
                   </button>

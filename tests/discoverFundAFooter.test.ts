@@ -163,22 +163,14 @@ describe("FundA footer shell", () => {
       root.render(React.createElement(FundA));
     });
 
-    const mobileCards = Array.from(
+    const featureCards = Array.from(
       container.querySelectorAll('[data-testid="feature-comparison-card"]'),
     );
-    const desktopTiles = Array.from(
-      container.querySelectorAll('[data-testid="feature-comparison-tile"]'),
-    );
 
-    expect(mobileCards).toHaveLength(8);
-    expect(desktopTiles).toHaveLength(8);
+    expect(featureCards).toHaveLength(6);
 
-    mobileCards.forEach((card) => {
+    featureCards.forEach((card) => {
       expectClassTokens(card, ["gap-3", "p-4", "sm:gap-4", "sm:p-5"]);
-    });
-
-    desktopTiles.forEach((tile) => {
-      expectClassTokens(tile, ["gap-3", "p-4", "xl:p-5"]);
     });
   });
 
