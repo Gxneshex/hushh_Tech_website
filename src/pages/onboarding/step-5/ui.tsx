@@ -3,7 +3,7 @@
  * UI follows the Step 1/2 + Home/Fund A Apple treatment.
  * Logic stays in logic.ts.
  */
-import { AlertCircle, Badge, Check, LockKeyhole, UserRound } from "lucide-react";
+import { AlertCircle, Badge, Check, UserRound } from "lucide-react";
 import {
   useStep7Logic,
   DISPLAY_STEP,
@@ -196,9 +196,6 @@ export default function OnboardingStep7() {
             <span className="text-[10px] font-medium uppercase tracking-[1.6px] text-[#1D1D1F]/50">
               256 Bit Encryption
             </span>
-          </div>
-          <div className="sr-only">
-            <LockKeyhole aria-hidden="true" />
           </div>
         </section>
       </main>

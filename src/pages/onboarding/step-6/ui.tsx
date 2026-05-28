@@ -1,7 +1,15 @@
 /**
  * Step 9 — SSN + Date of Birth
- * Premium Hushh design. Overlay select pattern for reliable mobile taps.
+ * UI follows the Step 1/2 + Home/Fund A Apple treatment.
  */
+import {
+  AlertCircle,
+  Calendar,
+  CalendarDays,
+  CheckCircle2,
+  Info,
+  LockKeyhole,
+} from "lucide-react";
 import {
   useStep9Logic,
   PROGRESS_PCT,
@@ -14,6 +22,20 @@ import OnboardingBankReviewChip from "../../../components/onboarding-bank-review
 import HushhTechCta, {
   HushhTechCtaVariant,
 } from "../../../components/hushh-tech-cta/HushhTechCta";
+import {
+  AppleLineIcon,
+  AppIcon,
+  Display,
+  Eyebrow,
+  Icon,
+  Lede,
+  appleFont,
+} from "../../../components/hushh-tech-ui/HushhAppleUI";
+
+const primaryCtaClass =
+  "!rounded-full !border-[#0066CC] !bg-[#0066CC] !text-white !font-medium !tracking-[-0.01em] !shadow-none";
+const secondaryCtaClass =
+  "!rounded-full !border-[#1D1D1F]/15 !bg-white !text-[#1D1D1F] !font-medium !tracking-[-0.01em] !shadow-none";
 
 export default function OnboardingStep9() {
   const {
@@ -40,54 +62,71 @@ export default function OnboardingStep9() {
   } = useStep9Logic();
 
   return (
-    <div className="bg-white text-gray-900 min-h-screen antialiased flex flex-col selection:bg-hushh-blue selection:text-white">
+    <div
+      className="flex min-h-screen flex-col bg-[#FFFFFF] text-[#1D1D1F] antialiased selection:bg-[#0066CC] selection:text-[#F5F5F7]"
+      style={{ fontFamily: appleFont }}
+    >
       {/* ═══ Header ═══ */}
       <HushhTechBackHeader onBackClick={handleBack} rightLabel="FAQs" />
       <OnboardingBankReviewChip />
 
-      <main className="px-6 flex-grow max-w-md mx-auto w-full pb-48">
+      <main className="mx-auto w-full max-w-[640px] flex-grow px-4 pb-48 sm:px-5">
         {/* ── Progress Bar ── */}
-        <div className="py-4">
-          <div className="flex justify-between text-[11px] font-medium uppercase tracking-[1.6px] text-hushh-blue/85 mb-3">
+        <div className="pb-6 pt-5">
+          <div className="mb-3 flex justify-between text-[11px] font-medium uppercase tracking-[1.6px] text-[#0066CC]/85">
             <span>Step {DISPLAY_STEP}/{TOTAL_STEPS}</span>
             <span>{PROGRESS_PCT}% Complete</span>
           </div>
-          <div className="h-0.5 w-full bg-gray-200 rounded-full overflow-hidden">
-            <div className="h-full bg-hushh-blue transition-all duration-500" style={{ width: `${PROGRESS_PCT}%` }} />
+          <div className="h-1 w-full overflow-hidden rounded-full bg-[#1D1D1F]/10">
+            <div
+              className="h-full rounded-full bg-[#0066CC] transition-all duration-500"
+              style={{ width: `${PROGRESS_PCT}%` }}
+            />
           </div>
         </div>
 
         {/* ── Title Section ── */}
-        <section className="py-8">
-          <h3 className="text-[11px] tracking-[1.6px] text-hushh-blue/85 uppercase mb-4 font-medium">Verification</h3>
-          <h1 className="text-[2.75rem] leading-[1.06] font-medium text-black tracking-[-0.028em] font-serif" style={{ fontFamily: "'Playfair Display', serif" }}>
-            A Few More<br />
-            <span className="text-gray-400 italic font-light">Details</span>
-          </h1>
-          <p className="text-sm text-black/60 mt-[18px] leading-[1.45] font-light">
+        <section className="pb-8 pt-4 text-center">
+          <div className="mb-6 flex justify-center">
+            <AppIcon kind="shield" size={58} />
+          </div>
+          <Eyebrow>Verification</Eyebrow>
+          <Display as="h1" size="xs" maxWidth="max-w-[500px]">
+            A few more details.
+          </Display>
+          <Lede className="max-w-[480px]">
             Federal law requires us to collect this info for tax reporting.
-          </p>
+          </Lede>
         </section>
 
         {/* ── Error ── */}
         {error && (
-          <div className="mb-6 flex items-center gap-3 py-4 px-1 border-b border-red-100">
-            <div className="w-10 h-10 rounded-full bg-red-50 border border-red-200 flex items-center justify-center shrink-0">
-              <span className="material-symbols-outlined text-red-500 text-lg" style={{ fontVariationSettings: "'FILL' 1, 'wght' 600" }}>error</span>
-            </div>
-            <p className="text-sm font-medium text-red-700">{error}</p>
+          <div className="mb-6 flex items-center gap-3 rounded-[18px] bg-[#FF3B30]/10 px-4 py-4 shadow-[inset_0_0_0_1px_rgba(255,59,48,0.18)]">
+            <AppleLineIcon
+              icon={AlertCircle}
+              size={40}
+              className="!text-[#FF3B30]"
+            />
+            <p className="text-[14px] font-medium text-[#B42318]">{error}</p>
           </div>
         )}
 
         {/* ── SSN Section ── */}
-        <section className="space-y-0 mb-6">
-          <div className="py-5 border-b border-gray-200">
+        <section className="mb-6 rounded-[22px] bg-[#F5F5F7] p-4 shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.08)]">
+          <h3 className="mb-2 text-[11px] font-medium uppercase tracking-[1.6px] text-[#0066CC]/85">
+            Tax Reporting
+          </h3>
+
+          <div className="border-b border-[#1D1D1F]/[0.08] py-5">
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
-                <span className="material-symbols-outlined text-gray-700 text-lg" style={{ fontVariationSettings: "'wght' 400" }}>lock</span>
-              </div>
+              <AppleLineIcon icon={LockKeyhole} size={40} />
               <div className="flex-1 min-w-0">
-                <label htmlFor="ssn" className="text-sm font-semibold text-gray-900 block mb-1">Social Security Number</label>
+                <label
+                  htmlFor="ssn"
+                  className="mb-1 block text-[14px] font-medium text-[#1D1D1F]"
+                >
+                  Social Security Number
+                </label>
                 <input
                   id="ssn"
                   type="text"
@@ -96,26 +135,40 @@ export default function OnboardingStep9() {
                   placeholder="000-00-0000"
                   maxLength={11}
                   inputMode="numeric"
-                  className="w-full text-sm text-gray-700 font-medium bg-transparent border-none outline-none p-0 placeholder-gray-400 focus:ring-0 tracking-widest"
+                  className="w-full border-none bg-transparent p-0 text-[15px] font-medium tracking-widest text-[#1D1D1F] outline-none placeholder:text-[#1D1D1F]/35"
                 />
               </div>
             </div>
           </div>
 
           {/* Why SSN Info */}
-          <details className="group border-b border-gray-200" open={showInfo} onToggle={(e) => handleShowInfoToggle((e.target as HTMLDetailsElement).open)}>
+          <details
+            className="group"
+            open={showInfo}
+            onToggle={(e) =>
+              handleShowInfoToggle((e.target as HTMLDetailsElement).open)
+            }
+          >
             <summary className="py-5 flex items-center gap-4 cursor-pointer list-none">
-              <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0 group-hover:bg-gray-200 transition-colors">
-                <span className="material-symbols-outlined text-gray-700 text-lg" style={{ fontVariationSettings: "'wght' 400" }}>info</span>
-              </div>
+              <AppleLineIcon
+                icon={Info}
+                size={40}
+                className="transition group-hover:scale-[1.02]"
+              />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-gray-900">Why do we need your SSN?</p>
-                <p className="text-xs text-gray-500 font-medium">Tap to learn more</p>
+                <p className="text-[14px] font-medium text-[#1D1D1F]">
+                  Why do we need your SSN?
+                </p>
+                <p className="text-[12px] font-normal text-[#1D1D1F]/50">
+                  Tap to learn more
+                </p>
               </div>
-              <span className="material-symbols-outlined text-gray-400 text-lg transition-transform group-open:rotate-180" style={{ fontVariationSettings: "'wght' 400" }}>expand_more</span>
+              <span className="text-[#1D1D1F]/35 transition-transform group-open:rotate-180">
+                {Icon.chevronDown("currentColor", 12)}
+              </span>
             </summary>
             <div className="pl-14 pb-5 pr-4">
-              <p className="text-xs text-black/60 leading-[1.45] font-light">
+              <p className="text-[12px] font-light leading-[1.45] text-[#1D1D1F]/60">
                 We are required by federal law to collect this information to prevent fraud and verify your identity before opening an investment account.
               </p>
             </div>
@@ -123,24 +176,26 @@ export default function OnboardingStep9() {
         </section>
 
         {/* ── Date of Birth Section ── */}
-        <section className="space-y-0 mb-6">
-          <div className="py-4">
-            <h3 className="text-[11px] tracking-[1.6px] text-hushh-blue/85 uppercase font-medium">Date of Birth</h3>
-          </div>
+        <section className="mb-8 rounded-[22px] bg-[#F5F5F7] p-4 shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.08)]">
+          <h3 className="mb-2 text-[11px] font-medium uppercase tracking-[1.6px] text-[#0066CC]/85">
+            Date of Birth
+          </h3>
 
           {/* Month — overlay select */}
-          <div className="relative py-5 border-b border-gray-200 cursor-pointer">
+          <div className="relative cursor-pointer border-b border-[#1D1D1F]/[0.08] py-5">
             <div className="flex items-center gap-4 pointer-events-none">
-              <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
-                <span className="material-symbols-outlined text-gray-700 text-lg" style={{ fontVariationSettings: "'wght' 400" }}>calendar_month</span>
-              </div>
+              <AppleLineIcon icon={CalendarDays} size={40} />
               <div className="flex-1 min-w-0">
-                <span className="text-sm font-semibold text-gray-900 block mb-1">Month</span>
-                <span className="text-sm text-gray-700 font-medium">
+                <span className="mb-1 block text-[14px] font-medium text-[#1D1D1F]">
+                  Month
+                </span>
+                <span className="text-[15px] font-medium text-[#1D1D1F]/70">
                   {dobMonth ? MONTH_NAMES[parseInt(dobMonth) - 1] : 'Select month'}
                 </span>
               </div>
-              <span className="material-symbols-outlined text-gray-400 text-lg" style={{ fontVariationSettings: "'wght' 400" }}>expand_more</span>
+              <span className="text-[#1D1D1F]/35">
+                {Icon.chevronDown("currentColor", 12)}
+              </span>
             </div>
             <select
               value={dobMonth}
@@ -156,18 +211,20 @@ export default function OnboardingStep9() {
           </div>
 
           {/* Day — overlay select */}
-          <div className="relative py-5 border-b border-gray-200 cursor-pointer">
+          <div className="relative cursor-pointer border-b border-[#1D1D1F]/[0.08] py-5">
             <div className="flex items-center gap-4 pointer-events-none">
-              <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
-                <span className="material-symbols-outlined text-gray-700 text-lg" style={{ fontVariationSettings: "'wght' 400" }}>today</span>
-              </div>
+              <AppleLineIcon icon={Calendar} size={40} />
               <div className="flex-1 min-w-0">
-                <span className="text-sm font-semibold text-gray-900 block mb-1">Day</span>
-                <span className="text-sm text-gray-700 font-medium">
+                <span className="mb-1 block text-[14px] font-medium text-[#1D1D1F]">
+                  Day
+                </span>
+                <span className="text-[15px] font-medium text-[#1D1D1F]/70">
                   {dobDay ? parseInt(dobDay) : 'Select day'}
                 </span>
               </div>
-              <span className="material-symbols-outlined text-gray-400 text-lg" style={{ fontVariationSettings: "'wght' 400" }}>expand_more</span>
+              <span className="text-[#1D1D1F]/35">
+                {Icon.chevronDown("currentColor", 12)}
+              </span>
             </div>
             <select
               value={dobDay}
@@ -183,18 +240,20 @@ export default function OnboardingStep9() {
           </div>
 
           {/* Year — overlay select */}
-          <div className="relative py-5 border-b border-gray-200 cursor-pointer">
+          <div className="relative cursor-pointer py-5">
             <div className="flex items-center gap-4 pointer-events-none">
-              <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
-                <span className="material-symbols-outlined text-gray-700 text-lg" style={{ fontVariationSettings: "'wght' 400" }}>event</span>
-              </div>
+              <AppleLineIcon icon={CalendarDays} size={40} />
               <div className="flex-1 min-w-0">
-                <span className="text-sm font-semibold text-gray-900 block mb-1">Year</span>
-                <span className="text-sm text-gray-700 font-medium">
+                <span className="mb-1 block text-[14px] font-medium text-[#1D1D1F]">
+                  Year
+                </span>
+                <span className="text-[15px] font-medium text-[#1D1D1F]/70">
                   {dobYear || 'Select year'}
                 </span>
               </div>
-              <span className="material-symbols-outlined text-gray-400 text-lg" style={{ fontVariationSettings: "'wght' 400" }}>expand_more</span>
+              <span className="text-[#1D1D1F]/35">
+                {Icon.chevronDown("currentColor", 12)}
+              </span>
             </div>
             <select
               value={dobYear}
@@ -211,21 +270,27 @@ export default function OnboardingStep9() {
 
           {/* 18+ age warning */}
           {isUnder18 && ageError && (
-            <div className="flex items-center gap-3 py-4 px-1">
-              <div className="w-10 h-10 rounded-full bg-red-50 border border-red-200 flex items-center justify-center shrink-0">
-                <span className="material-symbols-outlined text-red-500 text-lg" style={{ fontVariationSettings: "'FILL' 1, 'wght' 600" }}>error</span>
-              </div>
-              <p className="text-sm font-medium text-red-600">{ageError}</p>
+            <div className="mt-3 flex items-center gap-3 rounded-[18px] bg-[#FF3B30]/10 px-4 py-4 shadow-[inset_0_0_0_1px_rgba(255,59,48,0.18)]">
+              <AppleLineIcon
+                icon={AlertCircle}
+                size={40}
+                className="!text-[#FF3B30]"
+              />
+              <p className="text-[14px] font-medium text-[#B42318]">
+                {ageError}
+              </p>
             </div>
           )}
 
           {/* Confirmation when all selected and 18+ */}
           {isFormValid && (
-            <div className="flex items-center gap-3 py-4 px-1">
-              <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
-                <span className="material-symbols-outlined text-ios-green text-lg" style={{ fontVariationSettings: "'FILL' 1, 'wght' 600" }}>check</span>
-              </div>
-              <p className="text-sm font-medium text-gray-700">
+            <div className="mt-3 flex items-center gap-3 rounded-[18px] bg-[#34C759]/10 px-4 py-4 shadow-[inset_0_0_0_1px_rgba(52,199,89,0.20)]">
+              <AppleLineIcon
+                icon={CheckCircle2}
+                size={40}
+                className="!text-[#34C759]"
+              />
+              <p className="text-[14px] font-medium text-[#1D1D1F]/70">
                 {MONTH_NAMES[parseInt(dobMonth) - 1]} {parseInt(dobDay)}, {dobYear}
               </p>
             </div>
@@ -234,10 +299,20 @@ export default function OnboardingStep9() {
 
         {/* ── CTAs ── */}
         <section className="pb-12 space-y-3">
-          <HushhTechCta variant={HushhTechCtaVariant.BLACK} onClick={handleContinue} disabled={!isFormValid || loading}>
+          <HushhTechCta
+            variant={HushhTechCtaVariant.BLACK}
+            onClick={handleContinue}
+            disabled={!isFormValid || loading}
+            className={primaryCtaClass}
+          >
             {loading ? "Saving..." : "Continue"}
           </HushhTechCta>
-          <HushhTechCta variant={HushhTechCtaVariant.WHITE} onClick={handleSkip} disabled={!isFormValid || loading}>
+          <HushhTechCta
+            variant={HushhTechCtaVariant.WHITE}
+            onClick={handleSkip}
+            disabled={!isFormValid || loading}
+            className={secondaryCtaClass}
+          >
             Skip SSN
           </HushhTechCta>
         </section>
@@ -245,10 +320,10 @@ export default function OnboardingStep9() {
         {/* ── Trust Badges ── */}
         <section className="flex flex-col items-center justify-center text-center gap-2 pb-8">
           <div className="flex items-center gap-1">
-            <span className="material-symbols-outlined text-[12px] text-hushh-blue">lock</span>
-            <span className="text-[10px] text-gray-500 tracking-wide uppercase font-medium">256 Bit Encryption</span>
+            {Icon.lock("#0066CC", 12)}
+            <span className="text-[10px] font-medium uppercase tracking-[1.6px] text-[#1D1D1F]/50">256 Bit Encryption</span>
           </div>
-          <p className="text-[10px] text-gray-400 font-light max-w-xs">
+          <p className="max-w-xs text-[10px] font-light text-[#1D1D1F]/45">
             Your SSN is encrypted end-to-end and never stored in plain text.
           </p>
         </section>
