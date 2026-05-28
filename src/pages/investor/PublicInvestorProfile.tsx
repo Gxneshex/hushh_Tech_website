@@ -137,8 +137,13 @@ const PublicInvestorProfilePage: React.FC = () => {
 
       try {
         const data = await fetchPublicInvestorProfileBySlug(slug);
+        // PD-3 (P2.2): the server-side `get_public_investor_profile` RPC
+        // already strips investor_profile / shadow_profile for unconfirmed
+        // slugs, so we trust the projection here rather than gate
+        // client-side. If we ever want a stricter "paid investor only"
+        // policy we should enforce it in the RPC, not duplicate it here.
         setProfileData(data);
-        
+
         // Send profile view notification email via Vercel API (async, don't wait)
         fetch('/api/send-email-notification', {
           method: 'POST',

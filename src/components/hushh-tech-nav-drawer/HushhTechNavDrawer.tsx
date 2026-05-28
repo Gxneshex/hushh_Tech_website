@@ -100,7 +100,8 @@ const HushhTechNavDrawer: React.FC<HushhTechNavDrawerProps> = ({
   const handleLogout = async () => {
     onClose();
     await signOut();
-    navigate("/login");
+    // PD-5: goodbye page replaces the abrupt /login redirect.
+    navigate("/signed-out");
   };
 
   const handleDeleteAccount = () => {

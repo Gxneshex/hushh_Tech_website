@@ -163,11 +163,11 @@ const PageFooter = () => (
 
 export default function HomePage() {
   const { primaryCTA, onNavigate } = useHomeLogic();
-  const primaryLabel = primaryCTA.loading
-    ? primaryCTA.text
-    : primaryCTA.text === "View Your Profile"
-      ? "View Investor Profile"
-      : "Invest with Hushh";
+  // PD-6 (honest labels): show whatever the journey CTA hook decided —
+  // never override here. Past bugs (cleared FL → "Invest with Hushh"
+  // taking the user to step-1 mid-flow) came from overriding the label
+  // while keeping the action.
+  const primaryLabel = primaryCTA.text;
 
   return (
     <div
@@ -208,6 +208,15 @@ export default function HomePage() {
                 {Icon.chevronRight(SYS.blue, 14)}
               </PillButton>
             </div>
+
+            {primaryCTA.progressLabel && (
+              <p
+                className="mt-3 text-center text-[11px] font-medium uppercase tracking-[1.6px] text-[#0066CC]/75"
+                style={{ fontFamily: appleFont }}
+              >
+                {primaryCTA.progressLabel}
+              </p>
+            )}
 
             <div
               className="mt-6 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 px-6 text-center text-[12px] text-[#1D1D1F]/55"

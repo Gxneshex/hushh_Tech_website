@@ -30,8 +30,15 @@ describe("Investor access gate contract", () => {
     // Hard guarantees that the skip bypass is gone.
     expect(stepLogic).not.toContain("handleSkip");
     expect(stepUi).not.toContain("I'll Do This Later");
-    // The old bypass set is_completed=true while marking payment as not_started.
-    expect(stepLogic).not.toContain('fund_payment_status: "not_started"');
+    // The old bypass set is_completed=true while marking payment as
+    // not_started. The Start Over flow can still reset payment status, so
+    // we look at the two together to detect the buggy combo.
+    expect(stepLogic).not.toMatch(
+      /is_completed:\s*true[\s\S]{0,200}fund_payment_status:\s*"not_started"/,
+    );
+    expect(stepLogic).not.toMatch(
+      /fund_payment_status:\s*"not_started"[\s\S]{0,200}is_completed:\s*true/,
+    );
 
     // Forward path goes through the new handler that the gate can vet.
     expect(stepLogic).toContain("handleContinueToMeetCeo");

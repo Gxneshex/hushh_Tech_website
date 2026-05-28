@@ -21,7 +21,7 @@ import {
   getNdaMetadata,
 } from "../../services/access/accessControlApi";
 import { useNavigate } from "react-router-dom";
-import { getContinueOnboardingCta } from "../../services/onboarding/flow";
+import { useInvestorJourneyCta } from "../../hooks/useInvestorJourneyCta";
 
 // Motion components
 const MotionBox = motion(Box);
@@ -233,32 +233,15 @@ const ProfilePage: React.FC = () => {
     }
   }, [ndaStatus]);
 
-  // Get primary CTA text and action
-  const getPrimaryCTAContent = () => {
-    if (onboardingStatus.loading) {
-      return { text: "Loading...", action: () => {} };
-    }
-    if (onboardingStatus.hasProfile || onboardingStatus.isCompleted) {
-      return { 
-        text: "View Your Profile", 
-        action: () => navigate("/hushh-user-profile") 
-      };
-    }
-    if (onboardingStatus.currentStep > 1) {
-      const cta = getContinueOnboardingCta(onboardingStatus.currentStep);
-      return { 
-        text: cta.text, 
-        action: () => navigate(cta.route) 
-      };
-    }
-    return { 
-      text: "Complete Your Hushh Profile", 
-      action: () => navigate("/onboarding/financial-link"),
-      loading: false
-    };
+  // Primary CTA is now delegated to the shared journey hook so this
+  // page no longer has its own copy of the "where should the user go"
+  // state machine. The hook honours the InvestorAccessRoute gate.
+  const { primaryCTA: sharedPrimaryCta } = useInvestorJourneyCta();
+  const primaryCTA = {
+    text: sharedPrimaryCta.text,
+    action: sharedPrimaryCta.action,
+    loading: sharedPrimaryCta.loading,
   };
-
-  const primaryCTA = getPrimaryCTAContent();
 
   return (
     <Box

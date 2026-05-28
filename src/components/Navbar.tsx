@@ -9,6 +9,7 @@ import DeleteAccountModal from "./DeleteAccountModal";
 import { useStockQuotes, StockQuote, STOCK_LOGOS } from "../hooks/useStockQuotes";
 import config from "../resources/config/config";
 import { useAuthSession } from "../auth/AuthSessionProvider";
+import { useInvestorJourneyCta } from "../hooks/useInvestorJourneyCta";
 import { SkipToContentLink } from "./ui/SkipToContentLink";
 
 const WELCOME_TOAST_PENDING_KEY = "showWelcomeToast";
@@ -89,6 +90,10 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     await signOut();
+    // PD-5: route to the goodbye surface so the user sees an explicit
+    // acknowledgement that their progress is saved, instead of the bare
+    // /login page.
+    navigate("/signed-out");
   };
 
   // Show welcome toast when a user is signed in (only once)
@@ -156,6 +161,22 @@ export default function Navbar() {
   const handleLinkClick = (path: string) => {
     navigate(path);
     setIsOpen(false);
+  };
+
+  // Investor-access aware routing for the Hushh Coins / Book Consultation
+  // CTAs. The original code routed straight to /onboarding/meet-ceo which
+  // let unpaid fund users skip FL + KYC + Stripe payment. We now consult
+  // the journey hook: paid investors keep the original Meet CEO route,
+  // unpaid users are routed to whatever step the journey says is next
+  // (typically /onboarding/step-9 with a banner).
+  const { primaryCTA: journeyCta } = useInvestorJourneyCta();
+  const handleMeetCeoClick = () => {
+    setIsOpen(false);
+    if (journeyCta.isInvestor) {
+      navigate("/onboarding/meet-ceo");
+      return;
+    }
+    journeyCta.action();
   };
 
   const isActive = (path: string) => location.pathname === path;
@@ -438,15 +459,19 @@ export default function Navbar() {
               {isAuthenticated && hushhCoins !== null && hushhCoins === 0 && (
                 <div className="bg-white rounded-[10px] overflow-hidden mb-5 shadow-sm">
                   <button
-                    onClick={() => handleLinkClick("/onboarding/meet-ceo")}
+                    onClick={handleMeetCeoClick}
                     className="flex items-center w-full min-h-[52px] py-3 pr-4 pl-4 active:bg-[#E5E5EA] transition-colors"
                   >
                     <div className="w-[29px] h-[29px] rounded-[7px] bg-[#FF9F0A] flex items-center justify-center mr-3 shrink-0">
                       <span className="material-symbols-outlined text-white text-[18px]" style={{ fontVariationSettings: "'FILL' 1, 'wght' 500" }}>lock</span>
                     </div>
                     <div className="flex flex-col flex-grow text-left">
-                      <span className="text-[17px] text-black font-medium leading-tight">Unlock 300K Coins</span>
-                      <span className="text-[13px] text-[#8E8E93] leading-tight mt-0.5">$1 or use coupon code</span>
+                      <span className="text-[17px] text-black font-medium leading-tight">
+                        {journeyCta.isInvestor ? "Unlock 300K Coins" : "Complete your investment"}
+                      </span>
+                      <span className="text-[13px] text-[#8E8E93] leading-tight mt-0.5">
+                        {journeyCta.isInvestor ? "$1 or use coupon code" : "Your fund payment unlocks coins"}
+                      </span>
                     </div>
                     <svg className="w-[7px] h-[12px] text-[#C7C7CC] shrink-0" viewBox="0 0 7 12" fill="none">
                       <path d="M1 1L6 6L1 11" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -480,13 +505,15 @@ export default function Navbar() {
                   {/* Coins Actions — iOS grouped list style */}
                   <div className="bg-white rounded-b-[10px]">
                     <button
-                      onClick={() => handleLinkClick("/onboarding/meet-ceo")}
+                      onClick={handleMeetCeoClick}
                       className="flex items-center w-full min-h-[44px] py-2.5 pr-4 pl-4 active:bg-[#E5E5EA] transition-colors relative"
                     >
                       <div className="w-[29px] h-[29px] rounded-[7px] bg-[#34C759] flex items-center justify-center mr-3 shrink-0">
                         <span className="material-symbols-outlined text-white text-[18px]" style={{ fontVariationSettings: "'FILL' 1, 'wght' 500" }}>calendar_month</span>
                       </div>
-                      <span className="text-[17px] text-black flex-grow text-left leading-none">Book Consultation</span>
+                      <span className="text-[17px] text-black flex-grow text-left leading-none">
+                        {journeyCta.isInvestor ? "Book Consultation" : "Complete your investment"}
+                      </span>
                       <svg className="w-[7px] h-[12px] text-[#C7C7CC] shrink-0" viewBox="0 0 7 12" fill="none">
                         <path d="M1 1L6 6L1 11" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>

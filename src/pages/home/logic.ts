@@ -8,13 +8,14 @@
 import { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Session } from "@supabase/supabase-js";
-import { useHushhProfileCta } from "../../hooks/useHushhProfileCta";
+import { useInvestorJourneyCta } from "../../hooks/useInvestorJourneyCta";
 
 /* ─── Types ─── */
 export interface PrimaryCTA {
   text: string;
   action: () => void;
   loading: boolean;
+  progressLabel?: string | null;
 }
 
 export interface HomeLogic {
@@ -26,7 +27,7 @@ export interface HomeLogic {
 /* ─── Main Hook ─── */
 export const useHomeLogic = (): HomeLogic => {
   const navigate = useNavigate();
-  const { session, primaryCTA } = useHushhProfileCta();
+  const { session, primaryCTA } = useInvestorJourneyCta();
 
   /* Navigation helper */
   const onNavigate = useCallback(

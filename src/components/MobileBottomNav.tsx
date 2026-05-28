@@ -8,6 +8,7 @@ import { Box, Flex, Text, Icon } from '@chakra-ui/react';
 import { Link, useLocation } from 'react-router-dom';
 import { FiHome, FiTrendingUp, FiUsers, FiUser } from 'react-icons/fi';
 import { motion } from 'framer-motion';
+import { useInvestorJourneyCta } from '../hooks/useInvestorJourneyCta';
 
 const MotionLink = motion(Link);
 
@@ -98,9 +99,14 @@ const MotionBox = motion(Box);
 
 const MobileBottomNav: React.FC = () => {
   const location = useLocation();
+  // For unpaid users the Profile tab now routes via the journey hook (which
+  // takes them to step-9 / FL with a banner) instead of dumping them on
+  // /hushh-user-profile only to be evicted by InvestorAccessRoute. This
+  // removes the flash-then-bounce UX on the mobile tab bar.
+  const { primaryCTA: journeyCta } = useInvestorJourneyCta();
 
   // Check if current page should hide the nav
-  const shouldHideNav = hiddenOnPages.some(page => 
+  const shouldHideNav = hiddenOnPages.some(page =>
     location.pathname.toLowerCase().startsWith(page.toLowerCase())
   );
 
@@ -165,10 +171,19 @@ const MobileBottomNav: React.FC = () => {
       >
         {navItems.map((item) => {
           const active = checkIsActive(item);
+          const isProfileTab = item.id === 'profile';
+          const shouldInterceptProfile =
+            isProfileTab && !journeyCta.loading && !journeyCta.isInvestor;
+          const handleProfileIntercept = (event: React.MouseEvent) => {
+            if (!shouldInterceptProfile) return;
+            event.preventDefault();
+            journeyCta.action();
+          };
           return (
             <Flex
               as={MotionLink}
               to={item.path}
+              onClick={isProfileTab ? handleProfileIntercept : undefined}
               key={item.id}
               direction="column"
               align="center"

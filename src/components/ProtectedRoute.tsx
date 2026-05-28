@@ -2,8 +2,12 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import config from '../resources/config/config';
 import {
+  CANONICAL_ONBOARDING_ROUTES,
   FINANCIAL_LINK_ROUTE,
+  getCanonicalOnboardingRoute,
+  getOnboardingDisplayMeta,
   normalizeFinancialLinkStatus,
+  type CanonicalOnboardingRoute,
 } from '../services/onboarding/flow';
 import { useAuthSession } from '../auth/AuthSessionProvider';
 import { buildLoginRedirectPath } from '../auth/routePolicy';
@@ -14,6 +18,35 @@ interface ProtectedRouteProps {
 }
 
 const BOOT_TIMEOUT_MS = 8000;
+
+/**
+ * sessionStorage flash key consumed by step pages to render a one-time
+ * banner explaining that the user was bumped back from a step they tried
+ * to jump to. Mirrors the InvestorAccessRoute flash convention.
+ */
+export const STEP_SKIP_FLASH_KEY = "hushh:step_skip_flash";
+
+const setStepSkipFlash = (attemptedStep: number, redirectedToStep: number) => {
+  try {
+    sessionStorage.setItem(
+      STEP_SKIP_FLASH_KEY,
+      JSON.stringify({ attemptedStep, redirectedToStep }),
+    );
+  } catch {
+    // sessionStorage disabled — flash gets dropped, redirect still works.
+  }
+};
+
+export function consumeStepSkipFlash(): { attemptedStep: number; redirectedToStep: number } | null {
+  try {
+    const value = sessionStorage.getItem(STEP_SKIP_FLASH_KEY);
+    if (!value) return null;
+    sessionStorage.removeItem(STEP_SKIP_FLASH_KEY);
+    return JSON.parse(value);
+  } catch {
+    return null;
+  }
+}
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const navigate = useNavigate();
@@ -121,6 +154,30 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
           if (!isOnFinancialLinkPage && financialLinkStatus === 'pending') {
             navigate(FINANCIAL_LINK_ROUTE, { replace: true });
             return;
+          }
+
+          // PD-4 (step-skip prevention): if the user URL-pastes a step
+          // further ahead than their current_step, bounce them back to
+          // the step they should actually be on. The next page picks up
+          // a session flash explaining what happened.
+          const isCanonicalStep = (CANONICAL_ONBOARDING_ROUTES as readonly string[])
+            .includes(location.pathname);
+          if (isCanonicalStep) {
+            const attemptedStep = getOnboardingDisplayMeta(
+              location.pathname as CanonicalOnboardingRoute,
+            ).displayStep;
+            const canonicalCurrentRoute = getCanonicalOnboardingRoute(
+              onboardingData?.current_step || 1,
+            );
+            const currentStepNumber = getOnboardingDisplayMeta(canonicalCurrentRoute)
+              .displayStep;
+            // Allow up to currentStep + 1 so the natural Next-button
+            // navigation never trips this guard.
+            if (attemptedStep > currentStepNumber + 1) {
+              setStepSkipFlash(attemptedStep, currentStepNumber);
+              navigate(canonicalCurrentRoute, { replace: true });
+              return;
+            }
           }
         }
 

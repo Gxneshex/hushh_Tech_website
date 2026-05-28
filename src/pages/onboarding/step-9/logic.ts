@@ -15,6 +15,8 @@ import {
   fetchLinkedTransferAccounts,
   type LinkedTransferAccount,
 } from "../../../services/plaid/plaidService";
+import { upsertOnboardingData } from "../../../services/onboarding/upsertOnboardingData";
+import { FINANCIAL_LINK_ROUTE } from "../../../services/onboarding/flow";
 import {
   FUND_PAYMENT_PAID_STATUSES,
   FUND_PAYMENT_REVERSED_STATUSES,
@@ -116,6 +118,15 @@ export interface Step13Logic {
     | "verified"
     | "payment_reversed";
   flashBanner: "needs_payment" | "payment_reversed" | null;
+  /** Whether the "start over" affordance should be visible on this page. */
+  canStartOver: boolean;
+  /** Modal open + busy + error state for the start-over confirmation. */
+  isStartOverConfirmOpen: boolean;
+  isStartingOver: boolean;
+  startOverError: string | null;
+  openStartOverConfirm: () => void;
+  closeStartOverConfirm: () => void;
+  handleConfirmStartOver: () => Promise<void>;
   getUnits: (classId: string) => number;
   setFirstPaymentAmount: (value: string) => void;
   handleBack: () => void;
@@ -148,6 +159,9 @@ export const useStep13Logic = (): Step13Logic => {
   const [recurringDayOfMonth, setRecurringDayOfMonth] = useState<number | null>(null);
   const [firstPaymentAmount, setFirstPaymentAmountState] = useState("1");
   const [flashBanner, setFlashBanner] = useState<"needs_payment" | "payment_reversed" | null>(null);
+  const [isStartOverConfirmOpen, setIsStartOverConfirmOpen] = useState(false);
+  const [isStartingOver, setIsStartingOver] = useState(false);
+  const [startOverError, setStartOverError] = useState<string | null>(null);
   const isMountedRef = useRef(true);
 
   // Pull the one-time flash set by InvestorAccessRoute when it redirected
@@ -411,6 +425,52 @@ export const useStep13Logic = (): Step13Logic => {
     navigate("/onboarding/meet-ceo");
   };
 
+  // PD-? (P2.1 — "Start over"): pre-payment users can request a clean
+  // restart of their onboarding without contacting support. Hidden once
+  // payment is confirmed because the post-payment state is intentionally
+  // hard to walk away from.
+  const openStartOverConfirm = () => {
+    setStartOverError(null);
+    setIsStartOverConfirmOpen(true);
+  };
+  const closeStartOverConfirm = () => {
+    if (isStartingOver) return;
+    setIsStartOverConfirmOpen(false);
+    setStartOverError(null);
+  };
+  const handleConfirmStartOver = async () => {
+    if (!userId) return;
+    setIsStartingOver(true);
+    setStartOverError(null);
+    try {
+      // Note: payment history (fund_stripe_payment_requests, fund_stripe_payments)
+      // is intentionally untouched. We only reset the onboarding shell so the
+      // user can re-pick units, recurring schedule, KYC data.
+      const { error: upsertError } = await upsertOnboardingData(userId, {
+        current_step: 1,
+        is_completed: false,
+        financial_link_status: "pending",
+        fund_payment_status: "not_started",
+        class_a_units: 0,
+        class_b_units: 0,
+        class_c_units: 0,
+        recurring_amount: 0,
+        recurring_frequency: null,
+        recurring_day_of_month: null,
+      });
+      if (upsertError) {
+        setStartOverError(upsertError.message || "Failed to reset onboarding");
+        return;
+      }
+      setIsStartOverConfirmOpen(false);
+      navigate(FINANCIAL_LINK_ROUTE, { replace: true });
+    } catch (err) {
+      setStartOverError(err instanceof Error ? err.message : "Failed to reset onboarding");
+    } finally {
+      setIsStartingOver(false);
+    }
+  };
+
   return {
     loading,
     pageLoading,
@@ -438,6 +498,13 @@ export const useStep13Logic = (): Step13Logic => {
     latestReviewStatus,
     uxState,
     flashBanner,
+    canStartOver: uxState === "awaiting_request" || uxState === "request_sent",
+    isStartOverConfirmOpen,
+    isStartingOver,
+    startOverError,
+    openStartOverConfirm,
+    closeStartOverConfirm,
+    handleConfirmStartOver,
     getUnits,
     setFirstPaymentAmount,
     handleBack,

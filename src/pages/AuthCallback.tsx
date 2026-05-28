@@ -5,10 +5,12 @@ import { CheckCircle, AlertTriangle } from 'lucide-react';
 import config from '../resources/config/config';
 import { DEFAULT_AUTH_REDIRECT, sanitizeInternalRedirect } from '../utils/security';
 import { useAuthSession } from '../auth/AuthSessionProvider';
+import { normalizeLegacyOnboardingRedirectTarget } from '../services/onboarding/flow';
+import { fetchResolvedOnboardingProgress } from '../services/onboarding/progress';
 import {
-  FINANCIAL_LINK_ROUTE,
-  normalizeLegacyOnboardingRedirectTarget,
-} from '../services/onboarding/flow';
+  getInvestorAccessState,
+  getResumeRouteForState,
+} from '../services/investorAccess/state';
 
 
 const AuthCallback: React.FC = () => {
@@ -26,12 +28,16 @@ const AuthCallback: React.FC = () => {
       )
     : null;
 
-  // Helper to determine final redirect destination
-  const getRedirectDestination = (hasCompletedOnboarding: boolean) => {
-    // If custom redirect is set (e.g., /hushh-ai), use it
+  // Helper to determine final redirect destination. Honors the full
+  // investor access state machine so paid/verified/rejected/refunded users
+  // land directly on the right surface (preventing the old "flash of
+  // profile then bounce" UX).
+  const getRedirectDestination = (
+    onboarding: { is_completed: boolean; current_step: number | null; fund_payment_status: string | null; fund_investor_verification_status: string | null } | null,
+  ): string => {
     if (customRedirect) return customRedirect;
-    // Otherwise, default behavior: onboarding or profile
-    return hasCompletedOnboarding ? '/hushh-user-profile' : FINANCIAL_LINK_ROUTE;
+    const state = getInvestorAccessState(onboarding);
+    return getResumeRouteForState(state, onboarding?.current_step);
   };
 
   const queueWelcomeToast = (userId?: string | null) => {
@@ -127,23 +133,22 @@ const AuthCallback: React.FC = () => {
         }
 
         const user = sessionSnapshot.user;
-        const { data: onboardingData } = await supabase
-          .from('onboarding_data')
-          .select('is_completed, current_step')
-          .eq('user_id', user.id)
-          .maybeSingle();
+        const onboardingData = await fetchResolvedOnboardingProgress(
+          supabase,
+          user.id,
+        );
 
         console.info('[Hushh][AuthCallback] Session restored', {
           userId: user.id,
           email: user.email,
           onboardingFound: !!onboardingData,
+          investorAccessState: getInvestorAccessState(onboardingData),
         });
 
         queueWelcomeToast(user.id);
         setVerificationStatus('success');
         setTimeout(() => {
-          const hasCompletedOnboarding = onboardingData?.is_completed ?? false;
-          navigate(getRedirectDestination(hasCompletedOnboarding));
+          navigate(getRedirectDestination(onboardingData));
         }, 1200);
       } catch (err) {
         console.error('Verification error:', err);

@@ -10,15 +10,10 @@
  * Backend logic unchanged: auth session, onboarding status, navigation.
  */
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
 import { Box, Text, Flex, Spinner, Image } from "@chakra-ui/react";
-import config from "../resources/config/config";
-import { Session } from "@supabase/supabase-js";
 import HushhLogo from "./images/Hushhogo.png";
-import {
-  FINANCIAL_LINK_ROUTE,
-  getContinueOnboardingCta,
-} from "../services/onboarding/flow";
+import { FINANCIAL_LINK_ROUTE } from "../services/onboarding/flow";
+import { useInvestorJourneyCta } from "../hooks/useInvestorJourneyCta";
 
 /* ─── iOS Design Tokens ─── */
 const IOS = {
@@ -154,98 +149,17 @@ const TabItem = ({ icon, label, active = false }: {
    ═══════════════════════════════════════════════ */
 export default function Hero() {
   const navigate = useNavigate();
-  const [session, setSession] = useState<Session | null>(null);
-
-  const [onboardingStatus, setOnboardingStatus] = useState<{
-    hasProfile: boolean;
-    isCompleted: boolean;
-    currentStep: number;
-    loading: boolean;
-  }>({
-    hasProfile: false,
-    isCompleted: false,
+  // All session + onboarding + CTA decision logic now lives in the unified
+  // useInvestorJourneyCta hook. Hero used to maintain its own duplicate
+  // copy of the state machine (which bypassed the InvestorAccessRoute gate
+  // and routed users to the wrong page).
+  const { session, primaryCTA } = useInvestorJourneyCta();
+  const onboardingStatus = {
+    loading: primaryCTA.loading,
+    hasProfile: primaryCTA.isInvestor,
+    isCompleted: primaryCTA.isInvestor,
     currentStep: 1,
-    loading: true,
-  });
-
-  /* Auth session listener */
-  useEffect(() => {
-    if (!config.supabaseClient) return;
-
-    config.supabaseClient.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-    });
-
-    const { data: { subscription } } = config.supabaseClient.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-
-    return () => subscription?.unsubscribe();
-  }, []);
-
-  /* Check onboarding status when logged in */
-  useEffect(() => {
-    async function checkUserStatus() {
-      if (!session?.user?.id || !config.supabaseClient) {
-        setOnboardingStatus(prev => ({ ...prev, loading: false }));
-        return;
-      }
-
-      try {
-        const { data: profile, error: profileError } = await config.supabaseClient
-          .from('investor_profiles')
-          .select('id, user_confirmed')
-          .eq('user_id', session.user.id)
-          .maybeSingle();
-
-        const { data: onboarding } = await config.supabaseClient
-          .from('onboarding_data')
-          .select('is_completed, current_step')
-          .eq('user_id', session.user.id)
-          .maybeSingle();
-
-        setOnboardingStatus({
-          hasProfile: !!profile && !profileError,
-          isCompleted: onboarding?.is_completed || false,
-          currentStep: onboarding?.current_step || 1,
-          loading: false,
-        });
-      } catch (error) {
-        console.error('Error checking user status:', error);
-        setOnboardingStatus(prev => ({ ...prev, loading: false }));
-      }
-    }
-
-    if (session?.user?.id) {
-      checkUserStatus();
-    } else {
-      setOnboardingStatus(prev => ({ ...prev, loading: false }));
-    }
-  }, [session?.user?.id]);
-
-  /* Dynamic CTA based on auth + onboarding state */
-  const getPrimaryCTA = () => {
-    if (!session) {
-      return { text: "Complete Your Hushh Profile", action: () => navigate(FINANCIAL_LINK_ROUTE), loading: false };
-    }
-    if (onboardingStatus.loading) {
-      return { text: "Loading...", action: () => {}, loading: true };
-    }
-    if (onboardingStatus.hasProfile || onboardingStatus.isCompleted) {
-      return { text: "View Your Profile", action: () => navigate("/hushh-user-profile"), loading: false };
-    }
-    if (onboardingStatus.currentStep > 1) {
-      const cta = getContinueOnboardingCta(onboardingStatus.currentStep);
-      return {
-        text: cta.text,
-        action: () => navigate(cta.route),
-        loading: false,
-      };
-    }
-    return { text: "Complete Your Hushh Profile", action: () => navigate("/onboarding/financial-link"), loading: false };
   };
-
-  const primaryCTA = getPrimaryCTA();
 
   /* ─── RENDER ─── */
   return (

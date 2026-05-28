@@ -61,6 +61,7 @@ import VerifyIdentityPage from './pages/onboarding/verify-identity/ui';
 import VerifyCompletePage from './pages/onboarding/verify-complete/ui';
 import MeetCeoPage from './pages/onboarding/meet-ceo/ui';
 import OnboardingAccessDeniedPage from './pages/onboarding/access-denied/ui';
+import SignedOutPage from './pages/signed-out/ui';
 import InvestorGuidePage from './pages/onboarding/InvestorGuide';
 import ReceiptGeneratorPage from './pages/receipt-generator';
 import DeveloperDocsPage from './pages/developer-docs';
@@ -208,6 +209,8 @@ function App() {
 
             } />
             <Route path="/auth/callback" element={<AuthCallback />} />
+            {/* Public goodbye / signed-out acknowledgement (PD-5) */}
+            <Route path="/signed-out" element={<SignedOutPage />} />
             {/* Investor Onboarding Guide - Public landing page */}
             <Route path="/investor-guide" element={<InvestorGuidePage />} />
             {/* Financial Link — mandatory pre-step before onboarding */}

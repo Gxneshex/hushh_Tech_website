@@ -10,7 +10,11 @@ const navigateMock = vi.hoisted(() => vi.fn());
 vi.mock("../src/pages/home/logic", () => ({
   useHomeLogic: () => ({
     primaryCTA: {
-      text: "Complete Your Hushh Profile",
+      // PD-6 / fix for the home page label-override bug: the hook now
+      // returns an honest label that the page renders verbatim. The
+      // previous test asserted "Invest with Hushh" because the page used
+      // to ignore primaryCTA.text and render that string regardless.
+      text: "Start investing",
       action: navigateMock,
       loading: false,
     },
@@ -58,7 +62,7 @@ describe("HomePage focus order", () => {
     const buttons = Array.from(container.querySelectorAll("button"));
 
     expect(buttons.map((button) => button.textContent?.trim())).toEqual([
-      "Invest with Hushh",
+      "Start investing",
       "Discover Fund A",
       "Performance details",
       "Holdings",

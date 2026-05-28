@@ -6,14 +6,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import config from '../../resources/config/config';
-import {
-  FINANCIAL_LINK_ROUTE,
-  getContinueOnboardingCta,
-  hasClearedFinancialLink,
-} from '../../services/onboarding/flow';
 import { useAuthSession } from '../../auth/AuthSessionProvider';
 import { checkAccessStatus } from '../../services/access/accessControlApi';
 import { fetchResolvedOnboardingProgress } from '../../services/onboarding/progress';
+import { useInvestorJourneyCta } from '../../hooks/useInvestorJourneyCta';
 
 export function useProfileLogic() {
   const navigate = useNavigate();
@@ -21,7 +17,13 @@ export function useProfileLogic() {
   const [ndaApproved, setNdaApproved] = useState(false);
   const ndaCheckedRef = useRef(false);
 
-  /* onboarding status */
+  // CTA is delegated to the shared journey hook so this page no longer
+  // re-implements the "where should this user go next" state machine.
+  const { primaryCTA } = useInvestorJourneyCta();
+
+  /* onboarding status — read once to feed the page's other UI affordances
+     (e.g., shimmer state, completion badges). The CTA itself comes from
+     the journey hook above and is no longer derived locally. */
   const [onboardingStatus, setOnboardingStatus] = useState<{
     hasProfile: boolean;
     isCompleted: boolean;
@@ -36,7 +38,6 @@ export function useProfileLogic() {
     loading: true,
   });
 
-  /* check onboarding status (once when session loads) */
   useEffect(() => {
     if (!session?.user?.id || !config.supabaseClient) {
       setOnboardingStatus((prev) => ({ ...prev, loading: false }));
@@ -92,31 +93,6 @@ export function useProfileLogic() {
     checkNda();
   }, [session?.access_token]);
 
-  /* primary CTA content based on onboarding status */
-  const getPrimaryCTAContent = () => {
-    if (onboardingStatus.loading) {
-      return { text: 'Loading...', action: () => {} };
-    }
-    if (onboardingStatus.hasProfile || onboardingStatus.isCompleted) {
-      return {
-        text: 'View Your Profile',
-        action: () => navigate('/hushh-user-profile'),
-      };
-    }
-    if (hasClearedFinancialLink(onboardingStatus.financialLinkStatus)) {
-      const cta = getContinueOnboardingCta(onboardingStatus.currentStep);
-      return {
-        text: cta.text,
-        action: () => navigate(cta.route),
-      };
-    }
-    return {
-      text: 'Complete Your Hushh Profile',
-      action: () => navigate(FINANCIAL_LINK_ROUTE),
-    };
-  };
-
-  const primaryCTA = getPrimaryCTAContent();
   const handleDiscoverFundA = () => navigate('/discover-fund-a');
 
   return {

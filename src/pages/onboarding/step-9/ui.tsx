@@ -154,6 +154,13 @@ export default function OnboardingStep9() {
     latestReviewStatus,
     uxState,
     flashBanner,
+    canStartOver,
+    isStartOverConfirmOpen,
+    isStartingOver,
+    startOverError,
+    openStartOverConfirm,
+    closeStartOverConfirm,
+    handleConfirmStartOver,
     getUnits,
     setFirstPaymentAmount,
     handleBack,
@@ -427,6 +434,19 @@ export default function OnboardingStep9() {
                   email link, or sign back in to continue here.
                 </p>
               )}
+
+              {canStartOver && (
+                <p className="pt-3 text-center text-[12px] text-[#1D1D1F]/45">
+                  Changed your mind about Hushh Fund?{" "}
+                  <button
+                    type="button"
+                    onClick={openStartOverConfirm}
+                    className="font-medium text-[#0066CC] underline hover:opacity-80"
+                  >
+                    Start onboarding over
+                  </button>
+                </p>
+              )}
             </section>
 
             <section className="flex flex-col items-center justify-center gap-2 pb-8 text-center">
@@ -443,6 +463,67 @@ export default function OnboardingStep9() {
           </>
         )}
       </main>
+
+      {isStartOverConfirmOpen && (
+        <>
+          <div className="fixed inset-0 z-40 bg-[#000000]/35 backdrop-blur-[14px]" />
+          <div className="fixed inset-0 z-50 flex items-end justify-center px-4 pb-6 sm:items-center sm:pb-0">
+            <section
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="start-over-title"
+              className="w-full max-w-[390px] rounded-[24px] bg-white p-5 text-[#1D1D1F] shadow-[0_24px_72px_rgba(0,0,0,0.22)]"
+            >
+              <div className="mb-5 text-center">
+                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#FF9500]/12">
+                  <span
+                    className="material-symbols-outlined text-[22px] text-[#B45309]"
+                    style={{ fontVariationSettings: "'wght' 300" }}
+                  >
+                    refresh
+                  </span>
+                </div>
+                <h2 id="start-over-title" className="text-[19px] font-semibold text-[#1D1D1F]">
+                  Start onboarding over?
+                </h2>
+                <p className="mx-auto mt-2 max-w-[320px] text-[14px] leading-5 text-[#1D1D1F]/65">
+                  This clears your fund commitment selections, KYC details, and
+                  bank link. Payment receipts on Stripe are preserved. You'll
+                  begin at the financial-link step.
+                </p>
+              </div>
+
+              {startOverError && (
+                <div className="mb-4 rounded-[16px] bg-[#FF3B30]/10 p-3 text-center shadow-[inset_0_0_0_1px_rgba(255,59,48,0.18)]">
+                  <p className="text-[12px] font-medium text-[#B42318]">{startOverError}</p>
+                </div>
+              )}
+
+              <div className="space-y-3">
+                <HushhTechCta
+                  variant={HushhTechCtaVariant.BLACK}
+                  onClick={handleConfirmStartOver}
+                  disabled={isStartingOver}
+                  className={primaryCtaClass}
+                >
+                  {isStartingOver && (
+                    <span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  )}
+                  Start over
+                </HushhTechCta>
+                <HushhTechCta
+                  variant={HushhTechCtaVariant.WHITE}
+                  onClick={closeStartOverConfirm}
+                  disabled={isStartingOver}
+                  className={secondaryCtaClass}
+                >
+                  Cancel
+                </HushhTechCta>
+              </div>
+            </section>
+          </div>
+        </>
+      )}
     </div>
   );
 }
