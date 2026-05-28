@@ -61,6 +61,7 @@ export const DELETE_ACCOUNT_SCHEMA_COVERED_TABLES = [
   "plaid_accounts",
   "plaid_data_events",
   "plaid_items",
+  "plaid_link_diagnostics",
   "plaid_product_sync_statuses",
   "plaid_statement_metadata",
   "plaid_sync_cursors",

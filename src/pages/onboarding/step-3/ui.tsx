@@ -12,6 +12,7 @@ import {
   PROGRESS_PCT,
 } from "./logic";
 import HushhTechBackHeader from "../../../components/hushh-tech-back-header/HushhTechBackHeader";
+import OnboardingBankReviewChip from "../../../components/onboarding-bank-review-chip/OnboardingBankReviewChip";
 import HushhTechCta, {
   HushhTechCtaVariant,
 } from "../../../components/hushh-tech-cta/HushhTechCta";
@@ -58,6 +59,7 @@ export default function OnboardingStep3Combined() {
       >
         {/* ═══ Header ═══ */}
         <HushhTechBackHeader onBackClick={s.handleBack} rightLabel="FAQs" />
+        <OnboardingBankReviewChip />
 
         <main className="mx-auto w-full max-w-[640px] flex-grow px-4 pb-48 sm:px-5">
           {/* ── Progress Bar ── */}

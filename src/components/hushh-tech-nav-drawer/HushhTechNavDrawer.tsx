@@ -210,6 +210,27 @@ const HushhTechNavDrawer: React.FC<HushhTechNavDrawerProps> = ({
             ))}
           </div>
 
+          {/* P0.G — Manage onboarding quick link. Renders only for signed-in
+              users who have not yet been verified (the journey CTA exposes
+              isInvestor=false for those states). Gives a single-click path to
+              FL review mode from any page in the app. */}
+          {isAuthenticated && !primaryCTA.isInvestor && !primaryCTA.loading && (
+            <button
+              type="button"
+              onClick={() => handleNavigate("/onboarding/financial-link?mode=review")}
+              className="mt-3 flex w-full items-center justify-between rounded-[16px] bg-[#FFFFFF] px-4 py-3 text-left text-[14px] font-medium text-[#1D1D1F] transition active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066CC]/35"
+              style={{ fontFamily: appleFont }}
+            >
+              <span className="flex items-center gap-3">
+                <span className="material-symbols-outlined text-[18px] text-[#0066CC]">
+                  account_balance
+                </span>
+                <span>Review bank connection</span>
+              </span>
+              {Icon.arrowRight(SYS.blue, 14)}
+            </button>
+          )}
+
           <div className="pt-7">
             {isAuthenticated ? (
               <div className="space-y-3">

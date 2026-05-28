@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import config from '../../../resources/config/config';
 import HushhTechBackHeader from '../../../components/hushh-tech-back-header/HushhTechBackHeader';
+import OnboardingBankReviewChip from '../../../components/onboarding-bank-review-chip/OnboardingBankReviewChip';
 import HushhTechCta, {
   HushhTechCtaVariant,
 } from '../../../components/hushh-tech-cta/HushhTechCta';
@@ -199,6 +200,7 @@ export default function OnboardingReviewStep() {
       style={{ fontFamily: appleFont }}
     >
       <HushhTechBackHeader onBackClick={() => navigate('/onboarding/step-7')} rightLabel="FAQs" />
+      <OnboardingBankReviewChip />
 
       <main className="mx-auto w-full max-w-[680px] flex-grow px-4 pb-48 sm:px-5">
         <div className="pb-6 pt-5">

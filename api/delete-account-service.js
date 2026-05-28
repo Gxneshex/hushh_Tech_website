@@ -685,6 +685,7 @@ async function purgeUserData(adminClient, userId, context) {
   await deleteEq(adminClient, "fund_investment_plans", "user_id", userId);
   await deleteEq(adminClient, "plaid_data_events", "user_id", userId);
   await deleteIn(adminClient, "plaid_data_events", "plaid_item_id", context.plaidItemIds);
+  await deleteEq(adminClient, "plaid_link_diagnostics", "user_id", userId);
   await deleteEq(adminClient, "plaid_product_sync_statuses", "user_id", userId);
   await deleteEq(adminClient, "plaid_statement_metadata", "user_id", userId);
   await deleteEq(adminClient, "plaid_transfer_accounts", "user_id", userId);

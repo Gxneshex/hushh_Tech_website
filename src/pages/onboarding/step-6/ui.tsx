@@ -10,6 +10,7 @@ import {
   MONTH_NAMES,
 } from "./logic";
 import HushhTechBackHeader from "../../../components/hushh-tech-back-header/HushhTechBackHeader";
+import OnboardingBankReviewChip from "../../../components/onboarding-bank-review-chip/OnboardingBankReviewChip";
 import HushhTechCta, {
   HushhTechCtaVariant,
 } from "../../../components/hushh-tech-cta/HushhTechCta";
@@ -42,6 +43,7 @@ export default function OnboardingStep9() {
     <div className="bg-white text-gray-900 min-h-screen antialiased flex flex-col selection:bg-hushh-blue selection:text-white">
       {/* ═══ Header ═══ */}
       <HushhTechBackHeader onBackClick={handleBack} rightLabel="FAQs" />
+      <OnboardingBankReviewChip />
 
       <main className="px-6 flex-grow max-w-md mx-auto w-full pb-48">
         {/* ── Progress Bar ── */}

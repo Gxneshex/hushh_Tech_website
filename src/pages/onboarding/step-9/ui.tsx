@@ -169,8 +169,20 @@ export default function OnboardingStep9() {
     openPaymentLink,
   } = useStep13Logic();
 
-  const canReconnectPlaid =
-    !hasPlaidVerificationData && financialLinkStatus === "skipped";
+  // P0.A — Universal "manage bank" affordance. Earlier this only surfaced
+  // for users who explicitly skipped Plaid; now we show it for connected
+  // users too (worded as "Change linked bank"), so any user can jump into
+  // FL review mode without having to back-chain through every KYC step.
+  // Hidden once payment is paid+/verified because investor access locks
+  // the bank anyway.
+  const isInvestorActive =
+    uxState === "payment_in_review" || uxState === "verified";
+  const canManageBank = !isInvestorActive;
+  const manageBankCopy = hasPlaidVerificationData
+    ? "Change your linked bank"
+    : financialLinkStatus === "skipped"
+      ? "Connect a bank to speed up review"
+      : "Connect a bank";
 
   return (
     <div
@@ -306,15 +318,17 @@ export default function OnboardingStep9() {
                   border={false}
                 />
               )}
-              {canReconnectPlaid && (
+              {canManageBank && (
                 <div className="mt-2 px-1 pb-1">
                   <button
                     type="button"
                     onClick={() => navigate(FINANCIAL_LINK_REVIEW_ROUTE)}
                     className="w-full rounded-[14px] bg-white px-4 py-3 text-left text-[13px] font-medium text-[#0066CC] shadow-[inset_0_0_0_1px_rgba(0,102,204,0.18)] transition hover:bg-[#0066CC]/[0.04]"
                   >
-                    <span className="material-symbols-outlined align-middle text-[16px]">add_link</span>
-                    <span className="ml-2 align-middle">Connect bank now to speed up review</span>
+                    <span className="material-symbols-outlined align-middle text-[16px]">
+                      {hasPlaidVerificationData ? "swap_horiz" : "add_link"}
+                    </span>
+                    <span className="ml-2 align-middle">{manageBankCopy}</span>
                   </button>
                 </div>
               )}

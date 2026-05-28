@@ -29,6 +29,11 @@ import {
   getInvestorAccessState,
   getResumeRouteForState,
 } from '../../../services/investorAccess/state';
+import {
+  beginPlaidSession,
+  installGlobalPlaidErrorListener,
+  logPlaidEvent,
+} from '../../../services/plaid/plaidDiagnostics';
 
 export { formatCurrency };
 
@@ -168,6 +173,59 @@ export const useFinancialLinkLogic = () => {
   /* Scroll to top */
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
+  /* Plaid Link diagnostics — fire a fresh session id on every financial-link
+     mount so each user attempt clusters together in the
+     plaid_link_diagnostics table. The global window error listener is
+     idempotent and captures Plaid CDN findScriptTag failures even when
+     they bubble outside our React tree. */
+  useEffect(() => {
+    installGlobalPlaidErrorListener();
+    const sessionId = beginPlaidSession();
+    logPlaidEvent('financial_link_mount', {
+      pageState: {
+        sessionId,
+        isReviewMode,
+        useSandboxDirectConnect,
+        blockLocalPlaidLink,
+      },
+    });
+    return () => {
+      logPlaidEvent('financial_link_unmount', {
+        pageState: { sessionId, isReviewMode },
+      });
+    };
+  }, [isReviewMode, useSandboxDirectConnect, blockLocalPlaidLink]);
+
+  /* P0.F — Cross-tab BroadcastChannel listener. If another tab unlinks the
+     Plaid bank, this tab forces a Plaid state reset so the UI does not show
+     stale "Connected" data. */
+  useEffect(() => {
+    if (typeof BroadcastChannel === 'undefined') return;
+    let channel: BroadcastChannel;
+    try {
+      channel = new BroadcastChannel('hushh:plaid-state');
+    } catch {
+      return;
+    }
+    const handle = (event: MessageEvent) => {
+      const payload = event.data as { type?: string; userId?: string } | null;
+      if (!payload || payload.type !== 'unlinked') return;
+      if (payload.userId && userId && payload.userId !== userId) return;
+      console.log('[FinancialLink] Cross-tab unlink received, refreshing state');
+      try {
+        sessionStorage.removeItem('plaid_link_state');
+      } catch {
+        // ignore
+      }
+      plaid.retry();
+    };
+    channel.addEventListener('message', handle);
+    return () => {
+      channel.removeEventListener('message', handle);
+      channel.close();
+    };
+  }, [plaid, userId]);
+
   /* Get authenticated user — runs only once */
   useEffect(() => {
     if (hasInitialized.current) return;
@@ -211,12 +269,47 @@ export const useFinancialLinkLogic = () => {
         // skip past financial-link entirely and land them on the right
         // post-payment surface. Falls back to the legacy continuation route
         // when no payment state is set yet.
+        //
+        // CRITICAL guards that suppress this redirect:
+        // 1. `?mode=review`: user explicitly came to manage their bank.
+        // 2. `?oauth_state_id=...`: Plaid is mid-OAuth-resume — Plaid drops
+        //    our `mode=review` param when it redirects back from the bank,
+        //    so we must detect the resume independently.
+        // If we redirect during either case, React unmounts the page before
+        // Plaid Link can finish its OAuth resume, the SDK fails its
+        // findScriptTag() lookup, the console logs
+        //   "Failed to find script" from cdn.plaid.com/link/v2/stable/...
+        // and the user sees Plaid's "Something went wrong" modal.
+        const isPlaidOAuthResume = new URLSearchParams(location.search).has('oauth_state_id');
+        const suppressResumeRedirect = isReviewMode || isPlaidOAuthResume;
+        if (suppressResumeRedirect) {
+          logPlaidEvent('financial_link_redirect_suppressed', {
+            userId: user.id,
+            pageState: {
+              isReviewMode,
+              isPlaidOAuthResume,
+              isCompleted: Boolean(onboardingProgress?.is_completed),
+              accessStatePreCompute: getInvestorAccessState(onboardingProgress),
+            },
+          });
+        }
+
         const accessState = getInvestorAccessState(onboardingProgress);
         if (
-          accessState === 'verified_investor' ||
-          accessState === 'payment_in_review' ||
-          accessState === 'rejected_investor'
+          !suppressResumeRedirect &&
+          (accessState === 'verified_investor' ||
+            accessState === 'payment_in_review' ||
+            accessState === 'rejected_investor')
         ) {
+          logPlaidEvent('financial_link_resume_redirect', {
+            userId: user.id,
+            pageState: {
+              accessState,
+              isPlaidOAuthResume,
+              isReviewMode,
+              currentStep: onboardingProgress?.current_step,
+            },
+          });
           navigate(
             getResumeRouteForState(accessState, onboardingProgress?.current_step),
             { replace: true },
@@ -224,7 +317,15 @@ export const useFinancialLinkLogic = () => {
           return;
         }
 
-        if (onboardingProgress?.is_completed) {
+        if (onboardingProgress?.is_completed && !suppressResumeRedirect) {
+          logPlaidEvent('financial_link_completed_redirect', {
+            userId: user.id,
+            pageState: {
+              isPlaidOAuthResume,
+              isReviewMode,
+              currentStep: onboardingProgress?.current_step,
+            },
+          });
           navigate(
             getResumeRouteForState(accessState, onboardingProgress?.current_step),
             { replace: true },
@@ -238,7 +339,7 @@ export const useFinancialLinkLogic = () => {
         setCurrentOnboardingStep(onboardingProgress?.current_step || 1);
         setResumeRoute(nextRoute);
 
-        if (effectiveStatus !== 'pending' && !isReviewMode) {
+        if (effectiveStatus !== 'pending' && !suppressResumeRedirect) {
           navigate(nextRoute, { replace: true });
           return;
         }
@@ -612,6 +713,17 @@ export const useFinancialLinkLogic = () => {
         current_step: currentOnboardingStep,
         financial_link_status: 'pending',
       });
+      // P0.F — Broadcast unlink to other tabs so stale UI corrects itself
+      // without waiting for the next focus / poll.
+      try {
+        if (typeof BroadcastChannel !== 'undefined') {
+          const channel = new BroadcastChannel('hushh:plaid-state');
+          channel.postMessage({ type: 'unlinked', userId, at: Date.now() });
+          channel.close();
+        }
+      } catch {
+        // BroadcastChannel may be unavailable (older browsers, embedded webviews).
+      }
       plaid.retry();
     } catch (err) {
       const message = err instanceof Error

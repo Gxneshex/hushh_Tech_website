@@ -48,11 +48,21 @@ describe("onboarding flow helpers", () => {
     expect(step1Logic).toContain("navigate(FINANCIAL_LINK_REVIEW_ROUTE)");
   });
 
-  it("keeps completed financial-link users on the page only in review mode", () => {
+  it("keeps completed financial-link users on the page only in review mode or mid-OAuth", () => {
     const financialLinkLogic = readRepoFile("src/pages/onboarding/financial-link/logic.ts");
 
     expect(financialLinkLogic).toContain("isFinancialLinkReviewMode(location.search)");
-    expect(financialLinkLogic).toContain("effectiveStatus !== 'pending' && !isReviewMode");
+    // The legacy redirect now consults a combined "suppress" guard that
+    // honors both `?mode=review` and an in-flight Plaid OAuth resume
+    // (oauth_state_id). The previous bug where a paid user landed on
+    // financial-link mid-OAuth and was unmounted before Plaid Link could
+    // finish — surfacing as "Failed to find script" / "Something went
+    // wrong" — is prevented by this guard.
+    expect(financialLinkLogic).toContain(
+      "effectiveStatus !== 'pending' && !suppressResumeRedirect",
+    );
+    expect(financialLinkLogic).toContain("isPlaidOAuthResume");
+    expect(financialLinkLogic).toContain("oauth_state_id");
     expect(financialLinkLogic).toContain("handleBack");
   });
 });

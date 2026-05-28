@@ -21,6 +21,7 @@ import {
   resolvePlaidRedirectUri,
   shouldUsePlaidRedirectUri,
 } from './redirect';
+import { endPlaidSession, logPlaidEvent } from './plaidDiagnostics';
 
 // =====================================================
 // Types
@@ -385,6 +386,11 @@ export const usePlaidLinkHook = (
         const resumeState = loadOAuthResumeState(userId);
         if (!resumeState) {
           console.warn('[Plaid] OAuth resume token missing or expired; restarting is required');
+          logPlaidEvent('oauth_resume_session_missing', {
+            plaidStep: 'error',
+            userId,
+            errorDetails: { oauthStateId },
+          });
           setState(s => ({
             ...s,
             step: 'error',
@@ -394,6 +400,11 @@ export const usePlaidLinkHook = (
           return;
         }
 
+        logPlaidEvent('oauth_resume_recovered', {
+          plaidStep: 'ready',
+          userId,
+          plaidMetadata: { oauthStateId },
+        });
         expirationRef.current = resumeState.expiration;
         setState(s => ({ ...s, step: 'ready', linkToken: resumeState.linkToken }));
       } else {
@@ -419,6 +430,14 @@ export const usePlaidLinkHook = (
       }
     } catch (err: any) {
       console.error('[Plaid] ❌ Token creation failed:', err);
+      logPlaidEvent('create_link_token_failed', {
+        plaidStep: 'error',
+        userId,
+        errorDetails: {
+          message: err?.message || 'Failed to initialize',
+          stack: err?.stack ? String(err.stack).slice(0, 2048) : null,
+        },
+      });
       setState(s => ({ ...s, step: 'error', error: err.message || 'Failed to initialize' }));
     }
   }, [userId, userEmail, getOAuthState, getRedirectUri]);
@@ -526,6 +545,16 @@ export const usePlaidLinkHook = (
       id: metadata.institution?.institution_id || '',
     };
 
+    logPlaidEvent('plaid_link_success', {
+      plaidStep: 'exchanging',
+      userId,
+      plaidMetadata: {
+        institutionName: inst.name,
+        institutionId: inst.id,
+        accountsCount: metadata.accounts?.length ?? 0,
+      },
+    });
+
     setState(s => ({
       ...s, step: 'exchanging', institution: inst,
       balanceStatus: 'loading', assetsStatus: 'loading', investmentsStatus: 'loading',
@@ -536,6 +565,11 @@ export const usePlaidLinkHook = (
       console.log('[Plaid] Exchanging token...');
       const exchange = await exchangeToken(publicToken, userId, inst.name, inst.id, metadata.accounts);
       console.log('[Plaid] ✅ Exchange done:', { item_id: exchange.item_id });
+      logPlaidEvent('exchange_token_succeeded', {
+        plaidStep: 'fetching',
+        userId,
+        plaidMetadata: { itemId: exchange.item_id, institutionId: inst.id },
+      });
       clearOAuthResumeState(userId);
 
       setState(s => ({ ...s, step: 'fetching' }));
@@ -576,12 +610,32 @@ export const usePlaidLinkHook = (
         productsAvailable: result.summary.products_available,
       }));
 
+      logPlaidEvent('plaid_link_done', {
+        plaidStep: 'done',
+        userId,
+        plaidMetadata: {
+          itemId: syncResult.item_id || exchange.item_id,
+          institutionId: inst.id,
+          canProceed: result.summary.can_proceed,
+          productsAvailable: result.summary.products_available,
+        },
+      });
+      endPlaidSession();
+
       // Poll assets if pending
       if (getProductStatus(result.assets) === 'pending' && result.assets.data?.asset_report_token) {
         pollAssets(result.assets.data.asset_report_token);
       }
     } catch (err: any) {
       console.error('[Plaid] ❌ Error:', err);
+      logPlaidEvent('exchange_or_sync_failed', {
+        plaidStep: 'error',
+        userId,
+        errorDetails: {
+          message: err?.message || 'Failed to connect',
+          stack: err?.stack ? String(err.stack).slice(0, 2048) : null,
+        },
+      });
       setState(s => ({
         ...s, step: 'error', error: err.message || 'Failed to connect',
         balanceStatus: 'error', assetsStatus: 'error', investmentsStatus: 'error',
@@ -592,6 +646,22 @@ export const usePlaidLinkHook = (
   // Handle exit
   const handleExit: PlaidLinkOnExit = useCallback((err, metadata) => {
     console.log('[Plaid] 🚪 onExit', { error: err, status: metadata?.status });
+    logPlaidEvent('plaid_link_exit', {
+      userId,
+      plaidMetadata: {
+        exitStatus: metadata?.status || null,
+        institutionName: metadata?.institution?.name || null,
+        requestId: metadata?.request_id || null,
+      },
+      errorDetails: err
+        ? {
+            errorCode: err.error_code || null,
+            errorType: err.error_type || null,
+            errorMessage: err.error_message || null,
+            displayMessage: err.display_message || null,
+          }
+        : {},
+    });
     if (err) {
       clearOAuthResumeState(userId);
       setState(s => ({
@@ -604,6 +674,28 @@ export const usePlaidLinkHook = (
   // Log events
   const handleEvent: PlaidLinkOnEvent = useCallback((eventName, metadata) => {
     console.log(`[Plaid] 📡 ${eventName}`, metadata);
+    // Mirror the SDK event stream so we can replay user attempts. Skip the
+    // noisy heartbeat events; only ship view transitions + errors.
+    const interesting =
+      typeof eventName === 'string' &&
+      (eventName.includes('ERROR') ||
+        eventName.includes('SUBMIT') ||
+        eventName.includes('OPEN') ||
+        eventName.includes('TRANSITION_VIEW') ||
+        eventName.includes('EXIT') ||
+        eventName.includes('SELECT_INSTITUTION') ||
+        eventName.includes('HANDOFF'));
+    if (!interesting) return;
+    logPlaidEvent('plaid_sdk_event', {
+      plaidMetadata: {
+        eventName: String(eventName),
+        viewName: metadata?.view_name || null,
+        errorCode: metadata?.error_code || null,
+        errorMessage: metadata?.error_message || null,
+        institutionName: metadata?.institution_name || null,
+        requestId: metadata?.request_id || null,
+      },
+    });
   }, []);
 
   // Asset polling

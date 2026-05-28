@@ -311,6 +311,20 @@ export default function OnboardingFinancialLink() {
           </div>
         )}
 
+        {/* P0.E — Partial Plaid: bank connected but core products missing.
+             User sees "Try Again" button on the primary CTA but without this
+             banner they don't know why their bank looks linked yet still
+             can't proceed. */}
+        {isDone && !canProceed && (
+          <div className="mt-4 rounded-[16px] bg-[#FF9500]/10 p-3 text-center shadow-[inset_0_0_0_1px_rgba(255,149,0,0.2)]">
+            <p className="text-[12px] font-medium leading-[1.45] text-[#B45309]">
+              Your bank connected but some verification data didn't sync.
+              Press <strong>Try Again</strong> to refresh, switch banks, or
+              skip and continue with manual review.
+            </p>
+          </div>
+        )}
+
         {changeBankError && (
           <div className="mt-4 rounded-[16px] bg-[#FF3B30]/10 p-3 text-center shadow-[inset_0_0_0_1px_rgba(255,59,48,0.18)]">
             <p className="text-[12px] font-medium text-[#B42318]">{changeBankError}</p>
@@ -406,14 +420,31 @@ export default function OnboardingFinancialLink() {
                 <h2 id="change-bank-title" className="text-[19px] font-semibold text-[#1D1D1F]">
                   Change linked bank?
                 </h2>
-                <p className="mx-auto mt-2 max-w-[300px] text-[14px] leading-5 text-[#1D1D1F]/65">
-                  This disconnects the current Plaid bank before any transfer starts. Your fund selections stay saved.
+                <p className="mx-auto mt-2 max-w-[320px] text-[14px] leading-5 text-[#1D1D1F]/65">
+                  This permanently disconnects the current Plaid bank. Once
+                  removed, the old bank's data cannot be restored. If your new
+                  bank connection fails, you can retry or skip verification.
+                  Your fund selections stay saved.
                 </p>
               </div>
 
               {changeBankError && (
                 <div className="mb-4 rounded-[16px] bg-[#FF3B30]/10 p-3 text-center shadow-[inset_0_0_0_1px_rgba(255,59,48,0.18)]">
                   <p className="text-[12px] font-medium text-[#B42318]">{changeBankError}</p>
+                  {/* P0.C — When a paid user hits the transfer lock, surface
+                       a direct path to support so they don't bounce off. */}
+                  {changeBankError.toLowerCase().includes("locked after transfer setup starts") && (
+                    <p className="mt-2 text-[11px] leading-[1.45] text-[#B42318]">
+                      Need to change the bank on a verified investor account?{" "}
+                      <a
+                        href="mailto:support@hushh.ai?subject=Change%20linked%20bank%20after%20transfer%20setup"
+                        className="font-semibold underline"
+                      >
+                        Email support@hushh.ai
+                      </a>
+                      .
+                    </p>
+                  )}
                 </div>
               )}
 
