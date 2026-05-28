@@ -33,8 +33,17 @@ const mockLinkTokenResponse = {
 
 /** Mock exchange token response */
 const mockExchangeResponse = {
-  access_token: MOCK_ACCESS_TOKEN,
   item_id: MOCK_ITEM_ID,
+  institution: { name: 'First Platypus Bank', id: 'ins_109508' },
+  accounts: [
+    {
+      account_id: 'acc-checking-001',
+      name: 'Plaid Checking',
+      mask: '0000',
+      type: 'depository',
+      subtype: 'checking',
+    },
+  ],
 };
 
 /** Mock balance response — sandbox checking + savings */
@@ -196,7 +205,7 @@ describe('Plaid Integration — API Tests', () => {
   // 2. Exchange Public Token
   // -------------------------------------------------
   describe('2. Exchange Public Token', () => {
-    it('should exchange public token for access token', async () => {
+    it('should exchange public token without returning a Plaid access token', async () => {
       global.fetch = vi.fn().mockResolvedValueOnce({
         ok: true,
         json: () => Promise.resolve(mockExchangeResponse),
@@ -214,8 +223,10 @@ describe('Plaid Integration — API Tests', () => {
       });
       const data = await res.json();
 
-      expect(data.access_token).toBe(MOCK_ACCESS_TOKEN);
+      expect(data.access_token).toBeUndefined();
+      expect(data.accessToken).toBeUndefined();
       expect(data.item_id).toBe(MOCK_ITEM_ID);
+      expect(data.accounts[0].mask).toBe('0000');
     });
 
     it('should fail without publicToken', async () => {

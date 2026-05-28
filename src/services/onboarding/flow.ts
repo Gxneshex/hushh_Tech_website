@@ -1,4 +1,5 @@
 export const FINANCIAL_LINK_ROUTE = '/onboarding/financial-link' as const;
+export const FINANCIAL_LINK_REVIEW_ROUTE = `${FINANCIAL_LINK_ROUTE}?mode=review` as const;
 
 export type FinancialLinkStatus = 'pending' | 'completed' | 'skipped';
 
@@ -109,6 +110,11 @@ export const hasClearedFinancialLink = (value: unknown): boolean =>
 
 export const getCanonicalIncompleteOnboardingRoute = (): typeof FINANCIAL_LINK_ROUTE =>
   FINANCIAL_LINK_ROUTE;
+
+export const isFinancialLinkReviewMode = (search: string): boolean => {
+  const params = new URLSearchParams(search);
+  return params.get('mode') === 'review';
+};
 
 export const getFinancialLinkContinuationRoute = (
   currentStep: number

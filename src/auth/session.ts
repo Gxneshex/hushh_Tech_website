@@ -74,6 +74,41 @@ export function clearLegacyAuthStorage() {
   });
 }
 
+function getSupabaseAuthStorageKey(
+  client: SupabaseClient | undefined = config.supabaseClient
+) {
+  const authStorageKey = (client?.auth as unknown as { storageKey?: unknown })
+    ?.storageKey;
+  if (typeof authStorageKey === "string" && authStorageKey.trim()) {
+    return authStorageKey.trim();
+  }
+
+  try {
+    const projectRef = new URL(config.SUPABASE_URL).hostname.split(".")[0];
+    return projectRef ? `sb-${projectRef}-auth-token` : null;
+  } catch {
+    return null;
+  }
+}
+
+export function clearPersistedSupabaseAuthSession(
+  client: SupabaseClient | undefined = config.supabaseClient
+) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  const baseKey = getSupabaseAuthStorageKey(client);
+  if (!baseKey) {
+    return;
+  }
+
+  const authKeys = [baseKey, `${baseKey}-code-verifier`, `${baseKey}-user`];
+  for (const storage of [window.localStorage, window.sessionStorage]) {
+    authKeys.forEach((key) => storage.removeItem(key));
+  }
+}
+
 export function buildOAuthRedirectTo(
   provider: OAuthProvider,
   search: string = window.location.search,
@@ -380,9 +415,16 @@ export async function getAuthenticatedSession(
 }
 
 export async function clearSupabaseSession(
-  client: SupabaseClient | undefined = config.supabaseClient
+  client: SupabaseClient | undefined = config.supabaseClient,
+  options: { storageOnly?: boolean } = {}
 ) {
   if (!client) {
+    clearPersistedSupabaseAuthSession(client);
+    return;
+  }
+
+  if (options.storageOnly) {
+    clearPersistedSupabaseAuthSession(client);
     return;
   }
 
@@ -390,6 +432,8 @@ export async function clearSupabaseSession(
     await client.auth.signOut({ scope: "local" as any });
   } catch (error) {
     console.warn("[AuthSession] Local sign-out fallback failed:", error);
+  } finally {
+    clearPersistedSupabaseAuthSession(client);
   }
 }
 

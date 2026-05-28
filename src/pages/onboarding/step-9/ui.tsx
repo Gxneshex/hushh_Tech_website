@@ -1,386 +1,443 @@
 /**
- * Step 13 — Bank Details
- * Premium Hushh design matching Step 1-11.
- * Bank form, Plaid account selector, country overlay select.
- * Logic stays in logic.ts — zero logic changes.
+ * Step 9 - Hushh Fund payment request.
  */
+import type { ReactNode } from "react";
+import { useNavigate } from "react-router-dom";
 import {
-  useStep13Logic,
   SHARE_CLASSES,
-  COUNTRIES,
   formatCurrency,
-} from './logic';
-import HushhTechBackHeader from '../../../components/hushh-tech-back-header/HushhTechBackHeader';
+  useStep13Logic,
+} from "./logic";
+import HushhTechBackHeader from "../../../components/hushh-tech-back-header/HushhTechBackHeader";
 import HushhTechCta, {
   HushhTechCtaVariant,
-} from '../../../components/hushh-tech-cta/HushhTechCta';
-import { getOnboardingDisplayMeta } from '../../../services/onboarding/flow';
+} from "../../../components/hushh-tech-cta/HushhTechCta";
+import {
+  FINANCIAL_LINK_REVIEW_ROUTE,
+  getOnboardingDisplayMeta,
+} from "../../../services/onboarding/flow";
+import {
+  AppIcon,
+  Display,
+  Eyebrow,
+  Icon,
+  Lede,
+  appleFont,
+} from "../../../components/hushh-tech-ui/HushhAppleUI";
 
-const DISPLAY_META = getOnboardingDisplayMeta('/onboarding/step-9');
+const DISPLAY_META = getOnboardingDisplayMeta("/onboarding/step-9");
 const PROGRESS_PCT = Math.round((DISPLAY_META.displayStep / DISPLAY_META.totalSteps) * 100);
+const primaryCtaClass =
+  "!rounded-full !border-[#0066CC] !bg-[#0066CC] !text-white !font-medium !tracking-normal !shadow-none";
+const secondaryCtaClass =
+  "!rounded-full !border-[#1D1D1F]/15 !bg-white !text-[#1D1D1F] !font-medium !tracking-normal !shadow-none";
 
-export default function OnboardingStep13() {
+function SoftIcon({
+  icon,
+  active = false,
+}: {
+  icon: string;
+  active?: boolean;
+}) {
+  return (
+    <div
+      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] ${
+        active ? "bg-[#0066CC] text-white" : "bg-white text-[#1D1D1F]/55"
+      }`}
+    >
+      <span
+        className="material-symbols-outlined text-lg"
+        style={{ fontVariationSettings: active ? "'FILL' 1, 'wght' 600" : "'wght' 400" }}
+      >
+        {icon}
+      </span>
+    </div>
+  );
+}
+
+function StatusBanner({
+  tone,
+  children,
+}: {
+  tone: "success" | "error" | "info";
+  children: ReactNode;
+}) {
+  const toneClass = {
+    success: "bg-[#34C759]/10 text-[#1D1D1F]/75",
+    error: "bg-[#FF3B30]/10 text-[#B42318]",
+    info: "bg-[#0066CC]/10 text-[#1D1D1F]/70",
+  }[tone];
+  const icon = tone === "success" ? "check_circle" : tone === "error" ? "error" : "info";
+
+  return (
+    <div className={`mb-4 flex items-center gap-3 rounded-[18px] px-4 py-4 ${toneClass}`}>
+      <SoftIcon icon={icon} active={tone === "success"} />
+      <p className="text-[13px] font-medium leading-[1.45]">{children}</p>
+    </div>
+  );
+}
+
+function SectionCard({
+  title,
+  children,
+  className = "",
+}: {
+  title: string;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <section
+      className={`mb-6 overflow-hidden rounded-[22px] bg-[#F5F5F7] p-4 shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.08)] ${className}`}
+    >
+      <h3 className="mb-3 text-[11px] font-medium uppercase tracking-[1.6px] text-[#0066CC]/85">
+        {title}
+      </h3>
+      {children}
+    </section>
+  );
+}
+
+function FieldRow({
+  icon,
+  label,
+  value,
+  border = true,
+  active = false,
+}: {
+  icon: string;
+  label: string;
+  value: ReactNode;
+  border?: boolean;
+  active?: boolean;
+}) {
+  return (
+    <div className={`${border ? "border-b border-[#1D1D1F]/[0.08]" : ""} py-4`}>
+      <div className="flex items-center gap-4">
+        <SoftIcon icon={icon} active={active} />
+        <div className="min-w-0 flex-1">
+          <p className="mb-1 text-[13px] font-medium text-[#1D1D1F]">{label}</p>
+          <div className="text-[13px] font-normal leading-[1.45] text-[#1D1D1F]/62">
+            {value}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function formatStatus(value?: string | null): string {
+  if (!value) return "Not started";
+  return value.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+export default function OnboardingStep9() {
+  const navigate = useNavigate();
   const {
     loading,
     pageLoading,
     error,
-    autoFillMessage,
+    successMessage,
     plaidAccounts,
-    selectedAccountIdx,
     plaidInstitutionName,
-    bankName,
-    accountHolderName,
-    accountNumber,
-    confirmAccountNumber,
-    routingNumber,
-    bankCity,
-    bankCountry,
-    accountType,
-    formattedOnboardingAccountType,
-    touched,
-    shareUnits,
+    hasPlaidVerificationData,
+    financialLinkStatus,
     totalInvestment,
     hasAnyUnits,
-    bankNameError,
-    accountHolderNameError,
-    accountNumberError,
-    confirmAccountNumberError,
-    routingNumberError,
-    isFormValid,
+    recurringEnabled,
+    recurringSummary,
+    firstPaymentAmount,
+    firstPaymentError,
+    remainingAfterFirstPayment,
+    paymentRequest,
+    latestPaymentStatus,
+    latestReviewStatus,
+    uxState,
+    flashBanner,
     getUnits,
-    handleBlur,
+    setFirstPaymentAmount,
     handleBack,
-    handleSkip,
-    handleContinue,
-    setBankName,
-    setAccountHolderName,
-    setAccountNumber,
-    setConfirmAccountNumber,
-    setRoutingNumber,
-    setBankCity,
-    setAccountType,
-    setSelectedAccountIdx,
-    applyAccountSelection,
-    userModifiedFields,
+    handleCreatePaymentLink,
+    handleContinueToMeetCeo,
+    openPaymentLink,
   } = useStep13Logic();
 
+  const canReconnectPlaid =
+    !hasPlaidVerificationData && financialLinkStatus === "skipped";
+
   return (
-    <div className="bg-white text-gray-900 min-h-screen antialiased flex flex-col selection:bg-hushh-blue selection:text-white">
-      {/* ═══ Header ═══ */}
+    <div
+      className="flex min-h-screen flex-col bg-[#FFFFFF] text-[#1D1D1F] antialiased selection:bg-[#0066CC] selection:text-[#F5F5F7]"
+      style={{ fontFamily: appleFont }}
+    >
       <HushhTechBackHeader onBackClick={handleBack} rightLabel="FAQs" />
 
-      <main className="px-6 flex-grow max-w-md mx-auto w-full pb-48">
-        {/* ── Progress Bar ── */}
-        <div className="py-4">
-          <div className="flex justify-between text-[11px] font-medium uppercase tracking-[1.6px] text-hushh-blue/85 mb-3">
+      <main className="mx-auto w-full max-w-[640px] flex-grow px-4 pb-48 sm:px-5">
+        <div className="pb-6 pt-5">
+          <div className="mb-3 flex justify-between text-[11px] font-medium uppercase tracking-[1.6px] text-[#0066CC]/85">
             <span>Step {DISPLAY_META.displayStep}/{DISPLAY_META.totalSteps}</span>
             <span>{PROGRESS_PCT}% Complete</span>
           </div>
-          <div className="h-0.5 w-full bg-gray-200 rounded-full overflow-hidden">
-            <div className="h-full bg-hushh-blue" style={{ width: `${PROGRESS_PCT}%` }} />
+          <div className="h-1 w-full overflow-hidden rounded-full bg-[#1D1D1F]/10">
+            <div
+              className="h-full rounded-full bg-[#0066CC] transition-all duration-500"
+              style={{ width: `${PROGRESS_PCT}%` }}
+            />
           </div>
         </div>
 
-        {/* ── Title Section ── */}
-        <section className="py-8">
-          <h3 className="text-[11px] tracking-[1.6px] text-hushh-blue/85 uppercase mb-4 font-medium">Final Step</h3>
-          <h1
-            className="text-[2.75rem] leading-[1.06] font-medium text-black tracking-[-0.028em] font-serif"
-            style={{ fontFamily: "'Playfair Display', serif" }}
-          >
-            Bank
-            <br />
-            <span className="text-gray-400 italic font-light">Details</span>
-          </h1>
-          <p className="text-sm text-black/60 mt-[18px] leading-[1.45] font-light">
-            Provide your banking information for investment transfers securely.
-          </p>
+        <section className="pb-8 pt-4 text-center">
+          <div className="mb-6 flex justify-center">
+            <AppIcon kind="dollar" size={58} />
+          </div>
+          <Eyebrow>Final Step</Eyebrow>
+          <Display as="h1" size="xs" maxWidth="max-w-[500px]">
+            Confirm your fund payment.
+          </Display>
+          <Lede className="max-w-[500px]">
+            Stripe collects the first payment while Plaid continues to support
+            verification, financial intelligence, and manual investor review.
+          </Lede>
         </section>
 
-        {/* ── Page Loading Shimmer ── */}
         {pageLoading && (
-          <div className="space-y-4 animate-pulse">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="h-16 bg-gray-100 rounded-xl border-b border-gray-200" />
+          <div className="space-y-3 animate-pulse">
+            {[1, 2, 3, 4].map((i) => (
+              <div
+                key={i}
+                className="flex items-center gap-4 rounded-[18px] bg-[#F5F5F7] p-4 shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.08)]"
+              >
+                <div className="h-10 w-10 rounded-[12px] bg-white" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-3 w-1/3 rounded-full bg-[#1D1D1F]/10" />
+                  <div className="h-3 w-2/3 rounded-full bg-[#1D1D1F]/10" />
+                </div>
+              </div>
             ))}
-            <p className="text-center text-xs text-gray-400 font-light pt-4">Loading your data...</p>
           </div>
         )}
 
-        {/* ── Form Content ── */}
         {!pageLoading && (
           <>
-            {/* Error */}
-            {error && (
-              <div className="mb-6 flex items-center gap-3 py-4 px-1 border-b border-red-100">
-                <div className="w-10 h-10 rounded-full bg-red-50 border border-red-200 flex items-center justify-center shrink-0">
-                  <span className="material-symbols-outlined text-red-500 text-lg" style={{ fontVariationSettings: "'FILL' 1, 'wght' 600" }}>error</span>
-                </div>
-                <p className="text-sm font-medium text-red-700">{error}</p>
-              </div>
+            {flashBanner === "needs_payment" && (
+              <StatusBanner tone="info">
+                Complete your payment below to continue to Meet the CEO.
+              </StatusBanner>
             )}
-
-            {/* Plaid Auto-Fill Banner */}
-            {autoFillMessage && (
-              <div className="mb-6 flex items-center gap-3 py-4 px-1 border-b border-ios-green/20">
-                <div className="w-10 h-10 rounded-full bg-ios-green/10 border border-ios-green/20 flex items-center justify-center shrink-0">
-                  <span className="material-symbols-outlined text-ios-green text-lg" style={{ fontVariationSettings: "'FILL' 1, 'wght' 600" }}>check_circle</span>
-                </div>
-                <p className="text-sm font-medium text-gray-700">{autoFillMessage}</p>
-              </div>
+            {flashBanner === "payment_reversed" && (
+              <StatusBanner tone="error">
+                Your previous payment was reversed. Request a new payment link to continue.
+              </StatusBanner>
             )}
-
-            {/* Multi-Account Selector */}
-            {plaidAccounts.length > 1 && (
-              <section className="mb-6">
-                <div className="py-4">
-                  <h3 className="text-[11px] tracking-[1.6px] text-hushh-blue/85 uppercase font-medium">
-                    {plaidInstitutionName ? `${plaidInstitutionName} — ` : ''}Select Account
-                  </h3>
-                </div>
-                <div className="space-y-2">
-                  {plaidAccounts.map((acct, idx) => {
-                    const isSelected = idx === selectedAccountIdx;
-                    return (
-                      <button
-                        key={acct.accountId || idx}
-                        type="button"
-                        onClick={() => {
-                          setSelectedAccountIdx(idx);
-                          userModifiedFields.current.delete('accountNumber');
-                          userModifiedFields.current.delete('confirmAccountNumber');
-                          userModifiedFields.current.delete('routingNumber');
-                          userModifiedFields.current.delete('accountType');
-                          applyAccountSelection(acct);
-                        }}
-                        className={`w-full flex items-center gap-4 py-4 px-1 border-b transition-all text-left ${
-                          isSelected ? 'border-black' : 'border-gray-200'
-                        }`}
-                      >
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${isSelected ? 'bg-hushh-blue' : 'bg-gray-100'}`}>
-                          <span className={`material-symbols-outlined text-lg ${isSelected ? 'text-white' : 'text-gray-400'}`} style={{ fontVariationSettings: "'wght' 400" }}>account_balance</span>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <span className="text-sm font-semibold text-gray-900 block truncate">{acct.name}</span>
-                          <span className="text-xs text-gray-500 font-medium">{acct.subtype} · ····{acct.mask}</span>
-                        </div>
-                        {isSelected && (
-                          <span className="material-symbols-outlined text-hushh-blue text-lg" style={{ fontVariationSettings: "'FILL' 1, 'wght' 600" }}>check_circle</span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              </section>
+            {uxState === "payment_in_review" && (
+              <StatusBanner tone="success">
+                Payment confirmed. Hushh team is reviewing your application.
+              </StatusBanner>
             )}
+            {uxState === "verified" && (
+              <StatusBanner tone="success">
+                Welcome to Hushh Fund — you are a verified investor.
+              </StatusBanner>
+            )}
+            {error && <StatusBanner tone="error">{error}</StatusBanner>}
+            {successMessage && <StatusBanner tone="success">{successMessage}</StatusBanner>}
 
-            {/* Investment Amount Card */}
-            {hasAnyUnits && (
-              <section className="mb-8">
-                <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
-                  <div className="flex flex-col items-center text-center gap-2">
-                    <span className="text-[11px] tracking-[1.6px] text-hushh-blue/85 uppercase font-medium">Investment Amount</span>
-                    <span className="text-3xl font-bold text-black tracking-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
-                      {formatCurrency(totalInvestment)}
-                    </span>
-                    <div className="flex flex-wrap gap-2 mt-2 justify-center">
-                      {SHARE_CLASSES.map((sc) => {
-                        const units = getUnits(sc.id);
-                        if (units === 0) return null;
-                        return (
-                          <span key={sc.id} className="px-2 py-0.5 text-[10px] font-semibold rounded bg-gray-100 text-gray-600 border border-gray-200">
-                            {sc.name} · {units}
-                          </span>
-                        );
-                      })}
+            <StatusBanner tone="info">
+              Plaid Transfer is under development. Your linked financial data is still used for verification and risk review; money collection now happens through Stripe.
+            </StatusBanner>
+
+            <SectionCard title="Fund Commitment">
+              <FieldRow
+                icon="savings"
+                label="Total Commitment"
+                value={hasAnyUnits ? formatCurrency(totalInvestment) : "No units selected"}
+                active={hasAnyUnits}
+              />
+              <div className="grid grid-cols-3 gap-2 py-4">
+                {SHARE_CLASSES.map((sc) => {
+                  const units = getUnits(sc.id);
+                  return (
+                    <div key={sc.id} className="rounded-[14px] bg-white px-3 py-3 text-center">
+                      <p className="text-[11px] font-medium text-[#1D1D1F]/50">{sc.name}</p>
+                      <p className="mt-1 text-[17px] font-semibold text-[#1D1D1F]">{units}</p>
                     </div>
-                  </div>
+                  );
+                })}
+              </div>
+              <FieldRow
+                icon="repeat"
+                label="Recurring Investment"
+                value={recurringEnabled ? recurringSummary : "Not selected"}
+                border={false}
+              />
+            </SectionCard>
+
+            <SectionCard title="Plaid Verification">
+              <FieldRow
+                icon={hasPlaidVerificationData ? "verified" : "shield"}
+                label={hasPlaidVerificationData ? "Financial Profile" : "Financial Profile"}
+                value={hasPlaidVerificationData ? "Connected for verification review" : formatStatus(financialLinkStatus)}
+                active={hasPlaidVerificationData}
+              />
+              {plaidAccounts.length > 0 ? (
+                <div>
+                  {plaidAccounts.map((account, idx) => (
+                    <FieldRow
+                      key={account.accountId}
+                      icon="account_balance"
+                      label={idx === 0 && plaidInstitutionName ? plaidInstitutionName : account.name}
+                      value={`${account.subtype || account.type} / ****${account.mask}`}
+                      border={idx !== plaidAccounts.length - 1}
+                    />
+                  ))}
                 </div>
-              </section>
+              ) : (
+                <FieldRow
+                  icon="info"
+                  label="Review Flag"
+                  value="If Plaid was skipped or weak, payment can still be valid, but investor approval stays manual."
+                  border={false}
+                />
+              )}
+              {canReconnectPlaid && (
+                <div className="mt-2 px-1 pb-1">
+                  <button
+                    type="button"
+                    onClick={() => navigate(FINANCIAL_LINK_REVIEW_ROUTE)}
+                    className="w-full rounded-[14px] bg-white px-4 py-3 text-left text-[13px] font-medium text-[#0066CC] shadow-[inset_0_0_0_1px_rgba(0,102,204,0.18)] transition hover:bg-[#0066CC]/[0.04]"
+                  >
+                    <span className="material-symbols-outlined align-middle text-[16px]">add_link</span>
+                    <span className="ml-2 align-middle">Connect bank now to speed up review</span>
+                  </button>
+                </div>
+              )}
+            </SectionCard>
+
+            <SectionCard title="First Payment">
+              <label className="block rounded-[18px] bg-white px-4 py-4 shadow-[inset_0_0_0_1px_rgba(29,29,31,0.08)]">
+                <span className="mb-2 block text-[11px] font-medium uppercase tracking-[1.6px] text-[#0066CC]/85">
+                  Amount
+                </span>
+                <div className="flex items-center gap-3">
+                  <span className="text-[28px] font-semibold text-[#1D1D1F]">$</span>
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={firstPaymentAmount}
+                    onChange={(event) => setFirstPaymentAmount(event.target.value)}
+                    className="min-w-0 flex-1 border-none bg-transparent p-0 text-[36px] font-semibold leading-none text-[#1D1D1F] outline-none placeholder:text-[#1D1D1F]/25 focus:ring-0"
+                    placeholder="1"
+                    aria-label="First payment amount"
+                  />
+                </div>
+                <span className="mt-3 block text-[12px] font-light leading-[1.45] text-[#1D1D1F]/50">
+                  Minimum $1. Remaining commitment after this payment: {formatCurrency(remainingAfterFirstPayment)}.
+                </span>
+              </label>
+              {firstPaymentError && (
+                <p className="mt-3 text-[12px] font-medium text-[#B42318]">{firstPaymentError}</p>
+              )}
+              <FieldRow
+                icon="receipt_long"
+                label="Payment Rule"
+                value="The browser cannot mark payment as successful. Stripe webhook confirmation updates the Hushh ledger."
+                border={false}
+              />
+            </SectionCard>
+
+            {(latestPaymentStatus || paymentRequest) && (
+              <SectionCard title="Payment Request">
+                <FieldRow
+                  icon="confirmation_number"
+                  label="Reference"
+                  value={paymentRequest?.request_reference || latestPaymentStatus?.request_reference || "Pending"}
+                />
+                <FieldRow
+                  icon="payments"
+                  label="Status"
+                  value={formatStatus(paymentRequest?.status || latestPaymentStatus?.status)}
+                />
+                <FieldRow
+                  icon="manage_accounts"
+                  label="Investor Review"
+                  value={formatStatus(latestReviewStatus)}
+                  border={false}
+                />
+              </SectionCard>
             )}
 
-            {/* ── Banking Information ── */}
-            <section className="space-y-0 mb-6">
-              <div className="py-4">
-                <h3 className="text-[11px] tracking-[1.6px] text-hushh-blue/85 uppercase font-medium">Banking Information</h3>
-              </div>
+            <section className="space-y-3 pb-12">
+              {(uxState === "payment_in_review" || uxState === "verified") && (
+                <HushhTechCta
+                  variant={HushhTechCtaVariant.BLACK}
+                  onClick={handleContinueToMeetCeo}
+                  className={primaryCtaClass}
+                >
+                  Continue to Meet the CEO
+                </HushhTechCta>
+              )}
 
-              {/* Bank Name */}
-              <div className="py-5 border-b border-gray-200">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
-                    <span className="material-symbols-outlined text-gray-700 text-lg" style={{ fontVariationSettings: "'wght' 400" }}>account_balance</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <label className="text-sm font-semibold text-gray-900 block mb-1">Bank Name</label>
-                    <input
-                      type="text"
-                      value={bankName}
-                      onChange={(e) => { userModifiedFields.current.add('bankName'); setBankName(e.target.value); }}
-                      onBlur={() => handleBlur('bankName')}
-                      placeholder="Enter bank name"
-                      className="w-full text-sm text-gray-700 font-medium bg-transparent border-none outline-none p-0 placeholder-gray-400 focus:ring-0"
-                    />
-                  </div>
-                </div>
-                {touched.bankName && bankNameError && <p className="text-xs text-red-500 font-medium mt-2 pl-14">{bankNameError}</p>}
-              </div>
+              {uxState === "awaiting_request" && (
+                <HushhTechCta
+                  variant={HushhTechCtaVariant.BLACK}
+                  onClick={handleCreatePaymentLink}
+                  disabled={loading || Boolean(firstPaymentError) || !hasAnyUnits}
+                  className={primaryCtaClass}
+                >
+                  {loading ? "Creating Payment Link..." : "Send Secure Payment Link"}
+                </HushhTechCta>
+              )}
 
-              {/* Account Holder Name */}
-              <div className="py-5 border-b border-gray-200">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
-                    <span className="material-symbols-outlined text-gray-700 text-lg" style={{ fontVariationSettings: "'wght' 400" }}>person</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <label className="text-sm font-semibold text-gray-900 block mb-1">Account Holder Name</label>
-                    <input
-                      type="text"
-                      value={accountHolderName}
-                      onChange={(e) => setAccountHolderName(e.target.value)}
-                      onBlur={() => handleBlur('accountHolderName')}
-                      placeholder="As it appears on your account"
-                      className="w-full text-sm text-gray-700 font-medium bg-transparent border-none outline-none p-0 placeholder-gray-400 focus:ring-0"
-                    />
-                  </div>
-                </div>
-                {touched.accountHolderName && accountHolderNameError && <p className="text-xs text-red-500 font-medium mt-2 pl-14">{accountHolderNameError}</p>}
-              </div>
+              {uxState === "request_sent" && (
+                <>
+                  {paymentRequest?.payment_url && (
+                    <HushhTechCta
+                      variant={HushhTechCtaVariant.BLACK}
+                      onClick={openPaymentLink}
+                      className={primaryCtaClass}
+                    >
+                      Open Payment Link
+                    </HushhTechCta>
+                  )}
+                  <HushhTechCta
+                    variant={HushhTechCtaVariant.WHITE}
+                    onClick={handleCreatePaymentLink}
+                    disabled={loading || Boolean(firstPaymentError) || !hasAnyUnits}
+                    className={secondaryCtaClass}
+                  >
+                    {loading ? "Creating Payment Link..." : "Send a new link"}
+                  </HushhTechCta>
+                </>
+              )}
 
-              {/* Account Type */}
-              <div className="py-5 border-b border-gray-200">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
-                    <span className="material-symbols-outlined text-gray-700 text-lg" style={{ fontVariationSettings: "'wght' 400" }}>credit_card</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <span className="text-sm font-semibold text-gray-900 block mb-1">Account Type</span>
-                    <span className="text-sm text-gray-700 font-medium">{formattedOnboardingAccountType}</span>
-                  </div>
-                  <span className="material-symbols-outlined text-gray-400 text-lg" style={{ fontVariationSettings: "'wght' 400" }}>chevron_right</span>
-                </div>
-              </div>
+              {uxState === "payment_reversed" && (
+                <HushhTechCta
+                  variant={HushhTechCtaVariant.BLACK}
+                  onClick={handleCreatePaymentLink}
+                  disabled={loading || Boolean(firstPaymentError) || !hasAnyUnits}
+                  className={primaryCtaClass}
+                >
+                  {loading ? "Creating Payment Link..." : "Request new payment link"}
+                </HushhTechCta>
+              )}
 
-              <div className="py-5 border-b border-gray-200">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
-                    <span className="material-symbols-outlined text-gray-700 text-lg" style={{ fontVariationSettings: "'wght' 400" }}>public</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <span className="text-sm font-semibold text-gray-900 block mb-1">Country</span>
-                    <span className="text-sm text-gray-700 font-medium">
-                      {COUNTRIES.find(c => c.code === bankCountry)?.name || bankCountry}
-                    </span>
-                    <span className="text-xs text-gray-400 font-medium block mt-1">
-                      Derived from your verified residence details
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* ── Account Details ── */}
-            <section className="space-y-0 mb-6">
-              <div className="py-4">
-                <h3 className="text-[11px] tracking-[1.6px] text-hushh-blue/85 uppercase font-medium">Account Details</h3>
-              </div>
-
-              {/* Routing Number */}
-              <div className="py-5 border-b border-gray-200">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
-                    <span className="material-symbols-outlined text-gray-700 text-lg" style={{ fontVariationSettings: "'wght' 400" }}>tag</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <label className="text-sm font-semibold text-gray-900 block mb-1">Routing Number</label>
-                    <input
-                      type="tel"
-                      inputMode="numeric"
-                      value={routingNumber}
-                      onChange={(e) => { userModifiedFields.current.add('routingNumber'); setRoutingNumber(e.target.value.replace(/\D/g, '').slice(0, bankCountry === 'US' ? 9 : 15)); }}
-                      onBlur={() => handleBlur('routingNumber')}
-                      placeholder={bankCountry === 'US' ? '9 digits' : 'enter routing number'}
-                      maxLength={bankCountry === 'US' ? 9 : 15}
-                      className="w-full text-sm text-gray-700 font-medium font-mono tracking-wider bg-transparent border-none outline-none p-0 placeholder-gray-400 focus:ring-0"
-                    />
-                  </div>
-                </div>
-                {touched.routingNumber && routingNumberError && <p className="text-xs text-red-500 font-medium mt-2 pl-14">{routingNumberError}</p>}
-              </div>
-
-              {/* Account Number */}
-              <div className="py-5 border-b border-gray-200">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
-                    <span className="material-symbols-outlined text-gray-700 text-lg" style={{ fontVariationSettings: "'wght' 400" }}>pin</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <label className="text-sm font-semibold text-gray-900 block mb-1">Account Number</label>
-                    <input
-                      type="tel"
-                      inputMode="numeric"
-                      value={accountNumber}
-                      onChange={(e) => { userModifiedFields.current.add('accountNumber'); setAccountNumber(e.target.value.replace(/\D/g, '')); }}
-                      onBlur={() => handleBlur('accountNumber')}
-                      placeholder="enter account number"
-                      className="w-full text-sm text-gray-700 font-medium font-mono tracking-wider bg-transparent border-none outline-none p-0 placeholder-gray-400 focus:ring-0"
-                    />
-                  </div>
-                </div>
-                {touched.accountNumber && accountNumberError && <p className="text-xs text-red-500 font-medium mt-2 pl-14">{accountNumberError}</p>}
-              </div>
-
-              {/* Confirm Account Number */}
-              <div className="py-5 border-b border-gray-200">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
-                    <span className="material-symbols-outlined text-gray-700 text-lg" style={{ fontVariationSettings: "'wght' 400" }}>verified</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <label className="text-sm font-semibold text-gray-900 block mb-1">Confirm Account Number</label>
-                    <input
-                      type="tel"
-                      inputMode="numeric"
-                      value={confirmAccountNumber}
-                      onChange={(e) => { userModifiedFields.current.add('confirmAccountNumber'); setConfirmAccountNumber(e.target.value.replace(/\D/g, '')); }}
-                      onBlur={() => handleBlur('confirmAccountNumber')}
-                      placeholder="re-enter account number"
-                      className="w-full text-sm text-gray-700 font-medium font-mono tracking-wider bg-transparent border-none outline-none p-0 placeholder-gray-400 focus:ring-0"
-                    />
-                  </div>
-                </div>
-                {touched.confirmAccountNumber && confirmAccountNumberError && <p className="text-xs text-red-500 font-medium mt-2 pl-14">{confirmAccountNumberError}</p>}
-              </div>
-
-              {/* Info note */}
-              <div className="flex items-start gap-3 py-4 px-1">
-                <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
-                  <span className="material-symbols-outlined text-gray-500 text-lg" style={{ fontVariationSettings: "'wght' 400" }}>info</span>
-                </div>
-                <p className="text-xs text-black/60 leading-[1.45] font-light pt-2">
-                  Routing number can be found on the bottom left of your check. Ensure the holder name matches your ID exactly.
+              {uxState !== "payment_in_review" && uxState !== "verified" && (
+                <p className="px-1 pt-3 text-center text-[12px] font-light leading-[1.5] text-[#1D1D1F]/55">
+                  Your progress is saved. Close this page and return from your
+                  email link, or sign back in to continue here.
                 </p>
-              </div>
+              )}
             </section>
 
-            {/* ── CTAs ── */}
-            <section className="pb-12 space-y-3">
-              <HushhTechCta variant={HushhTechCtaVariant.BLACK} onClick={handleContinue} disabled={loading || !isFormValid()}>
-                {loading ? 'Saving...' : 'Complete Setup'}
-              </HushhTechCta>
-              <HushhTechCta variant={HushhTechCtaVariant.WHITE} onClick={handleSkip}>
-                I'll Do This Later
-              </HushhTechCta>
-            </section>
-
-            {/* ── Trust Badge ── */}
-            <section className="flex flex-col items-center justify-center text-center gap-2 pb-8">
-              <div className="flex items-center gap-1">
-                <span className="material-symbols-outlined text-[12px] text-hushh-blue">lock</span>
-                <span className="text-[10px] text-gray-500 tracking-wide uppercase font-medium">Bank-Level Security</span>
+            <section className="flex flex-col items-center justify-center gap-2 pb-8 text-center">
+              <div className="flex items-center gap-1.5">
+                {Icon.lock("#0066CC", 12)}
+                <span className="text-[10px] font-medium uppercase tracking-[1.6px] text-[#1D1D1F]/50">
+                  Stripe Payment / Plaid Verification
+                </span>
               </div>
-              <p className="text-[10px] text-gray-400 font-light max-w-xs">
-                Your data is encrypted with 256-bit SSL security.
+              <p className="max-w-xs text-[10px] font-light leading-[1.4] text-[#1D1D1F]/40">
+                No Stripe secret, Plaid token, raw ACH, or card data is exposed in the browser.
               </p>
             </section>
           </>

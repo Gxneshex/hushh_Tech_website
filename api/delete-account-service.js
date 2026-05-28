@@ -673,6 +673,21 @@ async function purgeUserData(adminClient, userId, context) {
     "plaid_account_id",
     context.plaidAccountIds
   );
+  await deleteEq(adminClient, "transfer_email_notifications", "user_id", userId);
+  await deleteEq(adminClient, "fund_payment_notifications", "user_id", userId);
+  await deleteEq(adminClient, "fund_payment_reviews", "user_id", userId);
+  await deleteEq(adminClient, "fund_stripe_events", "user_id", userId);
+  await deleteEq(adminClient, "fund_stripe_payments", "user_id", userId);
+  await deleteEq(adminClient, "fund_stripe_subscriptions", "user_id", userId);
+  await deleteEq(adminClient, "fund_stripe_payment_requests", "user_id", userId);
+  await deleteEq(adminClient, "fund_recurring_transfers", "user_id", userId);
+  await deleteEq(adminClient, "fund_transfers", "user_id", userId);
+  await deleteEq(adminClient, "fund_investment_plans", "user_id", userId);
+  await deleteEq(adminClient, "plaid_data_events", "user_id", userId);
+  await deleteIn(adminClient, "plaid_data_events", "plaid_item_id", context.plaidItemIds);
+  await deleteEq(adminClient, "plaid_product_sync_statuses", "user_id", userId);
+  await deleteEq(adminClient, "plaid_statement_metadata", "user_id", userId);
+  await deleteEq(adminClient, "plaid_transfer_accounts", "user_id", userId);
   await deleteIn(adminClient, "plaid_sync_cursors", "plaid_item_id", context.plaidItemIds);
   await deleteIn(adminClient, "plaid_accounts", "plaid_item_id", context.plaidItemIds);
   await deleteEq(adminClient, "plaid_items", "user_id", userIdText);

@@ -3,18 +3,17 @@
  * 
  * Flow: Create token → Open Link → Exchange → Fetch data
  * OAuth: Detects oauth_state_id in URL → resumes session automatically
- * Persistence: Saves state to sessionStorage → survives page reloads
+ * Persistence: Saves completed state to sessionStorage → survives page reloads
  */
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { usePlaidLink as usePlaidLinkSDK, PlaidLinkOnSuccess, PlaidLinkOnExit, PlaidLinkOnEvent } from 'react-plaid-link';
 import {
   createLinkToken,
   exchangeToken,
-  fetchAllFinancialData,
   checkAssetReport,
+  financialDataFromSyncResult,
   getProductStatus,
-  saveFinancialDataToSupabase,
-  signalPrepare,
+  startPlaidDataSync,
   type FinancialDataResponse,
   type ProductFetchStatus,
 } from './plaidService';
@@ -31,6 +30,7 @@ export interface PlaidLinkState {
   step: 'idle' | 'creating_token' | 'ready' | 'linking' | 'exchanging' | 'fetching' | 'done' | 'error';
   linkToken: string | null;
   error: string | null;
+  plaidItemId: string | null;
   institution: { name: string; id: string } | null;
   balanceStatus: ProductFetchStatus;
   assetsStatus: ProductFetchStatus;
@@ -43,8 +43,14 @@ export interface PlaidLinkState {
 export interface UsePlaidLinkReturn extends PlaidLinkState {
   openPlaidLink: () => void;
   retry: () => void;
+  refreshFromDatabase: () => Promise<PlaidLinkState | null>;
+  isDatabaseRestoreComplete: boolean;
   isReady: boolean;
   open: () => void;
+}
+
+export interface UsePlaidLinkOptions {
+  skipAutoInit?: boolean;
 }
 
 // =====================================================
@@ -52,11 +58,13 @@ export interface UsePlaidLinkReturn extends PlaidLinkState {
 // =====================================================
 
 const STORAGE_KEY = 'plaid_link_state';
+const OAUTH_RESUME_KEY_PREFIX = 'plaid_oauth_resume:';
 
 interface PersistedState {
   linkToken: string | null;
   expiration: string | null;
   step: PlaidLinkState['step'];
+  plaidItemId: string | null;
   institution: PlaidLinkState['institution'];
   financialData: FinancialDataResponse | null;
   canProceed: boolean;
@@ -67,13 +75,21 @@ interface PersistedState {
   savedAt: number;
 }
 
+interface OAuthResumeState {
+  linkToken: string;
+  expiration: string | null;
+  redirectUri: string;
+  savedAt: number;
+}
+
 /** Save current state to sessionStorage */
 const persistState = (state: PlaidLinkState, expiration?: string | null) => {
   try {
     const persisted: PersistedState = {
-      linkToken: state.linkToken,
+      linkToken: state.step === 'done' ? state.linkToken : null,
       expiration: expiration || null,
       step: state.step,
+      plaidItemId: state.plaidItemId,
       institution: state.institution,
       financialData: state.financialData,
       canProceed: state.canProceed,
@@ -109,13 +125,65 @@ const clearPersistedState = () => {
   }
 };
 
-/** Check if a link token is still valid (not expired) */
-const isTokenValid = (expiration: string | null): boolean => {
+const oauthResumeKey = (userId: string) => `${OAUTH_RESUME_KEY_PREFIX}${userId}`;
+
+const isTokenExpired = (expiration: string | null | undefined) => {
   if (!expiration) return false;
-  const expiresAt = new Date(expiration).getTime();
-  // Add 60s buffer — don't use tokens about to expire
-  return Date.now() < expiresAt - 60_000;
+  const expiresAt = Date.parse(expiration);
+  if (Number.isNaN(expiresAt)) return false;
+  return Date.now() > expiresAt - 60_000;
 };
+
+const saveOAuthResumeState = (
+  userId: string,
+  linkToken: string,
+  expiration: string | null,
+  redirectUri: string,
+) => {
+  try {
+    const payload: OAuthResumeState = {
+      linkToken,
+      expiration,
+      redirectUri,
+      savedAt: Date.now(),
+    };
+    sessionStorage.setItem(oauthResumeKey(userId), JSON.stringify(payload));
+  } catch {
+    // sessionStorage not available — the user can restart Link if OAuth returns.
+  }
+};
+
+const loadOAuthResumeState = (userId: string): OAuthResumeState | null => {
+  try {
+    const raw = sessionStorage.getItem(oauthResumeKey(userId));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as OAuthResumeState;
+    if (!parsed.linkToken || isTokenExpired(parsed.expiration)) {
+      sessionStorage.removeItem(oauthResumeKey(userId));
+      return null;
+    }
+    return parsed;
+  } catch {
+    return null;
+  }
+};
+
+const clearOAuthResumeState = (userId: string) => {
+  try {
+    sessionStorage.removeItem(oauthResumeKey(userId));
+  } catch {
+    // silent
+  }
+};
+
+const hasDisplayableFinancialData = (
+  financialData: FinancialDataResponse | null
+) => Boolean(
+  financialData?.balance?.data ||
+  financialData?.assets?.data ||
+  financialData?.investments?.data ||
+  financialData?.identity?.data
+);
 
 // =====================================================
 // Database Restore — Most Stable
@@ -156,21 +224,24 @@ const loadFromDatabase = async (userId: string): Promise<PlaidLinkState | null> 
       });
 
       const available = data.available_products || {};
-      const productsAvailable = [
-        available.balance,
-        available.assets,
-        available.investments,
-      ].filter(Boolean).length;
+      const productsAvailable = Object.values(available).filter(Boolean).length;
+      const canProceed = Boolean(available.accounts && available.balance && available.auth);
+      const assetReportStatus = data.asset_report_status;
 
       return {
         step: 'done',
         linkToken: null,
         error: null,
+        plaidItemId: data.plaid_item_id || null,
         institution: data.institution_name && data.institution_id
           ? { name: data.institution_name, id: data.institution_id }
           : null,
         balanceStatus: available.balance ? 'success' : (data.fetch_errors?.balance ? 'error' : 'unavailable'),
-        assetsStatus: available.assets ? 'success' : (data.fetch_errors?.assets ? 'error' : 'unavailable'),
+        assetsStatus: available.assets
+          ? 'success'
+          : assetReportStatus === 'pending'
+            ? 'pending'
+            : (data.fetch_errors?.assets ? 'error' : 'unavailable'),
         investmentsStatus: available.investments ? 'success' : (data.fetch_errors?.investments ? 'error' : 'unavailable'),
         financialData: {
           status: data.status,
@@ -212,11 +283,11 @@ const loadFromDatabase = async (userId: string): Promise<PlaidLinkState | null> 
           },
           summary: {
             products_available: productsAvailable,
-            products_total: 3,
-            can_proceed: productsAvailable >= 1,
+            products_total: 13,
+            can_proceed: canProceed,
           },
         },
-        canProceed: productsAvailable >= 1,
+        canProceed,
         productsAvailable,
       };
     }
@@ -232,7 +303,11 @@ const loadFromDatabase = async (userId: string): Promise<PlaidLinkState | null> 
 // Hook
 // =====================================================
 
-export const usePlaidLinkHook = (userId: string, userEmail?: string): UsePlaidLinkReturn => {
+export const usePlaidLinkHook = (
+  userId: string,
+  userEmail?: string,
+  options: UsePlaidLinkOptions = {}
+): UsePlaidLinkReturn => {
   // Try to restore state from sessionStorage on first render
   const cached = useRef(loadPersistedState());
   const expirationRef = useRef<string | null>(cached.current?.expiration || null);
@@ -242,12 +317,13 @@ export const usePlaidLinkHook = (userId: string, userEmail?: string): UsePlaidLi
     if (!c) return defaultState();
 
     // If we have completed data, restore it immediately
-    if (c.step === 'done' && c.financialData) {
+    if (c.step === 'done' && hasDisplayableFinancialData(c.financialData)) {
       console.log('[Plaid] 🔄 Restoring completed state from sessionStorage');
       return {
         step: 'done',
         linkToken: c.linkToken,
         error: null,
+        plaidItemId: c.plaidItemId || null,
         institution: c.institution,
         balanceStatus: c.balanceStatus,
         assetsStatus: c.assetsStatus,
@@ -258,18 +334,8 @@ export const usePlaidLinkHook = (userId: string, userEmail?: string): UsePlaidLi
       };
     }
 
-    // If we have a valid link token, restore ready state
-    if (c.linkToken && isTokenValid(c.expiration)) {
-      console.log('[Plaid] 🔄 Restoring link token from sessionStorage');
-      return {
-        ...defaultState(),
-        step: 'ready',
-        linkToken: c.linkToken,
-        institution: c.institution,
-      };
-    }
-
-    // Cached state is stale — start fresh
+    // Link tokens are cheap and can carry half-failed Link state after retries,
+    // so only completed data is restored. Normal reloads create a fresh token.
     return defaultState();
   };
 
@@ -277,7 +343,6 @@ export const usePlaidLinkHook = (userId: string, userEmail?: string): UsePlaidLi
   const [dbRestoreComplete, setDbRestoreComplete] = useState(false);
   const dbRestoreAttempted = useRef(false);
 
-  const accessTokenRef = useRef<string | null>(null);
   const assetPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const initializedRef = useRef(false);
   const isOAuthResumeRef = useRef(false);
@@ -312,14 +377,25 @@ export const usePlaidLinkHook = (userId: string, userEmail?: string): UsePlaidLi
       const redirectUri = getRedirectUri();
 
       if (oauthStateId) {
-        // OAuth RESUME — returning from bank website
+        // OAuth RESUME — Plaid requires the same link_token from the initial session.
         const receivedRedirectUri = window.location.href;
         console.log('[Plaid] 🔄 OAuth resume detected:', { oauthStateId, receivedRedirectUri });
         isOAuthResumeRef.current = true;
 
-        const result = await createLinkToken(userId, userEmail, undefined, receivedRedirectUri);
-        expirationRef.current = result.expiration;
-        setState(s => ({ ...s, step: 'ready', linkToken: result.link_token }));
+        const resumeState = loadOAuthResumeState(userId);
+        if (!resumeState) {
+          console.warn('[Plaid] OAuth resume token missing or expired; restarting is required');
+          setState(s => ({
+            ...s,
+            step: 'error',
+            linkToken: null,
+            error: 'Bank verification session expired. Please start bank connection again.',
+          }));
+          return;
+        }
+
+        expirationRef.current = resumeState.expiration;
+        setState(s => ({ ...s, step: 'ready', linkToken: resumeState.linkToken }));
       } else {
         // Normal flow — include redirect_uri for OAuth banks
         const canUseRedirectUri = shouldUsePlaidRedirectUri(redirectUri);
@@ -336,6 +412,9 @@ export const usePlaidLinkHook = (userId: string, userEmail?: string): UsePlaidLi
           canUseRedirectUri ? redirectUri : undefined,
         );
         expirationRef.current = result.expiration;
+        if (canUseRedirectUri) {
+          saveOAuthResumeState(userId, result.link_token, result.expiration, redirectUri);
+        }
         setState(s => ({ ...s, step: 'ready', linkToken: result.link_token }));
       }
     } catch (err: any) {
@@ -344,16 +423,30 @@ export const usePlaidLinkHook = (userId: string, userEmail?: string): UsePlaidLi
     }
   }, [userId, userEmail, getOAuthState, getRedirectUri]);
 
+  const refreshFromDatabase = useCallback(async () => {
+    if (!userId) return null;
+    const dbState = await loadFromDatabase(userId);
+    if (dbState) {
+      setState(s => ({
+        ...s,
+        ...dbState,
+        step: 'done',
+        linkToken: null,
+        error: null,
+      }));
+      console.log('[Plaid] ✅ Refreshed financial data from database');
+    }
+    return dbState;
+  }, [userId]);
+
   // Database restore — try once on mount before anything else
   useEffect(() => {
     if (!userId || dbRestoreAttempted.current) return;
     dbRestoreAttempted.current = true;
 
-    // Only try DB restore if sessionStorage didn't have completed state
-    if (state.step === 'done' && state.financialData) {
-      console.log('[Plaid] ✅ SessionStorage restore successful, skipping DB check');
-      setDbRestoreComplete(true);
-      return;
+    const hadCompletedSessionState = state.step === 'done' && hasDisplayableFinancialData(state.financialData);
+    if (hadCompletedSessionState) {
+      console.log('[Plaid] ✅ SessionStorage completed state restored; refreshing database truth');
     }
 
     // Try to restore from database with timeout
@@ -368,6 +461,10 @@ export const usePlaidLinkHook = (userId: string, userEmail?: string): UsePlaidLi
         if (dbState) {
           setState(dbState);
           console.log('[Plaid] ✅ Restored from database');
+        } else if (hadCompletedSessionState) {
+          console.warn('[Plaid] SessionStorage completed state had no database match; resetting Plaid state');
+          clearPersistedState();
+          setState(defaultState());
         }
       } catch (err) {
         console.error('[Plaid] Database restore error:', err);
@@ -386,6 +483,12 @@ export const usePlaidLinkHook = (userId: string, userEmail?: string): UsePlaidLi
     // Wait for DB restore to complete before initializing
     if (!dbRestoreComplete) return;
 
+    if (options.skipAutoInit) {
+      console.log('[Plaid] Local sandbox direct connect enabled; skipping Link token auto-init');
+      initializedRef.current = true;
+      return;
+    }
+
     initializedRef.current = true;
 
     const oauthStateId = getOAuthState();
@@ -402,19 +505,21 @@ export const usePlaidLinkHook = (userId: string, userEmail?: string): UsePlaidLi
       return;
     }
 
-    // If we restored a valid link token → no need to init
-    if (state.step === 'ready' && state.linkToken && isTokenValid(expirationRef.current)) {
-      console.log('[Plaid] ✅ Valid link token restored — skipping token creation');
-      return;
-    }
-
-    // No cached state or expired → create fresh token
+    // No completed state → create a fresh token
     initToken();
-  }, [userId, initToken, getOAuthState, state.step, state.financialData, dbRestoreComplete]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [
+    userId,
+    initToken,
+    getOAuthState,
+    state.step,
+    state.financialData,
+    dbRestoreComplete,
+    options.skipAutoInit,
+  ]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Step 2: Handle Plaid Link success
   const handleSuccess: PlaidLinkOnSuccess = useCallback(async (publicToken, metadata) => {
-    console.log('[Plaid] ✅ onSuccess', { token: publicToken?.slice(0, 20), institution: metadata?.institution?.name });
+    console.log('[Plaid] ✅ onSuccess', { institution: metadata?.institution?.name });
 
     const inst = {
       name: metadata.institution?.name || 'Unknown',
@@ -429,20 +534,31 @@ export const usePlaidLinkHook = (userId: string, userEmail?: string): UsePlaidLi
     try {
       // Exchange token
       console.log('[Plaid] Exchanging token...');
-      const exchange = await exchangeToken(publicToken, userId, inst.name, inst.id);
+      const exchange = await exchangeToken(publicToken, userId, inst.name, inst.id, metadata.accounts);
       console.log('[Plaid] ✅ Exchange done:', { item_id: exchange.item_id });
-      accessTokenRef.current = exchange.access_token;
-
-      // Signal: opt-in to data collection (background, non-blocking)
-      signalPrepare(exchange.access_token)
-        .then(r => console.log('[Plaid] Signal prepare:', r.success ? '✅ done' : '⚠️ skipped'))
-        .catch(() => {});
+      clearOAuthResumeState(userId);
 
       setState(s => ({ ...s, step: 'fetching' }));
 
-      // Fetch financial data
-      console.log('[Plaid] Fetching financial data...');
-      const result = await fetchAllFinancialData(exchange.access_token, userId);
+      // Sync financial data server-side. Browser never receives Plaid access_token.
+      console.log('[Plaid] Syncing financial data server-side...');
+      const syncResult = await startPlaidDataSync(userId, exchange.item_id);
+      const dbState = await loadFromDatabase(userId);
+      if (dbState?.financialData) {
+        console.log('[Plaid] ✅ Loaded synced financial data from database');
+        setState(s => ({
+          ...s,
+          ...dbState,
+          step: 'done',
+          linkToken: null,
+          error: null,
+          plaidItemId: dbState.plaidItemId,
+          institution: dbState.institution || inst,
+        }));
+        return;
+      }
+
+      const result = financialDataFromSyncResult(syncResult);
       console.log('[Plaid] ✅ Result:', {
         status: result.status,
         balance: result.balance.available,
@@ -452,16 +568,13 @@ export const usePlaidLinkHook = (userId: string, userEmail?: string): UsePlaidLi
 
       setState(s => ({
         ...s, step: 'done', financialData: result,
+        plaidItemId: syncResult.item_id || exchange.item_id,
         balanceStatus: getProductStatus(result.balance),
         assetsStatus: getProductStatus(result.assets),
         investmentsStatus: getProductStatus(result.investments),
         canProceed: result.summary.can_proceed,
         productsAvailable: result.summary.products_available,
       }));
-
-      // Save to Supabase (background)
-      saveFinancialDataToSupabase(userId, result, inst.name, inst.id, exchange.item_id, exchange.access_token)
-        .catch(e => console.warn('[Plaid] Save failed:', e));
 
       // Poll assets if pending
       if (getProductStatus(result.assets) === 'pending' && result.assets.data?.asset_report_token) {
@@ -480,12 +593,13 @@ export const usePlaidLinkHook = (userId: string, userEmail?: string): UsePlaidLi
   const handleExit: PlaidLinkOnExit = useCallback((err, metadata) => {
     console.log('[Plaid] 🚪 onExit', { error: err, status: metadata?.status });
     if (err) {
+      clearOAuthResumeState(userId);
       setState(s => ({
         ...s, step: 'error',
         error: `Connection interrupted: ${err.display_message || err.error_message || 'Unknown error'}`,
       }));
     }
-  }, []);
+  }, [userId]);
 
   // Log events
   const handleEvent: PlaidLinkOnEvent = useCallback((eventName, metadata) => {
@@ -548,15 +662,16 @@ export const usePlaidLinkHook = (userId: string, userEmail?: string): UsePlaidLi
 
   const retry = useCallback(() => {
     clearPersistedState();
+    clearOAuthResumeState(userId);
     setState(defaultState());
-    accessTokenRef.current = null;
     initializedRef.current = false;
     expirationRef.current = null;
     initToken();
-  }, [initToken]);
+  }, [initToken, userId]);
 
   return {
-    ...state, openPlaidLink, retry,
+    ...state, openPlaidLink, retry, refreshFromDatabase,
+    isDatabaseRestoreComplete: dbRestoreComplete,
     isReady: ready && state.step === 'ready',
     open: openPlaidLink,
   };
@@ -567,6 +682,7 @@ const defaultState = (): PlaidLinkState => ({
   step: 'idle',
   linkToken: null,
   error: null,
+  plaidItemId: null,
   institution: null,
   balanceStatus: 'idle',
   assetsStatus: 'idle',

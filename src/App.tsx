@@ -38,6 +38,7 @@ import SellTheWallPage from './pages/sell-the-wall';
 import AIPoweredBerkshirePage from './pages/ai-powered-berkshire';
 import UserRegistration from './pages/UserRegistration';
 import ProtectedRoute from './components/ProtectedRoute';
+import InvestorAccessRoute from './components/InvestorAccessRoute';
 import YourProfilePage from './pages/your-profile';
 import HushhUserProfilePage from './pages/hushh-user-profile';
 import ViewPreferencesPage from './pages/hushh-user-profile/view';
@@ -55,9 +56,11 @@ import OnboardingStep6 from './pages/onboarding/step-6/ui';
 import OnboardingStep7 from './pages/onboarding/step-7/ui';
 import OnboardingReviewStep from './pages/onboarding/step-8/ui';
 import OnboardingBankDetailsStep from './pages/onboarding/step-9/ui';
+import FundPaymentLinkPage from './pages/onboarding/fund-payment/ui';
 import VerifyIdentityPage from './pages/onboarding/verify-identity/ui';
 import VerifyCompletePage from './pages/onboarding/verify-complete/ui';
 import MeetCeoPage from './pages/onboarding/meet-ceo/ui';
+import OnboardingAccessDeniedPage from './pages/onboarding/access-denied/ui';
 import InvestorGuidePage from './pages/onboarding/InvestorGuide';
 import ReceiptGeneratorPage from './pages/receipt-generator';
 import DeveloperDocsPage from './pages/developer-docs';
@@ -213,6 +216,7 @@ function App() {
                 <FinancialLinkPage />
               </ProtectedRoute>
             } />
+            <Route path="/onboarding/fund-payment/:token" element={<FundPaymentLinkPage />} />
             <Route path="/onboarding/step-1" element={
               <ProtectedRoute>
                 <OnboardingStep1 />
@@ -268,25 +272,30 @@ function App() {
                 <VerifyCompletePage />
               </ProtectedRoute>
             } />
-            <Route path="/onboarding/meet-ceo" element={
+            <Route path="/onboarding/access-denied" element={
               <ProtectedRoute>
-                <MeetCeoPage />
+                <OnboardingAccessDeniedPage />
               </ProtectedRoute>
+            } />
+            <Route path="/onboarding/meet-ceo" element={
+              <InvestorAccessRoute>
+                <MeetCeoPage />
+              </InvestorAccessRoute>
             } />
             <Route path="/hushh-user-profile" element={
-              <ProtectedRoute>
+              <InvestorAccessRoute>
                 <HushhUserProfilePage />
-              </ProtectedRoute>
+              </InvestorAccessRoute>
             } />
             <Route path="/hushh-user-profile/view" element={
-              <ProtectedRoute>
+              <InvestorAccessRoute>
                 <ViewPreferencesPage />
-              </ProtectedRoute>
+              </InvestorAccessRoute>
             } />
             <Route path="/hushh-user-profile/privacy" element={
-              <ProtectedRoute>
+              <InvestorAccessRoute>
                 <PrivacyControlsPage />
-              </ProtectedRoute>
+              </InvestorAccessRoute>
             } />
             <Route path="/profile/:id" element={
               <AuthRequiredRoute>

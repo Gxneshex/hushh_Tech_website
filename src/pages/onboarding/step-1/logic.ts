@@ -8,6 +8,7 @@ import config from '../../../resources/config/config';
 import { upsertOnboardingData } from '../../../services/onboarding/upsertOnboardingData';
 import {
   FINANCIAL_LINK_ROUTE,
+  FINANCIAL_LINK_REVIEW_ROUTE,
   TOTAL_VISIBLE_ONBOARDING_STEPS,
   resolveFinancialLinkStatus,
 } from '../../../services/onboarding/flow';
@@ -244,7 +245,7 @@ export const useStep1Logic = (): Step1Logic => {
     finally { setIsLoading(false); }
   };
 
-  const handleBack = () => navigate('/onboarding/financial-link');
+  const handleBack = () => navigate(FINANCIAL_LINK_REVIEW_ROUTE);
 
   return {
     units, frequency, investmentDay, selectedAmount, customAmount, customAmountError,

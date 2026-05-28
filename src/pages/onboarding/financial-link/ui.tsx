@@ -4,7 +4,6 @@
  * Plaid integration restored via logic.ts (usePlaidLinkHook).
  * Continue → opens Plaid Link → fetches data → proceeds to step 1.
  */
-import { useNavigate } from "react-router-dom";
 import { useFinancialLinkLogic, formatCurrency } from "./logic";
 import HushhTechCta, {
   HushhTechCtaVariant,
@@ -25,7 +24,6 @@ const secondaryCtaClass =
   "!rounded-full !border-[#1D1D1F]/15 !bg-white !text-[#1D1D1F] !font-medium !tracking-[-0.01em] !shadow-none";
 
 export default function OnboardingFinancialLink() {
-  const navigate = useNavigate();
   const {
     userId,
     isReady,
@@ -36,20 +34,34 @@ export default function OnboardingFinancialLink() {
     canProceed,
     isProcessing,
     isButtonDisabled,
+    showPrimaryButtonSpinner,
     buttonText,
     error,
+    localPlaidNotice,
+    isChangeBankConfirmOpen,
+    isChangingBank,
+    changeBankError,
     /* Data */
     verificationRows,
+    productSyncRows,
     allAccounts,
     accountGroups,
     totalBalance,
     identityInfo,
     investmentHoldings,
     /* Actions */
+    handleBack,
     handleButtonClick,
-    handleSkip,
-    openPlaidLink,
-    retry,
+    openSkipConfirm,
+    closeSkipConfirm,
+    handleConfirmSkip,
+    openChangeBankConfirm,
+    closeChangeBankConfirm,
+    handleConfirmChangeBank,
+    /* Skip state */
+    isSkipConfirmOpen,
+    isSkipping,
+    skipError,
   } = useFinancialLinkLogic();
 
   /* Loading state */
@@ -71,7 +83,7 @@ export default function OnboardingFinancialLink() {
     >
       {/* Header — back + FAQs */}
       <HushhTechBackHeader
-        onBackClick={() => navigate(-1)}
+        onBackClick={handleBack}
         rightLabel="FAQs"
       />
 
@@ -237,10 +249,79 @@ export default function OnboardingFinancialLink() {
           ))}
         </section>
 
+        {isDone && productSyncRows.length > 0 && (
+          <section className="mt-8">
+            <h3 className="mb-3 text-[11px] font-medium uppercase tracking-[1.6px] text-[#0066CC]/85">
+              Plaid data sync
+            </h3>
+            <div className="overflow-hidden rounded-[20px] bg-white shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.10)]">
+              {productSyncRows.map((row) => (
+                <div
+                  key={row.product}
+                  className="flex items-center justify-between gap-4 border-b border-[#1D1D1F]/[0.08] px-4 py-3 last:border-b-0"
+                >
+                  <div className="flex min-w-0 items-center gap-3">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] bg-[#F5F5F7]">
+                      <span
+                        className="material-symbols-outlined text-[18px] text-[#1D1D1F]/70"
+                        style={{ fontVariationSettings: "'wght' 250" }}
+                      >
+                        {row.icon}
+                      </span>
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate text-[14px] font-medium text-[#1D1D1F]">
+                        {row.title}
+                      </p>
+                      <p className="truncate text-[12px] text-[#1D1D1F]/52">
+                        {row.subtitle}
+                      </p>
+                    </div>
+                  </div>
+                  <span
+                    className={`material-symbols-outlined shrink-0 text-[19px] ${
+                      row.status === 'success'
+                        ? 'text-[#34C759]'
+                        : row.status === 'loading'
+                          ? 'animate-spin text-[#0066CC]'
+                          : row.status === 'error'
+                            ? 'text-[#FF3B30]'
+                            : 'text-[#1D1D1F]/30'
+                    }`}
+                    style={{ fontVariationSettings: "'wght' 220" }}
+                  >
+                    {row.status === 'success'
+                      ? 'check_circle'
+                      : row.status === 'loading'
+                        ? 'progress_activity'
+                        : row.status === 'error'
+                          ? 'error'
+                          : 'schedule'}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
         {/* Error message */}
         {error && plaidStep === 'error' && (
           <div className="mt-4 rounded-[16px] bg-[#FF3B30]/10 p-3 text-center shadow-[inset_0_0_0_1px_rgba(255,59,48,0.18)]">
             <p className="text-[12px] font-medium text-[#B42318]">{error}</p>
+          </div>
+        )}
+
+        {changeBankError && (
+          <div className="mt-4 rounded-[16px] bg-[#FF3B30]/10 p-3 text-center shadow-[inset_0_0_0_1px_rgba(255,59,48,0.18)]">
+            <p className="text-[12px] font-medium text-[#B42318]">{changeBankError}</p>
+          </div>
+        )}
+
+        {localPlaidNotice && (
+          <div className="mt-4 rounded-[16px] bg-[#0066CC]/10 p-3 text-center shadow-[inset_0_0_0_1px_rgba(0,102,204,0.16)]">
+            <p className="text-[12px] font-medium leading-5 text-[#1D1D1F]/70">
+              {localPlaidNotice}
+            </p>
           </div>
         )}
 
@@ -276,21 +357,150 @@ export default function OnboardingFinancialLink() {
             disabled={isButtonDisabled}
             className={primaryCtaClass}
           >
-            {isButtonDisabled && (
+            {showPrimaryButtonSpinner && (
               <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2 inline-block" />
             )}
             {buttonText}
           </HushhTechCta>
 
-          <HushhTechCta
-            variant={HushhTechCtaVariant.WHITE}
-            onClick={handleSkip}
-            className={secondaryCtaClass}
-          >
-            Skip
-          </HushhTechCta>
+          {isDone && canProceed ? (
+            <HushhTechCta
+              variant={HushhTechCtaVariant.WHITE}
+              onClick={openChangeBankConfirm}
+              disabled={isChangingBank}
+              className={secondaryCtaClass}
+            >
+              Change bank
+            </HushhTechCta>
+          ) : (
+            <HushhTechCta
+              variant={HushhTechCtaVariant.WHITE}
+              onClick={openSkipConfirm}
+              className={secondaryCtaClass}
+            >
+              Skip
+            </HushhTechCta>
+          )}
         </section>
       </main>
+
+      {isChangeBankConfirmOpen && (
+        <>
+          <div className="fixed inset-0 z-40 bg-[#000000]/35 backdrop-blur-[14px]" />
+          <div className="fixed inset-0 z-50 flex items-end justify-center px-4 pb-6 sm:items-center sm:pb-0">
+            <section
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="change-bank-title"
+              className="w-full max-w-[390px] rounded-[24px] bg-white p-5 text-[#1D1D1F] shadow-[0_24px_72px_rgba(0,0,0,0.22)]"
+            >
+              <div className="mb-5 text-center">
+                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#FF9500]/12">
+                  <span
+                    className="material-symbols-outlined text-[22px] text-[#B45309]"
+                    style={{ fontVariationSettings: "'wght' 300" }}
+                  >
+                    account_balance
+                  </span>
+                </div>
+                <h2 id="change-bank-title" className="text-[19px] font-semibold text-[#1D1D1F]">
+                  Change linked bank?
+                </h2>
+                <p className="mx-auto mt-2 max-w-[300px] text-[14px] leading-5 text-[#1D1D1F]/65">
+                  This disconnects the current Plaid bank before any transfer starts. Your fund selections stay saved.
+                </p>
+              </div>
+
+              {changeBankError && (
+                <div className="mb-4 rounded-[16px] bg-[#FF3B30]/10 p-3 text-center shadow-[inset_0_0_0_1px_rgba(255,59,48,0.18)]">
+                  <p className="text-[12px] font-medium text-[#B42318]">{changeBankError}</p>
+                </div>
+              )}
+
+              <div className="space-y-3">
+                <HushhTechCta
+                  variant={HushhTechCtaVariant.BLACK}
+                  onClick={handleConfirmChangeBank}
+                  disabled={isChangingBank}
+                  className={primaryCtaClass}
+                >
+                  {isChangingBank && (
+                    <span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  )}
+                  Disconnect
+                </HushhTechCta>
+                <HushhTechCta
+                  variant={HushhTechCtaVariant.WHITE}
+                  onClick={closeChangeBankConfirm}
+                  disabled={isChangingBank}
+                  className={secondaryCtaClass}
+                >
+                  Cancel
+                </HushhTechCta>
+              </div>
+            </section>
+          </div>
+        </>
+      )}
+
+      {isSkipConfirmOpen && (
+        <>
+          <div className="fixed inset-0 z-40 bg-[#000000]/35 backdrop-blur-[14px]" />
+          <div className="fixed inset-0 z-50 flex items-end justify-center px-4 pb-6 sm:items-center sm:pb-0">
+            <section
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="skip-financial-link-title"
+              className="w-full max-w-[390px] rounded-[24px] bg-white p-5 text-[#1D1D1F] shadow-[0_24px_72px_rgba(0,0,0,0.22)]"
+            >
+              <div className="mb-5 text-center">
+                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#FF9500]/12">
+                  <span
+                    className="material-symbols-outlined text-[22px] text-[#B45309]"
+                    style={{ fontVariationSettings: "'wght' 300" }}
+                  >
+                    shield_question
+                  </span>
+                </div>
+                <h2 id="skip-financial-link-title" className="text-[19px] font-semibold text-[#1D1D1F]">
+                  Skip Plaid verification?
+                </h2>
+                <p className="mx-auto mt-2 max-w-[320px] text-[14px] leading-5 text-[#1D1D1F]/65">
+                  Without a linked bank, investor approval needs extra manual review and may take longer. You can come back and connect anytime.
+                </p>
+              </div>
+
+              {skipError && (
+                <div className="mb-4 rounded-[16px] bg-[#FF3B30]/10 p-3 text-center shadow-[inset_0_0_0_1px_rgba(255,59,48,0.18)]">
+                  <p className="text-[12px] font-medium text-[#B42318]">{skipError}</p>
+                </div>
+              )}
+
+              <div className="space-y-3">
+                <HushhTechCta
+                  variant={HushhTechCtaVariant.BLACK}
+                  onClick={handleConfirmSkip}
+                  disabled={isSkipping}
+                  className={primaryCtaClass}
+                >
+                  {isSkipping && (
+                    <span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  )}
+                  Skip and continue
+                </HushhTechCta>
+                <HushhTechCta
+                  variant={HushhTechCtaVariant.WHITE}
+                  onClick={closeSkipConfirm}
+                  disabled={isSkipping}
+                  className={secondaryCtaClass}
+                >
+                  Cancel
+                </HushhTechCta>
+              </div>
+            </section>
+          </div>
+        </>
+      )}
     </div>
   );
 }

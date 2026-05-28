@@ -1,7 +1,7 @@
 /**
  * NDA Admin Fetch Edge Function
  * 
- * Fetches all signed NDA records from onboarding_data table.
+ * Fetches all signed NDA records from the nda_signatures table.
  * Uses service role key to bypass RLS.
  * Password protected - requires admin password in request body.
  */
@@ -55,13 +55,12 @@ serve(async (req: Request) => {
       },
     });
 
-    // Fetch all NDA records where nda_signed_at is not null
-    // Using correct column names: legal_first_name, legal_last_name (no email in this table)
+    // Fetch all NDA records from the current signing source of truth.
     const { data, error: fetchError } = await supabase
-      .from('onboarding_data')
-      .select('user_id, legal_first_name, legal_last_name, nda_signed_at, nda_version, nda_signer_ip, nda_signer_name, nda_pdf_url')
-      .not('nda_signed_at', 'is', null)
-      .order('nda_signed_at', { ascending: false });
+      .from('nda_signatures')
+      .select('user_id, signer_name, signer_email, signer_ip, nda_version, pdf_url, signed_at')
+      .not('signed_at', 'is', null)
+      .order('signed_at', { ascending: false });
 
     if (fetchError) {
       console.error("Error fetching NDA records:", fetchError);
@@ -74,22 +73,21 @@ serve(async (req: Request) => {
     // Transform the data to match expected format
     const transformedData = (data || []).map((record: { 
       user_id: string; 
-      legal_first_name: string | null; 
-      legal_last_name: string | null; 
-      nda_signed_at: string; 
+      signer_name: string | null;
+      signer_email: string | null;
+      signer_ip: string | null;
       nda_version: string | null; 
-      nda_signer_ip: string | null; 
-      nda_signer_name: string | null; 
-      nda_pdf_url: string | null;
+      pdf_url: string | null;
+      signed_at: string;
     }) => ({
       user_id: record.user_id,
-      full_name: [record.legal_first_name, record.legal_last_name].filter(Boolean).join(' ') || record.nda_signer_name || 'N/A',
-      email: 'N/A', // Email not stored in onboarding_data table
-      nda_signed_at: record.nda_signed_at,
+      full_name: record.signer_name || 'N/A',
+      email: record.signer_email || 'N/A',
+      nda_signed_at: record.signed_at,
       nda_version: record.nda_version,
-      nda_signer_ip: record.nda_signer_ip,
-      nda_signer_name: record.nda_signer_name,
-      nda_pdf_url: record.nda_pdf_url,
+      nda_signer_ip: record.signer_ip,
+      nda_signer_name: record.signer_name,
+      nda_pdf_url: record.pdf_url,
     }));
 
     console.log(`Fetched ${transformedData.length} NDA records`);

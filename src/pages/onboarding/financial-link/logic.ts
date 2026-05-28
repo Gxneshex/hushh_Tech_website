@@ -4,28 +4,166 @@
  * Uses usePlaidLinkHook for the full Plaid Link flow.
  */
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import config from '../../../resources/config/config';
 import { usePlaidLinkHook } from '../../../services/plaid/usePlaidLink';
-import { formatCurrency } from '../../../services/plaid/plaidService';
+import {
+  createSandboxTestItem,
+  formatCurrency,
+  getPlaidSyncStatus,
+  startPlaidDataSync,
+  unlinkPlaidAccount,
+  type PlaidDataProduct,
+  type PlaidProductSyncStatus,
+  type PlaidProductSyncStatusValue,
+} from '../../../services/plaid/plaidService';
 import { upsertOnboardingData } from '../../../services/onboarding/upsertOnboardingData';
 import {
   FINANCIAL_LINK_ROUTE,
   getFinancialLinkContinuationRoute,
+  isFinancialLinkReviewMode,
   resolveFinancialLinkStatus,
 } from '../../../services/onboarding/flow';
 import { fetchOnboardingProgress } from '../../../services/onboarding/progress';
+import {
+  getInvestorAccessState,
+  getResumeRouteForState,
+} from '../../../services/investorAccess/state';
 
 export { formatCurrency };
 
+type ProductSyncUiStatus = 'success' | 'loading' | 'pending' | 'unavailable' | 'error';
+type ProductSyncBackfillState = 'idle' | 'starting' | 'started' | 'needs_relink' | 'error';
+
+const CORE_SYNC_PRODUCTS: PlaidDataProduct[] = ['accounts', 'balance', 'auth'];
+const LOCAL_SANDBOX_INSTITUTION_ID = 'ins_109508';
+
+const isLocalPlaidHost = () => {
+  const host = window.location.hostname;
+  return host === 'localhost' || host === '127.0.0.1' || host === '::1';
+};
+
+const shouldUsePlaidSandboxDirectConnect = () => {
+  const forcedMode = import.meta.env?.VITE_PLAID_LINK_MODE;
+  if (forcedMode === 'link') return false;
+  if (forcedMode === 'sandbox-direct') return true;
+
+  return isLocalPlaidHost()
+    && import.meta.env?.VITE_PLAID_ENV === 'sandbox'
+    && import.meta.env?.VITE_PLAID_DISABLE_LOCAL_SANDBOX_DIRECT !== 'true';
+};
+
+const shouldBlockLocalPlaidLink = () => {
+  const forcedMode = import.meta.env?.VITE_PLAID_LINK_MODE;
+  if (forcedMode === 'link' || forcedMode === 'sandbox-direct') return false;
+
+  return isLocalPlaidHost()
+    && import.meta.env?.VITE_PLAID_ENV !== 'sandbox'
+    && import.meta.env?.VITE_ALLOW_LOCAL_PLAID_LINK !== 'true';
+};
+
+const PRODUCT_SYNC_DISPLAY: Array<{
+  product: PlaidDataProduct;
+  title: string;
+  icon: string;
+}> = [
+  { product: 'accounts', title: 'Accounts', icon: 'account_balance' },
+  { product: 'balance', title: 'Balance', icon: 'account_balance_wallet' },
+  { product: 'auth', title: 'Bank verification', icon: 'verified_user' },
+  { product: 'identity', title: 'Identity', icon: 'badge' },
+  { product: 'identity_match', title: 'Identity match', icon: 'how_to_reg' },
+  { product: 'transactions', title: 'Transactions', icon: 'receipt_long' },
+  { product: 'assets', title: 'Assets report', icon: 'inventory' },
+  { product: 'investments', title: 'Investments', icon: 'monitoring' },
+  { product: 'investment_transactions', title: 'Investment activity', icon: 'timeline' },
+  { product: 'liabilities', title: 'Liabilities', icon: 'credit_card' },
+  { product: 'statements', title: 'Statements', icon: 'description' },
+  { product: 'income', title: 'Income', icon: 'payments' },
+  { product: 'signal', title: 'ACH risk', icon: 'health_and_safety' },
+];
+
+const PRODUCT_SYNC_STATUS_TO_UI: Record<PlaidProductSyncStatusValue, ProductSyncUiStatus> = {
+  complete: 'success',
+  partial: 'success',
+  syncing: 'loading',
+  pending: 'pending',
+  unsupported: 'unavailable',
+  access_required: 'unavailable',
+  failed: 'error',
+};
+
+const getProductStatusSubtitle = (
+  product: PlaidDataProduct,
+  status?: PlaidProductSyncStatus
+) => {
+  if (!status) return 'Queued';
+
+  if (status.status === 'syncing') return 'Syncing in background';
+  if (status.status === 'pending') {
+    if (product === 'assets') return 'Generating report';
+    if (product === 'identity_match') return 'Waiting for legal details';
+    return 'Queued';
+  }
+  if (status.status === 'unsupported') return 'Not supported by this bank';
+  if (status.status === 'access_required') return 'Needs additional consent';
+  if (status.status === 'failed') return 'Will retry later';
+  if (status.status === 'partial') return 'Partially ready';
+  if (!status.available) return 'No records found';
+
+  return status.records_count != null
+    ? `${status.records_count} records ready`
+    : 'Ready';
+};
+
+const isMissingCoreSyncStatus = (statuses: PlaidProductSyncStatus[]) => {
+  if (statuses.length === 0) return true;
+  const products = new Set(statuses.map((status) => status.product));
+  return CORE_SYNC_PRODUCTS.some((product) => !products.has(product));
+};
+
+const getMissingProductFallback = (
+  backfillState: ProductSyncBackfillState,
+  hasPlaidItem: boolean,
+  isDatabaseRestoreComplete: boolean
+): { status: ProductSyncUiStatus; subtitle: string } => {
+  if (backfillState === 'needs_relink' || (!hasPlaidItem && isDatabaseRestoreComplete)) {
+    return { status: 'unavailable', subtitle: 'Reconnect bank' };
+  }
+  if (backfillState === 'error') {
+    return { status: 'error', subtitle: 'Will retry later' };
+  }
+  if (backfillState === 'started') {
+    return { status: 'loading', subtitle: 'Syncing in background' };
+  }
+  return { status: 'loading', subtitle: 'Starting background sync' };
+};
+
 export const useFinancialLinkLogic = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [userId, setUserId] = useState<string>('');
   const [userEmail, setUserEmail] = useState<string | undefined>(undefined);
   const [isReady, setIsReady] = useState(false);
   const [currentOnboardingStep, setCurrentOnboardingStep] = useState(1);
   const [resumeRoute, setResumeRoute] = useState<string>(getFinancialLinkContinuationRoute(1));
+  const [isChangeBankConfirmOpen, setIsChangeBankConfirmOpen] = useState(false);
+  const [isChangingBank, setIsChangingBank] = useState(false);
+  const [isSandboxConnecting, setIsSandboxConnecting] = useState(false);
+  const [changeBankError, setChangeBankError] = useState<string | null>(null);
+  const [isSkipConfirmOpen, setIsSkipConfirmOpen] = useState(false);
+  const [isSkipping, setIsSkipping] = useState(false);
+  const [skipError, setSkipError] = useState<string | null>(null);
+  const [productSyncStatuses, setProductSyncStatuses] = useState<PlaidProductSyncStatus[]>([]);
+  const [productSyncBackfillState, setProductSyncBackfillState] =
+    useState<ProductSyncBackfillState>('idle');
   const hasInitialized = useRef(false);
+  const syncBackfillAttemptedRef = useRef<string | null>(null);
+  const isReviewMode = useMemo(
+    () => isFinancialLinkReviewMode(location.search),
+    [location.search]
+  );
+  const useSandboxDirectConnect = useMemo(shouldUsePlaidSandboxDirectConnect, []);
+  const blockLocalPlaidLink = useMemo(shouldBlockLocalPlaidLink, []);
 
   /* Scroll to top */
   useEffect(() => { window.scrollTo(0, 0); }, []);
@@ -39,7 +177,8 @@ export const useFinancialLinkLogic = () => {
       if (!config.supabaseClient) { navigate('/login'); return; }
       const { data: { user } } = await config.supabaseClient.auth.getUser();
       if (!user) {
-        navigate(`/login?redirect=${encodeURIComponent(FINANCIAL_LINK_ROUTE)}`, {
+        const redirectTarget = `${FINANCIAL_LINK_ROUTE}${isReviewMode ? '?mode=review' : ''}`;
+        navigate(`/login?redirect=${encodeURIComponent(redirectTarget)}`, {
           replace: true,
         });
         return;
@@ -68,8 +207,28 @@ export const useFinancialLinkLogic = () => {
           void upsertOnboardingData(user.id, { financial_link_status: 'completed' });
         }
 
+        // Status-aware resume routing: if the user already paid (or beyond),
+        // skip past financial-link entirely and land them on the right
+        // post-payment surface. Falls back to the legacy continuation route
+        // when no payment state is set yet.
+        const accessState = getInvestorAccessState(onboardingProgress);
+        if (
+          accessState === 'verified_investor' ||
+          accessState === 'payment_in_review' ||
+          accessState === 'rejected_investor'
+        ) {
+          navigate(
+            getResumeRouteForState(accessState, onboardingProgress?.current_step),
+            { replace: true },
+          );
+          return;
+        }
+
         if (onboardingProgress?.is_completed) {
-          navigate('/hushh-user-profile', { replace: true });
+          navigate(
+            getResumeRouteForState(accessState, onboardingProgress?.current_step),
+            { replace: true },
+          );
           return;
         }
 
@@ -79,7 +238,7 @@ export const useFinancialLinkLogic = () => {
         setCurrentOnboardingStep(onboardingProgress?.current_step || 1);
         setResumeRoute(nextRoute);
 
-        if (effectiveStatus !== 'pending') {
+        if (effectiveStatus !== 'pending' && !isReviewMode) {
           navigate(nextRoute, { replace: true });
           return;
         }
@@ -94,7 +253,9 @@ export const useFinancialLinkLogic = () => {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ─── Plaid hook — the real integration ─── */
-  const plaid = usePlaidLinkHook(userId, userEmail);
+  const plaid = usePlaidLinkHook(userId, userEmail, {
+    skipAutoInit: useSandboxDirectConnect || blockLocalPlaidLink,
+  });
 
   /* ─── Extract all accounts from balance data ─── */
   const allAccounts = useMemo(() => {
@@ -149,23 +310,112 @@ export const useFinancialLinkLogic = () => {
     return plaid.financialData?.investments?.data?.holdings || [];
   }, [plaid.financialData]);
 
+  const investmentAccounts = useMemo(() => {
+    return plaid.financialData?.investments?.data?.accounts || [];
+  }, [plaid.financialData]);
+
   /* ─── UI state derived from Plaid ─── */
   const isProcessing = ['creating_token', 'exchanging', 'fetching'].includes(plaid.step);
-  const isInitializing = plaid.step === 'idle' || plaid.step === 'creating_token';
+  const isInitializing =
+    !useSandboxDirectConnect && (plaid.step === 'idle' || plaid.step === 'creating_token');
   const isDone = plaid.step === 'done';
   const canProceed = isDone && plaid.canProceed;
+  const localPlaidNotice = blockLocalPlaidLink
+    ? 'Plaid bank connection is paused on localhost for this production Plaid setup. Use the secure test URL, or switch local Plaid to sandbox mode for clean testing.'
+    : null;
+
+  useEffect(() => {
+    if (!userId || !isDone) {
+      setProductSyncStatuses([]);
+      setProductSyncBackfillState('idle');
+      return;
+    }
+
+    let cancelled = false;
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+
+    const maybeStartBackfill = async (statuses: PlaidProductSyncStatus[]) => {
+      if (!isMissingCoreSyncStatus(statuses)) {
+        if (!cancelled) setProductSyncBackfillState('idle');
+        return;
+      }
+
+      if (!plaid.isDatabaseRestoreComplete) {
+        if (!cancelled) setProductSyncBackfillState('starting');
+        return;
+      }
+
+      if (!plaid.plaidItemId) {
+        if (!cancelled) setProductSyncBackfillState('needs_relink');
+        return;
+      }
+
+      const attemptKey = `${userId}:${plaid.plaidItemId}`;
+      if (syncBackfillAttemptedRef.current === attemptKey) {
+        return;
+      }
+      syncBackfillAttemptedRef.current = attemptKey;
+
+      if (!cancelled) setProductSyncBackfillState('starting');
+      try {
+        console.log('[Plaid] Starting missing product sync backfill', {
+          itemId: plaid.plaidItemId,
+          statusRows: statuses.length,
+        });
+        await startPlaidDataSync(userId, plaid.plaidItemId);
+        if (cancelled) return;
+
+        setProductSyncBackfillState('started');
+        const refreshedStatuses = await getPlaidSyncStatus(userId);
+        if (!cancelled) setProductSyncStatuses(refreshedStatuses);
+        await plaid.refreshFromDatabase();
+      } catch (err) {
+        console.warn('[Plaid] Product sync backfill failed:', err);
+        if (!cancelled) setProductSyncBackfillState('error');
+      }
+    };
+
+    const loadStatuses = async () => {
+      const statuses = await getPlaidSyncStatus(userId);
+      if (cancelled) return;
+      setProductSyncStatuses(statuses);
+      void maybeStartBackfill(statuses);
+    };
+
+    void loadStatuses();
+    intervalId = setInterval(loadStatuses, 5000);
+
+    return () => {
+      cancelled = true;
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [isDone, userId, plaid.plaidItemId, plaid.isDatabaseRestoreComplete, plaid.refreshFromDatabase]);
 
   const buttonText = useMemo(() => {
+    if (isSandboxConnecting) return 'Connecting Sandbox Bank...';
+    if (blockLocalPlaidLink && !isDone) return 'Use secure test URL';
+    if (useSandboxDirectConnect && (plaid.step === 'error' || (isDone && !plaid.canProceed))) return 'Try Again';
+    if (useSandboxDirectConnect && !isDone) return 'Connect Sandbox Bank';
     if (plaid.step === 'idle' || plaid.step === 'creating_token') return 'Preparing...';
     if (plaid.step === 'linking') return 'Connecting...';
     if (plaid.step === 'exchanging') return 'Securing Connection...';
     if (plaid.step === 'fetching') return 'Fetching Financial Data...';
     if (isDone && canProceed) return 'Continue to KYC';
     if (plaid.step === 'error' || (isDone && !plaid.canProceed)) return 'Try Again';
+    if (useSandboxDirectConnect) return 'Connect Sandbox Bank';
     return 'Connect Bank Account';
-  }, [plaid.step, plaid.canProceed, isDone, canProceed]);
+  }, [
+    canProceed,
+    isDone,
+    isSandboxConnecting,
+    blockLocalPlaidLink,
+    plaid.canProceed,
+    plaid.step,
+    useSandboxDirectConnect,
+  ]);
 
-  const isButtonDisabled = isInitializing || isProcessing;
+  const showPrimaryButtonSpinner = isInitializing || isProcessing || isSandboxConnecting;
+  const isButtonDisabled = showPrimaryButtonSpinner || Boolean(localPlaidNotice && !isDone);
 
   /* ─── Verification row statuses ─── */
   const verificationRows = useMemo(() => {
@@ -186,9 +436,13 @@ export const useFinancialLinkLogic = () => {
       {
         icon: 'monitoring',
         title: 'Investments',
-        subtitle: investmentsStatus === 'success' && investmentHoldings.length > 0
-          ? `${investmentHoldings.length} Holdings`
-          : investmentsStatus === 'loading' ? 'Fetching...' : 'No Investment Accounts',
+        subtitle: investmentsStatus === 'success'
+          ? investmentHoldings.length > 0
+            ? `${investmentHoldings.length} Holdings`
+            : investmentAccounts.length > 0
+              ? `${investmentAccounts.length} Linked Accounts · No holdings`
+              : 'No Investment Holdings'
+          : investmentsStatus === 'loading' ? 'Fetching...' : 'No Investment Holdings',
         status: investmentsStatus,
       },
       {
@@ -200,7 +454,50 @@ export const useFinancialLinkLogic = () => {
         status: hasIdentity ? 'success' as const : 'idle' as const,
       },
     ];
-  }, [plaid, allAccounts, totalBalance, identityInfo, investmentHoldings]);
+  }, [plaid, allAccounts, totalBalance, identityInfo, investmentAccounts, investmentHoldings]);
+
+  const productSyncRows = useMemo(() => {
+    if (!isDone && productSyncStatuses.length === 0) return [];
+
+    const statusByProduct = new Map<PlaidDataProduct, PlaidProductSyncStatus>();
+    for (const status of productSyncStatuses) {
+      statusByProduct.set(status.product, status);
+    }
+
+    return PRODUCT_SYNC_DISPLAY.map((productMeta) => {
+      const status = statusByProduct.get(productMeta.product);
+      if (!status) {
+        const fallback = getMissingProductFallback(
+          productSyncBackfillState,
+          Boolean(plaid.plaidItemId),
+          plaid.isDatabaseRestoreComplete
+        );
+        return {
+          ...productMeta,
+          status: fallback.status,
+          subtitle: fallback.subtitle,
+        };
+      }
+      const statusValue = status?.status || 'pending';
+      return {
+        ...productMeta,
+        status: PRODUCT_SYNC_STATUS_TO_UI[statusValue],
+        subtitle: getProductStatusSubtitle(productMeta.product, status),
+      };
+    });
+  }, [
+    isDone,
+    plaid.isDatabaseRestoreComplete,
+    plaid.plaidItemId,
+    productSyncBackfillState,
+    productSyncStatuses,
+  ]);
+
+  const handleBack = useCallback(() => {
+    navigate(resumeRoute || getFinancialLinkContinuationRoute(currentOnboardingStep), {
+      replace: true,
+    });
+  }, [currentOnboardingStep, navigate, resumeRoute]);
 
   /* ─── Main button handler — Plaid flow ─── */
   const handleButtonClick = useCallback(async () => {
@@ -212,6 +509,30 @@ export const useFinancialLinkLogic = () => {
       navigate(resumeRoute, { replace: true });
       return;
     }
+    if (blockLocalPlaidLink) {
+      return;
+    }
+    if (useSandboxDirectConnect) {
+      setIsSandboxConnecting(true);
+      setChangeBankError(null);
+      try {
+        const sandboxItem = await createSandboxTestItem(userId, LOCAL_SANDBOX_INSTITUTION_ID);
+        await startPlaidDataSync(userId, sandboxItem.item_id);
+        const dbState = await plaid.refreshFromDatabase();
+
+        if (!dbState?.canProceed) {
+          throw new Error('Sandbox bank connected, but verification data is still syncing. Please try again.');
+        }
+      } catch (err) {
+        const message = err instanceof Error
+          ? err.message
+          : 'Sandbox bank connection failed';
+        setChangeBankError(message);
+      } finally {
+        setIsSandboxConnecting(false);
+      }
+      return;
+    }
     if (plaid.step === 'error' || (isDone && !plaid.canProceed)) {
       plaid.retry();
       return;
@@ -219,22 +540,94 @@ export const useFinancialLinkLogic = () => {
     if (plaid.isReady) {
       plaid.openPlaidLink();
     }
-  }, [canProceed, currentOnboardingStep, isDone, navigate, plaid, resumeRoute, userId]);
+  }, [
+    canProceed,
+    currentOnboardingStep,
+    isDone,
+    navigate,
+    plaid,
+    resumeRoute,
+    blockLocalPlaidLink,
+    useSandboxDirectConnect,
+    userId,
+  ]);
 
-  /* Skip — let user proceed without linking bank */
-  const handleSkip = useCallback(async () => {
-    console.log('[FinancialLink] User skipped financial verification');
-    await upsertOnboardingData(userId, {
-      current_step: currentOnboardingStep,
-      financial_link_status: 'skipped',
-    });
-    navigate(resumeRoute, { replace: true });
+  /* Skip — show confirm modal first, so accidental clicks do not lock the
+   * user into the manual-review-only path. */
+  const openSkipConfirm = useCallback(() => {
+    setSkipError(null);
+    setIsSkipConfirmOpen(true);
+  }, []);
+
+  const closeSkipConfirm = useCallback(() => {
+    if (isSkipping) return;
+    setIsSkipConfirmOpen(false);
+    setSkipError(null);
+  }, [isSkipping]);
+
+  const handleConfirmSkip = useCallback(async () => {
+    if (!userId) return;
+    setIsSkipping(true);
+    setSkipError(null);
+    try {
+      console.log('[FinancialLink] User skipped financial verification');
+      await upsertOnboardingData(userId, {
+        current_step: currentOnboardingStep,
+        financial_link_status: 'skipped',
+      });
+      setIsSkipConfirmOpen(false);
+      navigate(resumeRoute, { replace: true });
+    } catch (err) {
+      setSkipError(err instanceof Error ? err.message : 'Failed to skip financial verification');
+    } finally {
+      setIsSkipping(false);
+    }
   }, [currentOnboardingStep, navigate, resumeRoute, userId]);
+
+  const closeChangeBankConfirm = useCallback(() => {
+    if (isChangingBank) return;
+    setIsChangeBankConfirmOpen(false);
+    setChangeBankError(null);
+  }, [isChangingBank]);
+
+  const openChangeBankConfirm = useCallback(() => {
+    setChangeBankError(null);
+    setIsChangeBankConfirmOpen(true);
+  }, []);
+
+  const handleConfirmChangeBank = useCallback(async () => {
+    if (!userId) return;
+
+    setIsChangingBank(true);
+    setChangeBankError(null);
+    try {
+      await unlinkPlaidAccount(userId);
+      try {
+        sessionStorage.removeItem('plaid_link_state');
+      } catch {
+        // sessionStorage may be unavailable in private browsing contexts.
+      }
+      setIsChangeBankConfirmOpen(false);
+      await upsertOnboardingData(userId, {
+        current_step: currentOnboardingStep,
+        financial_link_status: 'pending',
+      });
+      plaid.retry();
+    } catch (err) {
+      const message = err instanceof Error
+        ? err.message
+        : 'Failed to change linked bank';
+      setChangeBankError(message);
+    } finally {
+      setIsChangingBank(false);
+    }
+  }, [currentOnboardingStep, plaid, userId]);
 
   return {
     userId,
     userEmail,
     isReady,
+    isReviewMode,
     /* Plaid state */
     plaidStep: plaid.step,
     institution: plaid.institution,
@@ -242,8 +635,10 @@ export const useFinancialLinkLogic = () => {
     canProceed,
     isProcessing,
     isButtonDisabled,
+    showPrimaryButtonSpinner,
     buttonText,
     error: plaid.error,
+    localPlaidNotice,
     /* Data */
     verificationRows,
     allAccounts,
@@ -251,10 +646,26 @@ export const useFinancialLinkLogic = () => {
     totalBalance,
     identityInfo,
     investmentHoldings,
+    investmentAccounts,
+    productSyncRows,
     /* Actions */
+    handleBack,
     handleButtonClick,
-    handleSkip,
+    openSkipConfirm,
+    closeSkipConfirm,
+    handleConfirmSkip,
+    openChangeBankConfirm,
+    closeChangeBankConfirm,
+    handleConfirmChangeBank,
     openPlaidLink: plaid.openPlaidLink,
     retry: plaid.retry,
+    /* Change bank state */
+    isChangeBankConfirmOpen,
+    isChangingBank,
+    changeBankError,
+    /* Skip state */
+    isSkipConfirmOpen,
+    isSkipping,
+    skipError,
   };
 };

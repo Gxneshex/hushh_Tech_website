@@ -34,6 +34,7 @@ vi.mock("../src/resources/config/config", () => ({
     redirect_url: "http://localhost:5173/auth/callback",
     supabaseClient: {
       auth: {
+        storageKey: "sb-test-auth-token",
         getSession: (...args: unknown[]) => mockGetSession(...args),
         getUser: (...args: unknown[]) => mockGetUser(...args),
         onAuthStateChange: (...args: unknown[]) => mockOnAuthStateChange(...args),
@@ -184,7 +185,44 @@ describe("AuthSessionProvider", () => {
     expect(mockSignOut).toHaveBeenCalledWith({ scope: "local" });
   });
 
+  it("account deletion clears local auth state without calling remote sign-out", async () => {
+    window.localStorage.setItem("sb-test-auth-token", JSON.stringify(MOCK_SESSION));
+    window.localStorage.setItem("sb-test-auth-token-user", "{}");
+    mockGetSession.mockResolvedValue({
+      data: { session: MOCK_SESSION },
+      error: null,
+    });
+    mockGetUser.mockResolvedValue({
+      data: { user: MOCK_SESSION.user },
+      error: null,
+    });
+
+    await act(async () => {
+      root.render(renderWithProvider(React.createElement(AuthHarness)));
+    });
+    await flush();
+
+    const deleteButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent === "Handle Account Deleted"
+    );
+    await act(async () => {
+      deleteButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+    await flush();
+
+    expect(container.querySelector('[data-testid="status"]')?.textContent).toBe(
+      "invalidated"
+    );
+    expect(container.querySelector('[data-testid="reason"]')?.textContent).toBe(
+      "deleted"
+    );
+    expect(mockSignOut).not.toHaveBeenCalled();
+    expect(window.localStorage.getItem("sb-test-auth-token")).toBeNull();
+    expect(window.localStorage.getItem("sb-test-auth-token-user")).toBeNull();
+  });
+
   it("broadcast-driven deletion invalidates another tab immediately", async () => {
+    window.localStorage.setItem("sb-test-auth-token", JSON.stringify(MOCK_SESSION));
     mockGetSession.mockResolvedValue({
       data: { session: MOCK_SESSION },
       error: null,
@@ -218,7 +256,8 @@ describe("AuthSessionProvider", () => {
     expect(container.querySelector('[data-testid="reason"]')?.textContent).toBe(
       "deleted"
     );
-    expect(mockSignOut).toHaveBeenCalledWith({ scope: "local" });
+    expect(mockSignOut).not.toHaveBeenCalled();
+    expect(window.localStorage.getItem("sb-test-auth-token")).toBeNull();
   });
 
   it("starts unified Google OAuth from the provider action", async () => {

@@ -9,6 +9,8 @@
  */
 import { corsHeaders } from '../_shared/cors.ts';
 import { getPlaidConfig } from '../_shared/plaid.ts';
+import { authenticateEdgeRequest } from '../_shared/security.ts';
+import { encryptPlaidAccessToken } from '../_shared/plaidToken.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 Deno.serve(async (req) => {
@@ -20,6 +22,12 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const userId = body.userId || body.user_id;
     const institutionId = body.institutionId || 'ins_109508'; // First Platypus Bank
+
+    const authFailure = await authenticateEdgeRequest(req, {
+      label: 'sandbox-create-test-item',
+      expectedUserId: userId || null,
+    });
+    if (authFailure) return authFailure;
 
     if (!userId) {
       return new Response(
@@ -90,7 +98,7 @@ Deno.serve(async (req) => {
 
     const accessToken = exchangeData.access_token;
     const itemId = exchangeData.item_id;
-    console.log(`[sandbox-test] ✅ Access token obtained, item: ${itemId}`);
+    console.log(`[sandbox-test] ✅ Plaid item created: ${itemId}`);
 
     // ─── Step 3: Fetch all 3 products in parallel ───
     const plaidHeaders = { 'Content-Type': 'application/json' };
@@ -146,15 +154,63 @@ Deno.serve(async (req) => {
     if (SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
       try {
         const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+        const encryptedToken = await encryptPlaidAccessToken(accessToken);
+        const now = new Date().toISOString();
 
         // Save to plaid_items
         await supabase.from('plaid_items').upsert({
           user_id: userId,
-          access_token: accessToken,
-          item_id: itemId,
+          plaid_item_id: itemId,
+          plaid_access_token_encrypted: encryptedToken,
+          institution_id: institutionId,
           institution_name: 'First Platypus Bank',
-          updated_at: new Date().toISOString(),
-        }, { onConflict: 'item_id' });
+          products_requested: ['auth', 'transactions', 'investments', 'assets'],
+          webhook_url: Deno.env.get('PLAID_DATA_WEBHOOK_URL') || null,
+          status: 'active',
+          error_code: null,
+          error_message: null,
+          updated_at: now,
+        }, { onConflict: 'plaid_item_id' });
+
+        const accounts = Array.isArray(balance.data?.accounts) ? balance.data.accounts : [];
+        for (const [index, account] of accounts.entries()) {
+          const balances = account.balances || {};
+          await supabase.from('plaid_accounts').upsert({
+            plaid_item_id: itemId,
+            plaid_account_id: account.account_id,
+            name: account.name || null,
+            official_name: account.official_name || null,
+            type: account.type || null,
+            subtype: account.subtype || null,
+            current_balance: balances.current ?? null,
+            available_balance: balances.available ?? null,
+            iso_currency_code: balances.iso_currency_code || 'USD',
+            mask: account.mask || null,
+            last_synced_at: now,
+            updated_at: now,
+          }, { onConflict: 'plaid_account_id' });
+
+          if (['checking', 'savings', 'cash management'].includes(String(account.subtype || '').toLowerCase())) {
+            await supabase.from('plaid_transfer_accounts').upsert({
+              user_id: userId,
+              plaid_item_id: itemId,
+              plaid_account_id: account.account_id,
+              institution_id: institutionId,
+              institution_name: 'First Platypus Bank',
+              name: account.name || null,
+              official_name: account.official_name || null,
+              type: account.type || null,
+              subtype: account.subtype || null,
+              mask: account.mask || null,
+              iso_currency_code: balances.iso_currency_code || 'USD',
+              available_balance: balances.available ?? null,
+              current_balance: balances.current ?? null,
+              is_default: index === 0,
+              status: 'active',
+              updated_at: now,
+            }, { onConflict: 'user_id,plaid_account_id' });
+          }
+        }
 
         // Save to user_financial_data
         const fetchErrors: Record<string, string> = {};
@@ -178,7 +234,7 @@ Deno.serve(async (req) => {
           },
           status,
           fetch_errors: Object.keys(fetchErrors).length > 0 ? fetchErrors : null,
-          updated_at: new Date().toISOString(),
+          updated_at: now,
         }, { onConflict: 'user_id' });
 
         saved = true;

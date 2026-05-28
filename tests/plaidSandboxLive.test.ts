@@ -10,7 +10,7 @@
  *   5. /asset_report/create → asset report token
  * 
  * Requires PLAID_CLIENT_ID and PLAID_SECRET env vars.
- * Run with: npx vitest run tests/plaidSandboxLive.test.ts
+ * Run with: PLAID_LIVE_SANDBOX=1 npx vitest run tests/plaidSandboxLive.test.ts
  */
 
 import { describe, it, expect, beforeAll } from 'vitest';
@@ -25,7 +25,10 @@ const BASE_URL = 'https://sandbox.plaid.com';
 const INSTITUTION_ID = 'ins_109508'; // First Platypus Bank
 
 // Skip entire suite if no credentials (e.g., in CI)
-const HAS_CREDENTIALS = PLAID_CLIENT_ID.length > 0 && PLAID_SECRET.length > 0;
+const HAS_CREDENTIALS =
+  process.env.PLAID_LIVE_SANDBOX === '1' &&
+  PLAID_CLIENT_ID.length > 0 &&
+  PLAID_SECRET.length > 0;
 
 // Shared state across tests
 let publicToken: string;
@@ -69,7 +72,7 @@ describe.skipIf(!HAS_CREDENTIALS)('Plaid Sandbox — LIVE API Tests', () => {
 
       // Store for next tests
       publicToken = data.public_token;
-      console.log('✅ Public token:', publicToken.substring(0, 30) + '...');
+      console.log('✅ Public token created');
     }, TIMEOUT);
   });
 
@@ -100,7 +103,7 @@ describe.skipIf(!HAS_CREDENTIALS)('Plaid Sandbox — LIVE API Tests', () => {
       // Store for next tests
       accessToken = data.access_token;
       itemId = data.item_id;
-      console.log('✅ Access token:', accessToken.substring(0, 30) + '...');
+      console.log('✅ Access token exchanged server-side');
       console.log('✅ Item ID:', itemId);
     }, TIMEOUT);
   });
@@ -215,8 +218,7 @@ describe.skipIf(!HAS_CREDENTIALS)('Plaid Sandbox — LIVE API Tests', () => {
       expect(data.asset_report_token).toBeDefined();
       expect(data.asset_report_id).toBeDefined();
 
-      console.log('✅ Asset report token:', data.asset_report_token.substring(0, 30) + '...');
-      console.log('✅ Asset report ID:', data.asset_report_id);
+      console.log('✅ Asset report created');
     }, TIMEOUT);
   });
 

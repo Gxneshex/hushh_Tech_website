@@ -94,11 +94,12 @@ export const AuthSessionProvider: React.FC<{
     async (
       status: Extract<AuthSessionStatus, "anonymous" | "invalidated">,
       reason: AuthSessionReason,
-      broadcast = false
+      broadcast = false,
+      options: { storageOnly?: boolean } = {}
     ) => {
       pendingSignedOutStateRef.current = { status, reason };
       clearLegacyAuthStorage();
-      await clearSupabaseSession(supabase);
+      await clearSupabaseSession(supabase, options);
       applyClearedState(status, reason);
       if (broadcast) {
         broadcastAuthEvent(reason);
@@ -228,7 +229,9 @@ export const AuthSessionProvider: React.FC<{
 
       const nextStatus =
         payload.reason === "signed_out" ? "anonymous" : "invalidated";
-      void clearLocalSession(nextStatus, payload.reason, false);
+      void clearLocalSession(nextStatus, payload.reason, false, {
+        storageOnly: payload.reason === "deleted",
+      });
     };
 
     window.addEventListener("focus", handleWindowFocus);
@@ -273,7 +276,9 @@ export const AuthSessionProvider: React.FC<{
   }, [applyClearedState, supabase]);
 
   const handleAccountDeleted = useCallback(async () => {
-    await clearLocalSession("invalidated", "deleted", true);
+    await clearLocalSession("invalidated", "deleted", true, {
+      storageOnly: true,
+    });
   }, [clearLocalSession]);
 
   const value = useMemo<AuthSessionContextValue>(

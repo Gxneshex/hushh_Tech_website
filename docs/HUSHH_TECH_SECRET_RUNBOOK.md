@@ -28,8 +28,11 @@ Put these in Supabase Edge Function secrets, your server host env, or Secret Man
 - `GEMINI_API_KEY_4`
 - `PLAID_CLIENT_ID`
 - `PLAID_SECRET`
+- `PLAID_TOKEN_ENCRYPTION_KEY`
+- `PLAID_TRANSFER_WEBHOOK_SECRET`
 - `NDA_ADMIN_PASSWORD`
 - `VERCEL_OIDC_TOKEN`
+- Gmail API service-account private keys
 - any Apple `.p8` private key
 
 ## 3. Where each secret should live
@@ -43,7 +46,13 @@ Set these in Supabase project secrets before deploying functions:
 - `PUBLIC_SITE_URL`
 - `SITE_URL`
 - `SECURITY_ALLOWED_ORIGINS`
-- `SECURITY_PLAID_EDGE_AUTH_MODE=observe`
+- `SECURITY_PLAID_EDGE_AUTH_MODE=enforce` for the Plaid Transfer flow after sandbox smoke passes
+- `PLAID_TOKEN_ENCRYPTION_KEY`
+- `PLAID_TRANSFER_WEBHOOK_SECRET`
+- `PLAID_TRANSFER_WEBHOOK_URL`
+- `GOOGLE_SERVICE_ACCOUNT_EMAIL`
+- `GOOGLE_PRIVATE_KEY`
+- `GMAIL_SENDER_EMAIL`
 - `NDA_ADMIN_PASSWORD`
 - existing Stripe, Plaid, OpenAI, and Gemini server secrets used by your functions
 

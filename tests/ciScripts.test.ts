@@ -137,6 +137,15 @@ const validPrBody = `## Summary
 `;
 
 describe("CI workflow scripts", () => {
+  it("loads local env vars when running the dev API server", () => {
+    const rootPackage = JSON.parse(
+      fs.readFileSync(path.join(repoRoot, "package.json"), "utf8")
+    );
+
+    expect(rootPackage.scripts["dev:api"]).toContain("--env-file=.env.local");
+    expect(rootPackage.scripts["dev:api"]).toContain("PORT=3000");
+  });
+
   it("keeps Cloud Run runtime dependencies aligned with server API imports", () => {
     const supabaseHelper = fs.readFileSync(
       path.join(repoRoot, "api/shared/supabaseServerClient.js"),

@@ -4,6 +4,10 @@ import { buildCoinsCreditEmailHtml } from "../supabase/functions/coins-credit-no
 import { buildCoinsDeductionEmailHtml } from "../supabase/functions/coins-deduction-notification/template";
 import { buildNDANotificationHtml } from "../supabase/functions/nda-signed-notification/template";
 import {
+  buildFundPaymentRequestTeamHtml,
+  buildFundPaymentRequestUserHtml,
+} from "../supabase/functions/fund-payment-request/template";
+import {
   buildVaultAccessNotificationHtml,
   buildVaultAccessSubject,
 } from "../supabase/functions/vault-access-notification/template";
@@ -148,5 +152,41 @@ describe("Email template builders", () => {
     expect(html).not.toContain("secretValue");
     expect(html).not.toContain("plaintextValue");
     expectEmailSafeMarkup(html);
+  });
+
+  it("renders fund payment request emails with payment and review context", () => {
+    const base = {
+      recipientName: "Alberta Bobbeth Charleson",
+      userEmail: "alberta@example.com",
+      userId: "1379880e-5b9f-43b1-bd2e-cd56bebfee46",
+      paymentUrl: "https://hushhtech.com/onboarding/fund-payment/hfp_test",
+      requestReference: "HF-ABC123",
+      selectedFund: "hushh_fund_a",
+      classAUnits: 1,
+      classBUnits: 1,
+      classCUnits: 0,
+      commitmentLabel: "$30M",
+      firstPaymentLabel: "$500",
+      remainingCommitmentLabel: "$29,999,500",
+      recurringSummary: "$3 once a month on day 1",
+      plaidStatus: "complete",
+      kycStatus: "in review",
+      expiresAtLabel: "May 31, 2026, 10:00 AM",
+      paymentStatus: "payment_link_sent",
+      reviewStatus: "not_started",
+    };
+
+    const userHtml = buildFundPaymentRequestUserHtml(base);
+    const teamHtml = buildFundPaymentRequestTeamHtml(base);
+
+    expect(userHtml).toContain("Hushh Fund Payment Link");
+    expect(userHtml).toContain("Open Secure Payment Link");
+    expect(userHtml).toContain("manual review");
+    expect(userHtml).toContain("HF-ABC123");
+    expect(teamHtml).toContain("Fund Payment Event");
+    expect(teamHtml).toContain("Payment is Stripe-confirmed only after webhook fulfillment");
+    expect(teamHtml).toContain("alberta@example.com");
+    expectEmailSafeMarkup(userHtml);
+    expectEmailSafeMarkup(teamHtml);
   });
 });

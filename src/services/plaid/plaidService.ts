@@ -34,6 +34,121 @@ export interface FinancialDataResponse {
   };
 }
 
+export interface ExchangeTokenResponse {
+  item_id: string;
+  institution: { name: string | null; id: string | null };
+  accounts: Array<{
+    account_id: string;
+    name: string;
+    official_name?: string | null;
+    mask?: string | null;
+    type?: string | null;
+    subtype?: string | null;
+  }>;
+}
+
+export interface PlaidDataSyncResponse {
+  status: 'complete' | 'partial' | 'failed';
+  item_id: string;
+  institution: { id?: string | null; name?: string | null };
+  available_products: Record<string, boolean>;
+  products_available: number;
+  fetch_errors: Record<string, { error?: string; error_code?: string | null }>;
+  can_proceed: boolean;
+  background_products?: string[];
+  background_sync_started?: boolean;
+}
+
+export type PlaidDataProduct =
+  | 'accounts'
+  | 'balance'
+  | 'auth'
+  | 'identity'
+  | 'identity_match'
+  | 'investments'
+  | 'investment_transactions'
+  | 'liabilities'
+  | 'signal'
+  | 'transactions'
+  | 'assets'
+  | 'statements'
+  | 'income';
+
+export type PlaidProductSyncStatusValue =
+  | 'pending'
+  | 'syncing'
+  | 'complete'
+  | 'partial'
+  | 'unsupported'
+  | 'access_required'
+  | 'failed';
+
+export interface PlaidProductSyncStatus {
+  product: PlaidDataProduct;
+  status: PlaidProductSyncStatusValue;
+  available: boolean;
+  records_count?: number | null;
+  error_code?: string | null;
+  error_message?: string | null;
+  completed_at?: string | null;
+  updated_at?: string | null;
+}
+
+export interface PlaidProductSyncResponse {
+  success: boolean;
+  item_id: string;
+  result: {
+    product: PlaidDataProduct;
+    status: PlaidProductSyncStatusValue;
+    available: boolean;
+    recordsCount?: number | null;
+    error?: string | null;
+    errorCode?: string | null;
+  };
+}
+
+export interface LinkedTransferAccount {
+  id: string;
+  plaid_account_id: string;
+  plaid_item_id: string;
+  institution_name?: string | null;
+  institution_id?: string | null;
+  name?: string | null;
+  official_name?: string | null;
+  type?: string | null;
+  subtype?: string | null;
+  mask?: string | null;
+  iso_currency_code?: string | null;
+  available_balance?: number | null;
+  current_balance?: number | null;
+  status?: string | null;
+}
+
+const isAchTransferEligibleLinkedAccount = (account: LinkedTransferAccount): boolean => {
+  const type = String(account.type || '').toLowerCase();
+  const subtype = String(account.subtype || '').toLowerCase();
+  const currency = String(account.iso_currency_code || 'USD').toUpperCase();
+  return (
+    type === 'depository' &&
+    ['checking', 'savings', 'cash management', 'money market'].includes(subtype) &&
+    currency === 'USD'
+  );
+};
+
+export interface FundTransferSandboxResponse {
+  success: boolean;
+  sandbox_mode: boolean;
+  plan: any;
+  transfer: any;
+  recurring_transfer: any | null;
+}
+
+export interface PlaidUnlinkResponse {
+  success: boolean;
+  removed_items: number;
+  financial_link_status: 'pending';
+}
+
 // =====================================================
 // Config
 // =====================================================
@@ -81,14 +196,13 @@ export const createLinkToken = async (
   redirectUri?: string,
   receivedRedirectUri?: string,
 ) => {
-  console.log('[Plaid:createLinkToken] 🚀 Starting...', { userId: userId?.slice(0, 8), userEmail, redirectUri, receivedRedirectUri: receivedRedirectUri?.slice(0, 50) });
+  console.log('[Plaid:createLinkToken] Starting...', { userId: userId?.slice(0, 8), redirectUri, hasReceivedRedirectUri: Boolean(receivedRedirectUri) });
   const token = await getUserAccessToken();
-  console.log('[Plaid:createLinkToken] Auth token:', token ? `${token.slice(0, 20)}...` : 'MISSING');
   const body: Record<string, any> = { userId, userEmail };
   if (redirectUri) body.redirectUri = redirectUri;
   if (receivedRedirectUri) body.receivedRedirectUri = receivedRedirectUri;
 
-  console.log('[Plaid:createLinkToken] POST', `${getFunctionsUrl()}/create-link-token`, body);
+  console.log('[Plaid:createLinkToken] POST', `${getFunctionsUrl()}/create-link-token`);
   const res = await fetch(`${getFunctionsUrl()}/create-link-token`, {
     method: 'POST',
     headers: getHeaders(token),
@@ -101,7 +215,7 @@ export const createLinkToken = async (
     throw new Error(err.error || 'Failed to create link token');
   }
   const result = await res.json();
-  console.log('[Plaid:createLinkToken] ✅ Got link_token:', result.link_token?.slice(0, 30), '| expires:', result.expiration);
+  console.log('[Plaid:createLinkToken] Got link_token', { expires: result.expiration });
   return result as { link_token: string; expiration: string };
 };
 
@@ -109,28 +223,196 @@ export const createLinkToken = async (
 export const exchangeToken = async (
   publicToken: string, userId: string,
   institutionName?: string, institutionId?: string,
+  accounts?: any[],
 ) => {
   const token = await getUserAccessToken();
   const res = await fetch(`${getFunctionsUrl()}/exchange-public-token`, {
     method: 'POST',
     headers: getHeaders(token),
-    body: JSON.stringify({ publicToken, userId, institutionName, institutionId }),
+    body: JSON.stringify({ publicToken, userId, institutionName, institutionId, accounts }),
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error(err.error || 'Failed to exchange token');
   }
-  return res.json() as Promise<{ access_token: string; item_id: string }>;
+  return res.json() as Promise<ExchangeTokenResponse>;
 };
 
-/** Fetch auth numbers (account number, routing number, account type) from Plaid */
-export const fetchAuthNumbers = async (accessToken: string) => {
+const unavailableProduct = (error: string | null = null): ProductResult => ({
+  available: false,
+  data: null,
+  error,
+  reason: error ? 'error' : 'not_supported',
+});
+
+export const financialDataFromSyncResult = (sync: PlaidDataSyncResponse): FinancialDataResponse => {
+  const available = sync.available_products || {};
+  const errors = sync.fetch_errors || {};
+  const product = (key: string): ProductResult => {
+    if (available[key]) {
+      return { available: true, data: null, error: null, reason: null };
+    }
+    const error = errors[key]?.error || null;
+    return unavailableProduct(error);
+  };
+
+  return {
+    status: sync.status,
+    balance: product('balance'),
+    assets: product('assets'),
+    investments: product('investments'),
+    identity: product('identity'),
+    authNumbers: product('auth'),
+    identityMatch: unavailableProduct(),
+    summary: {
+      products_available: sync.products_available,
+      products_total: Object.keys(available).length || 12,
+      can_proceed: sync.can_proceed,
+    },
+  };
+};
+
+export const startPlaidDataSync = async (
+  userId: string,
+  itemId?: string,
+): Promise<PlaidDataSyncResponse> => {
+  const token = await getUserAccessToken();
+  const res = await fetch(`${getFunctionsUrl()}/plaid-data-sync-start`, {
+    method: 'POST',
+    headers: getHeaders(token),
+    body: JSON.stringify({ userId, itemId }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || 'Failed to sync Plaid data');
+  }
+  return res.json() as Promise<PlaidDataSyncResponse>;
+};
+
+/** Backward-compatible alias: starts the fast sync and background fanout. */
+export const syncPlaidData = startPlaidDataSync;
+
+export const getPlaidSyncStatus = async (
+  userId: string,
+): Promise<PlaidProductSyncStatus[]> => {
+  try {
+    const config = (await import('../../resources/config/config')).default;
+    const supabase = config.supabaseClient;
+    if (!supabase) return [];
+
+    const { data, error } = await supabase
+      .from('plaid_product_sync_statuses')
+      .select('product, status, available, records_count, error_code, error_message, completed_at, updated_at')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      console.warn('[Plaid] Product sync status query failed:', error.message);
+      return [];
+    }
+
+    return (data || []) as PlaidProductSyncStatus[];
+  } catch (error) {
+    console.warn('[Plaid] Product sync status unavailable:', error);
+    return [];
+  }
+};
+
+export const refreshPlaidProduct = async (
+  userId: string,
+  product: PlaidDataProduct,
+  itemId?: string,
+): Promise<PlaidProductSyncResponse> => {
+  const token = await getUserAccessToken();
+  const res = await fetch(`${getFunctionsUrl()}/plaid-data-sync-product`, {
+    method: 'POST',
+    headers: getHeaders(token),
+    body: JSON.stringify({ userId, product, itemId }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.error || `Failed to sync ${product}`);
+  }
+  return data as PlaidProductSyncResponse;
+};
+
+export const fetchLinkedTransferAccounts = async (
+  userId: string,
+): Promise<LinkedTransferAccount[]> => {
+  const config = (await import('../../resources/config/config')).default;
+  const supabase = config.supabaseClient;
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from('plaid_transfer_accounts')
+    .select(`
+      id, plaid_account_id, plaid_item_id, institution_name, institution_id,
+      name, official_name, type, subtype, mask, iso_currency_code,
+      available_balance, current_balance, status
+    `)
+    .eq('user_id', userId)
+    .eq('status', 'active')
+    .order('is_default', { ascending: false })
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.warn('[Plaid] Linked transfer accounts query failed:', error.message);
+    return [];
+  }
+  return ((data || []) as LinkedTransferAccount[]).filter(isAchTransferEligibleLinkedAccount);
+};
+
+export const startFundTransferSandbox = async (params: {
+  userId: string;
+  accountId?: string | null;
+  achAuthorized: boolean;
+  sandboxAmount?: string;
+  sandboxRecurringAmount?: string;
+}): Promise<FundTransferSandboxResponse> => {
+  const token = await getUserAccessToken();
+  const res = await fetch(`${getFunctionsUrl()}/fund-transfer-sandbox-start`, {
+    method: 'POST',
+    headers: getHeaders(token),
+    body: JSON.stringify(params),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.error || 'Failed to start sandbox transfer');
+  }
+  return data as FundTransferSandboxResponse;
+};
+
+export const unlinkPlaidAccount = async (
+  userId: string,
+  itemId?: string,
+): Promise<PlaidUnlinkResponse> => {
+  const token = await getUserAccessToken();
+  const res = await fetch(`${getFunctionsUrl()}/plaid-unlink-item`, {
+    method: 'POST',
+    headers: getHeaders(token),
+    body: JSON.stringify({ userId, itemId }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const message =
+      data.error ||
+      data.message ||
+      (res.status === 409
+        ? 'Bank changes are locked after transfer setup starts'
+        : 'Failed to change linked bank');
+    throw new Error(message);
+  }
+  return data as PlaidUnlinkResponse;
+};
+
+/** Fetch redacted Auth metadata from Plaid via server-side token lookup. */
+export const fetchAuthNumbers = async (userId: string, itemId?: string) => {
   try {
     const token = await getUserAccessToken();
     const res = await fetch(`${getFunctionsUrl()}/get-auth-numbers`, {
       method: 'POST',
       headers: getHeaders(token),
-      body: JSON.stringify({ accessToken }),
+      body: JSON.stringify({ userId, itemId }),
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
@@ -141,7 +423,8 @@ export const fetchAuthNumbers = async (accessToken: string) => {
     console.log('[Plaid] Auth numbers fetched successfully');
     return data as {
       accounts: Array<{ account_id: string; name: string; subtype: string; type: string }>;
-      numbers: { ach: Array<{ account: string; routing: string; wire_routing: string; account_id: string }> };
+      numbers: { ach: Array<{ account_mask: string | null; routing_mask: string | null; wire_routing_mask: string | null; account_id: string }> };
+      sensitive_redacted: boolean;
     };
   } catch (e: any) {
     console.error('[Plaid] Auth numbers fetch failed:', e.message);
@@ -251,9 +534,9 @@ export const fetchIdentityMatch = async (
 };
 
 /** Wrap fetchAuthNumbers as a ProductResult */
-const fetchAuth = async (accessToken: string): Promise<ProductResult> => {
+const fetchAuth = async (_accessToken: string, userId: string): Promise<ProductResult> => {
   try {
-    const data = await fetchAuthNumbers(accessToken);
+    const data = await fetchAuthNumbers(userId);
     if (!data) return { available: false, data: null, error: null, reason: 'not_supported' };
     return { available: true, data, error: null, reason: null };
   } catch (e: any) {
@@ -270,7 +553,7 @@ export const fetchAllFinancialData = async (
     fetchAssets(accessToken, userId),
     fetchInvestments(accessToken, userId),
     fetchIdentity(accessToken),
-    fetchAuth(accessToken),
+    fetchAuth(accessToken, userId),
     fetchIdentityMatch(accessToken),
   ]);
 
@@ -323,7 +606,7 @@ export const saveFinancialDataToSupabase = async (
     await supabase.from('user_financial_data').upsert({
       user_id: userId,
       plaid_item_id: itemId || null,
-      plaid_access_token: accessToken || null,
+      plaid_access_token: null,
       institution_name: institutionName || null,
       institution_id: institutionId || null,
       balances: data.balance.available ? data.balance.data : null,
@@ -459,7 +742,7 @@ export const signalDecisionReport = async (params: {
   amountInstantlyAvailable?: number;
 }) => {
   const token = await getUserAccessToken();
-  const res = await fetch(`${SUPABASE_URL}/signal-decision-report`, {
+  const res = await fetch(`${getFunctionsUrl()}/signal-decision-report`, {
     method: 'POST', headers: getHeaders(token),
     body: JSON.stringify({
       client_transaction_id: params.clientTransactionId,
@@ -484,7 +767,7 @@ export const signalReturnReport = async (params: {
   returnedAt?: string;
 }) => {
   const token = await getUserAccessToken();
-  const res = await fetch(`${SUPABASE_URL}/signal-return-report`, {
+  const res = await fetch(`${getFunctionsUrl()}/signal-return-report`, {
     method: 'POST', headers: getHeaders(token),
     body: JSON.stringify({
       client_transaction_id: params.clientTransactionId,
@@ -530,7 +813,7 @@ export const createSandboxTestItem = async (
   institutionId = 'ins_109508',
 ): Promise<SandboxTestResult> => {
   const token = await getUserAccessToken();
-  const res = await fetch(`${SUPABASE_URL}/sandbox-create-test-item`, {
+  const res = await fetch(`${getFunctionsUrl()}/sandbox-create-test-item`, {
     method: 'POST',
     headers: getHeaders(token),
     body: JSON.stringify({ userId, institutionId }),
