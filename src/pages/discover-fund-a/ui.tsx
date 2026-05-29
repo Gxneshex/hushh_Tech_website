@@ -22,8 +22,9 @@ const iconForTitle = (title: string) => {
   const lower = title.toLowerCase();
 
   if (lower.includes("data") || lower.includes("equity")) return "chart";
-  if (lower.includes("ai") || lower.includes("api")) return "api";
   if (lower.includes("equilibrium") || lower.includes("delta")) return "balance";
+  if (/\bai\b/.test(lower)) return "intelligence";
+  if (lower.includes("api")) return "api";
   if (lower.includes("premium") || lower.includes("income")) return "dollar";
   if (lower.includes("decay")) return "clock";
   if (lower.includes("accumulation") || lower.includes("strategic")) return "layers";
@@ -352,8 +353,8 @@ const FundA = () => {
               {targetIRRLabel}
             </p>
             <div
-              className="bg-gradient-to-r from-[#0066CC] via-[#5E5CE6] to-[#AF52DE] bg-clip-text text-[72px] font-bold leading-[0.96] tracking-[-0.06em] text-transparent md:text-[96px]"
-              style={{ fontFamily: appleFont }}
+              className="text-[72px] font-bold leading-[0.96] tracking-[-0.06em] md:text-[96px]"
+              style={{ color: "rgba(0,102,204,0.85)", fontFamily: appleFont }}
             >
               {targetIRRValue}
             </div>
@@ -584,7 +585,7 @@ const FundA = () => {
         </AppleSection>
       </main>
 
-      <div className="lg:hidden">
+      <div>
         <HushhTechFooter activeTab={HushhFooterTab.FUND_A} />
       </div>
     </div>

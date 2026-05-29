@@ -132,7 +132,7 @@ describe("FundA footer shell", () => {
     vi.clearAllMocks();
   });
 
-  it("keeps the mobile footer hidden on desktop breakpoints", async () => {
+  it("keeps the Fund A footer available across breakpoints", async () => {
     await act(async () => {
       root.render(React.createElement(FundA));
     });
@@ -140,7 +140,7 @@ describe("FundA footer shell", () => {
     const footer = container.querySelector('[data-testid="fund-a-footer"]');
 
     expect(footer?.getAttribute("data-active-tab")).toBe("fund-a");
-    expectClassTokens(footer?.parentElement, ["lg:hidden"]);
+    expect(footer?.parentElement?.className).not.toContain("lg:hidden");
   });
 
   it("marks feature card icons as decorative", async () => {

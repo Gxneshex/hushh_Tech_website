@@ -186,12 +186,10 @@ export const TabIcon = {
 export function HushhMark({ size = 36 }: { size?: number }) {
   return (
     <div
-      className="flex shrink-0 items-center justify-center overflow-hidden bg-[#FFFFFF]"
+      className="flex shrink-0 items-center justify-center"
       style={{
         width: size,
         height: size,
-        borderRadius: size * 0.22,
-        boxShadow: "inset 0 0 0 0.5px rgba(29,29,31,0.08)",
       }}
     >
       <img
@@ -509,7 +507,7 @@ export function AppIcon({
   kind = "api",
   size = 56,
 }: {
-  kind?: "api" | "person" | "chart" | "balance" | "dollar" | "clock" | "layers" | "shield" | "liquidity" | "leaf" | "bolt" | "monoA";
+  kind?: "api" | "intelligence" | "person" | "chart" | "balance" | "dollar" | "clock" | "layers" | "shield" | "liquidity" | "leaf" | "bolt" | "monoA";
   size?: number;
 }) {
   const radius = size * 0.235;
@@ -518,9 +516,9 @@ export function AppIcon({
   const softInk = "#6E6E73";
   const knockOut = "#F5F5F7";
 
-  const variants: Record<string, { surface: string; glyph: ReactNode }> = {
+  const variants: Record<string, { bg: string; glyph: ReactNode }> = {
     api: {
-      surface: "linear-gradient(180deg, #FFFFFF 0%, #F5F5F7 100%)",
+      bg: "linear-gradient(180deg, #FFFFFF 0%, #F5F5F7 100%)",
       glyph: (
         <svg width={iconSize} height={iconSize} viewBox="0 0 28 28" fill="none" aria-hidden="true">
           <rect x="6" y="6" width="16" height="16" rx="3.4" fill={ink} />
@@ -535,8 +533,24 @@ export function AppIcon({
         </svg>
       ),
     },
+    intelligence: {
+      bg: "linear-gradient(160deg, #2997FF 0%, #007AFF 52%, #0066CC 100%)",
+      glyph: (
+        <svg width={size * 0.6} height={size * 0.6} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path
+            d="M12 2.5l1.6 5.4a3 3 0 002 2L21 11.5l-5.4 1.6a3 3 0 00-2 2L12 20.5l-1.6-5.4a3 3 0 00-2-2L3 11.5l5.4-1.6a3 3 0 002-2L12 2.5z"
+            stroke="#fff"
+            strokeWidth="1.6"
+            strokeLinejoin="round"
+            fill="rgba(255,255,255,0.18)"
+          />
+          <circle cx="18.5" cy="5.5" r="1" fill="#fff" />
+          <circle cx="5.5" cy="18.5" r="0.7" fill="#fff" opacity="0.7" />
+        </svg>
+      ),
+    },
     person: {
-      surface: "linear-gradient(180deg, #FFFFFF 0%, #F5F5F7 100%)",
+      bg: "linear-gradient(180deg, #FFFFFF 0%, #F5F5F7 100%)",
       glyph: (
         <svg width={iconSize} height={iconSize} viewBox="0 0 28 28" fill="none" aria-hidden="true">
           <circle cx="14" cy="10.2" r="4.4" fill={ink} />
@@ -545,7 +559,7 @@ export function AppIcon({
       ),
     },
     chart: {
-      surface: "linear-gradient(180deg, #FFFFFF 0%, #F5F5F7 100%)",
+      bg: "linear-gradient(180deg, #FFFFFF 0%, #F5F5F7 100%)",
       glyph: (
         <svg width={iconSize} height={iconSize} viewBox="0 0 28 28" fill="none" aria-hidden="true">
           <rect x="5" y="15" width="4.5" height="8" rx="1.4" fill={ink} />
@@ -555,23 +569,23 @@ export function AppIcon({
       ),
     },
     balance: {
-      surface: "linear-gradient(180deg, #FFFFFF 0%, #F5F5F7 100%)",
+      bg: "linear-gradient(180deg, #FFFFFF 0%, #F5F5F7 100%)",
       glyph: (
         <svg width={iconSize} height={iconSize} viewBox="0 0 28 28" fill="none" aria-hidden="true">
           <rect x="12.5" y="5" width="3" height="18" rx="1.5" fill={ink} />
           <rect x="7" y="8" width="14" height="2.5" rx="1.25" fill={ink} />
           <path d="M6.2 19.2h7.2c-.4 2-1.8 3.4-3.6 3.4s-3.2-1.4-3.6-3.4z" fill={ink} />
           <path d="M14.6 19.2h7.2c-.4 2-1.8 3.4-3.6 3.4s-3.2-1.4-3.6-3.4z" fill={ink} />
-          <path d="M8.6 10.2l-2.4 9h7.2l-2.4-9H8.6zM17 10.2l-2.4 9h7.2l-2.4-9H17z" fill={softInk} />
+          <path d="M8.6 10.2l-2.4 9h7.2l-2.4-9H8.6zM17 10.2l-2.4 9h7.2l-2.4-9H17z" fill={ink} />
         </svg>
       ),
     },
     dollar: {
-      surface: "linear-gradient(180deg, #FFFFFF 0%, #F5F5F7 100%)",
+      bg: "linear-gradient(180deg, #FFFFFF 0%, #F5F5F7 100%)",
       glyph: <span className="font-medium leading-none text-[#1D1D1F]" style={{ fontSize: size * 0.46 }}>$</span>,
     },
     clock: {
-      surface: "linear-gradient(180deg, #FFFFFF 0%, #F5F5F7 100%)",
+      bg: "linear-gradient(180deg, #FFFFFF 0%, #F5F5F7 100%)",
       glyph: (
         <svg width={iconSize} height={iconSize} viewBox="0 0 28 28" fill="none" aria-hidden="true">
           <path d="M14 3.5a10.5 10.5 0 1010.5 10.5A10.5 10.5 0 0014 3.5zm1.5 11.2l4 2.9-1.7 2.1-5.3-3.9V8h3v6.7z" fill={ink} />
@@ -579,7 +593,7 @@ export function AppIcon({
       ),
     },
     layers: {
-      surface: "linear-gradient(180deg, #FFFFFF 0%, #F5F5F7 100%)",
+      bg: "linear-gradient(180deg, #FFFFFF 0%, #F5F5F7 100%)",
       glyph: (
         <svg width={iconSize} height={iconSize} viewBox="0 0 28 28" fill="none" aria-hidden="true">
           <path d="M14 3.8l10 5.4-10 5.4-10-5.4 10-5.4z" fill={ink} />
@@ -588,7 +602,7 @@ export function AppIcon({
       ),
     },
     shield: {
-      surface: "linear-gradient(180deg, #FFFFFF 0%, #F5F5F7 100%)",
+      bg: "linear-gradient(180deg, #FFFFFF 0%, #F5F5F7 100%)",
       glyph: (
         <svg width={iconSize} height={iconSize} viewBox="0 0 28 28" fill="none" aria-hidden="true">
           <path d="M14 3l9 3.5v6.1c0 5.8-3.8 10-9 12.4-5.2-2.4-9-6.6-9-12.4V6.5L14 3z" fill={ink} />
@@ -597,7 +611,7 @@ export function AppIcon({
       ),
     },
     liquidity: {
-      surface: "linear-gradient(180deg, #FFFFFF 0%, #F5F5F7 100%)",
+      bg: "linear-gradient(180deg, #FFFFFF 0%, #F5F5F7 100%)",
       glyph: (
         <svg width={iconSize} height={iconSize} viewBox="0 0 28 28" fill="none" aria-hidden="true">
           <path d="M5 8h13.2l-3.4-3.4h4.5L25 10.3 19.3 16h-4.5l3.4-3.4H5V8z" fill={ink} />
@@ -606,7 +620,7 @@ export function AppIcon({
       ),
     },
     leaf: {
-      surface: "linear-gradient(180deg, #FFFFFF 0%, #F5F5F7 100%)",
+      bg: "linear-gradient(180deg, #FFFFFF 0%, #F5F5F7 100%)",
       glyph: (
         <svg width={iconSize} height={iconSize} viewBox="0 0 28 28" fill="none" aria-hidden="true">
           <path d="M23 5.2c-.2 9.5-5 16.5-13.5 16.5-3.8 0-6.4-2.3-6.4-5.9 0-7.7 7.7-10.4 19.9-10.6z" fill={ink} />
@@ -615,7 +629,7 @@ export function AppIcon({
       ),
     },
     bolt: {
-      surface: "linear-gradient(180deg, #FFFFFF 0%, #F5F5F7 100%)",
+      bg: "linear-gradient(180deg, #FFFFFF 0%, #F5F5F7 100%)",
       glyph: (
         <svg width={size * 0.5} height={size * 0.6} viewBox="0 0 16 24" fill="none" aria-hidden="true">
           <path d="M10.4 1L1.8 13.5h5.1L5.8 23l8.6-12.6H9.3L10.4 1z" fill={ink} />
@@ -623,7 +637,7 @@ export function AppIcon({
       ),
     },
     monoA: {
-      surface: "linear-gradient(180deg, #FFFFFF 0%, #F5F5F7 100%)",
+      bg: "linear-gradient(180deg, #FFFFFF 0%, #F5F5F7 100%)",
       glyph: <span className="font-medium leading-none text-[#1D1D1F]" style={{ fontSize: size * 0.5 }}>A</span>,
     },
   };
@@ -637,17 +651,36 @@ export function AppIcon({
         width: size,
         height: size,
         borderRadius: radius,
-        background: variant.surface,
+        background: variant.bg,
+        backdropFilter: "blur(18px) saturate(1.45)",
+        WebkitBackdropFilter: "blur(18px) saturate(1.45)",
         boxShadow:
-          "0 14px 30px rgba(29,29,31,0.16), inset 0 1px 0 rgba(255,255,255,0.92), inset 0 -1px 0 rgba(29,29,31,0.06)",
+          "0 18px 34px rgba(29,29,31,0.18), 0 6px 14px rgba(29,29,31,0.10), inset 0 1px 0 rgba(255,255,255,0.92), inset 0 -1px 0 rgba(29,29,31,0.08)",
       }}
     >
       <div
         className="pointer-events-none absolute inset-0"
         style={{
           borderRadius: radius,
+          background:
+            "linear-gradient(145deg, rgba(255,255,255,0.58) 0%, rgba(255,255,255,0.18) 34%, rgba(255,255,255,0.02) 56%, rgba(255,255,255,0.22) 100%)",
+          mixBlendMode: "screen",
+        }}
+      />
+      <div
+        className="pointer-events-none absolute -left-[18%] -top-[22%] h-[62%] w-[72%] rounded-full"
+        style={{
+          background:
+            "radial-gradient(circle, rgba(255,255,255,0.68) 0%, rgba(255,255,255,0.24) 42%, rgba(255,255,255,0) 70%)",
+          filter: "blur(1px)",
+        }}
+      />
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          borderRadius: radius,
           boxShadow:
-            "inset 0 0 0 0.5px rgba(29,29,31,0.08), inset 0 0 0 1px rgba(255,255,255,0.62)",
+            "inset 0 0 0 0.5px rgba(29,29,31,0.10), inset 0 0 0 1px rgba(255,255,255,0.70), inset 0 -10px 18px rgba(255,255,255,0.16)",
         }}
       />
       <div className="relative z-[1] flex items-center justify-center">{variant.glyph}</div>

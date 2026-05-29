@@ -54,7 +54,7 @@ describe("HomePage focus order", () => {
     vi.clearAllMocks();
   });
 
-  it("keeps the product card action in the natural button focus order", async () => {
+  it("keeps the home CTAs in the natural button focus order", async () => {
     await act(async () => {
       root.render(React.createElement(HomePage));
     });
@@ -64,8 +64,7 @@ describe("HomePage focus order", () => {
     expect(buttons.map((button) => button.textContent?.trim())).toEqual([
       "Start investing",
       "Discover Fund A",
-      "Performance details",
-      "Holdings",
+      "Invest in Fund A",
       "Read the fund prospectus",
       "Disclosures",
       "Privacy",
