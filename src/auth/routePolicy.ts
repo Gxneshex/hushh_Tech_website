@@ -11,6 +11,7 @@ export const GUEST_AUTH_ROUTE_PREFIXES = [
 
 export const PUBLIC_MARKETING_ROUTE_PREFIXES = [
   "/",
+  "/profile",
   "/metric",
   "/metrics",
   "/privacy-policy",
@@ -33,7 +34,6 @@ export const PUBLIC_MARKETING_ROUTE_PREFIXES = [
 ] as const;
 
 export const AUTHENTICATED_ACCOUNT_ROUTE_PREFIXES = [
-  "/profile",
   "/delete-account",
   "/hushh-user-profile",
   "/onboarding",

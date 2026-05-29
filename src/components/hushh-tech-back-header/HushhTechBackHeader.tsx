@@ -46,6 +46,9 @@ const HushhTechBackHeader: React.FC<HushhTechBackHeaderProps> = ({
   };
 
   const handleBrandClick = () => navigate("/");
+  const headerClassName = useHomeBrandLayout
+    ? `fixed left-0 right-0 top-0 z-50 flex w-full items-center justify-between px-3 pb-3 pt-[max(env(safe-area-inset-top),0.85rem)] sm:px-5 ${className}`
+    : `sticky top-0 z-40 mx-auto flex w-full max-w-7xl items-center justify-between px-3 py-3 sm:px-5 ${className} relative`;
 
   const brandButton = (
     <button
@@ -75,7 +78,8 @@ const HushhTechBackHeader: React.FC<HushhTechBackHeaderProps> = ({
   return (
     <>
       <header
-        className={`sticky top-0 z-40 mx-auto flex w-full max-w-7xl items-center justify-between px-3 py-3 sm:px-5 ${className} relative`}
+        className={headerClassName}
+        data-hushh-back-header
       >
         <div className="pointer-events-none absolute inset-x-0 top-0 h-full bg-gradient-to-b from-white/75 via-white/45 to-white/10 backdrop-blur-xl [mask-image:linear-gradient(to_bottom,black_72%,transparent)]" />
 
@@ -154,6 +158,8 @@ const HushhTechBackHeader: React.FC<HushhTechBackHeaderProps> = ({
           </GlassPill>
         ) : null}
       </header>
+
+      {useHomeBrandLayout ? <div className="h-[72px]" /> : null}
 
       {rightType === "hamburger" ? (
         <HushhTechNavDrawer

@@ -532,7 +532,7 @@ describe("auth-aware guest routing", () => {
     );
   });
 
-  it("redirects guests away from /profile to /login with the route preserved", async () => {
+  it("redirects guests away from AuthRequiredRoute pages with the route preserved", async () => {
     mockGetSession.mockResolvedValue({
       data: { session: null },
       error: null,
@@ -547,12 +547,12 @@ describe("auth-aware guest routing", () => {
         renderWithProvider(
           React.createElement(
             MemoryRouter,
-            { initialEntries: ["/profile"] },
+            { initialEntries: ["/protected-profile"] },
             React.createElement(
               Routes,
               null,
               React.createElement(Route, {
-                path: "/profile",
+                path: "/protected-profile",
                 element: React.createElement(
                   AuthRequiredRoute,
                   null,
@@ -571,7 +571,7 @@ describe("auth-aware guest routing", () => {
     await flush();
 
     expect(container.querySelector('[data-testid="location"]')?.textContent).toBe(
-      "/login?redirect=%2Fprofile"
+      "/login?redirect=%2Fprotected-profile"
     );
   });
 

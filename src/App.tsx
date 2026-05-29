@@ -179,11 +179,7 @@ function App() {
             <Route path='/services/business' element={<Business />} />
             <Route path='/Signup' element={<SignupPage />} />
             <Route path='/faq' element={<Faq />} />
-            <Route path='/profile' element={
-              <AuthRequiredRoute>
-                <Profile />
-              </AuthRequiredRoute>
-            } />
+            <Route path='/profile' element={<Profile />} />
             <Route path="/career" element={<Career />} />
             <Route path="/career/*" element={<Career />} />
             <Route path='/privacy-policy' element={<PrivacyPolicy />} />

@@ -24,6 +24,10 @@ const ProfilePage: React.FC = () => {
     primaryCTA,
     handleDiscoverFundA,
   } = useProfileLogic();
+  const primaryCtaText =
+    primaryCTA.state === 'unauthenticated'
+      ? 'Complete your investment'
+      : primaryCTA.text;
 
   return (
     <div
@@ -61,7 +65,7 @@ const ProfilePage: React.FC = () => {
               disabled={onboardingStatus.loading}
               className="w-full sm:w-auto"
             >
-              {onboardingStatus.loading ? 'Loading...' : primaryCTA.text}
+              {onboardingStatus.loading ? 'Loading...' : primaryCtaText}
             </PillButton>
             <PillButton
               onClick={handleDiscoverFundA}

@@ -237,8 +237,10 @@ describe('isPublicRoute', () => {
     expect(isPublicRoute('/onboarding/step1')).toBe(false);
   });
 
-  // Test 7: User profile is NOT public (requires NDA)
-  it('should return false for user profile routes', () => {
+  // Test 7: Public profile tab is open, account profile routes still require NDA
+  it('should allow the public profile tab but protect account profile routes', () => {
+    expect(isPublicRoute('/profile')).toBe(true);
+    expect(isAuthenticatedAccountRoute('/profile')).toBe(false);
     expect(isPublicRoute('/hushh-user-profile')).toBe(false);
     expect(isAuthenticatedAccountRoute('/hushh-user-profile')).toBe(true);
     expect(isAuthenticatedAccountRoute('/delete-account')).toBe(true);

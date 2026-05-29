@@ -47,4 +47,23 @@ describe("public HushhTech UI cleanup", () => {
     expect(app).toContain("location.pathname === '/about/philosophy'");
     expect(app).toContain("<Route path=\"/philosophy\" element={<Philosophy />} />");
   });
+
+  it("serves the profile tab as the public profile surface instead of a login redirect", () => {
+    const app = read("src/App.tsx");
+
+    expect(app).toContain("<Route path='/profile' element={<Profile />} />");
+    expect(app).not.toMatch(
+      /<Route path='\/profile' element=\{\s*<AuthRequiredRoute>/,
+    );
+  });
+
+  it("keeps the HushhTech back header fixed for home-style secondary pages", () => {
+    const backHeader = read(
+      "src/components/hushh-tech-back-header/HushhTechBackHeader.tsx",
+    );
+
+    expect(backHeader).toContain("fixed left-0 right-0 top-0 z-50");
+    expect(backHeader).toContain('data-hushh-back-header');
+    expect(backHeader).toContain('useHomeBrandLayout ? <div className="h-[72px]" /> : null');
+  });
 });
