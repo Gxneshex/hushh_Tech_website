@@ -1,10 +1,10 @@
 import { Link } from "react-router-dom";
 
 import AuthBootingScreen from "../../components/auth/AuthBootingScreen";
+import HushhTechBackHeader from "../../components/hushh-tech-back-header/HushhTechBackHeader";
 import HushhTechFooter, {
   HushhFooterTab,
 } from "../../components/hushh-tech-footer/HushhTechFooter";
-import HushhTechHeader from "../../components/hushh-tech-header/HushhTechHeader";
 import {
   AppleButton,
   AppleSection,
@@ -41,7 +41,7 @@ export default function LoginPage() {
       className="min-h-screen bg-[#FFFFFF] text-[#1D1D1F] antialiased selection:bg-[#0066CC] selection:text-[#F5F5F7]"
       style={{ fontFamily: appleFont }}
     >
-      <HushhTechHeader showTicker={false} />
+      <HushhTechBackHeader rightType="hamburger" />
 
       <main id="main-content">
         <AppleSection tone="light" pad="tight" fill last>
