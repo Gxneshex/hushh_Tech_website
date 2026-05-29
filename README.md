@@ -25,7 +25,7 @@ Repository URL: https://github.com/hushh-labs/hushh_Tech_website
 
 ## Governance
 
-- `@ankitkumarsingh1702` is the default codeowner and required approving reviewer for protected branches
+- `@ankitkumarsingh1702` is the default codeowner and required approving reviewer for protected branches, unless an approved ruleset bypass actor (`@ankitkumarsingh1702` or `@Jhumma-hushh`) uses the protected-branch PR bypass.
 - automated CI, env checks, lint checks, and AI review are advisory or blocking based on repository rules
 - DCO sign-off is expected on commits for contribution traceability
 - deployments are gated by post-merge smoke and promoted by approved SHAs instead of raw branch pushes

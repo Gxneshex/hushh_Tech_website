@@ -51,4 +51,16 @@ describe("financial-link render safety net", () => {
     expect(mountEffect).toContain("beginPlaidSession failed");
     expect(mountEffect).toContain("mount diagnostic emit failed");
   });
+
+  it("declares the Plaid cross-tab listener after the Plaid hook", () => {
+    const logic = read("src/pages/onboarding/financial-link/logic.ts");
+    const plaidHookIndex = logic.indexOf("const plaid = usePlaidLink");
+    const broadcastListenerIndex = logic.indexOf(
+      "Cross-tab BroadcastChannel listener",
+    );
+
+    expect(plaidHookIndex).toBeGreaterThan(-1);
+    expect(broadcastListenerIndex).toBeGreaterThan(plaidHookIndex);
+    expect(logic).toContain("temporal dead zone");
+  });
 });
