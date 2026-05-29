@@ -50,7 +50,7 @@ npm run security:audit
 - Explain what changed, why it changed, and how you validated it.
 - Sign every commit with DCO using `git commit -s`.
 - Every PR commit must contain a `Signed-off-by: Your Name <email>` trailer.
-- Protected branches require an approving review from `@ankitkumarsingh1702`.
+- Protected branches require an approving review from `@ankitkumarsingh1702`, unless an approved ruleset bypass actor (`@ankitkumarsingh1702` or `@Jhumma-hushh`) uses the protected-branch PR bypass.
 - CODEOWNERS automatically routes PRs to the default maintainer.
 - AI review comments help surface risk, but they do not replace human approval.
 - The first automated review is powered by Qodo PR Agent on Gemini and is expected to comment on risky changes before maintainer review.

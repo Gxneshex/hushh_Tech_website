@@ -5,9 +5,9 @@ This document describes the current Hushhtech PR and deploy lanes that the OSS c
 ## Protected branch authority
 
 - GitHub repository rulesets protect `main` and `develop`; classic branch protection is not authoritative for this repository.
-- Only `@ankitkumarsingh1702` (GitHub user id `94732725`) may bypass pull request review rules or merge into protected branches.
+- `@ankitkumarsingh1702` (GitHub user id `94732725`) and `@Jhumma-hushh` (GitHub user id `262395004`) may bypass pull request review rules or merge protected-branch PRs.
 - Other collaborators can push topic branches and open PRs, but cannot update protected refs or merge protected-branch PRs.
-- Ruleset drift is any live bypass actor other than that Ankit user, any missing protected-ref update rule, or any non-Ankit admin route that can change the ruleset.
+- Ruleset drift is any live bypass actor other than those two approved users, any missing protected-ref update rule, or any non-approved admin route that can change the ruleset.
 
 ## PR lanes
 

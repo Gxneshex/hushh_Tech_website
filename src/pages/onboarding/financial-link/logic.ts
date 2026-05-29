@@ -233,36 +233,6 @@ export const useFinancialLinkLogic = () => {
     };
   }, [isReviewMode, useSandboxDirectConnect, blockLocalPlaidLink]);
 
-  /* P0.F — Cross-tab BroadcastChannel listener. If another tab unlinks the
-     Plaid bank, this tab forces a Plaid state reset so the UI does not show
-     stale "Connected" data. */
-  useEffect(() => {
-    if (typeof BroadcastChannel === 'undefined') return;
-    let channel: BroadcastChannel;
-    try {
-      channel = new BroadcastChannel('hushh:plaid-state');
-    } catch {
-      return;
-    }
-    const handle = (event: MessageEvent) => {
-      const payload = event.data as { type?: string; userId?: string } | null;
-      if (!payload || payload.type !== 'unlinked') return;
-      if (payload.userId && userId && payload.userId !== userId) return;
-      console.log('[FinancialLink] Cross-tab unlink received, refreshing state');
-      try {
-        sessionStorage.removeItem('plaid_link_state');
-      } catch {
-        // ignore
-      }
-      plaid.retry();
-    };
-    channel.addEventListener('message', handle);
-    return () => {
-      channel.removeEventListener('message', handle);
-      channel.close();
-    };
-  }, [plaid, userId]);
-
   /* Get authenticated user — runs only once */
   useEffect(() => {
     if (hasInitialized.current) return;
@@ -394,6 +364,37 @@ export const useFinancialLinkLogic = () => {
   const plaid = usePlaidLinkHook(userId, userEmail, {
     skipAutoInit: useSandboxDirectConnect || blockLocalPlaidLink,
   });
+
+  /* P0.F — Cross-tab BroadcastChannel listener. If another tab unlinks the
+     Plaid bank, this tab forces a Plaid state reset so the UI does not show
+     stale "Connected" data. Declared after `plaid` so the dependency array
+     does not read it inside its temporal dead zone (prod build TDZ crash). */
+  useEffect(() => {
+    if (typeof BroadcastChannel === 'undefined') return;
+    let channel: BroadcastChannel;
+    try {
+      channel = new BroadcastChannel('hushh:plaid-state');
+    } catch {
+      return;
+    }
+    const handle = (event: MessageEvent) => {
+      const payload = event.data as { type?: string; userId?: string } | null;
+      if (!payload || payload.type !== 'unlinked') return;
+      if (payload.userId && userId && payload.userId !== userId) return;
+      console.log('[FinancialLink] Cross-tab unlink received, refreshing state');
+      try {
+        sessionStorage.removeItem('plaid_link_state');
+      } catch {
+        // ignore
+      }
+      plaid.retry();
+    };
+    channel.addEventListener('message', handle);
+    return () => {
+      channel.removeEventListener('message', handle);
+      channel.close();
+    };
+  }, [plaid, userId]);
 
   /* ─── Extract all accounts from balance data ─── */
   const allAccounts = useMemo(() => {

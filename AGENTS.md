@@ -33,8 +33,8 @@ Use these lower-case hostnames as the canonical spellings for production and UAT
 ## Protected Branch Ownership
 
 - GitHub repository rulesets are the enforcement surface for `main` and `develop`; classic branch protection is not the source of truth.
-- Only `@ankitkumarsingh1702` (GitHub user id `94732725`) may bypass protected-branch pull request review rules or merge into `main` or `develop`.
-- Other collaborators may push topic branches and open PRs, but they must not update protected refs or merge protected-branch PRs.
+- `@ankitkumarsingh1702` (GitHub user id `94732725`) and `@Jhumma-hushh` (GitHub user id `262395004`) may bypass protected-branch pull request review rules or merge protected-branch PRs into `main` or `develop`.
+- Other collaborators may push topic branches and open PRs, but they must not update protected refs, bypass protected-branch review rules, or merge protected-branch PRs.
 - If live GitHub settings disagree with this section, treat the live settings as drift and repair the ruleset or repository access before relying on the merge path.
 
 ## What This Repository Owns
