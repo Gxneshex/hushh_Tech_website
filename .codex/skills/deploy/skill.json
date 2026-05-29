@@ -1,0 +1,59 @@
+{
+  "id": "deploy",
+  "role": "spoke",
+  "owner_family": "repo-operations",
+  "primary_scope": "deploy-intake",
+  "description": "Use when deploying the HushhTech web app to UAT or PROD, triggering the deploy-uat/deploy-prod workflows, choosing a green-main SHA to ship, or when deploys are slow and you want to cut CI/CD cycle time (even for tiny changes).",
+  "owned_paths": [
+    ".codex/skills/deploy"
+  ],
+  "non_owned_paths": [
+    "repo-operations",
+    ".github/workflows",
+    "scripts/ci",
+    "security-audit"
+  ],
+  "task_types": [
+    "deployment",
+    "deploy-speedup"
+  ],
+  "required_reads": [
+    ".codex/skills/deploy/SKILL.md",
+    ".codex/skills/deploy/references/pipeline.md",
+    ".github/workflows/deploy-prod.yml",
+    ".github/workflows/deploy-uat.yml",
+    "Dockerfile"
+  ],
+  "required_commands": [
+    "test -f .github/workflows/deploy-prod.yml",
+    "test -f .github/workflows/deploy-uat.yml"
+  ],
+  "verification_bundles": [
+    {
+      "id": "deploy",
+      "commands": [
+        "test -f .github/workflows/deploy-prod.yml",
+        "test -f .github/workflows/deploy-uat.yml"
+      ],
+      "tests": [
+        "test -f .github/workflows/deploy-prod.yml",
+        "test -f .github/workflows/deploy-uat.yml"
+      ]
+    }
+  ],
+  "handoff_targets": [
+    "repo-operations",
+    "security-audit",
+    "quality-contracts"
+  ],
+  "adjacent_skills": [
+    "repo-operations",
+    "repo-context",
+    "security-audit"
+  ],
+  "risk_tags": [
+    "non-green-sha-deploy-risk",
+    "deploy-speed-risk",
+    "pipeline-redundancy-risk"
+  ]
+}

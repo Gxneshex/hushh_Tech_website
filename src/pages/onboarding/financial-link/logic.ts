@@ -44,27 +44,44 @@ const CORE_SYNC_PRODUCTS: PlaidDataProduct[] = ['accounts', 'balance', 'auth'];
 const LOCAL_SANDBOX_INSTITUTION_ID = 'ins_109508';
 
 const isLocalPlaidHost = () => {
-  const host = window.location.hostname;
-  return host === 'localhost' || host === '127.0.0.1' || host === '::1';
+  try {
+    if (typeof window === 'undefined' || !window.location) return false;
+    const host = window.location.hostname;
+    return host === 'localhost' || host === '127.0.0.1' || host === '::1';
+  } catch {
+    return false;
+  }
 };
 
+// Defensive wrappers: these factories run inside React `useMemo` during
+// the FinancialLink render path. If they throw the whole page crashes to
+// the ErrorBoundary fallback, so we treat any env-access exception as
+// "production-prod, don't take the sandbox / block branch."
 const shouldUsePlaidSandboxDirectConnect = () => {
-  const forcedMode = import.meta.env?.VITE_PLAID_LINK_MODE;
-  if (forcedMode === 'link') return false;
-  if (forcedMode === 'sandbox-direct') return true;
+  try {
+    const forcedMode = import.meta.env?.VITE_PLAID_LINK_MODE;
+    if (forcedMode === 'link') return false;
+    if (forcedMode === 'sandbox-direct') return true;
 
-  return isLocalPlaidHost()
-    && import.meta.env?.VITE_PLAID_ENV === 'sandbox'
-    && import.meta.env?.VITE_PLAID_DISABLE_LOCAL_SANDBOX_DIRECT !== 'true';
+    return isLocalPlaidHost()
+      && import.meta.env?.VITE_PLAID_ENV === 'sandbox'
+      && import.meta.env?.VITE_PLAID_DISABLE_LOCAL_SANDBOX_DIRECT !== 'true';
+  } catch {
+    return false;
+  }
 };
 
 const shouldBlockLocalPlaidLink = () => {
-  const forcedMode = import.meta.env?.VITE_PLAID_LINK_MODE;
-  if (forcedMode === 'link' || forcedMode === 'sandbox-direct') return false;
+  try {
+    const forcedMode = import.meta.env?.VITE_PLAID_LINK_MODE;
+    if (forcedMode === 'link' || forcedMode === 'sandbox-direct') return false;
 
-  return isLocalPlaidHost()
-    && import.meta.env?.VITE_PLAID_ENV !== 'sandbox'
-    && import.meta.env?.VITE_ALLOW_LOCAL_PLAID_LINK !== 'true';
+    return isLocalPlaidHost()
+      && import.meta.env?.VITE_PLAID_ENV !== 'sandbox'
+      && import.meta.env?.VITE_ALLOW_LOCAL_PLAID_LINK !== 'true';
+  } catch {
+    return false;
+  }
 };
 
 const PRODUCT_SYNC_DISPLAY: Array<{
@@ -179,20 +196,40 @@ export const useFinancialLinkLogic = () => {
      idempotent and captures Plaid CDN findScriptTag failures even when
      they bubble outside our React tree. */
   useEffect(() => {
-    installGlobalPlaidErrorListener();
-    const sessionId = beginPlaidSession();
-    logPlaidEvent('financial_link_mount', {
-      pageState: {
-        sessionId,
-        isReviewMode,
-        useSandboxDirectConnect,
-        blockLocalPlaidLink,
-      },
-    });
-    return () => {
-      logPlaidEvent('financial_link_unmount', {
-        pageState: { sessionId, isReviewMode },
+    // RED.2 defensive: a failing diagnostics dependency (clipped sessionStorage,
+    // sandbox CSP blocking BroadcastChannel etc.) must never crash the FL
+    // mount. Each call is independently guarded.
+    let sessionId: string | null = null;
+    try {
+      installGlobalPlaidErrorListener();
+    } catch (err) {
+      console.warn('[FinancialLink] installGlobalPlaidErrorListener failed', err);
+    }
+    try {
+      sessionId = beginPlaidSession();
+    } catch (err) {
+      console.warn('[FinancialLink] beginPlaidSession failed', err);
+    }
+    try {
+      logPlaidEvent('financial_link_mount', {
+        pageState: {
+          sessionId,
+          isReviewMode,
+          useSandboxDirectConnect,
+          blockLocalPlaidLink,
+        },
       });
+    } catch (err) {
+      console.warn('[FinancialLink] mount diagnostic emit failed', err);
+    }
+    return () => {
+      try {
+        logPlaidEvent('financial_link_unmount', {
+          pageState: { sessionId, isReviewMode },
+        });
+      } catch {
+        // Unmount-time emit failures must never throw.
+      }
     };
   }, [isReviewMode, useSandboxDirectConnect, blockLocalPlaidLink]);
 

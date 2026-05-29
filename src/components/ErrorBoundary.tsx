@@ -1,6 +1,18 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
+import {
+  beginPlaidSession,
+  logPlaidEvent,
+} from '../services/plaid/plaidDiagnostics';
 
 const isDevelopment = import.meta.env.DEV;
+
+const MAX_STACK_BYTES = 4_000;
+const MAX_COMPONENT_STACK_BYTES = 2_000;
+
+const truncate = (value: string | undefined, limit: number): string | null => {
+  if (!value) return null;
+  return value.length > limit ? value.slice(0, limit) : value;
+};
 
 interface Props {
   children: ReactNode;
@@ -10,6 +22,8 @@ interface Props {
 interface State {
   hasError: boolean;
   error?: Error;
+  diagnosticId?: string | null;
+  copied?: boolean;
 }
 
 class ErrorBoundary extends Component<Props, State> {
@@ -24,11 +38,60 @@ class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('ErrorBoundary caught:', error, errorInfo);
-    // TODO: Send to error tracking service (e.g., Sentry, LogRocket)
+
+    // Reuse the diagnostics session id so a support handoff can quote one
+    // short string and the team can grep the exact crash row. Wrapped so a
+    // failing diagnostics dependency cannot itself break the fallback.
+    let diagnosticId: string | null = null;
+    try {
+      diagnosticId = beginPlaidSession();
+    } catch (sessionErr) {
+      console.warn('[ErrorBoundary] beginPlaidSession failed', sessionErr);
+    }
+
+    try {
+      logPlaidEvent('uncaught_react_error', {
+        errorDetails: {
+          message: error?.message ? truncate(error.message, 1024) : null,
+          name: error?.name ?? null,
+          stack: truncate(error?.stack, MAX_STACK_BYTES),
+          componentStack: truncate(
+            errorInfo?.componentStack ?? undefined,
+            MAX_COMPONENT_STACK_BYTES,
+          ),
+        },
+        pageState: {
+          pathname:
+            typeof window !== 'undefined' ? window.location.pathname : null,
+          search:
+            typeof window !== 'undefined' ? window.location.search : null,
+          documentTitle:
+            typeof document !== 'undefined'
+              ? truncate(document.title, 256)
+              : null,
+        },
+      });
+    } catch (logErr) {
+      console.warn('[ErrorBoundary] diagnostics emit failed', logErr);
+    }
+
+    this.setState({ diagnosticId });
   }
+
+  copyDiagnosticId = () => {
+    const id = this.state.diagnosticId;
+    if (!id) return;
+    try {
+      void navigator.clipboard?.writeText?.(id);
+      this.setState({ copied: true });
+    } catch {
+      // Clipboard API unavailable — let the user select the text manually.
+    }
+  };
 
   render() {
     if (this.state.hasError) {
+      const diagnosticId = this.state.diagnosticId;
       return this.props.fallback || (
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
           <div className="text-center p-8 max-w-md" role="alert">
@@ -72,6 +135,24 @@ class ErrorBoundary extends Component<Props, State> {
             >
               Refresh Page
             </button>
+            {diagnosticId && (
+              <div className="mt-6">
+                <p className="text-xs text-gray-500">
+                  Need help from support? Share this diagnostic ID so we can
+                  look up the exact crash in our logs:
+                </p>
+                <div className="mt-2 inline-flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1.5 text-[11px] font-mono text-gray-700">
+                  <span data-testid="error-diagnostic-id">{diagnosticId}</span>
+                  <button
+                    type="button"
+                    onClick={this.copyDiagnosticId}
+                    className="font-medium text-blue-600 hover:text-blue-700"
+                  >
+                    {this.state.copied ? 'Copied' : 'Copy'}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       );
