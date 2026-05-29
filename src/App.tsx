@@ -79,6 +79,8 @@ import AuthRequiredRoute from './components/AuthRequiredRoute';
 import HushhHackathonPage from './pages/hushh-hackathon/ui';
 import MetricsPage from './pages/metrics';
 import NotFound from './pages/NotFound';
+import FundAdminPage from './pages/fund-admin/ui';
+import FundAdminRoute from './components/FundAdminRoute';
 
 const KaiIndiaApp = React.lazy(() => import('./kai-india/pages'));
 
@@ -106,6 +108,7 @@ const ContentWrapper = ({ children }: { children: ReactNode }) => {
   const isProfile = location.pathname === '/profile';
   const isHushhHackathon = location.pathname === '/hushh-hackathon';
   const isMetrics = location.pathname === '/metrics' || location.pathname === '/metric';
+  const isFundAdmin = location.pathname === '/fund-admin';
   const isModernPublicPage =
     location.pathname === '/contact' ||
     location.pathname === '/Contact' ||
@@ -114,7 +117,7 @@ const ContentWrapper = ({ children }: { children: ReactNode }) => {
     location.pathname === '/about/philosophy';
 
   return (
-    <div className={`${isHomePage || isAuthCallback || isUserRegistration || isOnboarding || isInvestorGuide || isHushhAI || isKai || isStudio || isHushhUserProfile || isSignNda || isDocumentViewer || isInvestorProfile || isPublicInvestorProfile || isDiscoverFundA || isCommunity || isDeleteAccount || isLogin || isSignup || isProfile || isHushhHackathon || isMetrics || isModernPublicPage ? '' : 'mt-20'}`}>
+    <div className={`${isHomePage || isAuthCallback || isUserRegistration || isOnboarding || isInvestorGuide || isHushhAI || isKai || isStudio || isHushhUserProfile || isSignNda || isDocumentViewer || isInvestorProfile || isPublicInvestorProfile || isDiscoverFundA || isCommunity || isDeleteAccount || isLogin || isSignup || isProfile || isHushhHackathon || isMetrics || isFundAdmin || isModernPublicPage ? '' : 'mt-20'}`}>
       {children}
     </div>
   );
@@ -148,7 +151,8 @@ const useLayoutVisibility = () => {
   const isPublicInvestorProfile = location.pathname.startsWith('/investor/');
   const isHushhHackathon = location.pathname === '/hushh-hackathon';
   const isMetrics = location.pathname === '/metrics' || location.pathname === '/metric';
-  const hideOld = isHushhAI || isKai || isStudio || isHomePage || isOnboarding || isProfile || isFundA || isCommunity || isDeleteAccount || isLogin || isSignup || isSignNda || isDocumentViewer || isHushhUserProfile || isModernPublicPage || isPublicInvestorProfile || isHushhHackathon || isMetrics;
+  const isFundAdmin = location.pathname === '/fund-admin';
+  const hideOld = isHushhAI || isKai || isStudio || isHomePage || isOnboarding || isProfile || isFundA || isCommunity || isDeleteAccount || isLogin || isSignup || isSignNda || isDocumentViewer || isHushhUserProfile || isModernPublicPage || isPublicInvestorProfile || isHushhHackathon || isMetrics || isFundAdmin;
   return {
     showNavbar: !hideOld,
     showFooter: !hideOld,
@@ -389,6 +393,12 @@ function App() {
             <Route path='/document-viewer' element={<DocumentViewerPage />} />
             {/* NDA Admin Page - Password protected view of all NDA agreements */}
             <Route path='/nda-admin' element={<NDAAdminPage />} />
+            {/* Hushh Fund investor verification — team-gated (Supabase auth + allowlist) */}
+            <Route path='/fund-admin' element={
+              <FundAdminRoute>
+                <FundAdminPage />
+              </FundAdminRoute>
+            } />
             {/* 404 Not Found - Must be last route */}
             <Route path="*" element={<NotFound />} />
           </Routes>
