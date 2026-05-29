@@ -111,7 +111,7 @@ const results = {
     "google.com",
     "accounts.google.com",
   ]),
-  guestProfileRedirect: await verifyRedirect(profileUrl, "/login", "/profile"),
+  guestProfilePage: await verifyRedirect(profileUrl, "/profile"),
   investorProfileAliasRedirect: await verifyRedirect(
     investorProfileUrl,
     "/login",
