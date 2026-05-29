@@ -51,7 +51,13 @@ describe("Plaid Transfer sandbox contract", () => {
     expect(createLinkToken).toContain("Ignoring unsupported additional consented products");
     expect(createLinkToken).not.toContain("identity,transactions,investments,liabilities,assets,signal,statements");
     expect(createLinkToken).not.toContain("'assets',");
-    expect(createLinkToken).not.toContain("'statements',");
+    const consentAllowlist = createLinkToken.match(
+      /const ADDITIONAL_CONSENTED_PRODUCT_ALLOWLIST[\s\S]*?\]\);/,
+    )?.[0];
+    expect(consentAllowlist).toBeTruthy();
+    expect(consentAllowlist).not.toContain("'statements'");
+    expect(createLinkToken).toContain("plaidBody.optional_products = ['statements']");
+    expect(createLinkToken).toContain("delete plaidBody.optional_products");
   });
 
   it("does not restore half-used Plaid Link tokens from session storage", () => {

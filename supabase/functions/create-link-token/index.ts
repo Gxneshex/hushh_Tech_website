@@ -86,6 +86,12 @@ Deno.serve(async (req) => {
       plaidBody.additional_consented_products = additionalConsentedProducts;
     }
 
+    // Statements is requested via optional_products: fetched best-effort only
+    // when the institution supports it, and never blocks Link for institutions
+    // that don't. (statements is not a valid additional_consented_products
+    // value, so it must go here rather than there.)
+    plaidBody.optional_products = ['statements'];
+
     // OAuth support: redirect_uri for initial call
     if (redirectUri) {
       plaidBody.redirect_uri = redirectUri;
@@ -97,6 +103,7 @@ Deno.serve(async (req) => {
       plaidBody.redirect_uri = receivedRedirectUri;
       delete plaidBody.products; // Plaid requires no products on OAuth resume
       delete plaidBody.required_if_supported_products;
+      delete plaidBody.optional_products;
     }
 
     console.log('[create-link-token] OAuth params:', {
