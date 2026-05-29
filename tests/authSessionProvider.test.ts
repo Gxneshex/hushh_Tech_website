@@ -486,7 +486,7 @@ describe("auth-aware guest routing", () => {
     container.remove();
   });
 
-  it("shows a Log In footer tab for guests and routes it to the profile login redirect", async () => {
+  it("shows a Profile footer tab for guests and lets the protected route handle sign-in", async () => {
     mockGetSession.mockResolvedValue({
       data: { session: null },
       error: null,
@@ -514,21 +514,21 @@ describe("auth-aware guest routing", () => {
     });
     await flush();
 
-    expect(container.textContent).toContain("Log In");
-    expect(container.textContent).not.toContain("Profile");
+    expect(container.textContent).toContain("Profile");
+    expect(container.textContent).not.toContain("Log In");
 
     const buttons = Array.from(container.querySelectorAll("button"));
-    const loginTab = buttons.find((button) =>
-      button.textContent?.includes("Log In")
+    const profileTab = buttons.find((button) =>
+      button.textContent?.includes("Profile")
     );
 
     await act(async () => {
-      loginTab?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      profileTab?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     });
     await flush();
 
     expect(container.querySelector('[data-testid="location"]')?.textContent).toBe(
-      "/login?redirect=%2Fprofile"
+      "/profile"
     );
   });
 

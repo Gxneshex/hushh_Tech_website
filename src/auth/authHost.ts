@@ -15,6 +15,8 @@ export const SUPPORTED_PUBLIC_AUTH_ORIGINS = [
 export const SUPPORTED_LOCAL_AUTH_ORIGINS = [
   "http://localhost:3000",
   "http://localhost:5173",
+  "http://127.0.0.1:3000",
+  "http://127.0.0.1:5173",
 ] as const;
 
 const supportedPublicOrigins = new Set<string>(SUPPORTED_PUBLIC_AUTH_ORIGINS);

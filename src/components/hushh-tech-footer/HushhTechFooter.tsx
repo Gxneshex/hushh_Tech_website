@@ -1,11 +1,6 @@
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { useAuthSession } from "../../auth/AuthSessionProvider";
-import {
-  buildLoginRedirectPath,
-  isGuestAuthRoute,
-} from "../../auth/routePolicy";
 import { SYS, TabIcon, appleFont } from "../hushh-tech-ui/HushhAppleUI";
 
 export enum HushhFooterTab {
@@ -35,8 +30,6 @@ const HushhTechFooter: React.FC<HushhTechFooterProps> = ({
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { status } = useAuthSession();
-  const isAuthenticated = status === "authenticated";
 
   const tabs: FooterTabConfig[] = [
     {
@@ -59,15 +52,15 @@ const HushhTechFooter: React.FC<HushhTechFooterProps> = ({
     },
     {
       id: HushhFooterTab.PROFILE,
-      label: isAuthenticated ? "Profile" : "Log In",
-      path: isAuthenticated ? "/profile" : buildLoginRedirectPath("/profile"),
+      label: "Profile",
+      path: "/profile",
       icon: TabIcon.account,
     },
   ];
 
   const resolvedActiveTab =
     activeTab ??
-    (!isAuthenticated && isGuestAuthRoute(location.pathname)
+    (location.pathname.toLowerCase().startsWith("/profile")
       ? HushhFooterTab.PROFILE
       : undefined);
 
