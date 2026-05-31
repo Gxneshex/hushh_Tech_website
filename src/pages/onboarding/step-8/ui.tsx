@@ -18,7 +18,6 @@ import HushhTechCta, {
 import { getOnboardingDisplayMeta } from '../../../services/onboarding/flow';
 import {
   AppleLineIcon,
-  AppIcon,
   Display,
   Eyebrow,
   Lede,
@@ -213,10 +212,7 @@ export default function OnboardingReviewStep() {
           </div>
         </div>
 
-        <section className="pb-8 pt-4 text-center">
-          <div className="mb-6 flex justify-center">
-            <AppIcon kind="shield" size={58} />
-          </div>
+        <section className="pb-8 pt-8 text-center">
           <Eyebrow>Review</Eyebrow>
           <Display as="h1" size="xs" maxWidth="max-w-[500px]">
             Confirm your details.

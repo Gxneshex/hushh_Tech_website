@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import {
   useStep5Logic,
-  CURRENT_STEP,
+  DISPLAY_STEP,
   TOTAL_STEPS,
   PROGRESS_PCT,
   PHONE_DIAL_CODES,
@@ -32,7 +32,6 @@ import HushhTechCta, {
 import { useModalKeyboardNavigation } from "../../../hooks/useModalKeyboardNavigation";
 import {
   AppleLineIcon,
-  AppIcon,
   Display,
   Eyebrow,
   Icon,
@@ -107,7 +106,7 @@ export default function OnboardingStep5() {
           <div className="pb-6 pt-5">
             <div className="mb-3 flex justify-between text-[11px] font-medium uppercase tracking-[1.6px] text-[#0066CC]/85">
               <span>
-                Step {CURRENT_STEP}/{TOTAL_STEPS}
+                Step {DISPLAY_STEP}/{TOTAL_STEPS}
               </span>
               <span>{PROGRESS_PCT}% Complete</span>
             </div>
@@ -120,10 +119,7 @@ export default function OnboardingStep5() {
           </div>
 
           {/* ── Title Section ── */}
-          <section className="pb-8 pt-4 text-center">
-            <div className="mb-6 flex justify-center">
-              <AppIcon kind="person" size={58} />
-            </div>
+          <section className="pb-8 pt-8 text-center">
             <Eyebrow>Account Setup</Eyebrow>
             <Display as="h1" size="xs" maxWidth="max-w-[500px]">
               A few more details.

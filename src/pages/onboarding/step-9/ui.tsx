@@ -17,7 +17,6 @@ import {
   getOnboardingDisplayMeta,
 } from "../../../services/onboarding/flow";
 import {
-  AppIcon,
   Display,
   Eyebrow,
   Icon,
@@ -205,10 +204,7 @@ export default function OnboardingStep9() {
           </div>
         </div>
 
-        <section className="pb-8 pt-4 text-center">
-          <div className="mb-6 flex justify-center">
-            <AppIcon kind="dollar" size={58} />
-          </div>
+        <section className="pb-8 pt-8 text-center">
           <Eyebrow>Final Step</Eyebrow>
           <Display as="h1" size="xs" maxWidth="max-w-[500px]">
             Confirm your fund payment.

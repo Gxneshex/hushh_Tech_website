@@ -19,7 +19,6 @@ import HushhTechCta, {
 import PermissionHelpModal from "../../../components/PermissionHelpModal";
 import { useModalKeyboardNavigation } from "../../../hooks/useModalKeyboardNavigation";
 import {
-  AppIcon,
   Display,
   Eyebrow,
   Lede,
@@ -79,10 +78,7 @@ export default function OnboardingStep3Combined() {
           </div>
 
           {/* ── Title Section ── */}
-          <section className="pb-8 pt-4 text-center">
-            <div className="mb-6 flex justify-center">
-              <AppIcon kind="shield" size={58} />
-            </div>
+          <section className="pb-8 pt-8 text-center">
             <Eyebrow>Verification</Eyebrow>
             <Display as="h1" size="xs" maxWidth="max-w-[500px]">
               Confirm your residence.

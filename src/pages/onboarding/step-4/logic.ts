@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import config from '../../../resources/config/config';
-import { TOTAL_VISIBLE_ONBOARDING_STEPS } from '../../../services/onboarding/flow';
+import { getOnboardingDisplayMeta } from '../../../services/onboarding/flow';
 import { upsertOnboardingData } from '../../../services/onboarding/upsertOnboardingData';
 import type { UIAccountType } from '../../../types/onboarding';
 import { ACCOUNT_TYPE_OPTIONS } from '../../../types/onboarding';
@@ -12,9 +12,11 @@ import { locationService } from '../../../services/location';
    CONSTANTS
    ═══════════════════════════════════════════════ */
 
-export const CURRENT_STEP = 5;
-export const TOTAL_STEPS = TOTAL_VISIBLE_ONBOARDING_STEPS;
-export const PROGRESS_PCT = Math.round((CURRENT_STEP / TOTAL_STEPS) * 100);
+const RAW_CURRENT_STEP = 5;
+const DISPLAY_META = getOnboardingDisplayMeta('/onboarding/step-4');
+export const DISPLAY_STEP = DISPLAY_META.displayStep;
+export const TOTAL_STEPS = DISPLAY_META.totalSteps;
+export const PROGRESS_PCT = Math.round((DISPLAY_STEP / TOTAL_STEPS) * 100);
 
 export interface DialCodeOption {
   code: string;
@@ -286,7 +288,7 @@ export function useStep5Logic() {
         account_structure: toAccountStructure(selectedAccountType),
         phone_number: phoneNumber,
         phone_country_code: countryCode,
-        current_step: 5,
+        current_step: RAW_CURRENT_STEP,
       });
       navigate('/onboarding/step-5');
     } catch (error) {

@@ -29,6 +29,30 @@ type PerformanceRangeKey = keyof typeof PERFORMANCE_RANGES;
 
 const performanceRangeKeys = Object.keys(PERFORMANCE_RANGES) as PerformanceRangeKey[];
 
+const createSmoothPath = (points: ReadonlyArray<readonly [number, number]>) => {
+  if (!points.length) return "";
+  if (points.length === 1) {
+    return `M ${points[0][0].toFixed(1)} ${points[0][1].toFixed(1)}`;
+  }
+
+  let path = `M ${points[0][0].toFixed(1)} ${points[0][1].toFixed(1)}`;
+
+  for (let index = 0; index < points.length - 1; index += 1) {
+    const p0 = points[Math.max(0, index - 1)];
+    const p1 = points[index];
+    const p2 = points[index + 1];
+    const p3 = points[Math.min(points.length - 1, index + 2)];
+    const c1x = p1[0] + (p2[0] - p0[0]) / 6;
+    const c1y = p1[1] + (p2[1] - p0[1]) / 6;
+    const c2x = p2[0] - (p3[0] - p1[0]) / 6;
+    const c2y = p2[1] - (p3[1] - p1[1]) / 6;
+
+    path += ` C ${c1x.toFixed(1)} ${c1y.toFixed(1)}, ${c2x.toFixed(1)} ${c2y.toFixed(1)}, ${p2[0].toFixed(1)} ${p2[1].toFixed(1)}`;
+  }
+
+  return path;
+};
+
 const PerformancePreview = () => {
   const [range, setRange] = useState<PerformanceRangeKey>("ALL");
   const active = PERFORMANCE_RANGES[range];
@@ -67,13 +91,8 @@ const PerformancePreview = () => {
       padTop + (1 - (point - minY) / span) * (height - padTop - padBottom);
     return [x, y] as const;
   });
-  let path = `M ${coords[0][0].toFixed(1)} ${coords[0][1].toFixed(1)}`;
-
-  for (let index = 1; index < coords.length; index += 1) {
-    path += ` L ${coords[index][0].toFixed(1)} ${coords[index][1].toFixed(1)}`;
-  }
-
   const baseY = height - padBottom;
+  const path = createSmoothPath(coords);
   const area = `${path} L ${coords[coords.length - 1][0].toFixed(1)} ${baseY} L ${coords[0][0].toFixed(1)} ${baseY} Z`;
   const [endX, endY] = coords[coords.length - 1];
 
@@ -107,20 +126,27 @@ const PerformancePreview = () => {
       >
         <defs>
           <linearGradient id="homeStocksFundAArea" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stopColor="#34C759" stopOpacity="0.24" />
+            <stop offset="0%" stopColor="#34C759" stopOpacity="0.18" />
             <stop offset="100%" stopColor="#34C759" stopOpacity="0" />
           </linearGradient>
+          <linearGradient id="homeStocksFundALine" x1="0" x2="1" y1="0" y2="0">
+            <stop offset="0%" stopColor="#248A3D" />
+            <stop offset="52%" stopColor="#34C759" />
+            <stop offset="100%" stopColor="#7EE787" />
+          </linearGradient>
         </defs>
-        <line
-          x1={padX}
-          x2={width - padX}
-          y1={baseY}
-          y2={baseY}
-          stroke="rgba(235,235,245,0.18)"
-          strokeDasharray="1 3"
-          strokeWidth="1"
-          vectorEffect="non-scaling-stroke"
-        />
+        {[0.25, 0.5, 0.75].map((level) => (
+          <line
+            key={level}
+            x1={padX}
+            x2={width - padX}
+            y1={padTop + (height - padTop - padBottom) * level}
+            y2={padTop + (height - padTop - padBottom) * level}
+            stroke="rgba(235,235,245,0.055)"
+            strokeWidth="1"
+            vectorEffect="non-scaling-stroke"
+          />
+        ))}
         <path d={area} fill="url(#homeStocksFundAArea)" />
         <path
           d={path}
@@ -128,17 +154,27 @@ const PerformancePreview = () => {
           stroke="#34C759"
           strokeLinecap="round"
           strokeLinejoin="round"
-          strokeWidth="2"
+          strokeOpacity="0.18"
+          strokeWidth="7"
           vectorEffect="non-scaling-stroke"
         />
-        <circle cx={endX} cy={endY} r="6" fill="#34C759" fillOpacity="0.20" />
+        <path
+          d={path}
+          fill="none"
+          stroke="url(#homeStocksFundALine)"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="2.4"
+          vectorEffect="non-scaling-stroke"
+        />
+        <circle cx={endX} cy={endY} r="7" fill="#34C759" fillOpacity="0.16" />
         <circle
           cx={endX}
           cy={endY}
-          r="3.2"
-          fill="#34C759"
-          stroke="#1C1C1E"
-          strokeWidth="1.5"
+          r="3.4"
+          fill="#F5F5F7"
+          stroke="#34C759"
+          strokeWidth="1.8"
           vectorEffect="non-scaling-stroke"
         />
       </svg>

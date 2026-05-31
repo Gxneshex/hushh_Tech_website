@@ -26,7 +26,6 @@ import HushhTechCta, {
 } from "../../../components/hushh-tech-cta/HushhTechCta";
 import {
   AppleLineIcon,
-  AppIcon,
   Display,
   Eyebrow,
   Lede,
@@ -84,10 +83,7 @@ export default function OnboardingStep2() {
         </div>
 
         {/* ── Title ── */}
-        <section className="pb-8 pt-4 text-center">
-          <div className="mb-6 flex justify-center">
-            <AppIcon kind="person" size={58} />
-          </div>
+        <section className="pb-8 pt-8 text-center">
           <Eyebrow>Step 02</Eyebrow>
           <Display as="h1" size="xs" maxWidth="max-w-[500px]">
             How did you hear about Hushh Fund&nbsp;A?

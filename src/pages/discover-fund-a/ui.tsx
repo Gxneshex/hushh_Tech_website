@@ -74,28 +74,26 @@ const NumberedRow = ({
   num,
   title,
   body,
-  iconKind,
   isLast,
 }: {
   num: string;
   title: string;
   body: string;
-  iconKind: AppIconKind;
   isLast: boolean;
 }) => (
-  <div className="relative flex items-start gap-3 px-4 py-4 md:px-5">
-    <div className="mt-0.5 shrink-0">
-      <AppIcon kind={iconKind} size={34} />
-    </div>
-    <div className="min-w-0 flex-1">
-      <p
-        className="mb-1 text-[11px] font-semibold tracking-[0.08em] text-[#1D1D1F]/45"
+  <div className="relative grid grid-cols-[44px_1fr] gap-4 px-4 py-5 md:grid-cols-[52px_1fr] md:px-5">
+    <div className="flex flex-col items-center">
+      <span
+        className="flex h-8 w-8 items-center justify-center rounded-full bg-[#F5F5F7] text-[11px] font-semibold tracking-[0.08em] text-[#1D1D1F]/55 shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.08),inset_0_1px_0_rgba(255,255,255,0.9)]"
         style={{ fontFamily: appleFont }}
       >
         {num}
-      </p>
+      </span>
+      {!isLast ? <span className="mt-3 h-full w-px flex-1 bg-[#1D1D1F]/[0.08]" /> : null}
+    </div>
+    <div className="min-w-0 pt-0.5">
       <h3
-        className="mb-1 text-[17px] font-medium leading-[1.06] tracking-[-0.028em] text-[#1D1D1F]"
+        className="mb-1.5 text-[17px] font-medium leading-[1.08] tracking-[-0.028em] text-[#1D1D1F]"
         style={{ fontFamily: appleFont }}
       >
         {title}
@@ -108,7 +106,7 @@ const NumberedRow = ({
       </p>
     </div>
     {!isLast ? (
-      <span className="absolute bottom-0 left-16 right-0 h-px bg-[#000000]/[0.10]" />
+      <span className="absolute bottom-0 left-[72px] right-0 h-px bg-[#000000]/[0.08]" />
     ) : null}
   </div>
 );
@@ -405,7 +403,6 @@ const FundA = () => {
                   num={String(index + 1).padStart(2, "0")}
                   title={card.title}
                   body={card.description}
-                  iconKind={iconForTitle(card.title) as AppIconKind}
                   isLast={index === edgeCards.length - 1}
                 />
               ))}

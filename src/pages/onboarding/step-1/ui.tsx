@@ -119,10 +119,7 @@ export default function OnboardingStep1() {
         </div>
 
         {/* ── Title Section ── */}
-        <section className="pb-8 pt-4 text-center">
-          <div className="mb-6 flex justify-center">
-            <AppIcon kind="monoA" size={58} />
-          </div>
+        <section className="pb-8 pt-8 text-center">
           <Eyebrow>Institutional Series</Eyebrow>
           <Display as="h1" size="xs" maxWidth="max-w-[500px]">
             Hushh Fund A multi-strategy alpha.
