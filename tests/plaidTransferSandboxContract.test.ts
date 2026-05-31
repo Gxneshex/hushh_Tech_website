@@ -56,8 +56,9 @@ describe("Plaid Transfer sandbox contract", () => {
     )?.[0];
     expect(consentAllowlist).toBeTruthy();
     expect(consentAllowlist).not.toContain("'statements'");
-    expect(createLinkToken).toContain("plaidBody.optional_products = ['statements']");
-    expect(createLinkToken).toContain("delete plaidBody.optional_products");
+    expect(createLinkToken).not.toContain("plaidBody.optional_products");
+    expect(createLinkToken).not.toContain("optional_products = ['statements']");
+    expect(createLinkToken).not.toContain("delete plaidBody.optional_products");
   });
 
   it("does not restore half-used Plaid Link tokens from session storage", () => {

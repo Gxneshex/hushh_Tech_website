@@ -16,7 +16,7 @@ const ADDITIONAL_CONSENTED_PRODUCT_ALLOWLIST = new Set([
 function resolveAdditionalConsentedProducts() {
   const requested = (
     Deno.env.get('PLAID_ADDITIONAL_CONSENTED_PRODUCTS') ||
-    'identity,transactions,investments,liabilities,signal'
+    'identity,transactions,signal'
   )
     .split(',')
     .map((product) => product.trim())
@@ -34,6 +34,44 @@ function resolveAdditionalConsentedProducts() {
 
   if (rejected.length > 0) {
     console.warn('[create-link-token] Ignoring unsupported additional consented products:', rejected);
+  }
+
+  return [...new Set(accepted)];
+}
+
+// Products to fetch ONLY if the chosen institution + account support them.
+// Plaid initializes these when supported and silently ignores them otherwise,
+// so they NEVER block linking (e.g. U.S. Bank doesn't support investments /
+// liabilities). NOTE: do NOT put `identity` here — for OAuth banks that let a
+// user separately deny Identity, required_if_supported makes the Link error.
+const REQUIRED_IF_SUPPORTED_PRODUCT_ALLOWLIST = new Set([
+  'investments',
+  'liabilities',
+  'transactions',
+  'auth',
+]);
+
+function resolveRequiredIfSupportedProducts() {
+  const requested = (
+    Deno.env.get('PLAID_REQUIRED_IF_SUPPORTED_PRODUCTS') ||
+    'investments,liabilities'
+  )
+    .split(',')
+    .map((product) => product.trim())
+    .filter(Boolean);
+
+  const accepted: string[] = [];
+  const rejected: string[] = [];
+  for (const product of requested) {
+    if (REQUIRED_IF_SUPPORTED_PRODUCT_ALLOWLIST.has(product)) {
+      accepted.push(product);
+    } else {
+      rejected.push(product);
+    }
+  }
+
+  if (rejected.length > 0) {
+    console.warn('[create-link-token] Ignoring unsupported required_if_supported products:', rejected);
   }
 
   return [...new Set(accepted)];
@@ -62,7 +100,15 @@ Deno.serve(async (req) => {
     }
 
     const plaid = getPlaidConfig();
-    const primaryProducts = resolvePlaidPrimaryProducts(plaid.env);
+    // Institution-dependent products must NEVER sit in the required `products`
+    // array — they block linking at banks that don't support them (e.g. U.S.
+    // Bank lacks investments/liabilities). Strip them out here and request them
+    // as required_if_supported instead, even if the PLAID_PRIMARY_PRODUCTS
+    // secret still lists them as primary. This makes the fix self-sufficient.
+    const NEVER_REQUIRED_PRODUCTS = new Set(['investments', 'liabilities']);
+    const rawPrimaryProducts = resolvePlaidPrimaryProducts(plaid.env);
+    const primaryProducts = rawPrimaryProducts.filter((product) => !NEVER_REQUIRED_PRODUCTS.has(product));
+    const forcedGracefulProducts = rawPrimaryProducts.filter((product) => NEVER_REQUIRED_PRODUCTS.has(product));
     const additionalConsentedProducts = resolveAdditionalConsentedProducts();
 
     // Build Plaid request body
@@ -75,22 +121,32 @@ Deno.serve(async (req) => {
       country_codes: ['US'],
       language: 'en',
     };
+    // Fetch these when the institution supports them, but NEVER block linking
+    // for banks that don't (e.g. U.S. Bank lacks investments/liabilities).
+    const requiredIfSupported = [
+      ...resolveRequiredIfSupportedProducts(),
+      ...forcedGracefulProducts,
+    ].filter((product) => !primaryProducts.includes(product));
     if (primaryProducts.includes('transfer') && !primaryProducts.includes('auth')) {
-      plaidBody.required_if_supported_products = ['auth'];
+      requiredIfSupported.unshift('auth');
+    }
+    const requiredIfSupportedProducts = [...new Set(requiredIfSupported)];
+    if (requiredIfSupportedProducts.length > 0) {
+      plaidBody.required_if_supported_products = requiredIfSupportedProducts;
     }
     const dataWebhookUrl = Deno.env.get('PLAID_DATA_WEBHOOK_URL');
     if (dataWebhookUrl) {
       plaidBody.webhook = dataWebhookUrl;
     }
-    if (additionalConsentedProducts.length > 0) {
-      plaidBody.additional_consented_products = additionalConsentedProducts;
+    // Consent-only products (for calling their endpoints later). Exclude any
+    // that are already in required_if_supported to avoid Plaid rejecting a
+    // product listed in two fields.
+    const consentedProducts = additionalConsentedProducts.filter(
+      (product) => !requiredIfSupportedProducts.includes(product),
+    );
+    if (consentedProducts.length > 0) {
+      plaidBody.additional_consented_products = consentedProducts;
     }
-
-    // Statements is requested via optional_products: fetched best-effort only
-    // when the institution supports it, and never blocks Link for institutions
-    // that don't. (statements is not a valid additional_consented_products
-    // value, so it must go here rather than there.)
-    plaidBody.optional_products = ['statements'];
 
     // OAuth support: redirect_uri for initial call
     if (redirectUri) {
@@ -103,7 +159,6 @@ Deno.serve(async (req) => {
       plaidBody.redirect_uri = receivedRedirectUri;
       delete plaidBody.products; // Plaid requires no products on OAuth resume
       delete plaidBody.required_if_supported_products;
-      delete plaidBody.optional_products;
     }
 
     console.log('[create-link-token] OAuth params:', {
