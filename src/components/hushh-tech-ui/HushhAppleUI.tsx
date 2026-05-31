@@ -534,18 +534,26 @@ export function AppIcon({
       ),
     },
     intelligence: {
-      bg: "linear-gradient(160deg, #2997FF 0%, #007AFF 52%, #0066CC 100%)",
+      bg: "linear-gradient(160deg, #2997ff 0%, #0071e3 100%)",
       glyph: (
-        <svg width={size * 0.6} height={size * 0.6} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path
-            d="M12 2.5l1.6 5.4a3 3 0 002 2L21 11.5l-5.4 1.6a3 3 0 00-2 2L12 20.5l-1.6-5.4a3 3 0 00-2-2L3 11.5l5.4-1.6a3 3 0 002-2L12 2.5z"
+        <svg width={size * 0.62} height={size * 0.62} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <g stroke="#fff" strokeWidth="1.5" strokeLinecap="round" opacity="0.92">
+            <path d="M9 3.5v2.5M12 3.5v2.5M15 3.5v2.5" />
+            <path d="M9 18v2.5M12 18v2.5M15 18v2.5" />
+            <path d="M3.5 9h2.5M3.5 12h2.5M3.5 15h2.5" />
+            <path d="M18 9h2.5M18 12h2.5M18 15h2.5" />
+          </g>
+          <rect
+            x="6"
+            y="6"
+            width="12"
+            height="12"
+            rx="3"
             stroke="#fff"
             strokeWidth="1.6"
-            strokeLinejoin="round"
-            fill="rgba(255,255,255,0.18)"
+            fill="none"
           />
-          <circle cx="18.5" cy="5.5" r="1" fill="#fff" />
-          <circle cx="5.5" cy="18.5" r="0.7" fill="#fff" opacity="0.7" />
+          <rect x="9.4" y="9.4" width="5.2" height="5.2" rx="1.6" fill="#fff" />
         </svg>
       ),
     },

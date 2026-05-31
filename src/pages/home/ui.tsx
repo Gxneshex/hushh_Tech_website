@@ -1,4 +1,4 @@
-import { useState, type PointerEvent, type ReactNode } from "react";
+import { useMemo, useState, type PointerEvent, type ReactNode } from "react";
 import { useHomeLogic } from "./logic";
 import HushhTechHeader from "../../components/hushh-tech-header/HushhTechHeader";
 import HushhTechFooter, {
@@ -17,84 +17,85 @@ import {
   appleFont,
 } from "../../components/hushh-tech-ui/HushhAppleUI";
 
+const PERFORMANCE_RANGES = {
+  "1M": { pct: "+3.2%", start: "Apr 2026", seed: 7, n: 24, from: 49, vol: 1.1 },
+  "3M": { pct: "+7.8%", start: "Feb 2026", seed: 19, n: 32, from: 45, vol: 1.7 },
+  "6M": { pct: "+12.5%", start: "Nov 2025", seed: 31, n: 38, from: 40, vol: 2.3 },
+  "1Y": { pct: "+18.1%", start: "May 2025", seed: 53, n: 46, from: 30, vol: 2.8 },
+  ALL: { pct: "+21.4%", start: "Jan 2024", seed: 88, n: 54, from: 18, vol: 3.1 },
+} as const;
+
+type PerformanceRangeKey = keyof typeof PERFORMANCE_RANGES;
+
+const performanceRangeKeys = Object.keys(PERFORMANCE_RANGES) as PerformanceRangeKey[];
+
 const PerformancePreview = () => {
-  const pts = [4, 8, 6, 12, 10, 18, 14, 22, 20, 28, 26, 34, 30, 42, 38, 50];
+  const [range, setRange] = useState<PerformanceRangeKey>("ALL");
+  const active = PERFORMANCE_RANGES[range];
+  const pts = useMemo(() => {
+    const { seed, n, from, vol } = active;
+    let state = seed;
+    const rnd = () => {
+      state = (state * 1103515245 + 12345) & 0x7fffffff;
+      return state / 0x7fffffff;
+    };
+    const end = 52;
+    const out: number[] = [];
+
+    for (let index = 0; index < n; index += 1) {
+      const t = index / (n - 1);
+      const trend = from + (end - from) * t;
+      const noise = (rnd() - 0.5) * vol * 2 * (0.5 + 0.7 * t);
+      out.push(trend + noise);
+    }
+
+    out[0] = from;
+    out[n - 1] = end;
+    return out;
+  }, [active]);
   const width = 320;
-  const height = 96;
+  const height = 116;
+  const padX = 3;
+  const padTop = 12;
+  const padBottom = 16;
   const maxY = Math.max(...pts);
   const minY = Math.min(...pts);
+  const span = maxY - minY || 1;
   const coords = pts.map((point, index) => {
-    const x = 6 + (index / (pts.length - 1)) * (width - 12);
-    const y = height - ((point - minY) / (maxY - minY)) * (height - 16) - 8;
+    const x = padX + (index / (pts.length - 1)) * (width - padX * 2);
+    const y =
+      padTop + (1 - (point - minY) / span) * (height - padTop - padBottom);
     return [x, y] as const;
   });
   let path = `M ${coords[0][0].toFixed(1)} ${coords[0][1].toFixed(1)}`;
 
-  for (let i = 0; i < coords.length - 1; i += 1) {
-    const [x0, y0] = coords[i];
-    const [x1, y1] = coords[i + 1];
-    const cx = (x0 + x1) / 2;
-    path += ` Q ${cx.toFixed(1)} ${y0.toFixed(1)} ${cx.toFixed(1)} ${((y0 + y1) / 2).toFixed(1)}`;
-    path += ` Q ${cx.toFixed(1)} ${y1.toFixed(1)} ${x1.toFixed(1)} ${y1.toFixed(1)}`;
+  for (let index = 1; index < coords.length; index += 1) {
+    path += ` L ${coords[index][0].toFixed(1)} ${coords[index][1].toFixed(1)}`;
   }
 
-  const area = `${path} L ${width} ${height} L 0 ${height} Z`;
+  const baseY = height - padBottom;
+  const area = `${path} L ${coords[coords.length - 1][0].toFixed(1)} ${baseY} L ${coords[0][0].toFixed(1)} ${baseY} Z`;
   const [endX, endY] = coords[coords.length - 1];
 
   return (
     <div
-      className="relative mx-auto max-w-[720px] overflow-hidden rounded-[22px] p-[18px] pb-3.5 shadow-[0_24px_48px_rgba(0,0,0,0.4),inset_0_0_0_0.5px_rgba(255,255,255,0.10),inset_0_1px_0_rgba(255,255,255,0.06)]"
-      aria-label="Inception to date performance preview"
-      style={{
-        background:
-          "linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%)",
-        WebkitBackdropFilter: "blur(16px)",
-        backdropFilter: "blur(16px)",
-      }}
+      className="relative mx-auto max-w-[720px] overflow-hidden rounded-[18px] bg-[#1C1C1E] p-5 pb-4"
+      aria-label="Fund A performance preview"
+      style={{ fontFamily: appleFont }}
     >
-      <div
-        aria-hidden="true"
-        className="absolute inset-x-0 top-0 h-px"
-        style={{
-          background:
-            "linear-gradient(90deg, transparent 0%, rgba(94,92,230,0.5) 30%, rgba(52,199,89,0.5) 70%, transparent 100%)",
-        }}
-      />
-      <div
-        aria-hidden="true"
-        className="absolute -bottom-16 -right-10 h-60 w-72 blur-2xl"
-        style={{
-          background:
-            "radial-gradient(ellipse at center, rgba(52,199,89,0.18) 0%, rgba(52,199,89,0) 65%)",
-        }}
-      />
-      <div className="relative z-[1] mb-3 flex items-start justify-between gap-4">
-        <div>
-          <div className="mb-1.5 text-[10px] font-medium uppercase tracking-[1.8px] text-[#F5F5F7]/55">
-            Inception to date
-          </div>
-          <div
-            className="flex items-baseline text-[25.5px] font-semibold leading-none tracking-[-0.024em] tabular-nums"
-            style={{
-              color: SYS.textOnDark,
-              fontFamily: appleFont,
-            }}
-          >
-            <span className="mr-0.5 text-[#34C759]">+</span>21.4
-            <span className="text-[14.5px] font-medium tracking-normal text-[rgba(234,230,220,0.55)]">
-              %
-            </span>
-          </div>
-        </div>
-        <div className="inline-flex items-center gap-1.5 rounded-full bg-[#34C759]/[0.12] px-3 py-2 shadow-[inset_0_0_0_0.5px_rgba(52,199,89,0.32),0_0_16px_rgba(52,199,89,0.18)]">
-          <span
-            className="h-1.5 w-1.5 rounded-full bg-[#34C759]"
-            style={{ boxShadow: "0 0 6px rgba(52,199,89,0.8)" }}
-          />
-          <span className="font-mono text-[10px] font-semibold tracking-[1.4px] text-[#5BD96E]">
-            ITD
-          </span>
-        </div>
+      <div className="mb-2.5 text-[12px] font-semibold uppercase tracking-[0.4px] text-[rgba(235,235,245,0.6)]">
+        Performance
+      </div>
+
+      <div className="mb-1 flex items-baseline text-[34px] font-semibold leading-none tracking-[-1.4px] text-white tabular-nums">
+        <span className="mr-0.5 text-[#34C759]">{active.pct[0]}</span>
+        {active.pct.slice(1).replace("%", "")}
+        <span className="ml-px text-[20px] font-medium text-[rgba(235,235,245,0.55)]">
+          %
+        </span>
+      </div>
+      <div className="mb-4 text-[13px] font-normal tracking-[-0.08px] text-[rgba(235,235,245,0.5)]">
+        Net of fees and expenses
       </div>
 
       <svg
@@ -102,51 +103,83 @@ const PerformancePreview = () => {
         width="100%"
         height={height}
         preserveAspectRatio="none"
-        className="relative z-[1] block"
+        className="block overflow-visible"
       >
         <defs>
-          <linearGradient id="homeDarkSpark" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stopColor="#5BD96E" stopOpacity="0.4" />
-            <stop offset="100%" stopColor="#5BD96E" stopOpacity="0" />
-          </linearGradient>
-          <linearGradient id="homeDarkSparkLine" x1="0" x2="1" y1="0" y2="0">
-            <stop offset="0%" stopColor="#2BAA53" />
-            <stop offset="50%" stopColor="#34C759" />
-            <stop offset="100%" stopColor="#7FE08F" />
+          <linearGradient id="homeStocksFundAArea" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stopColor="#34C759" stopOpacity="0.24" />
+            <stop offset="100%" stopColor="#34C759" stopOpacity="0" />
           </linearGradient>
         </defs>
-        {[0.25, 0.5, 0.75].map((position) => (
-          <line
-            key={position}
-            x1="0"
-            x2={width}
-            y1={height * position}
-            y2={height * position}
-            stroke="rgba(255,255,255,0.04)"
-            strokeWidth="0.5"
-          />
-        ))}
-        <path d={area} fill="url(#homeDarkSpark)" />
+        <line
+          x1={padX}
+          x2={width - padX}
+          y1={baseY}
+          y2={baseY}
+          stroke="rgba(235,235,245,0.18)"
+          strokeDasharray="1 3"
+          strokeWidth="1"
+          vectorEffect="non-scaling-stroke"
+        />
+        <path d={area} fill="url(#homeStocksFundAArea)" />
         <path
           d={path}
           fill="none"
-          stroke="url(#homeDarkSparkLine)"
+          stroke="#34C759"
           strokeLinecap="round"
           strokeLinejoin="round"
-          strokeWidth="1.5"
+          strokeWidth="2"
+          vectorEffect="non-scaling-stroke"
         />
-        <circle cx={endX} cy={endY} r="7" fill={SYS.green} fillOpacity="0.18" />
-        <circle cx={endX} cy={endY} r="2.4" fill="#fff" />
-        <circle cx={endX} cy={endY} r="1.1" fill={SYS.green} />
+        <circle cx={endX} cy={endY} r="6" fill="#34C759" fillOpacity="0.20" />
+        <circle
+          cx={endX}
+          cy={endY}
+          r="3.2"
+          fill="#34C759"
+          stroke="#1C1C1E"
+          strokeWidth="1.5"
+          vectorEffect="non-scaling-stroke"
+        />
       </svg>
 
-      <div className="relative z-[1] mt-2 flex justify-between border-t border-white/[0.06] pt-2">
-        <span className="font-mono text-[10px] font-medium tracking-[0.4px] text-[#F5F5F7]/40">
-          Jan '24
+      <div className="mb-3.5 mt-2 flex justify-between">
+        <span className="text-[12px] font-normal text-[rgba(235,235,245,0.45)]">
+          {active.start}
         </span>
-        <span className="font-mono text-[10px] font-medium tracking-[0.4px] text-[#F5F5F7]/40">
+        <span className="text-[12px] font-medium text-[rgba(235,235,245,0.7)]">
           Today
         </span>
+      </div>
+
+      <div className="flex rounded-[9px] bg-[rgba(118,118,128,0.24)] p-0.5">
+        {performanceRangeKeys.map((key) => {
+          const isActive = key === range;
+
+          return (
+            <button
+              key={key}
+              type="button"
+              aria-pressed={isActive}
+              onClick={() => setRange(key)}
+              className="h-[30px] flex-1 rounded-[7px] border-0 text-[13px] tracking-[-0.1px] transition-colors"
+              style={{
+                cursor: "pointer",
+                background: isActive ? "#636366" : "transparent",
+                boxShadow: isActive
+                  ? "0 1px 3px rgba(0,0,0,0.3), 0 1px 0.5px rgba(0,0,0,0.2)"
+                  : "none",
+                color: isActive ? "#FFFFFF" : "rgba(235,235,245,0.6)",
+                fontFamily: appleFont,
+                fontWeight: isActive ? 600 : 500,
+                touchAction: "manipulation",
+                WebkitTapHighlightColor: "transparent",
+              }}
+            >
+              {key}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
