@@ -37,4 +37,18 @@ describe("onboarding display sequence", () => {
       expect(ui).not.toMatch(/<AppIcon kind="(?:monoA|person|shield|chart|dollar)" size=\{58\} \/>/);
     }
   });
+
+  it("does not show decorative hero app logos on adjacent onboarding surfaces", () => {
+    [
+      "src/pages/onboarding/financial-link/ui.tsx",
+      "src/pages/onboarding/meet-ceo/ui.tsx",
+      "src/pages/onboarding/fund-payment/ui.tsx",
+      "src/pages/onboarding/access-denied/ui.tsx",
+      "src/pages/signed-out/ui.tsx",
+    ].forEach((path) => {
+      const ui = readRepoFile(path);
+
+      expect(ui).not.toMatch(/<AppIcon kind=\{?["']?(?:person|shield|dollar)/);
+    });
+  });
 });

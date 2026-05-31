@@ -35,8 +35,10 @@ vi.mock("../src/pages/discover-fund-a/logic", () => ({
     edgeSectionTitle: "Our Edge",
     sellTheWallHref: "/sell-the-wall",
     edgeCards: [
-      { title: "Downside Protection", description: "Protection" },
-      { title: "Income Generation", description: "Income" },
+      { title: "Systematically Sell Premium", description: "Premium" },
+      { title: "Maximize Decay", description: "Decay" },
+      { title: "Maintain Delta-Neutrality", description: "Delta" },
+      { title: "Strategic Accumulation & Income", description: "Income" },
     ],
     assetFocusSectionTitle: "Asset Focus",
     assetFocusDescription: "Assets",
@@ -155,6 +157,25 @@ describe("FundA footer shell", () => {
     expect(featureIcons.length).toBeGreaterThan(0);
     featureIcons.forEach((icon) => {
       expect(icon.getAttribute("aria-hidden")).toBe("true");
+    });
+  });
+
+  it("keeps Sell the Wall framework icons present but understated", async () => {
+    await act(async () => {
+      root.render(React.createElement(FundA));
+    });
+
+    const frameworkIcons = Array.from(
+      container.querySelectorAll('[data-testid="framework-row-icon"]'),
+    );
+
+    expect(frameworkIcons).toHaveLength(4);
+    frameworkIcons.forEach((icon) => {
+      const className = icon.getAttribute("class") ?? "";
+
+      expect(icon.getAttribute("aria-hidden")).toBe("true");
+      expect(className).toContain("bg-white");
+      expect(className).not.toContain("rounded-full");
     });
   });
 

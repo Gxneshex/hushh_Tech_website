@@ -8,7 +8,6 @@ import HushhTechCta, {
   HushhTechCtaVariant,
 } from "../../../components/hushh-tech-cta/HushhTechCta";
 import {
-  AppIcon,
   Display,
   Eyebrow,
   Lede,
@@ -33,10 +32,7 @@ export default function OnboardingAccessDeniedPage() {
         rightLabel="FAQs"
       />
 
-      <main className="mx-auto flex w-full max-w-[560px] flex-grow flex-col px-5 pb-24 pt-14 text-center">
-        <div className="mb-7 flex justify-center">
-          <AppIcon kind="shield" size={64} />
-        </div>
+      <main className="mx-auto flex w-full max-w-[560px] flex-grow flex-col px-5 pb-24 pt-20 text-center">
         <Eyebrow>Application Status</Eyebrow>
         <Display as="h1" size="xs" maxWidth="max-w-[520px]">
           Your Hushh Fund application is not approved at this time.

@@ -1,4 +1,11 @@
 import { useNavigate } from "react-router-dom";
+import {
+  CircleDollarSign,
+  Clock3,
+  Layers3,
+  Scale,
+  type LucideIcon,
+} from "lucide-react";
 
 import HushhTechBackHeader from "../../components/hushh-tech-back-header/HushhTechBackHeader";
 import HushhTechFooter, {
@@ -39,6 +46,26 @@ const iconForTitle = (title: string) => {
 
 type AppIconKind = Parameters<typeof AppIcon>[0]["kind"];
 
+const frameworkIconForTitle = (title: string): LucideIcon => {
+  const lower = title.toLowerCase();
+
+  if (lower.includes("decay")) return Clock3;
+  if (lower.includes("delta")) return Scale;
+  if (lower.includes("accumulation") || lower.includes("strategic")) return Layers3;
+
+  return CircleDollarSign;
+};
+
+const FrameworkRowIcon = ({ icon: IconComponent }: { icon: LucideIcon }) => (
+  <span
+    data-testid="framework-row-icon"
+    aria-hidden="true"
+    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] bg-white text-[#1D1D1F] shadow-[0_10px_24px_rgba(29,29,31,0.08),inset_0_0_0_0.5px_rgba(29,29,31,0.08),inset_0_1px_0_rgba(255,255,255,0.95)]"
+  >
+    <IconComponent size={18} strokeWidth={1.9} />
+  </span>
+);
+
 const DarkFeatureCard = ({
   title,
   body,
@@ -74,24 +101,26 @@ const NumberedRow = ({
   num,
   title,
   body,
+  icon,
   isLast,
 }: {
   num: string;
   title: string;
   body: string;
+  icon: LucideIcon;
   isLast: boolean;
 }) => (
-  <div className="relative grid grid-cols-[44px_1fr] gap-4 px-4 py-5 md:grid-cols-[52px_1fr] md:px-5">
-    <div className="flex flex-col items-center">
-      <span
-        className="flex h-8 w-8 items-center justify-center rounded-full bg-[#F5F5F7] text-[11px] font-semibold tracking-[0.08em] text-[#1D1D1F]/55 shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.08),inset_0_1px_0_rgba(255,255,255,0.9)]"
+  <div className="relative grid grid-cols-[40px_1fr] gap-4 px-4 py-5 md:grid-cols-[44px_1fr] md:px-5">
+    <div className="pt-0.5">
+      <FrameworkRowIcon icon={icon} />
+    </div>
+    <div className="min-w-0 pt-0.5">
+      <p
+        className="mb-1 text-[11px] font-semibold tracking-[0.08em] text-[#1D1D1F]/42"
         style={{ fontFamily: appleFont }}
       >
         {num}
-      </span>
-      {!isLast ? <span className="mt-3 h-full w-px flex-1 bg-[#1D1D1F]/[0.08]" /> : null}
-    </div>
-    <div className="min-w-0 pt-0.5">
+      </p>
       <h3
         className="mb-1.5 text-[17px] font-medium leading-[1.08] tracking-[-0.028em] text-[#1D1D1F]"
         style={{ fontFamily: appleFont }}
@@ -106,7 +135,7 @@ const NumberedRow = ({
       </p>
     </div>
     {!isLast ? (
-      <span className="absolute bottom-0 left-[72px] right-0 h-px bg-[#000000]/[0.08]" />
+      <span className="absolute bottom-0 left-[76px] right-0 h-px bg-[#000000]/[0.08]" />
     ) : null}
   </div>
 );
@@ -403,6 +432,7 @@ const FundA = () => {
                   num={String(index + 1).padStart(2, "0")}
                   title={card.title}
                   body={card.description}
+                  icon={frameworkIconForTitle(card.title)}
                   isLast={index === edgeCards.length - 1}
                 />
               ))}

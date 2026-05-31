@@ -3,7 +3,6 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import HushhTechBackHeader from "../../../components/hushh-tech-back-header/HushhTechBackHeader";
 import HushhTechCta, { HushhTechCtaVariant } from "../../../components/hushh-tech-cta/HushhTechCta";
 import {
-  AppIcon,
   Display,
   Eyebrow,
   Lede,
@@ -212,10 +211,7 @@ export default function FundPaymentLinkPage() {
         rightLabel="FAQs"
       />
 
-      <main className="mx-auto flex w-full max-w-[560px] flex-grow flex-col px-5 pb-24 pt-14 text-center">
-        <div className="mb-7 flex justify-center">
-          <AppIcon kind="dollar" size={64} />
-        </div>
+      <main className="mx-auto flex w-full max-w-[560px] flex-grow flex-col px-5 pb-24 pt-20 text-center">
         <Eyebrow>{statusCopy.eyebrow}</Eyebrow>
         <Display as="h1" size="xs" maxWidth="max-w-[520px]">
           {statusCopy.title}

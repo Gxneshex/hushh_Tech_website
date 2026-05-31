@@ -21,7 +21,6 @@ import HushhTechCta, {
 } from "../../../components/hushh-tech-cta/HushhTechCta";
 import {
   AppleLineIcon,
-  AppIcon,
   Display,
   Eyebrow,
   Icon,
@@ -150,9 +149,6 @@ function MeetCeoPage() {
         <HushhTechBackHeader onBackClick={handleBack} rightLabel="FAQs" />
         <div className="flex flex-1 items-center justify-center px-6">
           <div className="text-center">
-            <div className="mb-6 flex justify-center">
-              <AppIcon kind="person" size={58} />
-            </div>
             <div className="mx-auto mb-5 h-9 w-9 animate-spin rounded-full border-2 border-[#1D1D1F]/10 border-t-[#0066CC]" />
             <p className="text-[14px] font-light text-[#1D1D1F]/55">
               {paymentState === "verifying" ? "Verifying payment..." : "Loading..."}
@@ -171,10 +167,7 @@ function MeetCeoPage() {
       <HushhTechBackHeader onBackClick={handleBack} rightLabel="FAQs" />
 
       <main className="mx-auto w-full max-w-[640px] flex-grow px-4 pb-48 sm:px-5">
-        <section className="pb-8 pt-10 text-center">
-          <div className="mb-6 flex justify-center">
-            <AppIcon kind="person" size={58} />
-          </div>
+        <section className="pb-8 pt-14 text-center">
           <Eyebrow>Investor Access</Eyebrow>
           <Display as="h1" size="xs" maxWidth="max-w-[500px]">
             Meet your fund manager.

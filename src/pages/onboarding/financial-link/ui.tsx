@@ -10,7 +10,6 @@ import HushhTechCta, {
 } from "../../../components/hushh-tech-cta/HushhTechCta";
 import HushhTechBackHeader from "../../../components/hushh-tech-back-header/HushhTechBackHeader";
 import {
-  AppIcon,
   Display,
   Eyebrow,
   Lede,
@@ -90,10 +89,7 @@ export default function OnboardingFinancialLink() {
       {/* Main Content */}
       <main className="mx-auto mt-6 w-full max-w-[520px] flex-grow px-5 pb-48">
         {/* Title Section */}
-        <section className="mb-10 pt-6 text-center">
-          <div className="mb-6 flex justify-center">
-            <AppIcon kind="shield" size={58} />
-          </div>
+        <section className="mb-10 pt-12 text-center">
           <Eyebrow>Link your account</Eyebrow>
           <Display as="h1" size="sm" maxWidth="max-w-[440px]">
             Verify your financial profile.
