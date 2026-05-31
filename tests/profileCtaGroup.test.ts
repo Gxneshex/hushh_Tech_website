@@ -12,6 +12,7 @@ vi.mock("../src/pages/profile/logic", () => ({
     },
     primaryCTA: {
       text: "Complete Your Hushh Profile",
+      state: "unauthenticated",
       action: vi.fn(),
     },
     handleDiscoverFundA: vi.fn(),
@@ -58,7 +59,8 @@ describe("ProfilePage CTA group", () => {
     expect(ctaGroup?.className).toContain("grid");
     expect(ctaGroup?.className).toContain("gap-3");
     expect(ctaGroup?.className).toContain("sm:grid-cols-2");
-    expect(ctaGroup?.textContent).toContain("Complete Your Hushh Profile");
+    expect(ctaGroup?.textContent).toContain("Complete Investment");
     expect(ctaGroup?.textContent).toContain("Discover Fund A");
+    expect(ctaGroup?.querySelector("button")?.className).toContain("whitespace-nowrap");
   });
 });

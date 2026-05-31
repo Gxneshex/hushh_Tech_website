@@ -87,10 +87,10 @@ const PerformancePreview = () => {
         Performance
       </div>
 
-      <div className="mb-1 flex items-baseline text-[34px] font-semibold leading-none tracking-[-1.4px] text-white tabular-nums">
+      <div className="mb-1 flex items-baseline text-[30px] font-semibold leading-none tracking-[-1.4px] text-white tabular-nums">
         <span className="mr-0.5 text-[#34C759]">{active.pct[0]}</span>
         {active.pct.slice(1).replace("%", "")}
-        <span className="ml-px text-[20px] font-medium text-[rgba(235,235,245,0.55)]">
+        <span className="ml-px text-[17.5px] font-medium text-[rgba(235,235,245,0.55)]">
           %
         </span>
       </div>
@@ -628,7 +628,7 @@ export default function HomePage() {
                 Target Net IRR
               </div>
               <div
-                className="text-[47px] font-semibold leading-none tracking-normal text-[#F5F5F7] tabular-nums md:text-[65.5px]"
+                className="text-[44px] font-semibold leading-none tracking-normal text-[#F5F5F7] tabular-nums md:text-[61px]"
                 style={{ fontFamily: appleFont }}
               >
                 18
@@ -636,7 +636,7 @@ export default function HomePage() {
                   {"\u2013"}
                 </span>
                 23
-                <span className="ml-1 text-[27.5px] font-medium text-[rgba(234,230,220,0.55)] md:text-[36.5px]">
+                <span className="ml-1 text-[25.5px] font-medium text-[rgba(234,230,220,0.55)] md:text-[34px]">
                   %
                 </span>
               </div>

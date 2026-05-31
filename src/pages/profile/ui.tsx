@@ -26,7 +26,7 @@ const ProfilePage: React.FC = () => {
   } = useProfileLogic();
   const primaryCtaText =
     primaryCTA.state === 'unauthenticated'
-      ? 'Complete your investment'
+      ? 'Complete Investment'
       : primaryCTA.text;
 
   return (
@@ -63,7 +63,7 @@ const ProfilePage: React.FC = () => {
             <PillButton
               onClick={primaryCTA.action}
               disabled={onboardingStatus.loading}
-              className="w-full sm:w-auto"
+              className="w-full whitespace-nowrap px-5 sm:w-auto"
             >
               {onboardingStatus.loading ? 'Loading...' : primaryCtaText}
             </PillButton>
