@@ -29,50 +29,11 @@ type PerformanceRangeKey = keyof typeof PERFORMANCE_RANGES;
 
 const performanceRangeKeys = Object.keys(PERFORMANCE_RANGES) as PerformanceRangeKey[];
 
-const createMonotonePath = (points: ReadonlyArray<readonly [number, number]>) => {
+const createLinearPath = (points: ReadonlyArray<readonly [number, number]>) => {
   if (!points.length) return "";
-  if (points.length === 1) {
-    return `M ${points[0][0].toFixed(1)} ${points[0][1].toFixed(1)}`;
-  }
-
-  const intervals = points.slice(0, -1).map((point, index) => {
-    const next = points[index + 1];
-    const dx = next[0] - point[0];
-    const slope = dx === 0 ? 0 : (next[1] - point[1]) / dx;
-
-    return { dx, slope };
-  });
-  const tangents = points.map((_, index) => {
-    if (index === 0) return intervals[0].slope;
-    if (index === points.length - 1) return intervals[intervals.length - 1].slope;
-
-    const prev = intervals[index - 1];
-    const next = intervals[index];
-
-    if (prev.slope === 0 || next.slope === 0 || Math.sign(prev.slope) !== Math.sign(next.slope)) {
-      return 0;
-    }
-
-    const w1 = 2 * next.dx + prev.dx;
-    const w2 = next.dx + 2 * prev.dx;
-
-    return (w1 + w2) / (w1 / prev.slope + w2 / next.slope);
-  });
-  let path = `M ${points[0][0].toFixed(1)} ${points[0][1].toFixed(1)}`;
-
-  for (let index = 0; index < points.length - 1; index += 1) {
-    const p1 = points[index];
-    const p2 = points[index + 1];
-    const dx = intervals[index].dx;
-    const c1x = p1[0] + dx / 3;
-    const c1y = p1[1] + (tangents[index] * dx) / 3;
-    const c2x = p2[0] - dx / 3;
-    const c2y = p2[1] - (tangents[index + 1] * dx) / 3;
-
-    path += ` C ${c1x.toFixed(1)} ${c1y.toFixed(1)}, ${c2x.toFixed(1)} ${c2y.toFixed(1)}, ${p2[0].toFixed(1)} ${p2[1].toFixed(1)}`;
-  }
-
-  return path;
+  return points
+    .map(([x, y], index) => `${index === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)}`)
+    .join(" ");
 };
 
 const PerformancePreview = () => {
@@ -114,7 +75,7 @@ const PerformancePreview = () => {
     return [x, y] as const;
   });
   const baseY = height - padBottom;
-  const path = createMonotonePath(coords);
+  const path = createLinearPath(coords);
   const area = `${path} L ${coords[coords.length - 1][0].toFixed(1)} ${baseY} L ${coords[0][0].toFixed(1)} ${baseY} Z`;
   const [endX, endY] = coords[coords.length - 1];
 
@@ -461,7 +422,7 @@ const footerLinks = [
   { label: "Disclosures", href: "/risk-disclosures" },
   { label: "Privacy", href: "/privacy-policy" },
   { label: "Terms", href: "/terms" },
-  { label: "Support", href: "/contact" },
+  { label: "Support", href: "/support" },
 ] as const;
 
 const PageFooter = () => (

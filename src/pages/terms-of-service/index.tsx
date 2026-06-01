@@ -1,247 +1,128 @@
-import React from "react";
-import {
-  Container,
-  Box,
-  Heading,
-  Text,
-  Divider,
-  VStack,
-} from "@chakra-ui/react";
+import HushhTechLegalPage, {
+  LegalInlineLink,
+  type LegalSection,
+} from "../../components/hushh-tech-legal-page/HushhTechLegalPage";
 
-const TermsOfServicePage: React.FC = () => {
-  return (
-    <>
-      <Box textAlign="center" mt={{ md: '5rem', base: '2rem' }} mb={10}>
-        <Heading
-          as="h1"
-          size="2xl"
-          fontWeight={'500'}
-          className="blue-gradient-text"
-          my={{ md: '5rem', base: '2rem' }}
-        >
-          Terms of Service
-        </Heading>
-      </Box>
-      <Container maxW="container.lg" py={10} px={4}>
-        <VStack spacing={8} align="stretch">
-          {/* Last Updated */}
-          <Box textAlign="center">
-            <Text fontSize="sm" color="gray.600">
-              Last Updated: May 6, 2026
-            </Text>
-          </Box>
-          <Divider />
+const termsSections: LegalSection[] = [
+  {
+    eyebrow: "Agreement",
+    title: "Ownership of Site; Agreement to Terms of Use",
+    body: [
+      'These Terms and Conditions of Use (the "Terms of Use") apply to the Hushh Technologies Corporation LLC website located at www.hushhtech.com, and all associated sites linked to www.hushhtech.com by Hushh Technologies Corporation, its subsidiaries, LLP and LLC investment vehicles, and affiliates, including HushhTech sites around the world (collectively, the "Site"). The Site is the property of Hushh Technologies Corporation ("HushhTech") and its licensors.',
+      "BY USING THE SITE, YOU AGREE TO THESE TERMS OF USE; IF YOU DO NOT AGREE, DO NOT USE THE SITE.",
+      "HushhTech reserves the right, at its sole discretion, to change, modify, add or remove portions of these Terms of Use at any time. Your continued use of the Site following the posting of changes will mean that you accept and agree to the changes.",
+    ],
+  },
+  {
+    title: "Content",
+    body: [
+      'All text, graphics, user interfaces, visual interfaces, photographs, trademarks, logos, sounds, music, artwork, and computer code (collectively, "Content"), including the design, structure, selection, coordination, expression, look and feel, and arrangement of such Content, contained on the Site is owned, controlled, or licensed by or to HushhTech.',
+      "Except as expressly provided in these Terms of Use, no part of the Site and no Content may be copied, reproduced, republished, uploaded, posted, publicly displayed, encoded, translated, transmitted, or distributed in any way without HushhTech's express prior written consent.",
+    ],
+    bullets: [
+      "Do not remove any proprietary notice language in copies of documents.",
+      "Use information made available for download only for your personal, non-commercial informational purpose.",
+      "Do not modify such information or make additional representations or warranties relating to those documents.",
+    ],
+  },
+  {
+    title: "Your Use of the Site",
+    body: [
+      "You may not use any deep-link, page-scrape, robot, spider, or other automatic device, program, algorithm, methodology, or similar process to access, acquire, copy, or monitor any portion of the Site or Content.",
+      "You may not attempt to gain unauthorized access to any portion or feature of the Site, any systems or networks connected to the Site, any HushhTech server, or any services offered on or through the Site.",
+    ],
+    bullets: [
+      "Do not probe, scan, or test the vulnerability of the Site or any connected network.",
+      "Do not reverse look-up, trace, or seek to trace information on any other user or visitor.",
+      "Do not take action that imposes an unreasonable load on HushhTech systems or networks.",
+      "Do not interfere with the proper working of the Site or any transaction being conducted on the Site.",
+      "Do not impersonate another individual or entity, forge headers, or manipulate identifiers.",
+      "Do not use the Site or Content for any unlawful or prohibited purpose.",
+    ],
+  },
+  {
+    title: "Purchases; Other Terms and Conditions",
+    body: [
+      "Additional terms and conditions may apply to purchases of goods or services and to specific portions or features of the Site, including contests, promotions, or other similar features. You agree to abide by such other terms and conditions.",
+    ],
+  },
+  {
+    title: "Accounts, Passwords and Security",
+    body: [
+      "Certain features or services offered on or through the Site may require you to open an account. You are entirely responsible for maintaining the confidentiality of your account information, including your password, and for all activity that occurs under your account.",
+    ],
+  },
+  {
+    title: "Privacy",
+    body: [
+      <>
+        HushhTech's Privacy Policy applies to use of this Site and its terms are
+        made a part of these Terms of Use by this reference. View the{" "}
+        <LegalInlineLink to="/privacy-policy">Privacy Policy</LegalInlineLink>.
+      </>,
+    ],
+  },
+  {
+    title: "Links to Other Sites",
+    body: [
+      "This Site may contain links to independent third-party websites. These Linked Sites are provided solely as a convenience to our visitors. Such Linked Sites are not under HushhTech's control, and HushhTech is not responsible for and does not endorse their content.",
+    ],
+  },
+  {
+    title: "Disclaimers",
+    body: [
+      "HUSHHTECH DOES NOT PROMISE THAT THE SITE OR ANY CONTENT, SERVICE, OR FEATURE OF THE SITE WILL BE ERROR-FREE OR UNINTERRUPTED. THE SITE AND ITS CONTENT ARE DELIVERED ON AN AS-IS AND AS-AVAILABLE BASIS.",
+    ],
+  },
+  {
+    title: "Limitation of Liability",
+    body: [
+      "Except where prohibited by law, in no event will HushhTech be liable to you for any indirect, consequential, exemplary, incidental, or punitive damages.",
+    ],
+  },
+  {
+    title: "Indemnity",
+    body: [
+      "You agree to indemnify and hold HushhTech, its officers, directors, shareholders, predecessors, successors, employees, agents, subsidiaries, and affiliates harmless from any demands, loss, liability, claims, or expenses, including attorneys' fees, made against HushhTech by any third party due to or arising out of your use of the Site.",
+    ],
+  },
+  {
+    title: "Violation of These Terms of Use",
+    body: [
+      "HushhTech reserves the right to disclose any information it deems necessary to comply with applicable law or legal process, and to take any action it considers appropriate to protect the rights, property, and safety of HushhTech and its users.",
+    ],
+  },
+  {
+    title: "Governing Law; Dispute Resolution",
+    body: [
+      "You agree that all matters relating to your access to or use of the Site will be governed by the laws of the State of Washington, United States. Venue shall be in King County, Washington.",
+    ],
+  },
+  {
+    title: "Void Where Prohibited",
+    body: [
+      "Although the Site is accessible worldwide, not all products or services discussed or offered through the Site are available to all persons or in all geographic locations. HushhTech reserves the right to limit the availability of any product or service to any person, geographic area, or jurisdiction.",
+    ],
+  },
+  {
+    title: "Miscellaneous",
+    body: [
+      "If any provision of these Terms of Use is held to be unlawful, void, or unenforceable, the remaining provisions shall remain in full force and effect.",
+      "Copyright 2025 Hushh Technologies Corporation. All rights reserved. Hushh Technologies Corporation, 1021 5th St W, Kirkland, WA 98033, USA. Contact: privacy@hushh.ai.",
+    ],
+  },
+];
 
-          {/* Acceptance of Terms */}
-          <Box>
-            <Heading as="h2" size="lg" mb={4}>
-              1. Acceptance of Terms
-            </Heading>
-            <Text>
-              By accessing and using Hushh Technologies LLC's ("Hushh") website and services (collectively, the "Services"), you accept and agree to be bound by the terms and provisions of this agreement ("Terms of Service" or "Terms"). If you do not agree to these Terms, please do not use our Services.
-            </Text>
-            <Text mt={4}>
-              These Terms constitute a legally binding agreement between you and Hushh Technologies LLC. Your continued use of the Services constitutes your acceptance of any modifications to these Terms.
-            </Text>
-          </Box>
-          <Divider />
-
-          {/* Use License */}
-          <Box>
-            <Heading as="h2" size="lg" mb={4}>
-              2. Use License
-            </Heading>
-            <Text mb={4}>
-              Permission is granted to temporarily access the materials (information or software) on Hushh's website for personal, non-commercial transitory viewing only. This is the grant of a license, not a transfer of title, and under this license you may not:
-            </Text>
-            <Box pl={4}>
-              <Text>• Modify or copy the materials;</Text>
-              <Text>• Use the materials for any commercial purpose or for any public display (commercial or non-commercial);</Text>
-              <Text>• Attempt to decompile or reverse engineer any software contained on Hushh's website;</Text>
-              <Text>• Remove any copyright or other proprietary notations from the materials;</Text>
-              <Text>• Transfer the materials to another person or "mirror" the materials on any other server.</Text>
-            </Box>
-            <Text mt={4}>
-              This license shall automatically terminate if you violate any of these restrictions and may be terminated by Hushh at any time. Upon terminating your viewing of these materials or upon the termination of this license, you must destroy any downloaded materials in your possession whether in electronic or printed format.
-            </Text>
-          </Box>
-          <Divider />
-
-          {/* Investment Disclaimer */}
-          <Box>
-            <Heading as="h2" size="lg" mb={4}>
-              3. Investment Disclaimer
-            </Heading>
-            <Text mb={4}>
-              Investment involves risk, including the possible loss of principal. Past performance does not guarantee future results. The information provided through our Services is for informational purposes only and should not be construed as investment advice.
-            </Text>
-            <Text mb={4}>
-              Before making any investment decisions, you should:
-            </Text>
-            <Box pl={4}>
-              <Text>• Consult with a qualified financial advisor;</Text>
-              <Text>• Carefully review all offering documents and disclosures;</Text>
-              <Text>• Consider your financial situation, investment objectives, and risk tolerance;</Text>
-              <Text>• Understand that investments may lose value and you may lose your entire investment.</Text>
-            </Box>
-            <Text mt={4}>
-              Hushh does not provide investment, legal, or tax advice. Any investment decisions you make are solely your responsibility.
-            </Text>
-          </Box>
-          <Divider />
-
-          {/* Account Terms */}
-          <Box>
-            <Heading as="h2" size="lg" mb={4}>
-              4. Account Terms
-            </Heading>
-            <Text mb={4}>
-              You are responsible for maintaining the security of your account and password. Hushh cannot and will not be liable for any loss or damage from your failure to comply with this security obligation.
-            </Text>
-            <Text mb={4}>
-              You agree to:
-            </Text>
-            <Box pl={4}>
-              <Text>• Provide accurate, current, and complete information during registration;</Text>
-              <Text>• Maintain and promptly update your account information;</Text>
-              <Text>• Keep your password secure and confidential;</Text>
-              <Text>• Notify us immediately of any unauthorized use of your account;</Text>
-              <Text>• Be responsible for all activities that occur under your account.</Text>
-            </Box>
-            <Text mt={4}>
-              You may not use another person's account without permission. Hushh reserves the right to refuse service, terminate accounts, or remove or edit content at our sole discretion.
-            </Text>
-          </Box>
-          <Divider />
-
-          {/* Prohibited Uses */}
-          <Box>
-            <Heading as="h2" size="lg" mb={4}>
-              5. Prohibited Uses
-            </Heading>
-            <Text mb={4}>
-              You may not use our Services for any illegal or unauthorized purpose. You agree not to:
-            </Text>
-            <Box pl={4}>
-              <Text>• Violate any laws in your jurisdiction;</Text>
-              <Text>• Transmit any worms, viruses, or destructive code;</Text>
-              <Text>• Violate or infringe upon the rights of others;</Text>
-              <Text>• Collect or harvest personal information from other users;</Text>
-              <Text>• Interfere with or disrupt the Services or servers;</Text>
-              <Text>• Impersonate any person or entity;</Text>
-              <Text>• Use automated systems to access the Services without permission.</Text>
-            </Box>
-          </Box>
-          <Divider />
-
-          {/* Intellectual Property */}
-          <Box>
-            <Heading as="h2" size="lg" mb={4}>
-              6. Intellectual Property
-            </Heading>
-            <Text>
-              The Services and their original content, features, and functionality are owned by Hushh Technologies LLC and are protected by international copyright, trademark, patent, trade secret, and other intellectual property laws.
-            </Text>
-            <Text mt={4}>
-              Our trademarks and trade dress may not be used in connection with any product or service without the prior written consent of Hushh Technologies LLC.
-            </Text>
-          </Box>
-          <Divider />
-
-          {/* Limitation of Liability */}
-          <Box>
-            <Heading as="h2" size="lg" mb={4}>
-              7. Limitation of Liability
-            </Heading>
-            <Text>
-              In no event shall Hushh Technologies LLC, nor its directors, employees, partners, agents, suppliers, or affiliates, be liable for any indirect, incidental, special, consequential, or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses, resulting from:
-            </Text>
-            <Box pl={4} mt={4}>
-              <Text>• Your access to or use of or inability to access or use the Services;</Text>
-              <Text>• Any conduct or content of any third party on the Services;</Text>
-              <Text>• Any content obtained from the Services;</Text>
-              <Text>• Unauthorized access, use, or alteration of your transmissions or content.</Text>
-            </Box>
-          </Box>
-          <Divider />
-
-          {/* Disclaimer */}
-          <Box>
-            <Heading as="h2" size="lg" mb={4}>
-              8. Disclaimer
-            </Heading>
-            <Text>
-              Your use of the Services is at your sole risk. The Services are provided on an "AS IS" and "AS AVAILABLE" basis. The Services are provided without warranties of any kind, whether express or implied, including, but not limited to, implied warranties of merchantability, fitness for a particular purpose, non-infringement, or course of performance.
-            </Text>
-            <Text mt={4}>
-              Hushh Technologies LLC does not warrant that the Services will function uninterrupted, secure, or available at any particular time or location; that any errors or defects will be corrected; that the Services are free of viruses or other harmful components; or that the results of using the Services will meet your requirements.
-            </Text>
-          </Box>
-          <Divider />
-
-          {/* Modifications */}
-          <Box>
-            <Heading as="h2" size="lg" mb={4}>
-              9. Modifications to Terms
-            </Heading>
-            <Text>
-              Hushh reserves the right to modify or replace these Terms at any time at our sole discretion. If a revision is material, we will provide at least 30 days' notice prior to any new terms taking effect.
-            </Text>
-            <Text mt={4}>
-              What constitutes a material change will be determined at our sole discretion. By continuing to access or use our Services after any revisions become effective, you agree to be bound by the revised terms. If you do not agree to the new terms, you are no longer authorized to use the Services.
-            </Text>
-          </Box>
-          <Divider />
-
-          {/* Governing Law */}
-          <Box>
-            <Heading as="h2" size="lg" mb={4}>
-              10. Governing Law
-            </Heading>
-            <Text>
-              These Terms shall be governed and construed in accordance with the laws of the State of Washington, United States, without regard to its conflict of law provisions.
-            </Text>
-            <Text mt={4}>
-              Our failure to enforce any right or provision of these Terms will not be considered a waiver of those rights. If any provision of these Terms is held to be invalid or unenforceable by a court, the remaining provisions of these Terms will remain in effect.
-            </Text>
-          </Box>
-          <Divider />
-
-          {/* Contact Information */}
-          <Box>
-            <Heading as="h2" size="lg" mb={4}>
-              11. Contact Information
-            </Heading>
-            <Text mb={4}>
-              For questions about these Terms of Service, please contact us at:
-            </Text>
-            <Box pl={4}>
-              <Text>
-                <Text as="span" fontWeight="500">Email:</Text> support@hushh.ai
-              </Text>
-              <Text>
-                <Text as="span" fontWeight="500">Phone:</Text> (888) 462-1726
-              </Text>
-              <Text>
-                <Text as="span" fontWeight="500">Address:</Text> 1021 5th St W, Kirkland, WA 98033
-              </Text>
-            </Box>
-          </Box>
-          <Divider />
-
-          {/* Acknowledgment */}
-          <Box>
-            <Heading as="h2" size="lg" mb={4}>
-              12. Acknowledgment
-            </Heading>
-            <Text>
-              By using our Services, you acknowledge that you have read these Terms of Service and agree to be bound by them.
-            </Text>
-          </Box>
-        </VStack>
-      </Container>
-    </>
-  );
-};
+const TermsOfServicePage = () => (
+  <HushhTechLegalPage
+    eyebrow="Legal Information & Notices"
+    title="Website Terms of Use."
+    lede="The approved terms governing access to hushhtech.com and related HushhTech website experiences."
+    updated="Approved Terms of Use"
+    sections={termsSections}
+    primaryAction={{ label: "Privacy Policy", href: "/privacy-policy" }}
+    secondaryAction={{ label: "Risk Disclosures", href: "/risk-disclosures" }}
+  />
+);
 
 export default TermsOfServicePage;

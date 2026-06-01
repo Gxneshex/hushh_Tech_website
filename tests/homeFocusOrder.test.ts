@@ -91,7 +91,7 @@ describe("HomePage focus order", () => {
       { text: "Disclosures", href: "/risk-disclosures" },
       { text: "Privacy", href: "/privacy-policy" },
       { text: "Terms", href: "/terms" },
-      { text: "Support", href: "/contact" },
+      { text: "Support", href: "/support" },
     ]);
   });
 });

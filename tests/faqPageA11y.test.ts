@@ -6,8 +6,8 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("../src/components/hushh-tech-header/HushhTechHeader", () => ({
-  default: () => React.createElement("header", null, "HushhTechHeader"),
+vi.mock("../src/components/hushh-tech-back-header/HushhTechBackHeader", () => ({
+  default: () => React.createElement("header", null, "HushhTechBackHeader"),
 }));
 
 import FaqPage from "../src/pages/faq";
@@ -41,7 +41,7 @@ describe("FAQ page", () => {
       );
     });
 
-    expect(container.textContent).toContain("HushhTechHeader");
+    expect(container.textContent).toContain("HushhTechBackHeader");
     expect(container.textContent).toContain("Frequently Asked");
     expect(container.textContent).not.toContain("Hu$$h");
 

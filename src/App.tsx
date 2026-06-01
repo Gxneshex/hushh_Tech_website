@@ -27,6 +27,7 @@ import CaliforniaPrivacyPolicy from './pages/california-privacy-policy';
 import EUUKPrivacyPolicy from './pages/eu-uk-privacy-policy';
 import TermsOfService from './pages/terms-of-service';
 import RiskDisclosuresPage from './pages/risk-disclosures';
+import SupportPage from './pages/support';
 import DeleteAccountPage from './pages/delete-account';
 import { ReactNode } from 'react';
 import Profile from './pages/profile';
@@ -111,6 +112,12 @@ const ContentWrapper = ({ children }: { children: ReactNode }) => {
   const isHushhHackathon = location.pathname === '/hushh-hackathon';
   const isMetrics = location.pathname === '/metrics' || location.pathname === '/metric';
   const isFundAdmin = location.pathname.startsWith('/fund-admin');
+  const isLegalPublicPage =
+    location.pathname === '/privacy-policy' ||
+    location.pathname === '/terms' ||
+    location.pathname === '/terms-of-service' ||
+    location.pathname === '/risk-disclosures' ||
+    location.pathname === '/support';
   const isModernPublicPage =
     location.pathname === '/contact' ||
     location.pathname === '/Contact' ||
@@ -119,7 +126,7 @@ const ContentWrapper = ({ children }: { children: ReactNode }) => {
     location.pathname === '/about/philosophy';
 
   return (
-    <div className={`${isHomePage || isAuthCallback || isUserRegistration || isOnboarding || isInvestorGuide || isHushhAI || isKai || isStudio || isHushhUserProfile || isSignNda || isDocumentViewer || isInvestorProfile || isPublicInvestorProfile || isDiscoverFundA || isCommunity || isDeleteAccount || isLogin || isSignup || isProfile || isHushhHackathon || isMetrics || isFundAdmin || isModernPublicPage ? '' : 'mt-20'}`}>
+    <div className={`${isHomePage || isAuthCallback || isUserRegistration || isOnboarding || isInvestorGuide || isHushhAI || isKai || isStudio || isHushhUserProfile || isSignNda || isDocumentViewer || isInvestorProfile || isPublicInvestorProfile || isDiscoverFundA || isCommunity || isDeleteAccount || isLogin || isSignup || isProfile || isHushhHackathon || isMetrics || isFundAdmin || isLegalPublicPage || isModernPublicPage ? '' : 'mt-20'}`}>
       {children}
     </div>
   );
@@ -143,6 +150,12 @@ const useLayoutVisibility = () => {
   const isSignNda = location.pathname.startsWith('/sign-nda');
   const isDocumentViewer = location.pathname.startsWith('/document-viewer');
   const isHushhUserProfile = location.pathname.startsWith('/hushh-user-profile');
+  const isLegalPublicPage =
+    location.pathname === '/privacy-policy' ||
+    location.pathname === '/terms' ||
+    location.pathname === '/terms-of-service' ||
+    location.pathname === '/risk-disclosures' ||
+    location.pathname === '/support';
   const isModernPublicPage =
     location.pathname === '/contact' ||
     location.pathname === '/Contact' ||
@@ -155,7 +168,7 @@ const useLayoutVisibility = () => {
   const isHushhHackathon = location.pathname === '/hushh-hackathon';
   const isMetrics = location.pathname === '/metrics' || location.pathname === '/metric';
   const isFundAdmin = location.pathname.startsWith('/fund-admin');
-  const hideOld = isHushhAI || isKai || isStudio || isHomePage || isOnboarding || isInvestorGuide || isProfile || isFundA || isCommunity || isDeleteAccount || isLogin || isSignup || isSignNda || isDocumentViewer || isHushhUserProfile || isModernPublicPage || isPublicInvestorProfile || isHushhHackathon || isMetrics || isFundAdmin;
+  const hideOld = isHushhAI || isKai || isStudio || isHomePage || isOnboarding || isInvestorGuide || isProfile || isFundA || isCommunity || isDeleteAccount || isLogin || isSignup || isSignNda || isDocumentViewer || isHushhUserProfile || isLegalPublicPage || isModernPublicPage || isPublicInvestorProfile || isHushhHackathon || isMetrics || isFundAdmin;
   return {
     showNavbar: !hideOld,
     showFooter: !hideOld,
@@ -199,6 +212,7 @@ function App() {
             <Route path='/terms' element={<TermsOfService />} />
             <Route path='/terms-of-service' element={<TermsOfService />} />
             <Route path='/risk-disclosures' element={<RiskDisclosuresPage />} />
+            <Route path='/support' element={<SupportPage />} />
             <Route path='/delete-account' element={
               <AuthRequiredRoute>
                 <DeleteAccountPage />

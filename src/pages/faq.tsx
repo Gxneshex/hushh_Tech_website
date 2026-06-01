@@ -8,7 +8,8 @@ import {
   Icon,
 } from "@chakra-ui/react";
 import { ChevronDownIcon, ChevronUpIcon } from '@chakra-ui/icons';
-import HushhTechHeader from "../components/hushh-tech-header/HushhTechHeader";
+import HushhTechBackHeader from "../components/hushh-tech-back-header/HushhTechBackHeader";
+import { appleDisplayFont, appleFont } from "../components/hushh-tech-ui/HushhAppleUI";
 
 interface FaqItem {
   question: string;
@@ -70,10 +71,6 @@ const faqs: FaqItem[] = [
   }
 ];
 
-const playfair = "'Playfair Display', serif";
-const bodyFont =
-  '"Manrope", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
-
 const FaqPage: React.FC = () => {
   const [openIndex, setOpenIndex] = React.useState<number | null>(0);
 
@@ -83,38 +80,26 @@ const FaqPage: React.FC = () => {
 
   return (
     <Box
-      bg="gray.50"
-      color="gray.900"
-      fontFamily={bodyFont}
+      bg="#F5F5F7"
+      color="#1D1D1F"
+      fontFamily={appleFont}
       minH="100vh"
       sx={{ WebkitFontSmoothing: "antialiased", MozOsxFontSmoothing: "grayscale" }}
     >
-      <HushhTechHeader />
+      <HushhTechBackHeader rightLabel="FAQs" />
       <Box as="main" id="main-content">
       <Container maxW="7xl" py={{ base: 10, md: 14, lg: 16 }} px={{ base: 4, sm: 6, lg: 8 }}>
         <Box textAlign="center" mb={{ base: 12, md: 14 }}>
           <Heading
             as="h1"
-            fontFamily={playfair}
-            fontWeight="normal"
-            fontSize={{ base: "2.75rem", sm: "3.25rem", lg: "4rem" }}
-            lineHeight="1.1"
-            letterSpacing="-0.02em"
-            color="black"
+            fontFamily={appleDisplayFont}
+            fontWeight="500"
+            fontSize={{ base: "2.5rem", sm: "3.25rem", lg: "4rem" }}
+            lineHeight="1.04"
+            letterSpacing="-0.032em"
+            color="#1D1D1F"
           >
-            <Text as="span" display="block">
-              Frequently Asked
-            </Text>
-            <Text
-              as="span"
-              display="block"
-              color="gray.400"
-              fontStyle="italic"
-              fontWeight="300"
-              fontFamily={playfair}
-            >
-              Questions
-            </Text>
+            Frequently Asked Questions.
           </Heading>
 
           <Text
@@ -122,7 +107,7 @@ const FaqPage: React.FC = () => {
             fontWeight="300"
             maxW="lg"
             mx="auto"
-            color="gray.500"
+            color="#1D1D1F99"
             mt={4}
             lineHeight="relaxed"
           >
@@ -148,26 +133,26 @@ const FaqPage: React.FC = () => {
             <Box
               key={index}
               role="listitem"
-              bg="white"
-              borderRadius="2xl"
+              bg="whiteAlpha.800"
+              borderRadius="24px"
               overflow="hidden"
               borderWidth="1px"
-              borderColor="gray.100"
+              borderColor="blackAlpha.100"
               boxShadow={
                 isOpen
-                  ? "0 4px 24px rgba(0, 0, 0, 0.08)"
-                  : "0 2px 12px rgba(0, 0, 0, 0.06)"
+                  ? "0 18px 50px rgba(29,29,31,0.08)"
+                  : "0 10px 32px rgba(29,29,31,0.05)"
               }
               transition="box-shadow 0.2s ease, border-color 0.2s ease"
               _hover={{
-                borderColor: "blue.200",
-                boxShadow: "0 4px 20px rgba(0, 0, 0, 0.07)",
+                borderColor: "rgba(0,102,204,0.24)",
+                boxShadow: "0 18px 48px rgba(29,29,31,0.08)",
               }}
             >
               <Heading
                 as="h3"
                 m={0}
-                fontFamily={bodyFont}
+                fontFamily={appleFont}
                 fontSize={{ base: "0.95rem", md: "1rem" }}
                 fontWeight="600"
                 lineHeight="snug"
@@ -196,7 +181,7 @@ const FaqPage: React.FC = () => {
                     color="gray.900"
                     transition="background-color 0.2s ease, box-shadow 0.2s ease"
                     _hover={{
-                      bg: "gray.50",
+                      bg: "whiteAlpha.700",
                       boxShadow: "inset 0 0 0 1px rgba(0, 0, 0, 0.04)",
                     }}
                     _active={{

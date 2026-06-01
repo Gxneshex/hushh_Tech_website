@@ -6,13 +6,17 @@ const read = (filePath: string) =>
   fs.readFileSync(path.join(process.cwd(), filePath), "utf8");
 
 describe("Home Fund A visual contract", () => {
-  it("keeps the performance chart as a monotone system-green line without neon glow", () => {
+  it("keeps the performance chart as a straight system-green line without neon glow", () => {
     const home = read("src/pages/home/ui.tsx");
 
-    expect(home).toContain("const createMonotonePath");
+    expect(home).toContain("const createLinearPath");
+    expect(home).toContain("createLinearPath(coords)");
     expect(home).toContain("stroke={SYS.green}");
     expect(home).toContain('strokeWidth="2.5"');
+    expect(home).toContain("`${index === 0 ? \"M\" : \"L\"}");
     expect(home).not.toContain("homeStocksFundALine");
+    expect(home).not.toContain("createMonotonePath");
+    expect(home).not.toMatch(/path \+= ` C|` C \$\{/);
     expect(home).not.toContain('strokeOpacity="0.18"');
     expect(home).not.toContain('strokeWidth="7"');
   });
