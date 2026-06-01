@@ -105,7 +105,7 @@ export default function HushhTechLegalPage({
             {eyebrow}
           </p>
           <h1
-            className="mx-auto max-w-[680px] text-[40px] font-medium leading-[1.04] tracking-[-0.032em] text-[#1D1D1F] sm:text-[52px] md:text-[64px]"
+            className="mx-auto max-w-[680px] text-[48px] font-medium leading-[1.06] tracking-[-0.028em] text-[#1D1D1F] md:text-[56px]"
             style={{ fontFamily: appleDisplayFont, textWrap: "balance" }}
           >
             {title}
