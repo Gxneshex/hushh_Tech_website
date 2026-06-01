@@ -23,9 +23,7 @@ import {
 } from "@chakra-ui/react";
 import { MapPin, Phone, Clock, ArrowRight } from "lucide-react";
 import HushhTechHeader from "../components/hushh-tech-header/HushhTechHeader";
-
-/** Home-aligned serif for headings (Playfair). Body uses global Manrope from `index.css`. */
-const playfair = { fontFamily: "'Playfair Display', serif" };
+import { appleFont } from "../components/hushh-tech-ui/HushhAppleUI";
 
 /** Greys aligned with `home/ui.tsx` Tailwind tokens (gray-*, ios-gray-bg). */
 const iosGrayBg = "#F5F5F7";
@@ -169,7 +167,7 @@ export default function Contact() {
   };
 
   return (
-    <Box bg={pageBg} minH="100vh" className="antialiased text-gray-900">
+    <Box bg={pageBg} minH="100vh" className="antialiased text-gray-900" style={{ fontFamily: appleFont }}>
       <HushhTechHeader />
       <Box
         as="main"
@@ -185,21 +183,11 @@ export default function Contact() {
             mb={4}
             letterSpacing="tight"
             lineHeight="1.15"
-            fontWeight="400"
+            fontWeight="600"
             color="black"
-            style={playfair}
+            style={{ fontFamily: appleFont }}
           >
-            <Text as="span" fontWeight="400">
-              Get in{" "}
-            </Text>
-            <Text
-              as="span"
-              fontWeight="300"
-              fontStyle="italic"
-              color={gray500}
-            >
-              Touch
-            </Text>
+            Get in touch.
           </Heading>
 
           <Text
@@ -262,7 +250,7 @@ export default function Contact() {
               mb={6}
               color="black"
               fontWeight="500"
-              style={playfair}
+              style={{ fontFamily: appleFont }}
             >
               Send us a Message
             </Heading>
@@ -467,7 +455,7 @@ export default function Contact() {
                 mb={6}
                 color="black"
                 fontWeight="500"
-                style={playfair}
+                style={{ fontFamily: appleFont }}
               >
                 Contact Information
               </Heading>
@@ -553,7 +541,7 @@ export default function Contact() {
                 mb={4}
                 fontWeight="500"
                 color="white"
-                style={playfair}
+                style={{ fontFamily: appleFont }}
               >
                 Ready to Invest?
               </Heading>

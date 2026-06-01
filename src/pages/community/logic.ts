@@ -27,6 +27,7 @@ export const NDA_OPTION = "Sensitive Documents (NDA approval Req.)";
 export const MARKET_UPDATES_OPTION = "Market Updates";
 export const GENERAL_OPTION = "General";
 export const INVESTMENT_OPTION = "Investment";
+export const FUND_DOCUMENTS_OPTION = "Fund Documents";
 export const FUND_UPDATES_OPTION = "Fund Updates";
 export const INVESTOR_RELATIONS_OPTION = "Investor Relations";
 export const PRODUCT_OPTION = "Product";
@@ -38,6 +39,7 @@ export const PINNED_SLUGS = [
 const CATEGORY_VARIANT_ORDER = [
   GENERAL_OPTION,
   INVESTMENT_OPTION,
+  FUND_DOCUMENTS_OPTION,
   FUND_UPDATES_OPTION,
   INVESTOR_RELATIONS_OPTION,
   PRODUCT_OPTION,
@@ -90,6 +92,7 @@ const getCategoryVariant = (category = "") => {
   if (!lower) return "";
   if (lower.includes("market")) return MARKET_UPDATES_OPTION;
   if (lower.includes("investment")) return INVESTMENT_OPTION;
+  if (lower.includes("document")) return FUND_DOCUMENTS_OPTION;
   if (lower.includes("fund")) return FUND_UPDATES_OPTION;
   if (lower.includes("investor")) return INVESTOR_RELATIONS_OPTION;
   if (lower.includes("product")) return PRODUCT_OPTION;
@@ -162,36 +165,57 @@ export const useCommunityListLogic = () => {
     [localPosts]
   );
 
+  /* combine + sort all posts */
+  const allContentSorted = useMemo<UnifiedPost[]>(() => {
+    const mergedBySlug = new Map<string, UnifiedPost>();
+
+    localPosts
+      .filter((post) => post.accessLevel === "Public")
+      .forEach((post) => {
+        mergedBySlug.set(post.slug, {
+          id: post.slug,
+          title: post.title,
+          date: post.publishedAt,
+          slug: post.slug,
+          description:
+            post.description ||
+            getPostDescription({ id: post.slug, title: post.title, date: post.publishedAt }),
+          category: post.category,
+        });
+      });
+
+    publicPosts.forEach((p) => {
+      mergedBySlug.set(p.slug, {
+        id: p.slug,
+        title: p.title,
+        date: p.publishedAt || p.date,
+        slug: p.slug,
+        description:
+          p.description ||
+          getPostDescription({ id: p.slug, title: p.title, date: p.publishedAt || p.date }),
+        category: p.category,
+      });
+    });
+
+    return Array.from(mergedBySlug.values()).sort((a, b) => {
+      const da = parseDate(a.date)?.getTime() || 0;
+      const db = parseDate(b.date)?.getTime() || 0;
+      return db - da;
+    });
+  }, [localPosts, publicPosts]);
+
   const categoryVariants = useMemo(() => {
     const variants = new Set(
-      publicPosts.map((p) => getCategoryVariant(p.category)).filter(Boolean)
+      allContentSorted.map((p) => getCategoryVariant(p.category)).filter(Boolean)
     );
 
     return CATEGORY_VARIANT_ORDER.filter((variant) => variants.has(variant));
-  }, [publicPosts]);
+  }, [allContentSorted]);
 
   const dropdownOptions = useMemo(
     () => ["All", ...categoryVariants, NDA_OPTION],
     [categoryVariants]
   );
-
-  /* combine + sort all posts */
-  const allContentSorted = useMemo<UnifiedPost[]>(() => {
-    return publicPosts.map((p) => ({
-      id: p.slug,
-      title: p.title,
-      date: p.publishedAt || p.date,
-      slug: p.slug,
-      description:
-        p.description ||
-        getPostDescription({ id: p.slug, title: p.title, date: p.publishedAt || p.date }),
-      category: p.category,
-    })).sort((a, b) => {
-      const da = parseDate(a.date)?.getTime() || 0;
-      const db = parseDate(b.date)?.getTime() || 0;
-      return db - da;
-    });
-  }, [publicPosts]);
 
   /* pinning */
   const pinnedAllContent = useMemo<UnifiedPost[]>(() => {

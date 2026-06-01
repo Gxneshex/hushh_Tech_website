@@ -7,6 +7,7 @@ import SellTheWall from '../content/posts/general/selleWall';
 import FundAtHushh from '../content/posts/funds/hushhFunds';
 import SellTheWallMasterclass from '../content/posts/general/sellTheWalleMasterClass';
 import FundAHushh from '../content/posts/funds/fundAHushh';
+import FundAOfferingDocuments from '../content/posts/funds/fundAOfferingDocuments';
 import CompensationReport from '../content/posts/general/compensationReport';
 import HushhAlphaFund from '../content/posts/investors-faq/sharedClassExplanation';
 import SubscriptionAgreementA from '../content/posts/investors-faq/subscriptionAgreementA';
@@ -178,6 +179,17 @@ const getPostComponentName = (post: PostData): string =>
     : (post.Component as React.ComponentType & { name?: string }).name || '';
 
 export const posts: PostData[] = [
+  {
+    count: 182,
+    slug: 'fund-documents/hushh-alpha-aloha-fund-a-offering-documents',
+    title: 'Hushh Alpha Aloha Fund A Offering Documents',
+    publishedAt: '2026-03-01',
+    description: 'Prospectus, private placement memorandum, master fund agreement, and Delaware feeder agreement organized for investor review.',
+    category: 'fund documents',
+    Component: FundAOfferingDocuments,
+    image: HushhAiLogoImg,
+    accessLevel: 'Public',
+  },
   // Featured Post - Sell the Wall (Nov 30, 2025)
   {
     count: 181,

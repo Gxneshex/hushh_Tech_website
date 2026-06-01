@@ -3,6 +3,16 @@
 
 export const STATIC_COMMUNITY_POSTS = [
   {
+    "slug": "fund-documents/hushh-alpha-aloha-fund-a-offering-documents",
+    "title": "Hushh Alpha Aloha Fund A Offering Documents",
+    "publishedAt": "2026-03-01",
+    "description": "Prospectus, private placement memorandum, master fund agreement, and Delaware feeder agreement organized for investor review.",
+    "category": "fund documents",
+    "accessLevel": "Public",
+    "componentName": "FundAOfferingDocuments",
+    "sourceKind": "legacy"
+  },
+  {
     "slug": "general/sell-the-wall-featured",
     "title": "Sell the Wall",
     "publishedAt": "2025-11-30",

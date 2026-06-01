@@ -21,6 +21,7 @@ import { useCommunityListLogic } from "./logic";
 const CATEGORY_META = {
   all: { label: "All", tint: "#1D1D1F" },
   investment: { label: "Investment", tint: "#007AFF" },
+  documents: { label: "Fund Documents", tint: "#5E5CE6" },
   fund: { label: "Fund Updates", tint: "#5E5CE6" },
   market: { label: "Market", tint: "#FF9500" },
   general: { label: "General", tint: "#34C759" },
@@ -35,6 +36,7 @@ const getCategoryMeta = (value: string) => {
   if (lower === "all") return CATEGORY_META.all;
   if (lower.includes("nda") || lower.includes("sensitive")) return CATEGORY_META.sensitive;
   if (lower.includes("investment")) return CATEGORY_META.investment;
+  if (lower.includes("document")) return CATEGORY_META.documents;
   if (lower.includes("fund")) return CATEGORY_META.fund;
   if (lower.includes("market")) return CATEGORY_META.market;
   if (lower.includes("investor")) return CATEGORY_META.investor;
