@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import config from '../../resources/config/config';
 import { signNDA, sendNDANotification, generateNDAPdf, uploadSignedNDA } from '../../services/nda/ndaService';
+import { FUND_DOCUMENTS } from '../../services/nda/ndaDocuments';
 import HushhTechHeader from '../../components/hushh-tech-header/HushhTechHeader';
 import HushhTechFooter from '../../components/hushh-tech-footer/HushhTechFooter';
 import { useAuthSession } from '../../auth/AuthSessionProvider';
@@ -37,37 +38,7 @@ import {
   appleFont,
 } from '../../components/hushh-tech-ui/HushhAppleUI';
 
-/* ── Fund documents config ── */
-const FUND_DOCUMENTS = [
-  {
-    id: 'delaware-feeder-lpa',
-    name: 'Delaware Feeder LPA',
-    fullName: 'Hushh Alpha Aloha Fund A Delaware Feeder LPA',
-    url: '/fund-documents/delaware-feeder-lpa.docx',
-    description: 'Limited Partnership Agreement for the Delaware Feeder Fund.',
-  },
-  {
-    id: 'investment-prospectus',
-    name: 'Investment Prospectus',
-    fullName: 'Hushh Alpha Aloha Fund A Investment Prospectus',
-    url: '/fund-documents/investment-prospectus.docx',
-    description: 'Detailed investment strategy, risks, and fund objectives.',
-  },
-  {
-    id: 'lp-master-lpa',
-    name: 'LP Master LPA',
-    fullName: 'Hushh Alpha Aloha Fund A LP Master LPA',
-    url: '/fund-documents/lp-master-lpa.docx',
-    description: 'Master Limited Partnership Agreement governing LP interests.',
-  },
-  {
-    id: 'ppm',
-    name: 'Private Placement Memorandum',
-    fullName: 'Hushh Alpha Aloha Fund A PPM',
-    url: '/fund-documents/ppm.docx',
-    description: 'Offering memorandum with terms, risks, and disclosures.',
-  },
-] as const;
+/* ── Fund documents config — shared source of truth (services/nda/ndaDocuments) ── */
 
 /* ── NDA terms data ── */
 const NDA_SECTIONS = [

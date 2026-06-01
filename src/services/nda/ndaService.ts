@@ -290,10 +290,54 @@ export const uploadSignedNDA = async (
   }
 };
 
+export interface NDARecord {
+  signerName: string | null;
+  ndaVersion: string | null;
+  signedAt: string | null;
+  pdfUrl: string | null;
+}
+
+/**
+ * Fetch the current user's NDA signature row for their profile. RLS on
+ * `nda_signatures` restricts this to the caller's own row, so it's safe to
+ * query directly from the client. Returns null when the user hasn't signed yet.
+ */
+export const getNDARecord = async (userId: string): Promise<NDARecord | null> => {
+  try {
+    if (!config.supabaseClient) {
+      console.error('Supabase client not initialized');
+      return null;
+    }
+
+    const { data, error } = await config.supabaseClient
+      .from('nda_signatures')
+      .select('signer_name, nda_version, signed_at, pdf_url')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (error) {
+      console.warn('[NDA] getNDARecord error:', error.message);
+      return null;
+    }
+    if (!data) return null;
+
+    return {
+      signerName: data.signer_name ?? null,
+      ndaVersion: data.nda_version ?? null,
+      signedAt: data.signed_at ?? null,
+      pdfUrl: data.pdf_url ?? null,
+    };
+  } catch (err) {
+    console.warn('[NDA] getNDARecord exception:', err);
+    return null;
+  }
+};
+
 export default {
   checkNDAStatus,
   signNDA,
   generateNDAPdf,
   sendNDANotification,
   uploadSignedNDA,
+  getNDARecord,
 };

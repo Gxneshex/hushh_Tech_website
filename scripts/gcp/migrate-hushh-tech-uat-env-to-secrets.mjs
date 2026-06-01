@@ -1,6 +1,15 @@
 import { execFileSync, spawnSync } from "node:child_process";
 
-const GCLOUD = process.env.GCLOUD_BIN || "/Users/ankitkumarsingh/google-cloud-sdk/bin/gcloud";
+const GCLOUD_CANDIDATES = [
+  process.env.GCLOUD_BIN,
+  "gcloud",
+  "/Users/ankitkumar/Desktop/google-cloud-sdk/bin/gcloud",
+  "/Users/ankitkumarsingh/google-cloud-sdk/bin/gcloud",
+].filter(Boolean);
+const GCLOUD = GCLOUD_CANDIDATES.find((candidate) => {
+  const result = spawnSync(candidate, ["version"], { stdio: "ignore" });
+  return result.status === 0;
+}) || "gcloud";
 const PROJECT = "hushh-tech-uat";
 const REGION = "us-central1";
 const SERVICE = "hushh-tech-website";

@@ -6,6 +6,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { collectInlineAssets } from "../_shared/emailInlineAssets.ts";
 import { base64urlEncode, createMixedEmailMessage, createRelatedEmailMessage } from "../_shared/emailMime.ts";
 import { buildNDANotificationHtml, NDA_INLINE_ASSET_KEYS } from "./template.ts";
+import { buildNDAUserConfirmationHtml } from "./userTemplate.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -127,13 +128,14 @@ function createEmailMessage(
   subject: string,
   htmlContent: string,
   pdfBase64?: string,
-  pdfFileName?: string
+  pdfFileName?: string,
+  fromLabel = "Hushh NDA Notifications"
 ): string {
   const inlineAssets = collectInlineAssets(NDA_INLINE_ASSET_KEYS);
 
   if (pdfBase64 && pdfFileName) {
     return createMixedEmailMessage({
-      fromLabel: "Hushh NDA Notifications",
+      fromLabel,
       fromEmail: from,
       recipients,
       subject,
@@ -150,7 +152,7 @@ function createEmailMessage(
   }
 
   return createRelatedEmailMessage({
-    fromLabel: "Hushh NDA Notifications",
+    fromLabel,
     fromEmail: from,
     recipients,
     subject,
@@ -167,7 +169,8 @@ async function sendGmailEmail(
   subject: string,
   htmlContent: string,
   pdfBase64?: string,
-  pdfFileName?: string
+  pdfFileName?: string,
+  fromLabel = "Hushh NDA Notifications"
 ): Promise<{ success: boolean; messageId?: string; error?: string }> {
   try {
     const serviceAccountEmail = Deno.env.get("GOOGLE_SERVICE_ACCOUNT_EMAIL");
@@ -194,7 +197,8 @@ async function sendGmailEmail(
       subject,
       htmlContent,
       pdfBase64,
-      pdfFileName
+      pdfFileName,
+      fromLabel
     );
 
     const encodedMessage = base64urlEncode(rawMessage);
@@ -296,14 +300,53 @@ serve(async (req) => {
       );
     }
 
+    // Best-effort: also send the signer their OWN confirmation (warm, branded,
+    // with the signed PDF attached). Isolated in its own try/catch so a failure
+    // here never affects the admin notification or the completed signature.
+    let signerNotified = false;
+    try {
+      const looksLikeEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(signerEmail);
+      if (looksLikeEmail) {
+        const userHtml = buildNDAUserConfirmationHtml({
+          signerName,
+          signerEmail,
+          signedDate,
+          ndaVersion,
+          pdfAttached: Boolean(pdfBase64),
+          pdfUrl,
+          documentsAcknowledged,
+          profileUrl: 'https://hushhtech.com/hushh-user-profile',
+        });
+        const userResult = await sendGmailEmail(
+          [signerEmail],
+          'Your signed NDA — Hushh Technologies',
+          userHtml,
+          pdfBase64,
+          pdfFileName,
+          'Hushh Technologies'
+        );
+        signerNotified = userResult.success;
+        if (!userResult.success) {
+          console.error('[nda-signed-notification] Signer confirmation failed:', userResult.error);
+        } else {
+          console.log('[nda-signed-notification] Signer confirmation sent:', userResult.messageId);
+        }
+      } else {
+        console.warn('[nda-signed-notification] Skipping signer email — address looks invalid:', signerEmail);
+      }
+    } catch (signerErr) {
+      console.error('[nda-signed-notification] Signer confirmation threw:', signerErr);
+    }
+
     console.log(`NDA notification sent for: ${signerName} (${signerEmail})`);
 
     return new Response(
-      JSON.stringify({ 
-        success: true, 
+      JSON.stringify({
+        success: true,
         message: `NDA notification sent to ${NDA_NOTIFICATION_RECIPIENTS.join(', ')}`,
         recipients: NDA_NOTIFICATION_RECIPIENTS,
-        messageId: result.messageId
+        messageId: result.messageId,
+        signerNotified
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
