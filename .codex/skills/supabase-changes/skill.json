@@ -1,0 +1,40 @@
+{
+  "id": "supabase-changes",
+  "role": "spoke",
+  "owner_family": "repo-operations",
+  "primary_scope": "supabase-changes-intake",
+  "description": "Use whenever a task involves Supabase (edge functions, edge-function secrets, migrations, dashboard config). Prefer Supabase CLI writes when the user explicitly asks for deployment and the target project/ref is confirmed. If CLI is blocked, fall back to the user's Chrome session on port 9223 where ankit@hushh.ai is logged in. Read-only verification (logs/invocations) is fine.",
+  "owned_paths": [
+    ".codex/skills/supabase-changes"
+  ],
+  "non_owned_paths": [
+    "repo-operations",
+    "deploy",
+    ".github/workflows",
+    "supabase"
+  ],
+  "task_types": [
+    "supabase-change",
+    "edge-function-change",
+    "secret-change",
+    "migration"
+  ],
+  "required_reads": [
+    ".codex/skills/supabase-changes/SKILL.md"
+  ],
+  "required_commands": [],
+  "verification_bundles": [],
+  "handoff_targets": [
+    "repo-operations",
+    "deploy"
+  ],
+  "adjacent_skills": [
+    "deploy",
+    "repo-operations"
+  ],
+  "risk_tags": [
+    "prod-write-risk",
+    "confirmed-project-required",
+    "fund-critical"
+  ]
+}

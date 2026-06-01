@@ -39,6 +39,19 @@ export interface InvestorDetail {
   currentStep: number | null;
   onboardingComplete: boolean;
   verificationStatus: string | null;
+  audit: {
+    ndaSigned: boolean;
+    bankLinked: boolean;
+    financialDataStatus: string;
+    financialLinkStatus: string | null;
+    firstPaymentPaid: boolean;
+    paymentRequestStatus: string | null;
+    manualReviewStatus: string | null;
+    manualInvestorStatus: string | null;
+    kycStatus: string | null;
+    missingPieces: string[];
+    dataSources: string[];
+  };
   timeline: {
     ndaSignedAt: string | null;
     ndaVersion: string | null;
@@ -79,7 +92,14 @@ export interface InvestorDetail {
 interface DetailResponse {
   success: boolean;
   investor?: InvestorDetail;
+  sourceWarnings?: SourceWarning[];
   error?: string;
+}
+
+export interface SourceWarning {
+  source: string;
+  code?: string | null;
+  message: string;
 }
 
 interface VerifyResponse {
@@ -97,6 +117,7 @@ export function useFundAdminDetail(userId: string | undefined) {
   const accessToken = session?.access_token ?? null;
 
   const [investor, setInvestor] = useState<InvestorDetail | null>(null);
+  const [sourceWarnings, setSourceWarnings] = useState<SourceWarning[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -125,6 +146,7 @@ export function useFundAdminDetail(userId: string | undefined) {
         throw new Error(data.error || `Request failed (HTTP ${res.status})`);
       }
       setInvestor(data.investor);
+      setSourceWarnings(data.sourceWarnings ?? []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load investor');
     } finally {
@@ -198,6 +220,7 @@ export function useFundAdminDetail(userId: string | undefined) {
 
   return {
     investor,
+    sourceWarnings,
     loading,
     error,
     note,

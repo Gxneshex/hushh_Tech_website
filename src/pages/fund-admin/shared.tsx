@@ -31,12 +31,14 @@ export function formatDate(iso: string | null | undefined): string {
 
 // Furthest-stage metadata — drives the stage chips in the list and detail header.
 export const STAGE_META: Record<string, { label: string; bg: string; fg: string }> = {
-  verified: { label: 'Verified', bg: 'rgba(52,199,89,0.12)', fg: '#1E7E34' },
-  awaiting_review: { label: 'Awaiting review', bg: 'rgba(0,102,204,0.12)', fg: '#0066CC' },
-  meet_ceo: { label: 'Met CEO', bg: 'rgba(175,82,222,0.12)', fg: '#7D3CB5' },
-  onboarding: { label: 'In onboarding', bg: 'rgba(255,149,0,0.14)', fg: '#B25A00' },
+  manual_approved: { label: 'Manual approved', bg: 'rgba(52,199,89,0.12)', fg: '#1E7E34' },
+  awaiting_manual_review: { label: 'Awaiting review', bg: 'rgba(0,102,204,0.12)', fg: '#0066CC' },
+  payment_started: { label: 'Payment started', bg: 'rgba(0,102,204,0.10)', fg: '#0066CC' },
+  onboarding_complete: { label: 'Onboarding complete', bg: 'rgba(52,199,89,0.10)', fg: '#1E7E34' },
+  bank_linked: { label: 'Bank linked', bg: 'rgba(0,102,204,0.10)', fg: '#0066CC' },
+  in_onboarding: { label: 'In onboarding', bg: 'rgba(255,149,0,0.14)', fg: '#B25A00' },
   nda_signed: { label: 'NDA signed', bg: 'rgba(29,29,31,0.06)', fg: '#3A3A3C' },
-  rejected: { label: 'Rejected', bg: 'rgba(255,59,48,0.12)', fg: '#B42318' },
+  manual_rejected: { label: 'Rejected', bg: 'rgba(255,59,48,0.12)', fg: '#B42318' },
   lead: { label: 'Lead', bg: 'rgba(29,29,31,0.06)', fg: '#6E6E73' },
 };
 
@@ -54,7 +56,7 @@ export function StageBadge({ stage }: { stage: string }) {
 
 export function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { bg: string; fg: string; label: string }> = {
-    verified_investor: { bg: 'rgba(52,199,89,0.12)', fg: '#1E7E34', label: 'Verified' },
+    verified_investor: { bg: 'rgba(52,199,89,0.12)', fg: '#1E7E34', label: 'Manual approved' },
     rejected: { bg: 'rgba(255,59,48,0.12)', fg: '#B42318', label: 'Rejected' },
     pending_manual_verification: { bg: 'rgba(0,102,204,0.12)', fg: '#0066CC', label: 'Pending review' },
     paid: { bg: 'rgba(0,102,204,0.12)', fg: '#0066CC', label: 'Paid' },

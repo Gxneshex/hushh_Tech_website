@@ -10,6 +10,39 @@ import {
   flagLabel,
 } from '../shared';
 
+const PIECE_LABELS: Record<string, string> = {
+  missing_onboarding_row: 'Bank linked, but no onboarding row found',
+  onboarding_financial_link_status_not_completed: 'Bank linked, onboarding status not marked complete',
+  bank_not_linked: 'Bank not linked',
+  nda_not_signed: 'NDA not signed',
+  payment_not_started: 'Payment not started',
+  first_payment_not_paid: 'First payment not paid',
+  awaiting_manual_verification: 'Awaiting manual verification',
+  kyc_not_found: 'KYC not found',
+};
+
+function auditLabel(value: string): string {
+  return PIECE_LABELS[value] || value.replace(/_/g, ' ');
+}
+
+function AuditPill({ label, tone = 'neutral' }: { label: string; tone?: 'neutral' | 'green' | 'blue' | 'orange' | 'red' }) {
+  const palette = {
+    neutral: { bg: 'rgba(29,29,31,0.06)', fg: '#6E6E73' },
+    green: { bg: 'rgba(52,199,89,0.10)', fg: '#1E7E34' },
+    blue: { bg: 'rgba(0,102,204,0.10)', fg: '#0066CC' },
+    orange: { bg: 'rgba(255,149,0,0.12)', fg: '#B25A00' },
+    red: { bg: 'rgba(255,59,48,0.10)', fg: '#B42318' },
+  }[tone];
+  return (
+    <span
+      className="inline-flex items-center rounded-full px-3 py-1 text-[12px] font-semibold"
+      style={{ backgroundColor: palette.bg, color: palette.fg }}
+    >
+      {label}
+    </span>
+  );
+}
+
 function Card({ title, children }: { title?: string; children: React.ReactNode }) {
   return (
     <section
@@ -66,6 +99,7 @@ export default function FundAdminInvestorDetail() {
   const { userId } = useParams<{ userId: string }>();
   const {
     investor,
+    sourceWarnings,
     loading,
     error,
     note,
@@ -139,6 +173,14 @@ export default function FundAdminInvestorDetail() {
                 {actionError}
               </div>
             )}
+            {sourceWarnings.length > 0 && (
+              <div
+                className="rounded-[16px] px-4 py-3.5 text-[13px] font-medium text-[#B25A00]"
+                style={{ backgroundColor: 'rgba(255,149,0,0.10)', boxShadow: 'inset 0 0 0 1px rgba(255,149,0,0.18)' }}
+              >
+                Some optional sources could not be read: {sourceWarnings.map((w) => w.source).join(', ')}.
+              </div>
+            )}
 
             {/* Identity header */}
             <Card>
@@ -180,6 +222,47 @@ export default function FundAdminInvestorDetail() {
                 />
                 <div className="col-span-2 sm:col-span-3">
                   <DetailItem label="Address" value={investor.address} />
+                </div>
+              </div>
+            </Card>
+
+            {/* Audit truth */}
+            <Card title="Onboarding audit">
+              <div className="grid grid-cols-2 gap-x-4 gap-y-4 sm:grid-cols-3">
+                <DetailItem label="NDA" value={investor.audit.ndaSigned ? 'Signed' : 'Missing'} />
+                <DetailItem label="Bank linked" value={investor.audit.bankLinked ? 'Yes' : 'No'} />
+                <DetailItem label="Financial data" value={investor.audit.financialDataStatus} />
+                <DetailItem label="Financial link status" value={investor.audit.financialLinkStatus} />
+                <DetailItem label="First payment" value={investor.audit.firstPaymentPaid ? 'Paid' : 'Not paid'} />
+                <DetailItem label="Manual investor status" value={investor.audit.manualInvestorStatus} />
+                <DetailItem label="KYC status" value={investor.audit.kycStatus} />
+              </div>
+
+              {investor.audit.missingPieces.length > 0 && (
+                <div className="mt-5">
+                  <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#1D1D1F]/45">
+                    Missing / needs attention
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {investor.audit.missingPieces.map((piece) => (
+                      <AuditPill key={piece} label={auditLabel(piece)} tone="orange" />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="mt-5">
+                <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#1D1D1F]/45">
+                  Data sources
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {investor.audit.dataSources.length > 0 ? (
+                    investor.audit.dataSources.map((source) => (
+                      <AuditPill key={source} label={source} tone="blue" />
+                    ))
+                  ) : (
+                    <AuditPill label="No source rows found" />
+                  )}
                 </div>
               </div>
             </Card>

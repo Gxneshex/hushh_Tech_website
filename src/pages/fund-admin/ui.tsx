@@ -31,24 +31,68 @@ function StatCard({
 }
 
 const TAB_LABELS: { key: FundAdminTab; label: string }[] = [
-  { key: 'awaiting_review', label: 'Awaiting review' },
-  { key: 'verified', label: 'Verified' },
-  { key: 'in_progress', label: 'In progress' },
-  { key: 'rejected', label: 'Rejected' },
+  { key: 'needs_attention', label: 'Needs attention' },
+  { key: 'completed_onboarding', label: 'Completed onboarding' },
+  { key: 'bank_linked', label: 'Bank linked' },
+  { key: 'payment_review', label: 'Payment/review' },
+  { key: 'manually_approved', label: 'Manually approved' },
   { key: 'all', label: 'All' },
 ];
+
+const PIECE_LABELS: Record<string, string> = {
+  missing_onboarding_row: 'Bank linked, but no onboarding row found',
+  onboarding_financial_link_status_not_completed: 'Bank linked, onboarding status not marked complete',
+  bank_not_linked: 'Bank not linked',
+  nda_not_signed: 'NDA not signed',
+  payment_not_started: 'Payment not started',
+  first_payment_not_paid: 'First payment not paid',
+  awaiting_manual_verification: 'Awaiting manual verification',
+  kyc_not_found: 'KYC not found',
+};
+
+function auditLabel(value: string): string {
+  return PIECE_LABELS[value] || value.replace(/_/g, ' ');
+}
+
+function MiniChip({
+  label,
+  tone = 'neutral',
+}: {
+  label: string;
+  tone?: 'neutral' | 'green' | 'blue' | 'orange' | 'red';
+}) {
+  const palette = {
+    neutral: { bg: 'rgba(29,29,31,0.06)', fg: '#6E6E73' },
+    green: { bg: 'rgba(52,199,89,0.10)', fg: '#1E7E34' },
+    blue: { bg: 'rgba(0,102,204,0.10)', fg: '#0066CC' },
+    orange: { bg: 'rgba(255,149,0,0.12)', fg: '#B25A00' },
+    red: { bg: 'rgba(255,59,48,0.10)', fg: '#B42318' },
+  }[tone];
+  return (
+    <span
+      className="inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold"
+      style={{ backgroundColor: palette.bg, color: palette.fg }}
+    >
+      {label}
+    </span>
+  );
+}
 
 function InvestorRow({ row, highlighted }: { row: FundInvestorRow; highlighted: boolean }) {
   // A compact, scannable row. The whole row deep-links to the full profile,
   // where the team reviews everything before Approve/Reject (compliance-sound:
   // decide only after seeing Plaid, KYC, commitment and the funnel timeline).
   const dateLabel =
-    row.stage === 'verified'
-      ? `Verified ${formatDate(row.verifiedAt)}`
-      : row.stage === 'rejected'
+    row.manualInvestorStatus === 'verified_investor'
+      ? `Manually approved ${formatDate(row.verifiedAt)}`
+      : row.manualInvestorStatus === 'rejected'
         ? `Rejected ${formatDate(row.rejectedAt)}`
         : row.paidAt
           ? `Paid ${formatDate(row.paidAt)}`
+          : row.onboardingComplete
+            ? 'Onboarding complete'
+            : row.bankLinked
+              ? 'Bank linked'
           : row.ndaSignedAt
             ? `NDA ${formatDate(row.ndaSignedAt)}`
             : row.currentStep
@@ -84,14 +128,33 @@ function InvestorRow({ row, highlighted }: { row: FundInvestorRow; highlighted: 
             </span>
           )}
         </div>
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {row.ndaSigned && <MiniChip label="NDA" tone="green" />}
+          {row.bankLinked && (
+            <MiniChip
+              label={`Bank ${row.financialDataStatus}`}
+              tone={row.financialDataStatus === 'complete' ? 'green' : 'blue'}
+            />
+          )}
+          {row.onboardingComplete && <MiniChip label="Onboarding complete" tone="green" />}
+          {row.firstPaymentPaid && <MiniChip label="$1 paid" tone="blue" />}
+          {row.manualInvestorStatus === 'verified_investor' && <MiniChip label="Manual approved" tone="green" />}
+          {row.manualInvestorStatus === 'rejected' && <MiniChip label="Rejected" tone="red" />}
+          {row.missingPieces.slice(0, 2).map((piece) => (
+            <MiniChip key={piece} label={auditLabel(piece)} tone="orange" />
+          ))}
+        </div>
       </div>
 
       <div className="flex items-center gap-4">
         <div className="text-right">
-          <div className="text-[14px] font-semibold text-[#1D1D1F]">
-            {row.commitmentLabel || '—'}
-          </div>
+          <div className="text-[14px] font-semibold text-[#1D1D1F]">{row.commitmentLabel || '—'}</div>
           <div className="mt-0.5 text-[11.5px] text-[#1D1D1F]/50">{dateLabel}</div>
+          {row.institutionName && (
+            <div className="mt-0.5 max-w-[180px] truncate text-[11.5px] text-[#1D1D1F]/40">
+              {row.institutionName}
+            </div>
+          )}
         </div>
         <StageBadge stage={row.stage} />
         <span className="text-[#1D1D1F]/30" aria-hidden>
@@ -107,6 +170,7 @@ export default function FundAdminPage() {
     reviewerEmail,
     highlightRef,
     funnel,
+    sourceWarnings,
     loading,
     error,
     tab,
@@ -127,10 +191,10 @@ export default function FundAdminPage() {
         <div className="mx-auto flex w-full max-w-[1040px] flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="text-[22px] font-semibold tracking-[-0.015em]">
-              Hushh Fund — Investor Operations
+              Hushh Fund — Onboarding & Investor Operations
             </h1>
             <p className="mt-0.5 text-[13px] text-[#1D1D1F]/55">
-              {reviewerEmail ? `Signed in as ${reviewerEmail}` : 'Team operations console'}
+              {reviewerEmail ? `Signed in as ${reviewerEmail}` : 'Team onboarding audit console'}
             </p>
           </div>
           <button
@@ -150,7 +214,7 @@ export default function FundAdminPage() {
           <div className="flex items-center justify-center py-24">
             <div className="text-center">
               <div className="mx-auto h-10 w-10 animate-spin rounded-full border-b-2 border-[#0066CC]" />
-              <p className="mt-4 text-[14px] text-[#1D1D1F]/55">Loading the fund pipeline…</p>
+              <p className="mt-4 text-[14px] text-[#1D1D1F]/55">Loading the onboarding audit…</p>
             </div>
           </div>
         ) : error ? (
@@ -166,14 +230,26 @@ export default function FundAdminPage() {
             {funnel && (
               <section className="mb-6">
                 <h2 className="mb-2.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#1D1D1F]/45">
-                  Pipeline
+                  Onboarding audit
                 </h2>
-                <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-6">
+                <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 lg:grid-cols-8">
                   <StatCard label="NDA signed" value={funnel.ndaSigned} />
+                  <StatCard label="Bank linked" value={funnel.bankLinked} accent="#0066CC" />
+                  <StatCard label="Financial ready" value={funnel.financialDataReady} accent="#1E7E34" />
+                  <StatCard label="Financial partial" value={funnel.financialDataPartial} accent="#B25A00" />
+                  <StatCard label="Onboarding complete" value={funnel.onboardingComplete} />
+                  <StatCard label="Payment link sent" value={funnel.paymentLinkSent} />
+                  <StatCard label="$1 paid" value={funnel.firstPaymentPaid} accent="#0066CC" />
+                  <StatCard label="Manual approved" value={funnel.verified} accent="#1E7E34" />
+                </div>
+
+                <h2 className="mb-2.5 mt-5 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#1D1D1F]/45">
+                  Review
+                </h2>
+                <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+                  <StatCard label="Needs attention" value={funnel.needsAttention} accent="#B25A00" />
                   <StatCard label="Met CEO" value={funnel.meetCeoDone} />
-                  <StatCard label="$1 activated" value={funnel.firstPaymentPaid} />
                   <StatCard label="Awaiting review" value={funnel.pendingReview} accent="#0066CC" />
-                  <StatCard label="Verified" value={funnel.verified} accent="#1E7E34" />
                   <StatCard label="Rejected" value={funnel.rejected} accent="#B42318" />
                 </div>
 
@@ -186,6 +262,16 @@ export default function FundAdminPage() {
                   <StatCard label="Collected" value={funnel.money.collected} accent="#0066CC" />
                 </div>
               </section>
+            )}
+
+            {sourceWarnings.length > 0 && (
+              <div
+                className="mb-4 rounded-[16px] px-4 py-3 text-[13px] text-[#B25A00]"
+                style={{ backgroundColor: 'rgba(255,149,0,0.10)', boxShadow: 'inset 0 0 0 1px rgba(255,149,0,0.18)' }}
+              >
+                Some optional sources could not be read. Dashboard is showing available data only:{' '}
+                {sourceWarnings.map((w) => w.source).join(', ')}.
+              </div>
             )}
 
             {/* ② Tabs + search */}
@@ -217,7 +303,7 @@ export default function FundAdminPage() {
               type="search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by name, email or reference…"
+              placeholder="Search by name, email, institution, source or reference…"
               className="mb-4 w-full rounded-[14px] border-none bg-[#F5F5F7] px-4 py-3 text-[14px] text-[#1D1D1F] outline-none placeholder:text-[#1D1D1F]/35"
               style={{ boxShadow: 'inset 0 0 0 0.5px rgba(29,29,31,0.10)' }}
             />
@@ -247,7 +333,7 @@ export default function FundAdminPage() {
             )}
 
             <p className="mt-4 text-center text-[12px] text-[#1D1D1F]/40">
-              Tap any investor to open their full profile and approve or reject.
+              Tap any investor to see exactly which data sources exist and what is still missing.
             </p>
           </>
         )}
