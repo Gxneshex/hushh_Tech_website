@@ -13,6 +13,8 @@ const logoTint = [
   "#F4ECFF",
 ];
 
+const TICKER_SCROLL_DURATION_SECONDS = 30;
+
 const BrandButton = ({ onClick }: { onClick: () => void }) => (
   <button
     type="button"
@@ -254,11 +256,13 @@ const HushhTechHeader: React.FC<HushhTechHeaderProps> = ({
           -webkit-mask-image: linear-gradient(to right, transparent, black 4%, black 96%, transparent);
         }
         .hushh-ticker-track {
-          animation: hushh-ticker-scroll 45s linear infinite;
+          animation: hushh-ticker-scroll ${TICKER_SCROLL_DURATION_SECONDS}s linear infinite;
+          transform: translate3d(0, 0, 0);
+          will-change: transform;
         }
         @keyframes hushh-ticker-scroll {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
+          0% { transform: translate3d(0, 0, 0); }
+          100% { transform: translate3d(-50%, 0, 0); }
         }
         .hushh-ticker-mask:hover .hushh-ticker-track {
           animation-play-state: paused;
