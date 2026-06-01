@@ -24,6 +24,7 @@ describe("onboarding consent contract", () => {
     expect(ui).toContain('<ConsentCheckbox');
     expect(ui).toContain('id="plaid-consent"');
     expect(ui).toContain("CONSENT_COPY.plaidDataSharing");
+    expect(logic).toContain("(!isDone && !plaidConsentChecked)");
     expect(logic).toContain("plaid_consent_at");
     expect(logic).toContain("consent_version: CONSENT_VERSION");
     expect(logic).toContain("const consentSaved = await persistPlaidConsent()");
@@ -51,9 +52,16 @@ describe("onboarding consent contract", () => {
     const kyc = read("src/components/kyc/screens/KycDetailsConsentScreen.tsx");
     const verify = read("src/pages/onboarding/verify-identity/ui.tsx");
     const step7 = read("src/pages/onboarding/step-7/ui.tsx");
+    const signup = read("src/pages/signup/ui.tsx");
 
     expect(kyc).toContain("CONSENT_COPY.kycIdentity");
+    expect(kyc).toContain("CONSENT_COPY.kycIdentity.split('Privacy Policy')[0]");
+    expect(kyc).not.toContain("securely reusing my existing KYC where possible");
     expect(verify).toContain("CONSENT_COPY.identityVerification");
     expect(step7).toContain("CONSENT_LINKS.riskDisclosures");
+    expect(signup).toContain("CONSENT_COPY.signup");
+    expect(signup).toContain("to={CONSENT_LINKS.terms}");
+    expect(signup).toContain("to={CONSENT_LINKS.privacyPolicy}");
+    expect(signup).not.toContain('to="/privacy"');
   });
 });

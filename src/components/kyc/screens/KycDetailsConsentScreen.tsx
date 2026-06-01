@@ -370,17 +370,6 @@ const KycDetailsConsentScreen: React.FC<KycDetailsConsentScreenProps> = ({
           <Text fontSize="xs" color="whiteAlpha.600" textAlign="center" mb={3} lineHeight="1.6">
             With your permission, {bankName}'s KYC Copilot will ask the Hushh KYC Network if a verified KYC already exists, so you may not have to upload all documents again.
           </Text>
-          <Text fontSize="xs" color="whiteAlpha.500" textAlign="center" mb={4} lineHeight="1.6">
-            {CONSENT_COPY.kycIdentity}{' '}
-            <Link href={CONSENT_LINKS.privacyPolicy} isExternal color="purple.300" textDecoration="underline">
-              Privacy Policy
-            </Link>{' '}
-            and{' '}
-            <Link href={CONSENT_LINKS.terms} isExternal color="purple.300" textDecoration="underline">
-              Terms
-            </Link>
-            .
-          </Text>
 
           {/* Checkbox */}
           <Checkbox
@@ -389,8 +378,28 @@ const KycDetailsConsentScreen: React.FC<KycDetailsConsentScreenProps> = ({
             colorScheme="purple"
             size="md"
           >
-            <Text fontSize="sm" color="white">
-              I consent to identity verification, the processing of my personal data, and securely reusing my existing KYC where possible.
+            <Text fontSize="sm" color="white" lineHeight="1.6">
+              {CONSENT_COPY.kycIdentity.split('Privacy Policy')[0]}
+              <Link
+                href={CONSENT_LINKS.privacyPolicy}
+                isExternal
+                color="purple.300"
+                textDecoration="underline"
+                onClick={(event) => event.stopPropagation()}
+              >
+                Privacy Policy
+              </Link>{' '}
+              and{' '}
+              <Link
+                href={CONSENT_LINKS.terms}
+                isExternal
+                color="purple.300"
+                textDecoration="underline"
+                onClick={(event) => event.stopPropagation()}
+              >
+                Terms
+              </Link>
+              .
             </Text>
           </Checkbox>
         </Box>

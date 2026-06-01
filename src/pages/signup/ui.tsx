@@ -15,6 +15,7 @@ import {
   Lede,
   appleFont,
 } from "../../components/hushh-tech-ui/HushhAppleUI";
+import { CONSENT_COPY, CONSENT_LINKS } from "../../services/consent/consentConfig";
 import { useSignupLogic } from "./logic";
 
 export default function SignupPage() {
@@ -118,12 +119,12 @@ export default function SignupPage() {
               className="mx-auto mt-5 max-w-[300px] text-center text-[11px] leading-[1.45] text-[#1D1D1F]/45"
               style={{ fontFamily: appleFont }}
             >
-              By continuing, you agree to our{" "}
-              <Link to="/terms" className="underline underline-offset-2">
+              {CONSENT_COPY.signup.split("Terms")[0]}
+              <Link to={CONSENT_LINKS.terms} className="underline underline-offset-2">
                 Terms
               </Link>{" "}
               and{" "}
-              <Link to="/privacy" className="underline underline-offset-2">
+              <Link to={CONSENT_LINKS.privacyPolicy} className="underline underline-offset-2">
                 Privacy Policy
               </Link>
               .

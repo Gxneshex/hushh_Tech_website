@@ -577,7 +577,10 @@ export const useFinancialLinkLogic = () => {
   ]);
 
   const showPrimaryButtonSpinner = isInitializing || isProcessing || isSandboxConnecting;
-  const isButtonDisabled = showPrimaryButtonSpinner || Boolean(localPlaidNotice && !isDone);
+  const isButtonDisabled =
+    showPrimaryButtonSpinner ||
+    Boolean(localPlaidNotice && !isDone) ||
+    (!isDone && !plaidConsentChecked);
 
   /* ─── Verification row statuses ─── */
   const verificationRows = useMemo(() => {
