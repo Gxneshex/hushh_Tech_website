@@ -534,7 +534,7 @@ export function AppIcon({
       ),
     },
     intelligence: {
-      bg: "linear-gradient(160deg, #2997ff 0%, #0071e3 100%)",
+      bg: "linear-gradient(160deg, #2997FF 0%, #248FEF 56%, #1D82DE 100%)",
       glyph: (
         <svg width={size * 0.62} height={size * 0.62} viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <g stroke="#fff" strokeWidth="1.5" strokeLinecap="round" opacity="0.92">
@@ -660,10 +660,10 @@ export function AppIcon({
         height: size,
         borderRadius: radius,
         background: variant.bg,
-        backdropFilter: "blur(18px) saturate(1.45)",
-        WebkitBackdropFilter: "blur(18px) saturate(1.45)",
+        backdropFilter: "blur(22px) saturate(1.32)",
+        WebkitBackdropFilter: "blur(22px) saturate(1.32)",
         boxShadow:
-          "0 18px 34px rgba(29,29,31,0.18), 0 6px 14px rgba(29,29,31,0.10), inset 0 1px 0 rgba(255,255,255,0.92), inset 0 -1px 0 rgba(29,29,31,0.08)",
+          "0 18px 34px rgba(29,29,31,0.16), 0 6px 14px rgba(29,29,31,0.08), inset 0 1px 0 rgba(255,255,255,0.86), inset 0 -1px 0 rgba(29,29,31,0.07)",
       }}
     >
       <div
@@ -671,7 +671,7 @@ export function AppIcon({
         style={{
           borderRadius: radius,
           background:
-            "linear-gradient(145deg, rgba(255,255,255,0.58) 0%, rgba(255,255,255,0.18) 34%, rgba(255,255,255,0.02) 56%, rgba(255,255,255,0.22) 100%)",
+            "linear-gradient(145deg, rgba(255,255,255,0.48) 0%, rgba(255,255,255,0.16) 34%, rgba(255,255,255,0.02) 58%, rgba(255,255,255,0.18) 100%)",
           mixBlendMode: "screen",
         }}
       />
@@ -679,7 +679,7 @@ export function AppIcon({
         className="pointer-events-none absolute -left-[18%] -top-[22%] h-[62%] w-[72%] rounded-full"
         style={{
           background:
-            "radial-gradient(circle, rgba(255,255,255,0.68) 0%, rgba(255,255,255,0.24) 42%, rgba(255,255,255,0) 70%)",
+            "radial-gradient(circle, rgba(255,255,255,0.58) 0%, rgba(255,255,255,0.20) 42%, rgba(255,255,255,0) 70%)",
           filter: "blur(1px)",
         }}
       />
@@ -688,7 +688,7 @@ export function AppIcon({
         style={{
           borderRadius: radius,
           boxShadow:
-            "inset 0 0 0 0.5px rgba(29,29,31,0.10), inset 0 0 0 1px rgba(255,255,255,0.70), inset 0 -10px 18px rgba(255,255,255,0.16)",
+            "inset 0 0 0 0.5px rgba(29,29,31,0.10), inset 0 0 0 1px rgba(255,255,255,0.62), inset 0 -10px 18px rgba(255,255,255,0.12)",
         }}
       />
       <div className="relative z-[1] flex items-center justify-center">{variant.glyph}</div>
@@ -716,17 +716,36 @@ export function AppleLineIcon({
         width: size,
         height: size,
         borderRadius: radius,
-        background: "linear-gradient(180deg, #FFFFFF 0%, #F5F5F7 100%)",
+        background: "rgba(255,255,255,0.72)",
+        backdropFilter: "blur(20px) saturate(1.35)",
+        WebkitBackdropFilter: "blur(20px) saturate(1.35)",
         boxShadow:
-          "0 14px 30px rgba(29,29,31,0.12), inset 0 1px 0 rgba(255,255,255,0.92), inset 0 -1px 0 rgba(29,29,31,0.05)",
+          "0 14px 30px rgba(29,29,31,0.11), 0 4px 12px rgba(29,29,31,0.06), inset 0 1px 0 rgba(255,255,255,0.88), inset 0 -1px 0 rgba(29,29,31,0.05)",
       }}
     >
       <span
         className="pointer-events-none absolute inset-0"
         style={{
           borderRadius: radius,
+          background:
+            "linear-gradient(145deg, rgba(255,255,255,0.50) 0%, rgba(255,255,255,0.18) 38%, rgba(255,255,255,0.04) 60%, rgba(255,255,255,0.20) 100%)",
+          mixBlendMode: "screen",
+        }}
+      />
+      <span
+        className="pointer-events-none absolute -left-[18%] -top-[22%] h-[62%] w-[72%] rounded-full"
+        style={{
+          background:
+            "radial-gradient(circle, rgba(255,255,255,0.56) 0%, rgba(255,255,255,0.20) 44%, rgba(255,255,255,0) 72%)",
+          filter: "blur(1px)",
+        }}
+      />
+      <span
+        className="pointer-events-none absolute inset-0"
+        style={{
+          borderRadius: radius,
           boxShadow:
-            "inset 0 0 0 0.5px rgba(29,29,31,0.08), inset 0 0 0 1px rgba(255,255,255,0.62)",
+            "inset 0 0 0 0.5px rgba(29,29,31,0.08), inset 0 0 0 1px rgba(255,255,255,0.62), inset 0 -8px 16px rgba(255,255,255,0.12)",
         }}
       />
       <IconComponent

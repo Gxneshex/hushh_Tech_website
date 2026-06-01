@@ -29,23 +29,45 @@ type PerformanceRangeKey = keyof typeof PERFORMANCE_RANGES;
 
 const performanceRangeKeys = Object.keys(PERFORMANCE_RANGES) as PerformanceRangeKey[];
 
-const createSmoothPath = (points: ReadonlyArray<readonly [number, number]>) => {
+const createMonotonePath = (points: ReadonlyArray<readonly [number, number]>) => {
   if (!points.length) return "";
   if (points.length === 1) {
     return `M ${points[0][0].toFixed(1)} ${points[0][1].toFixed(1)}`;
   }
 
+  const intervals = points.slice(0, -1).map((point, index) => {
+    const next = points[index + 1];
+    const dx = next[0] - point[0];
+    const slope = dx === 0 ? 0 : (next[1] - point[1]) / dx;
+
+    return { dx, slope };
+  });
+  const tangents = points.map((_, index) => {
+    if (index === 0) return intervals[0].slope;
+    if (index === points.length - 1) return intervals[intervals.length - 1].slope;
+
+    const prev = intervals[index - 1];
+    const next = intervals[index];
+
+    if (prev.slope === 0 || next.slope === 0 || Math.sign(prev.slope) !== Math.sign(next.slope)) {
+      return 0;
+    }
+
+    const w1 = 2 * next.dx + prev.dx;
+    const w2 = next.dx + 2 * prev.dx;
+
+    return (w1 + w2) / (w1 / prev.slope + w2 / next.slope);
+  });
   let path = `M ${points[0][0].toFixed(1)} ${points[0][1].toFixed(1)}`;
 
   for (let index = 0; index < points.length - 1; index += 1) {
-    const p0 = points[Math.max(0, index - 1)];
     const p1 = points[index];
     const p2 = points[index + 1];
-    const p3 = points[Math.min(points.length - 1, index + 2)];
-    const c1x = p1[0] + (p2[0] - p0[0]) / 6;
-    const c1y = p1[1] + (p2[1] - p0[1]) / 6;
-    const c2x = p2[0] - (p3[0] - p1[0]) / 6;
-    const c2y = p2[1] - (p3[1] - p1[1]) / 6;
+    const dx = intervals[index].dx;
+    const c1x = p1[0] + dx / 3;
+    const c1y = p1[1] + (tangents[index] * dx) / 3;
+    const c2x = p2[0] - dx / 3;
+    const c2y = p2[1] - (tangents[index + 1] * dx) / 3;
 
     path += ` C ${c1x.toFixed(1)} ${c1y.toFixed(1)}, ${c2x.toFixed(1)} ${c2y.toFixed(1)}, ${p2[0].toFixed(1)} ${p2[1].toFixed(1)}`;
   }
@@ -92,7 +114,7 @@ const PerformancePreview = () => {
     return [x, y] as const;
   });
   const baseY = height - padBottom;
-  const path = createSmoothPath(coords);
+  const path = createMonotonePath(coords);
   const area = `${path} L ${coords[coords.length - 1][0].toFixed(1)} ${baseY} L ${coords[0][0].toFixed(1)} ${baseY} Z`;
   const [endX, endY] = coords[coords.length - 1];
 
@@ -129,11 +151,6 @@ const PerformancePreview = () => {
             <stop offset="0%" stopColor="#34C759" stopOpacity="0.18" />
             <stop offset="100%" stopColor="#34C759" stopOpacity="0" />
           </linearGradient>
-          <linearGradient id="homeStocksFundALine" x1="0" x2="1" y1="0" y2="0">
-            <stop offset="0%" stopColor="#248A3D" />
-            <stop offset="52%" stopColor="#34C759" />
-            <stop offset="100%" stopColor="#7EE787" />
-          </linearGradient>
         </defs>
         {[0.25, 0.5, 0.75].map((level) => (
           <line
@@ -151,30 +168,17 @@ const PerformancePreview = () => {
         <path
           d={path}
           fill="none"
-          stroke="#34C759"
+          stroke={SYS.green}
           strokeLinecap="round"
           strokeLinejoin="round"
-          strokeOpacity="0.18"
-          strokeWidth="7"
+          strokeWidth="2.5"
           vectorEffect="non-scaling-stroke"
         />
-        <path
-          d={path}
-          fill="none"
-          stroke="url(#homeStocksFundALine)"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="2.4"
-          vectorEffect="non-scaling-stroke"
-        />
-        <circle cx={endX} cy={endY} r="7" fill="#34C759" fillOpacity="0.16" />
         <circle
           cx={endX}
           cy={endY}
-          r="3.4"
-          fill="#F5F5F7"
-          stroke="#34C759"
-          strokeWidth="1.8"
+          r="2.7"
+          fill={SYS.green}
           vectorEffect="non-scaling-stroke"
         />
       </svg>

@@ -60,9 +60,29 @@ const FrameworkRowIcon = ({ icon: IconComponent }: { icon: LucideIcon }) => (
   <span
     data-testid="framework-row-icon"
     aria-hidden="true"
-    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] bg-white text-[#1D1D1F] shadow-[0_10px_24px_rgba(29,29,31,0.08),inset_0_0_0_0.5px_rgba(29,29,31,0.08),inset_0_1px_0_rgba(255,255,255,0.95)]"
+    className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-[14px] bg-white text-[#1D1D1F] shadow-[0_10px_24px_rgba(29,29,31,0.08),0_3px_10px_rgba(29,29,31,0.05),inset_0_0_0_0.5px_rgba(29,29,31,0.08),inset_0_1px_0_rgba(255,255,255,0.88)]"
+    style={{
+      WebkitBackdropFilter: "blur(18px) saturate(1.3)",
+      backdropFilter: "blur(18px) saturate(1.3)",
+    }}
   >
-    <IconComponent size={18} strokeWidth={1.9} />
+    <span
+      className="pointer-events-none absolute inset-0"
+      style={{
+        background:
+          "linear-gradient(145deg, rgba(255,255,255,0.48) 0%, rgba(255,255,255,0.16) 38%, rgba(255,255,255,0.04) 62%, rgba(255,255,255,0.20) 100%)",
+        mixBlendMode: "screen",
+      }}
+    />
+    <span
+      className="pointer-events-none absolute -left-2 -top-2 h-7 w-8 rounded-full"
+      style={{
+        background:
+          "radial-gradient(circle, rgba(255,255,255,0.58) 0%, rgba(255,255,255,0.20) 48%, rgba(255,255,255,0) 72%)",
+        filter: "blur(1px)",
+      }}
+    />
+    <IconComponent className="relative z-[1]" size={18} strokeWidth={1.9} />
   </span>
 );
 
