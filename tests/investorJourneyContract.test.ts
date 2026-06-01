@@ -46,6 +46,16 @@ describe("Investor journey entry-point contract", () => {
     expect(profileLogic).not.toContain("hasClearedFinancialLink");
   });
 
+  it("shared journey CTA is aware of completed investor profile build-up", () => {
+    const hook = read("src/hooks/useInvestorJourneyCta.ts");
+
+    expect(hook).toContain('.from("investor_profiles")');
+    expect(hook).toContain(".select(\"user_confirmed, investor_profile\")");
+    expect(hook).toContain("hasBuiltInvestorProfile");
+    expect(hook).toContain("View your profile");
+    expect(hook).toContain("hasBuiltInvestorProfile: profileBuilt");
+  });
+
   it("Navbar routes Book Consultation + Unlock Coins via the journey hook", () => {
     const navbar = read("src/components/Navbar.tsx");
     expect(navbar).toContain("useInvestorJourneyCta");
@@ -82,5 +92,10 @@ describe("Investor journey entry-point contract", () => {
     const nav = read("src/components/MobileBottomNav.tsx");
     expect(nav).toContain("useInvestorJourneyCta");
     expect(nav).toContain("shouldInterceptProfile");
+  });
+
+  it("paid users under manual review can still open the profile dashboard route", () => {
+    const route = read("src/services/investorAccess/state.ts");
+    expect(route).toMatch(/case "verified_investor":[\s\S]*case "payment_in_review":[\s\S]*return \{ allow: true \}/);
   });
 });

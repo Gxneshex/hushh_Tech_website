@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { __testing__, type InvestorJourneyCta } from "../src/hooks/useInvestorJourneyCta";
 import type { InvestorAccessState } from "../src/services/investorAccess/state";
 
-const { ctaForState } = __testing__;
+const { ctaForState, hasBuiltInvestorProfile } = __testing__;
 
 type JourneyState = "loading" | "unauthenticated" | InvestorAccessState;
 
@@ -124,5 +124,40 @@ describe("useInvestorJourneyCta CTA matrix", () => {
     for (const state of allStates) {
       expect(ctaForState(state, 1, navigate).text).not.toBe("Invest with Hushh");
     }
+  });
+
+  it("routes paid users with a built investor profile to their profile", () => {
+    const { navigate, mock } = navigatorOf();
+    const cta = ctaForState("payment_in_review", 13, navigate, {
+      hasBuiltInvestorProfile: true,
+    });
+
+    expect(cta.text).toBe("View your profile");
+    expect(cta.isInvestor).toBe(true);
+    cta.action();
+    expect(mock).toHaveBeenCalledWith("/hushh-user-profile");
+  });
+
+  it("keeps paid users without a built investor profile on Meet CEO", () => {
+    const { navigate, mock } = navigatorOf();
+    const cta = ctaForState("payment_in_review", 13, navigate, {
+      hasBuiltInvestorProfile: false,
+    });
+
+    expect(cta.text).toBe("Continue to Meet the CEO");
+    cta.action();
+    expect(mock).toHaveBeenCalledWith("/onboarding/meet-ceo");
+  });
+
+  it("detects only confirmed or generated investor profiles as built", () => {
+    expect(hasBuiltInvestorProfile({ user_confirmed: true, investor_profile: null })).toBe(true);
+    expect(
+      hasBuiltInvestorProfile({
+        user_confirmed: false,
+        investor_profile: { risk_tolerance: "moderate" },
+      }),
+    ).toBe(true);
+    expect(hasBuiltInvestorProfile({ user_confirmed: false, investor_profile: null })).toBe(false);
+    expect(hasBuiltInvestorProfile(null)).toBe(false);
   });
 });

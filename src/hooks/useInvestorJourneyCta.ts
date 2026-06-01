@@ -18,7 +18,7 @@
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Session } from "@supabase/supabase-js";
+import type { Session, SupabaseClient } from "@supabase/supabase-js";
 import { useAuthSession } from "../auth/AuthSessionProvider";
 import config from "../resources/config/config";
 import {
@@ -67,6 +67,42 @@ export interface InvestorJourneyResult {
 
 type JourneyState = "loading" | "unauthenticated" | InvestorAccessState;
 
+interface InvestorProfileStatusRecord {
+  user_confirmed?: boolean | null;
+  investor_profile?: unknown | null;
+}
+
+function hasBuiltInvestorProfile(
+  profile: InvestorProfileStatusRecord | null | undefined,
+): boolean {
+  return Boolean(profile?.user_confirmed || profile?.investor_profile);
+}
+
+async function fetchInvestorProfileBuiltStatus(
+  client: SupabaseClient,
+  userId: string,
+): Promise<boolean> {
+  if (typeof client.from !== "function") return false;
+
+  try {
+    const { data, error } = await client
+      .from("investor_profiles")
+      .select("user_confirmed, investor_profile")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (error) {
+      console.warn("[useInvestorJourneyCta] investor profile status fetch failed", error);
+      return false;
+    }
+
+    return hasBuiltInvestorProfile(data);
+  } catch (error) {
+    console.warn("[useInvestorJourneyCta] investor profile status fetch failed", error);
+    return false;
+  }
+}
+
 /**
  * Canonical label + action map. PM decisions (PD-1, PD-6) live here so
  * every surface stays consistent.
@@ -75,6 +111,7 @@ function ctaForState(
   state: JourneyState,
   currentStep: number,
   navigate: (to: string) => void,
+  options: { hasBuiltInvestorProfile?: boolean } = {},
 ): InvestorJourneyCta {
   const base = {
     loading: state === "loading",
@@ -124,6 +161,14 @@ function ctaForState(
         progressLabel: "Final step",
       };
     case "payment_in_review":
+      if (options.hasBuiltInvestorProfile) {
+        return {
+          ...base,
+          text: "View your profile",
+          action: () => navigate(PROFILE_ROUTE),
+          isInvestor: true,
+        };
+      }
       return {
         ...base,
         text: "Continue to Meet the CEO",
@@ -164,6 +209,7 @@ export function useInvestorJourneyCta(
 
   const [state, setState] = useState<JourneyState>("loading");
   const [currentStep, setCurrentStep] = useState<number>(1);
+  const [profileBuilt, setProfileBuilt] = useState(false);
 
   useEffect(() => {
     if (!enabled) return;
@@ -176,28 +222,34 @@ export function useInvestorJourneyCta(
         if (!cancelled) {
           setState("unauthenticated");
           setCurrentStep(1);
+          setProfileBuilt(false);
         }
         return;
       }
       if (!config.supabaseClient) {
-        if (!cancelled) setState("unauthenticated");
+        if (!cancelled) {
+          setState("unauthenticated");
+          setProfileBuilt(false);
+        }
         return;
       }
       try {
-        const onboarding = await fetchResolvedOnboardingProgress(
-          config.supabaseClient,
-          session.user.id,
-        );
+        const [onboarding, hasProfileBuilt] = await Promise.all([
+          fetchResolvedOnboardingProgress(config.supabaseClient, session.user.id),
+          fetchInvestorProfileBuiltStatus(config.supabaseClient, session.user.id),
+        ]);
         if (cancelled) return;
         const derived = getInvestorAccessState(onboarding);
         setState(derived);
         setCurrentStep(onboarding?.current_step || 1);
+        setProfileBuilt(hasProfileBuilt);
       } catch (error) {
         if (cancelled) return;
         console.warn("[useInvestorJourneyCta] state fetch failed", error);
         // Fail soft: treat as needs_onboarding (FL is always safe).
         setState("needs_onboarding");
         setCurrentStep(1);
+        setProfileBuilt(false);
       }
     };
 
@@ -210,8 +262,11 @@ export function useInvestorJourneyCta(
   const navigateMemo = useCallback((to: string) => navigate(to), [navigate]);
 
   const primaryCTA = useMemo<InvestorJourneyCta>(
-    () => ctaForState(state, currentStep, navigateMemo),
-    [state, currentStep, navigateMemo],
+    () =>
+      ctaForState(state, currentStep, navigateMemo, {
+        hasBuiltInvestorProfile: profileBuilt,
+      }),
+    [state, currentStep, navigateMemo, profileBuilt],
   );
 
   return { session, primaryCTA };
@@ -223,4 +278,5 @@ export function useInvestorJourneyCta(
  */
 export const __testing__ = {
   ctaForState,
+  hasBuiltInvestorProfile,
 };
