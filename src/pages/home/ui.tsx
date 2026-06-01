@@ -552,9 +552,6 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="pointer-events-none absolute inset-x-0 bottom-24 flex justify-center opacity-50">
-            {Icon.chevronDown("#1D1D1F", 20)}
-          </div>
         </AppleSection>
 
         <AppleSection tone="dark" pad="normal" className="bg-[#0A0A0E]">

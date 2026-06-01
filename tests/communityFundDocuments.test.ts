@@ -37,6 +37,10 @@ describe("Community Fund A document presentation", () => {
     ]) {
       expect(component).toContain(`href: "${href}"`);
     }
+
+    expect(component).toContain("getDocumentReaderHref");
+    expect(component).toContain("href={getDocumentReaderHref(document)}");
+    expect(component).toMatch(/href=\{document\.href\}\s+download/);
   });
 
   it("keeps the contact page on the shared HushhTech typography", () => {

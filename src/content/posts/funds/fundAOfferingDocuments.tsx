@@ -32,6 +32,15 @@ const documents = [
   },
 ] as const;
 
+const getDocumentReaderHref = (document: (typeof documents)[number]) => {
+  const params = new URLSearchParams({
+    src: document.href,
+    title: document.title,
+  });
+
+  return `/document-viewer?${params.toString()}`;
+};
+
 const FundAOfferingDocuments = () => {
   return (
     <article
@@ -73,7 +82,7 @@ const FundAOfferingDocuments = () => {
             </p>
             <div className="mt-5 flex flex-wrap gap-2">
               <a
-                href={document.href}
+                href={getDocumentReaderHref(document)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex h-10 items-center justify-center rounded-full bg-[#1D1D1F] px-4 text-[14px] font-medium text-white transition hover:opacity-90"

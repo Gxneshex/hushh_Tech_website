@@ -25,6 +25,11 @@ describe("Investor journey entry-point contract", () => {
     expect(homeLogic).not.toContain("useHushhProfileCta");
   });
 
+  it("does not render a decorative down-arrow cue on the home hero", () => {
+    const home = read("src/pages/home/ui.tsx");
+    expect(home).not.toContain('Icon.chevronDown("#1D1D1F", 20)');
+  });
+
   it("Hero stops re-implementing the CTA state machine", () => {
     const hero = read("src/components/Hero.tsx");
     expect(hero).toContain("useInvestorJourneyCta");
