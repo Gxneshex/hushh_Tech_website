@@ -461,7 +461,7 @@ export default function OnboardingStep9() {
                     disabled={loading || Boolean(firstPaymentError) || !hasAnyUnits}
                     className={secondaryCtaClass}
                   >
-                    {loading ? "Creating Payment Link..." : "Send a new link"}
+                    {loading ? "Resending…" : "Resend payment link"}
                   </HushhTechCta>
                 </>
               )}

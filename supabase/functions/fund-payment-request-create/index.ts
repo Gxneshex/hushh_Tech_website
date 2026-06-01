@@ -113,6 +113,55 @@ Deno.serve(async (req) => {
     );
 
     if (matchingActive) {
+      // Resend the existing, still-valid link to the user. Previously this branch
+      // returned email_sent:true WITHOUT sending anything, so every "resend"
+      // silently delivered nothing. We now actually re-send the user's payment
+      // link email. The team is intentionally NOT re-notified — they were already
+      // emailed when the link was first created, so re-sending would just be spam.
+      const reuseEmailData = {
+        recipientName: getDisplayName(auth.user, onboarding),
+        userEmail: auth.user.email || null,
+        userId,
+        paymentUrl: matchingActive.payment_url,
+        requestReference: matchingActive.request_reference,
+        selectedFund: matchingActive.selected_fund,
+        classAUnits: Number(matchingActive.class_a_units || 0),
+        classBUnits: Number(matchingActive.class_b_units || 0),
+        classCUnits: Number(matchingActive.class_c_units || 0),
+        commitmentLabel: formatUsdCents(commitmentCents),
+        firstPaymentLabel: formatUsdCents(firstPaymentCents),
+        remainingCommitmentLabel: formatUsdCents(Math.max(0, commitmentCents - firstPaymentCents)),
+        recurringSummary: normalizeRecurringSummary(onboarding),
+        plaidStatus: financialData?.status || onboarding.financial_link_status || "not available",
+        kycStatus: "in review",
+        expiresAtLabel: formatDateTime(new Date(matchingActive.expires_at)),
+        paymentStatus: matchingActive.status,
+        reviewStatus: "not_started",
+      };
+
+      let reuseEmailSent = false;
+      let reuseEmailReason: string | null = null;
+      const reuseDelivery: Record<string, any> = { team: { reused: true } };
+      if (auth.user.email) {
+        const userResult = await logAndSendFundEmail({
+          supabase,
+          userId,
+          paymentRequestId: matchingActive.id,
+          notificationType: "payment_link_user",
+          recipients: [auth.user.email],
+          subject: `Hushh Fund payment link ${matchingActive.request_reference}`,
+          html: buildFundPaymentRequestUserHtml(reuseEmailData),
+        });
+        reuseDelivery.user = userResult;
+        reuseEmailSent = Boolean(userResult && (userResult as any).success);
+        if (!reuseEmailSent) {
+          reuseEmailReason = (userResult as any)?.error || "Email delivery failed";
+        }
+      } else {
+        reuseDelivery.user = { success: false, skipped: true };
+        reuseEmailReason = "no_email_on_account";
+      }
+
       return json({
         success: true,
         reused: true,
@@ -124,8 +173,9 @@ Deno.serve(async (req) => {
         manual_verification_status: "not_started",
         recurring_selected: Boolean(matchingActive.recurring_selected),
         risk_flags: matchingActive.risk_flags || [],
-        email_sent: true,
-        email_delivery: { user: { reused: true }, team: { reused: true } },
+        email_sent: reuseEmailSent,
+        email_failure_reason: reuseEmailSent ? null : reuseEmailReason,
+        email_delivery: reuseDelivery,
       }, 200, corsHeaders);
     }
 
