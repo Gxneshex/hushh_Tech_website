@@ -51,4 +51,54 @@ describe("onboarding display sequence", () => {
       expect(ui).not.toMatch(/<AppIcon kind=\{?["']?(?:person|shield|dollar)/);
     });
   });
+
+  it("keeps onboarding navigation fixed with both back and home affordances", () => {
+    const header = readRepoFile(
+      "src/components/hushh-tech-back-header/HushhTechBackHeader.tsx",
+    );
+
+    expect(header).toContain("fixed left-0 right-0 top-0 z-50");
+    expect(header).toContain('aria-label="Go back"');
+    expect(header).toContain('aria-label="Go to Hushh Technologies home"');
+    expect(header).toContain('<div className="flex min-w-0 items-center">');
+    expect(header).toContain('<div className="h-[72px]" />');
+    expect(readRepoFile("src/index.css")).toContain(
+      ".onboarding-shell > header:not([data-hushh-back-header])",
+    );
+
+    for (let step = 1; step <= 9; step += 1) {
+      const ui = readRepoFile(`src/pages/onboarding/step-${step}/ui.tsx`);
+
+      expect(ui).toContain("<HushhTechBackHeader");
+      expect(ui).toContain("rightLabel=\"FAQs\"");
+    }
+
+    [
+      "src/pages/onboarding/financial-link/ui.tsx",
+      "src/pages/onboarding/verify-identity/ui.tsx",
+      "src/pages/onboarding/verify-complete/ui.tsx",
+      "src/pages/onboarding/access-denied/ui.tsx",
+      "src/pages/onboarding/fund-payment/ui.tsx",
+      "src/pages/onboarding/meet-ceo/ui.tsx",
+      "src/pages/onboarding/InvestorGuide.tsx",
+    ].forEach((path) => {
+      const ui = readRepoFile(path);
+
+      expect(ui).toContain("<HushhTechBackHeader");
+    });
+  });
+
+  it("keeps onboarding FAQ and verification surfaces on the Apple font stack", () => {
+    [
+      "src/components/hushh-tech-faq-sheet/HushhTechFaqSheet.tsx",
+      "src/pages/onboarding/verify-identity/ui.tsx",
+      "src/pages/onboarding/verify-complete/ui.tsx",
+      "src/pages/onboarding/InvestorGuide.tsx",
+    ].forEach((path) => {
+      const ui = readRepoFile(path);
+
+      expect(ui).toContain("appleFont");
+      expect(ui).not.toMatch(/Playfair|Manrope|font-serif/);
+    });
+  });
 });

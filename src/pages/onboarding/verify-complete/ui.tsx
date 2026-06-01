@@ -5,6 +5,10 @@
 import { useVerifyCompleteLogic } from './logic';
 import HushhTechBackHeader from '../../../components/hushh-tech-back-header/HushhTechBackHeader';
 import HushhTechCta, { HushhTechCtaVariant } from '../../../components/hushh-tech-cta/HushhTechCta';
+import {
+  Display,
+  appleFont,
+} from '../../../components/hushh-tech-ui/HushhAppleUI';
 
 function VerifyCompletePage() {
   const {
@@ -41,7 +45,10 @@ function VerifyCompletePage() {
   const cfg = stateConfig[result] || stateConfig.loading;
 
   return (
-    <div className="bg-white text-gray-900 min-h-screen antialiased flex flex-col selection:bg-hushh-blue selection:text-white">
+    <div
+      className="bg-white text-[#1D1D1F] min-h-screen antialiased flex flex-col selection:bg-hushh-blue selection:text-white"
+      style={{ fontFamily: appleFont }}
+    >
       <HushhTechBackHeader onBackClick={handleContinue} rightLabel="FAQs" />
 
       <main className="px-6 flex-grow max-w-md mx-auto w-full flex flex-col items-center justify-center text-center pb-16">
@@ -56,15 +63,12 @@ function VerifyCompletePage() {
         </div>
 
         {/* Title */}
-        <h1
-          className="text-3xl font-medium leading-[1.06] text-black tracking-[-0.028em] mb-3"
-          style={{ fontFamily: "'Playfair Display', serif" }}
-        >
+        <Display as="h1" size="xs" maxWidth="max-w-[420px]">
           {cfg.title}
-        </h1>
+        </Display>
 
         {/* Description */}
-        <p className="text-sm text-black/60 font-light leading-[1.45] max-w-xs mb-8">
+        <p className="mt-3 text-sm text-black/60 font-light leading-[1.45] max-w-xs mb-8">
           {cfg.desc}
         </p>
 

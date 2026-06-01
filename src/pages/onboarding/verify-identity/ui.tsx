@@ -5,6 +5,13 @@
 import { useVerifyIdentityLogic } from './logic';
 import HushhTechBackHeader from '../../../components/hushh-tech-back-header/HushhTechBackHeader';
 import HushhTechCta, { HushhTechCtaVariant } from '../../../components/hushh-tech-cta/HushhTechCta';
+import {
+  Display,
+  Eyebrow,
+  Lede,
+  appleFont,
+} from '../../../components/hushh-tech-ui/HushhAppleUI';
+import { CONSENT_COPY } from '../../../services/consent/consentConfig';
 
 function VerifyIdentityPage() {
   const {
@@ -19,7 +26,10 @@ function VerifyIdentityPage() {
 
   if (loading) {
     return (
-      <div className="bg-white min-h-screen flex flex-col antialiased selection:bg-hushh-blue selection:text-white">
+      <div
+        className="bg-white min-h-screen flex flex-col antialiased selection:bg-hushh-blue selection:text-white"
+        style={{ fontFamily: appleFont }}
+      >
         <HushhTechBackHeader onBackClick={goBack} rightLabel="FAQs" />
         <div className="flex-1 flex items-center justify-center px-6">
           <div className="text-center">
@@ -61,21 +71,22 @@ function VerifyIdentityPage() {
   ];
 
   return (
-    <div className="bg-white text-gray-900 min-h-screen antialiased flex flex-col selection:bg-hushh-blue selection:text-white">
+    <div
+      className="bg-white text-[#1D1D1F] min-h-screen antialiased flex flex-col selection:bg-hushh-blue selection:text-white"
+      style={{ fontFamily: appleFont }}
+    >
       <HushhTechBackHeader onBackClick={goBack} rightLabel="FAQs" />
 
-      <main className="px-6 flex-grow max-w-md mx-auto w-full pb-16">
+      <main className="px-6 flex-grow max-w-[520px] mx-auto w-full pb-16">
         {/* Title */}
-        <section className="py-8">
-          <h3 className="text-[11px] tracking-[1.6px] text-hushh-blue/85 uppercase mb-4 font-medium">Identity</h3>
-          <h1 className="text-[2.75rem] leading-[1.06] font-medium text-black tracking-[-0.028em] font-serif" style={{ fontFamily: "'Playfair Display', serif" }}>
-            Verify Your
-            <br />
-            <span className="text-gray-400 italic font-light">Identity</span>
-          </h1>
-          <p className="text-sm text-black/60 mt-[18px] leading-[1.45] font-light">
+        <section className="py-8 text-center">
+          <Eyebrow>Identity</Eyebrow>
+          <Display as="h1" size="xs" maxWidth="max-w-[500px]">
+            Verify your identity.
+          </Display>
+          <Lede className="max-w-[440px]">
             Complete a quick verification to secure your account and unlock all features.
-          </p>
+          </Lede>
         </section>
 
         {/* Status alerts */}
@@ -142,6 +153,9 @@ function VerifyIdentityPage() {
 
         {/* CTAs */}
         <section className="space-y-3 pb-6">
+          <p className="px-1 text-center text-[11px] font-light leading-[1.5] text-black/55">
+            {CONSENT_COPY.identityVerification}
+          </p>
           <HushhTechCta variant={HushhTechCtaVariant.BLACK} onClick={startVerification} disabled={startingVerification}>
             {startingVerification ? 'Starting...' : verificationStatus.status === 'requires_input' ? 'Continue Verification' : 'Start Verification'}
           </HushhTechCta>

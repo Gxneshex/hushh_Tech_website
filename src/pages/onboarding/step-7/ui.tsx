@@ -34,6 +34,7 @@ import {
   Lede,
   appleFont,
 } from '../../../components/hushh-tech-ui/HushhAppleUI';
+import { CONSENT_LINKS } from '../../../services/consent/consentConfig';
 
 const primaryCtaClass =
   "!rounded-full !border-[#0066CC] !bg-[#0066CC] !text-white !font-medium !tracking-[-0.01em] !shadow-none";
@@ -356,6 +357,18 @@ export default function OnboardingStep11() {
 
         {/* ── CTAs ── */}
         <section className="pb-12 space-y-3">
+          <p className="px-1 text-center text-[11px] font-light leading-[1.5] text-[#1D1D1F]/45">
+            Illustrative only — not an offer or solicitation.{' '}
+            <a
+              href={CONSENT_LINKS.riskDisclosures}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-[#0066CC] underline"
+            >
+              See the Risk Disclosures
+            </a>{' '}
+            before committing.
+          </p>
           <HushhTechCta
             variant={HushhTechCtaVariant.BLACK}
             onClick={handleContinue}

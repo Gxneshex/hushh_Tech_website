@@ -14,14 +14,16 @@ import {
   FormControl,
   FormLabel,
   Flex,
+  Link,
 } from '@chakra-ui/react';
-import { 
-  KycDetailsConsentScreenProps, 
+import {
+  KycDetailsConsentScreenProps,
   KycFormData,
   KycCheckRequest,
   ID_TYPE_OPTIONS,
   COUNTRY_OPTIONS,
 } from '../../../types/kyc';
+import { CONSENT_COPY, CONSENT_LINKS } from '../../../services/consent/consentConfig';
 
 // Logos
 const BankIcon = () => (
@@ -365,8 +367,19 @@ const KycDetailsConsentScreen: React.FC<KycDetailsConsentScreenProps> = ({
           </Flex>
 
           {/* Consent Text */}
-          <Text fontSize="xs" color="whiteAlpha.600" textAlign="center" mb={4} lineHeight="1.6">
+          <Text fontSize="xs" color="whiteAlpha.600" textAlign="center" mb={3} lineHeight="1.6">
             With your permission, {bankName}'s KYC Copilot will ask the Hushh KYC Network if a verified KYC already exists, so you may not have to upload all documents again.
+          </Text>
+          <Text fontSize="xs" color="whiteAlpha.500" textAlign="center" mb={4} lineHeight="1.6">
+            {CONSENT_COPY.kycIdentity}{' '}
+            <Link href={CONSENT_LINKS.privacyPolicy} isExternal color="purple.300" textDecoration="underline">
+              Privacy Policy
+            </Link>{' '}
+            and{' '}
+            <Link href={CONSENT_LINKS.terms} isExternal color="purple.300" textDecoration="underline">
+              Terms
+            </Link>
+            .
           </Text>
 
           {/* Checkbox */}
@@ -377,7 +390,7 @@ const KycDetailsConsentScreen: React.FC<KycDetailsConsentScreenProps> = ({
             size="md"
           >
             <Text fontSize="sm" color="white">
-              I agree to securely reuse my existing KYC where possible.
+              I consent to identity verification, the processing of my personal data, and securely reusing my existing KYC where possible.
             </Text>
           </Checkbox>
         </Box>

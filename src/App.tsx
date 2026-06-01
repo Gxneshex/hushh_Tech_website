@@ -26,6 +26,7 @@ import CareersPrivacyPolicy from './pages/career-privacy-policy';
 import CaliforniaPrivacyPolicy from './pages/california-privacy-policy';
 import EUUKPrivacyPolicy from './pages/eu-uk-privacy-policy';
 import TermsOfService from './pages/terms-of-service';
+import RiskDisclosuresPage from './pages/risk-disclosures';
 import DeleteAccountPage from './pages/delete-account';
 import { ReactNode } from 'react';
 import Profile from './pages/profile';
@@ -131,6 +132,7 @@ const useLayoutVisibility = () => {
   const isKai = location.pathname.startsWith('/kai');
   const isStudio = location.pathname.startsWith('/studio');
   const isOnboarding = location.pathname.startsWith('/onboarding');
+  const isInvestorGuide = location.pathname === '/investor-guide';
   const isProfile = location.pathname === '/profile';
   const isFundA = location.pathname === '/discover-fund-a';
   const isCommunity = location.pathname.startsWith('/community');
@@ -152,7 +154,7 @@ const useLayoutVisibility = () => {
   const isHushhHackathon = location.pathname === '/hushh-hackathon';
   const isMetrics = location.pathname === '/metrics' || location.pathname === '/metric';
   const isFundAdmin = location.pathname === '/fund-admin';
-  const hideOld = isHushhAI || isKai || isStudio || isHomePage || isOnboarding || isProfile || isFundA || isCommunity || isDeleteAccount || isLogin || isSignup || isSignNda || isDocumentViewer || isHushhUserProfile || isModernPublicPage || isPublicInvestorProfile || isHushhHackathon || isMetrics || isFundAdmin;
+  const hideOld = isHushhAI || isKai || isStudio || isHomePage || isOnboarding || isInvestorGuide || isProfile || isFundA || isCommunity || isDeleteAccount || isLogin || isSignup || isSignNda || isDocumentViewer || isHushhUserProfile || isModernPublicPage || isPublicInvestorProfile || isHushhHackathon || isMetrics || isFundAdmin;
   return {
     showNavbar: !hideOld,
     showFooter: !hideOld,
@@ -195,6 +197,7 @@ function App() {
             <Route path='/eu-uk-jobs-privacy-policy' element={<EUUKPrivacyPolicy />} />
             <Route path='/terms' element={<TermsOfService />} />
             <Route path='/terms-of-service' element={<TermsOfService />} />
+            <Route path='/risk-disclosures' element={<RiskDisclosuresPage />} />
             <Route path='/delete-account' element={
               <AuthRequiredRoute>
                 <DeleteAccountPage />

@@ -23,6 +23,8 @@ import {
   Lede,
   appleFont,
 } from "../../../components/hushh-tech-ui/HushhAppleUI";
+import ConsentCheckbox from "../../../components/consent/ConsentCheckbox";
+import { CONSENT_COPY, CONSENT_LINKS } from "../../../services/consent/consentConfig";
 
 const DISPLAY_META = getOnboardingDisplayMeta("/onboarding/step-9");
 const PROGRESS_PCT = Math.round((DISPLAY_META.displayStep / DISPLAY_META.totalSteps) * 100);
@@ -160,6 +162,9 @@ export default function OnboardingStep9() {
     openStartOverConfirm,
     closeStartOverConfirm,
     handleConfirmStartOver,
+    commitmentAcknowledged,
+    commitmentAckError,
+    handleCommitmentAckChange,
     getUnits,
     setFirstPaymentAmount,
     handleBack,
@@ -394,11 +399,45 @@ export default function OnboardingStep9() {
                 </HushhTechCta>
               )}
 
+              {/* Single combined acknowledgment — the only gate before the
+                  money commitment. Risk + eligibility + Subscription in one
+                  short line, with the long docs linked out. */}
+              {(uxState === "awaiting_request" || uxState === "payment_reversed") && (
+                <ConsentCheckbox
+                  id="commitment-ack"
+                  checked={commitmentAcknowledged}
+                  onChange={handleCommitmentAckChange}
+                  error={commitmentAckError}
+                >
+                  {CONSENT_COPY.fundCommitment}{" "}
+                  <a
+                    href={CONSENT_LINKS.riskDisclosures}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className="font-medium text-[#0066CC] underline"
+                  >
+                    Risk Disclosures
+                  </a>
+                  {" · "}
+                  <a
+                    href={CONSENT_LINKS.terms}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className="font-medium text-[#0066CC] underline"
+                  >
+                    Terms
+                  </a>
+                  .
+                </ConsentCheckbox>
+              )}
+
               {uxState === "awaiting_request" && (
                 <HushhTechCta
                   variant={HushhTechCtaVariant.BLACK}
                   onClick={handleCreatePaymentLink}
-                  disabled={loading || Boolean(firstPaymentError) || !hasAnyUnits}
+                  disabled={loading || Boolean(firstPaymentError) || !hasAnyUnits || !commitmentAcknowledged}
                   className={primaryCtaClass}
                 >
                   {loading ? "Creating Payment Link..." : "Send Secure Payment Link"}
@@ -431,7 +470,7 @@ export default function OnboardingStep9() {
                 <HushhTechCta
                   variant={HushhTechCtaVariant.BLACK}
                   onClick={handleCreatePaymentLink}
-                  disabled={loading || Boolean(firstPaymentError) || !hasAnyUnits}
+                  disabled={loading || Boolean(firstPaymentError) || !hasAnyUnits || !commitmentAcknowledged}
                   className={primaryCtaClass}
                 >
                   {loading ? "Creating Payment Link..." : "Request new payment link"}

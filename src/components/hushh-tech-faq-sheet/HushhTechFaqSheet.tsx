@@ -1,10 +1,10 @@
 /**
  * HushhTechFaqSheet — Bottom sheet with accordion FAQs.
- * Follows the unified design language: Playfair Display headings,
- * tracking-[0.2em] section headers, hushh-blue accents, ios-green badges.
+ * Follows the unified Hushh Tech Apple-style design language.
  */
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useModalKeyboardNavigation } from "../../hooks/useModalKeyboardNavigation";
+import { Icon, appleFont } from "../hushh-tech-ui/HushhAppleUI";
 
 /* ── FAQ Data ── */
 interface FaqItem {
@@ -171,6 +171,7 @@ const HushhTechFaqSheet: React.FC<HushhTechFaqSheetProps> = ({
         }`}
         aria-labelledby="hushh-tech-faq-title"
         tabIndex={-1}
+        style={{ fontFamily: appleFont }}
       >
         {/* Drag handle */}
         <div className="flex justify-center pt-3 pb-1">
@@ -181,11 +182,9 @@ const HushhTechFaqSheet: React.FC<HushhTechFaqSheetProps> = ({
         <div className="px-6 pt-2 pb-4 flex items-center justify-between border-b border-gray-100">
           <h2
             id="hushh-tech-faq-title"
-            className="text-2xl font-normal text-black font-serif"
-            style={{ fontFamily: "'Playfair Display', serif" }}
+            className="text-[24px] font-semibold leading-[1.05] tracking-[-0.035em] text-[#1D1D1F]"
           >
-            Frequently Asked{" "}
-            <span className="text-gray-400 italic font-light">Questions</span>
+            Frequently Asked Questions
           </h2>
           <button
             ref={closeButtonRef}
@@ -193,12 +192,7 @@ const HushhTechFaqSheet: React.FC<HushhTechFaqSheetProps> = ({
             className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors"
             aria-label="Close FAQs"
           >
-            <span
-              className="material-symbols-outlined text-gray-600 text-lg"
-              style={{ fontVariationSettings: "'wght' 400" }}
-            >
-              close
-            </span>
+            {Icon.close("#6E6E73", 14)}
           </button>
         </div>
 
@@ -207,11 +201,11 @@ const HushhTechFaqSheet: React.FC<HushhTechFaqSheetProps> = ({
           {FAQ_DATA.map((category) => (
             <section key={category.title} className="mt-6">
               {/* Category header */}
-              <h3 className="text-[10px] tracking-[0.2em] text-gray-400 uppercase mb-3 font-medium">
+              <h3 className="text-[10px] tracking-[0.18em] text-[#0066CC]/75 uppercase mb-3 font-semibold">
                 {category.title}
               </h3>
 
-              <div className="border border-gray-200 divide-y divide-gray-100">
+              <div className="overflow-hidden rounded-[20px] border border-[#1D1D1F]/[0.08] bg-[#F5F5F7] divide-y divide-[#1D1D1F]/[0.08]">
                 {category.items.map((item, idx) => {
                   const key = getFaqItemKey(category.title, idx);
                   const isExpanded = expandedIdx === key;
@@ -222,19 +216,14 @@ const HushhTechFaqSheet: React.FC<HushhTechFaqSheetProps> = ({
                       <button
                         id={`faq-btn-${key}`}
                         onClick={() => handleToggle(key)}
-                        className="w-full flex items-center gap-3 px-4 py-4 text-left hover:bg-gray-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hushh-blue"
+                        className="w-full flex items-center gap-3 px-4 py-4 text-left hover:bg-white/70 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hushh-blue"
                         aria-expanded={isExpanded}
                         aria-controls={`faq-panel-${key}`}
                       >
-                        <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center shrink-0">
-                          <span
-                            className="material-symbols-outlined text-gray-600 text-sm"
-                            style={{ fontVariationSettings: "'wght' 300" }}
-                          >
-                            help
-                          </span>
+                        <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shrink-0 shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.08)]">
+                          {Icon.help("#6E6E73", 17)}
                         </div>
-                        <span className="flex-1 text-sm font-medium text-gray-900">
+                        <span className="flex-1 text-[14px] font-medium text-[#1D1D1F]">
                           {item.q}
                         </span>
                         <span
@@ -257,7 +246,7 @@ const HushhTechFaqSheet: React.FC<HushhTechFaqSheetProps> = ({
                           isExpanded ? "max-h-60 opacity-100" : "max-h-0 opacity-0"
                         }`}
                       >
-                        <p className="px-4 pb-4 pl-[60px] text-sm text-gray-500 font-light leading-relaxed">
+                        <p className="px-4 pb-4 pl-[60px] text-[13px] text-[#1D1D1F]/60 font-light leading-relaxed">
                           {item.a}
                         </p>
                       </div>
@@ -277,7 +266,7 @@ const HushhTechFaqSheet: React.FC<HushhTechFaqSheetProps> = ({
               >
                 support_agent
               </span>
-              <span className="text-[11px] text-gray-500">
+              <span className="text-[11px] text-[#1D1D1F]/55">
                 Need more help?
               </span>
             </div>

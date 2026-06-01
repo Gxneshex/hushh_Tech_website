@@ -16,6 +16,7 @@ import {
   type LinkedTransferAccount,
 } from "../../../services/plaid/plaidService";
 import { upsertOnboardingData } from "../../../services/onboarding/upsertOnboardingData";
+import { CONSENT_VERSION } from "../../../services/consent/consentConfig";
 import { FINANCIAL_LINK_ROUTE } from "../../../services/onboarding/flow";
 import {
   FUND_PAYMENT_PAID_STATUSES,
@@ -127,6 +128,10 @@ export interface Step13Logic {
   openStartOverConfirm: () => void;
   closeStartOverConfirm: () => void;
   handleConfirmStartOver: () => Promise<void>;
+  /** Single combined commitment acknowledgment (risk + eligibility + Subscription). */
+  commitmentAcknowledged: boolean;
+  commitmentAckError: boolean;
+  handleCommitmentAckChange: (checked: boolean) => void;
   getUnits: (classId: string) => number;
   setFirstPaymentAmount: (value: string) => void;
   handleBack: () => void;
@@ -162,6 +167,11 @@ export const useStep13Logic = (): Step13Logic => {
   const [isStartOverConfirmOpen, setIsStartOverConfirmOpen] = useState(false);
   const [isStartingOver, setIsStartingOver] = useState(false);
   const [startOverError, setStartOverError] = useState<string | null>(null);
+  /* Combined money-commitment acknowledgment (risk + eligibility + Subscription).
+     Pre-checked if the user already acknowledged in a prior session. */
+  const [commitmentAcknowledged, setCommitmentAcknowledged] = useState(false);
+  const [commitmentAckPersisted, setCommitmentAckPersisted] = useState(false);
+  const [commitmentAckError, setCommitmentAckError] = useState(false);
   const isMountedRef = useRef(true);
 
   // Pull the one-time flash set by InvestorAccessRoute when it redirected
@@ -246,6 +256,23 @@ export const useStep13Logic = (): Step13Logic => {
         return;
       }
       setUserId(user.id);
+
+      /* Best-effort: if the user already acknowledged the commitment in a prior
+         session, pre-check the box so we never re-prompt. Separate query +
+         swallowed errors so a pending migration never breaks the main load. */
+      try {
+        const { data: ackRow } = await config.supabaseClient
+          .from("onboarding_data")
+          .select("subscription_agreement_ack_at")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        if (ackRow?.subscription_agreement_ack_at && isMountedRef.current) {
+          setCommitmentAcknowledged(true);
+          setCommitmentAckPersisted(true);
+        }
+      } catch {
+        // Columns may not exist yet (migration pending) — ignore.
+      }
 
       const { data: onboarding } = await config.supabaseClient
         .from("onboarding_data")
@@ -365,6 +392,32 @@ export const useStep13Logic = (): Step13Logic => {
     return 0;
   };
 
+  const handleCommitmentAckChange = (checked: boolean) => {
+    setCommitmentAcknowledged(checked);
+    if (checked) setCommitmentAckError(false);
+  };
+
+  /* Record the single combined acknowledgment once. One timestamp per gated
+     document so the audit trail captures each attestation; upsert drops the
+     columns gracefully if the migration hasn't landed. */
+  const persistCommitmentAck = async () => {
+    if (commitmentAckPersisted || !userId) return true;
+    setCommitmentAckPersisted(true);
+    const now = new Date().toISOString();
+    const { error } = await upsertOnboardingData(userId, {
+      risk_acknowledged_at: now,
+      eligibility_attested_at: now,
+      subscription_agreement_ack_at: now,
+      consent_version: CONSENT_VERSION,
+    });
+    if (error) {
+      setCommitmentAckPersisted(false);
+      setError(error.message || "Unable to save acknowledgment. Please try again.");
+      return false;
+    }
+    return true;
+  };
+
   const handleCreatePaymentLink = async () => {
     if (!userId) {
       setError("Not authenticated");
@@ -378,7 +431,16 @@ export const useStep13Logic = (): Step13Logic => {
       setError(firstPaymentError);
       return;
     }
+    if (!commitmentAcknowledged) {
+      setCommitmentAckError(true);
+      setError("Please confirm the acknowledgment below before continuing.");
+      return;
+    }
 
+    const acknowledgmentSaved = await persistCommitmentAck();
+    if (!acknowledgmentSaved) {
+      return;
+    }
     setLoading(true);
     setError(null);
     setSuccessMessage(null);
@@ -505,6 +567,9 @@ export const useStep13Logic = (): Step13Logic => {
     openStartOverConfirm,
     closeStartOverConfirm,
     handleConfirmStartOver,
+    commitmentAcknowledged,
+    commitmentAckError,
+    handleCommitmentAckChange,
     getUnits,
     setFirstPaymentAmount,
     handleBack,

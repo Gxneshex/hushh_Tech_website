@@ -18,6 +18,7 @@ import {
   type PlaidProductSyncStatusValue,
 } from '../../../services/plaid/plaidService';
 import { upsertOnboardingData } from '../../../services/onboarding/upsertOnboardingData';
+import { CONSENT_VERSION } from '../../../services/consent/consentConfig';
 import {
   FINANCIAL_LINK_ROUTE,
   getFinancialLinkContinuationRoute,
@@ -175,6 +176,11 @@ export const useFinancialLinkLogic = () => {
   const [isSkipConfirmOpen, setIsSkipConfirmOpen] = useState(false);
   const [isSkipping, setIsSkipping] = useState(false);
   const [skipError, setSkipError] = useState<string | null>(null);
+  /* Plaid data-sharing consent gate. Default unchecked; if the user already
+     consented in a prior session we flip it true on load so we never re-prompt. */
+  const [plaidConsentChecked, setPlaidConsentChecked] = useState(false);
+  const [plaidConsentPersisted, setPlaidConsentPersisted] = useState(false);
+  const [plaidConsentError, setPlaidConsentError] = useState(false);
   const [productSyncStatuses, setProductSyncStatuses] = useState<PlaidProductSyncStatus[]>([]);
   const [productSyncBackfillState, setProductSyncBackfillState] =
     useState<ProductSyncBackfillState>('idle');
@@ -251,6 +257,23 @@ export const useFinancialLinkLogic = () => {
 
       setUserId(user.id);
       setUserEmail(user.email || undefined);
+
+      /* Best-effort: if this user already consented to Plaid data sharing,
+         pre-check the box so we don't ask again. Swallow errors so a pending
+         migration (column not yet present) never blocks the page. */
+      try {
+        const { data: consentRow } = await config.supabaseClient
+          .from('onboarding_data')
+          .select('plaid_consent_at')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        if (consentRow?.plaid_consent_at) {
+          setPlaidConsentChecked(true);
+          setPlaidConsentPersisted(true);
+        }
+      } catch {
+        // Column may not exist yet (migration pending) — ignore.
+      }
 
       try {
         const onboardingProgress = await fetchOnboardingProgress(
@@ -638,6 +661,28 @@ export const useFinancialLinkLogic = () => {
     });
   }, [currentOnboardingStep, navigate, resumeRoute]);
 
+  /* Record the Plaid data-sharing consent once. Reuses the onboarding_data
+     row; upsert silently drops the columns if the migration hasn't landed. */
+  const persistPlaidConsent = useCallback(async () => {
+    if (plaidConsentPersisted || !userId) return true;
+    setPlaidConsentPersisted(true);
+    const { error } = await upsertOnboardingData(userId, {
+      plaid_consent_at: new Date().toISOString(),
+      consent_version: CONSENT_VERSION,
+    });
+    if (error) {
+      setPlaidConsentPersisted(false);
+      setChangeBankError(error.message || 'Unable to save consent. Please try again.');
+      return false;
+    }
+    return true;
+  }, [plaidConsentPersisted, userId]);
+
+  const handlePlaidConsentChange = useCallback((checked: boolean) => {
+    setPlaidConsentChecked(checked);
+    if (checked) setPlaidConsentError(false);
+  }, []);
+
   /* ─── Main button handler — Plaid flow ─── */
   const handleButtonClick = useCallback(async () => {
     if (isDone && canProceed) {
@@ -649,6 +694,17 @@ export const useFinancialLinkLogic = () => {
       return;
     }
     if (blockLocalPlaidLink) {
+      return;
+    }
+    /* Consent gate — block a fresh bank connection until the user has agreed
+       to share their Plaid data. The continue path above is exempt (already
+       connected); the retry paths below keep the prior session's consent. */
+    if (!plaidConsentChecked) {
+      setPlaidConsentError(true);
+      return;
+    }
+    const consentSaved = await persistPlaidConsent();
+    if (!consentSaved) {
       return;
     }
     if (useSandboxDirectConnect) {
@@ -689,6 +745,8 @@ export const useFinancialLinkLogic = () => {
     blockLocalPlaidLink,
     useSandboxDirectConnect,
     userId,
+    plaidConsentChecked,
+    persistPlaidConsent,
   ]);
 
   /* Skip — show confirm modal first, so accidental clicks do not lock the
@@ -817,5 +875,9 @@ export const useFinancialLinkLogic = () => {
     isSkipConfirmOpen,
     isSkipping,
     skipError,
+    /* Plaid consent gate */
+    plaidConsentChecked,
+    plaidConsentError,
+    handlePlaidConsentChange,
   };
 };

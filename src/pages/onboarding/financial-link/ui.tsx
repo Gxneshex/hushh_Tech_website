@@ -16,6 +16,8 @@ import {
   SmallSpinner,
   appleFont,
 } from "../../../components/hushh-tech-ui/HushhAppleUI";
+import ConsentCheckbox from "../../../components/consent/ConsentCheckbox";
+import { CONSENT_COPY, CONSENT_LINKS } from "../../../services/consent/consentConfig";
 
 const primaryCtaClass =
   "!rounded-full !border-[#0066CC] !bg-[#0066CC] !text-white !font-medium !tracking-[-0.01em] !shadow-none";
@@ -61,6 +63,10 @@ export default function OnboardingFinancialLink() {
     isSkipConfirmOpen,
     isSkipping,
     skipError,
+    /* Plaid consent gate */
+    plaidConsentChecked,
+    plaidConsentError,
+    handlePlaidConsentChange,
   } = useFinancialLinkLogic();
 
   /* Loading state */
@@ -361,6 +367,30 @@ export default function OnboardingFinancialLink() {
 
         {/* CTAs — Connect/Continue & Skip */}
         <section className="pb-12 space-y-3">
+          {/* Plaid data-sharing consent — shown only before a bank is linked.
+              Inline, single acknowledgment; links open the Privacy Policy
+              without toggling the box. */}
+          {!isDone && (
+            <ConsentCheckbox
+              id="plaid-consent"
+              checked={plaidConsentChecked}
+              onChange={handlePlaidConsentChange}
+              error={plaidConsentError}
+            >
+              {CONSENT_COPY.plaidDataSharing}{" "}
+              <a
+                href={CONSENT_LINKS.privacyPolicy}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="font-medium text-[#0066CC] underline"
+              >
+                Privacy Policy
+              </a>
+              .
+            </ConsentCheckbox>
+          )}
+
           <HushhTechCta
             variant={HushhTechCtaVariant.BLACK}
             onClick={handleButtonClick}

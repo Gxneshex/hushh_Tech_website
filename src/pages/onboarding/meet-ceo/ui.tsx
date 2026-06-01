@@ -297,7 +297,7 @@ function MeetCeoPage() {
                         setCouponError(null);
                       }}
                       placeholder="Enter coupon code"
-                      className="h-12 min-w-0 flex-1 rounded-full border border-[#1D1D1F]/10 bg-white px-4 font-mono text-[13px] font-medium uppercase tracking-[0.12em] text-[#1D1D1F] outline-none placeholder:font-sans placeholder:normal-case placeholder:tracking-normal placeholder:text-[#1D1D1F]/35 focus:border-[#0066CC]/45 focus:ring-2 focus:ring-[#0066CC]/15"
+                      className="h-12 min-w-0 flex-1 rounded-full border border-[#1D1D1F]/10 bg-white px-4 font-mono text-[13px] font-medium uppercase tracking-[0.12em] text-[#1D1D1F] outline-none placeholder:normal-case placeholder:tracking-normal placeholder:text-[#1D1D1F]/35 focus:border-[#0066CC]/45 focus:ring-2 focus:ring-[#0066CC]/15"
                       autoCapitalize="characters"
                       autoComplete="off"
                     />

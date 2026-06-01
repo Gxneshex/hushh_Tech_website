@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import config from '../../resources/config/config';
+import HushhTechBackHeader from '../../components/hushh-tech-back-header/HushhTechBackHeader';
+import { appleFont } from '../../components/hushh-tech-ui/HushhAppleUI';
 
 // Data for the page
 const onboardingPhases = [
@@ -197,19 +199,12 @@ export default function InvestorGuide() {
   const isPhaseActive = useCallback((index: number) => activePhases.has(index), [activePhases]);
 
   return (
-    <div className="bg-[#f6f7f8] min-h-screen font-['Manrope',sans-serif] antialiased text-[#111418] selection:bg-[#2b8cee]/20 selection:text-[#2b8cee]">
+    <div
+      className="min-h-screen bg-[#F5F5F7] text-[#1D1D1F] antialiased selection:bg-[#0066CC]/20 selection:text-[#0066CC]"
+      style={{ fontFamily: appleFont }}
+    >
       <div className="onboarding-shell mx-auto flex h-full min-h-screen w-full max-w-[500px] flex-col bg-white shadow-xl relative overflow-hidden border-x border-slate-100">
-        
-        {/* Top App Bar */}
-        <header className="sticky top-0 z-50 flex items-center justify-between bg-white/95 px-4 py-3 backdrop-blur-sm border-b border-gray-100">
-          <button 
-            onClick={handleBack}
-            className="flex size-10 items-center justify-center rounded-full text-[#111418] transition hover:bg-[#f6f7f8]"
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>arrow_back</span>
-          </button>
-          <h2 className="flex-1 text-center text-lg font-bold leading-tight tracking-tight text-[#111418] pr-10">Investor Guide</h2>
-        </header>
+        <HushhTechBackHeader onBackClick={handleBack} rightLabel="FAQs" />
 
         {/* Main Scrollable Content */}
         <main className="flex-1 flex flex-col pb-44 sm:pb-52 overflow-y-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
@@ -217,12 +212,12 @@ export default function InvestorGuide() {
           {/* Hero Section */}
           <div className="px-6 pt-6 pb-2 text-center">
             <div className="mb-4 inline-flex items-center justify-center rounded-full bg-[#2b8cee]/10 px-3 py-1">
-              <span className="text-xs font-bold uppercase tracking-wider text-[#2b8cee]">Investor Guide</span>
+              <span className="text-xs font-semibold uppercase tracking-[1.6px] text-[#0066CC]">Investor Guide</span>
             </div>
-            <h1 className="mb-3 text-3xl font-extrabold leading-tight tracking-tight text-[#111418]">
+            <h1 className="mb-3 text-3xl font-semibold leading-tight tracking-[-0.028em] text-[#1D1D1F]">
               Investor Onboarding Guide
             </h1>
-            <p className="text-base font-medium leading-relaxed text-[#617589]">
+            <p className="text-base font-light leading-relaxed text-[#1D1D1F]/60">
               Your complete step-by-step guide to becoming a Hushh Fund A investor. Join the AI-Powered Berkshire Hathaway.
             </p>
           </div>

@@ -106,10 +106,10 @@ const PerformancePreview = () => {
         Performance
       </div>
 
-      <div className="mb-1 flex items-baseline text-[30px] font-semibold leading-none tracking-[-1.4px] text-white tabular-nums">
+      <div className="mb-1 flex items-baseline text-[25.1px] font-semibold leading-none tracking-[-1.4px] text-white tabular-nums">
         <span className="mr-0.5 text-[#34C759]">{active.pct[0]}</span>
         {active.pct.slice(1).replace("%", "")}
-        <span className="ml-px text-[17.5px] font-medium text-[rgba(235,235,245,0.55)]">
+        <span className="ml-px text-[14.65px] font-medium text-[rgba(235,235,245,0.55)]">
           %
         </span>
       </div>

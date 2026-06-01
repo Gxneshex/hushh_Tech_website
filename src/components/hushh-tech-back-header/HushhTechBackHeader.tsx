@@ -25,7 +25,6 @@ const HushhTechBackHeader: React.FC<HushhTechBackHeaderProps> = ({
   const navigate = useNavigate();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isFaqOpen, setIsFaqOpen] = useState(false);
-  const useHomeBrandLayout = rightType === "hamburger";
 
   const handleRightClick =
     onRightClick ??
@@ -46,9 +45,7 @@ const HushhTechBackHeader: React.FC<HushhTechBackHeaderProps> = ({
   };
 
   const handleBrandClick = () => navigate("/");
-  const headerClassName = useHomeBrandLayout
-    ? `fixed left-0 right-0 top-0 z-50 flex w-full items-center justify-between px-3 pb-3 pt-[max(env(safe-area-inset-top),0.85rem)] sm:px-5 ${className}`
-    : `sticky top-0 z-40 mx-auto flex w-full max-w-7xl items-center justify-between px-3 py-3 sm:px-5 ${className} relative`;
+  const headerClassName = `fixed left-0 right-0 top-0 z-50 flex w-full items-center justify-between px-3 pb-3 pt-[max(env(safe-area-inset-top),0.85rem)] sm:px-5 ${className}`;
 
   const brandButton = (
     <button
@@ -83,9 +80,9 @@ const HushhTechBackHeader: React.FC<HushhTechBackHeaderProps> = ({
       >
         <div className="pointer-events-none absolute inset-x-0 top-0 h-full bg-gradient-to-b from-white/75 via-white/45 to-white/10 backdrop-blur-xl [mask-image:linear-gradient(to_bottom,black_72%,transparent)]" />
 
-        {useHomeBrandLayout ? (
-          <div className="relative flex min-w-0 items-center gap-2">
-            <GlassPill className="relative shrink-0">
+        <div className="relative flex min-w-0 items-center">
+          <GlassPill className="relative min-w-0 shrink">
+            <div className="flex min-w-0 items-center">
               <button
                 type="button"
                 onClick={handleBackClick}
@@ -94,30 +91,11 @@ const HushhTechBackHeader: React.FC<HushhTechBackHeaderProps> = ({
               >
                 {Icon.back("currentColor", 18)}
               </button>
-            </GlassPill>
-            <GlassPill className="relative min-w-0 shrink">
+              <span aria-hidden className="h-6 w-px bg-[#1D1D1F]/10" />
               {brandButton}
-            </GlassPill>
-          </div>
-        ) : (
-          <GlassPill className="relative">
-            <button
-              type="button"
-              onClick={handleBackClick}
-              className="flex h-[42px] items-center gap-2 py-1 pl-2 pr-3 text-[#1D1D1F] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066CC]/35 focus-visible:ring-offset-2"
-              aria-label="Go back"
-            >
-              {Icon.back("currentColor", 18)}
-              <HushhMark size={34} />
-              <span
-                className="hidden text-[14px] font-normal tracking-normal sm:inline"
-                style={{ fontFamily: appleFont }}
-              >
-                hushh
-              </span>
-            </button>
+            </div>
           </GlassPill>
-        )}
+        </div>
 
         {showRightButton && rightType === "hamburger" ? (
           <div className="flex items-center gap-1.5">
@@ -149,7 +127,7 @@ const HushhTechBackHeader: React.FC<HushhTechBackHeaderProps> = ({
             <button
               type="button"
               onClick={handleRightClick}
-              className="flex h-[38px] items-center justify-center px-5 text-[12px] font-normal uppercase tracking-[0.08em] text-[#1D1D1F] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066CC]/35 focus-visible:ring-offset-2"
+              className="flex h-[42px] items-center justify-center px-5 text-[12px] font-medium uppercase tracking-[0.08em] text-[#1D1D1F] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066CC]/35 focus-visible:ring-offset-2"
               aria-label={rightLabel}
               style={{ fontFamily: appleFont }}
             >
@@ -159,7 +137,7 @@ const HushhTechBackHeader: React.FC<HushhTechBackHeaderProps> = ({
         ) : null}
       </header>
 
-      {useHomeBrandLayout ? <div className="h-[72px]" /> : null}
+      <div className="h-[72px]" />
 
       {rightType === "hamburger" ? (
         <HushhTechNavDrawer

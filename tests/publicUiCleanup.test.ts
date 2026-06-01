@@ -38,13 +38,15 @@ describe("public HushhTech UI cleanup", () => {
     expect(app).not.toMatch(/element=\{<KYCVerificationPage|element=\{<KYCFormPage|element=\{<KYCDemoPage|element=\{<KycFlowPage|element=\{<A2APlaygroundPage/);
   });
 
-  it("treats contact faq and philosophy as modern public pages without the legacy shell", () => {
+  it("treats contact faq philosophy and investor guide as modern public pages without the legacy shell", () => {
     const app = read("src/App.tsx");
 
     expect(app).toContain("location.pathname === '/contact'");
     expect(app).toContain("location.pathname === '/faq'");
     expect(app).toContain("location.pathname === '/philosophy'");
     expect(app).toContain("location.pathname === '/about/philosophy'");
+    expect(app).toContain("location.pathname === '/investor-guide'");
+    expect(app).toContain("isInvestorGuide || isProfile");
     expect(app).toContain("<Route path=\"/philosophy\" element={<Philosophy />} />");
   });
 
@@ -64,6 +66,6 @@ describe("public HushhTech UI cleanup", () => {
 
     expect(backHeader).toContain("fixed left-0 right-0 top-0 z-50");
     expect(backHeader).toContain('data-hushh-back-header');
-    expect(backHeader).toContain('useHomeBrandLayout ? <div className="h-[72px]" /> : null');
+    expect(backHeader).toContain('<div className="h-[72px]" />');
   });
 });
