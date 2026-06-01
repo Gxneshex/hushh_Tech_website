@@ -453,6 +453,13 @@ const BigCard = ({
   );
 };
 
+const footerLinks = [
+  { label: "Disclosures", href: "/risk-disclosures" },
+  { label: "Privacy", href: "/privacy-policy" },
+  { label: "Terms", href: "/terms" },
+  { label: "Support", href: "/contact" },
+] as const;
+
 const PageFooter = () => (
   <footer className="border-t border-[#1D1D1F]/[0.08] bg-[#F5F5F7] px-6 pb-36 pt-9 text-center">
     <p
@@ -464,15 +471,15 @@ const PageFooter = () => (
       SEC-registered investment adviser.
     </p>
     <div className="mt-5 flex flex-wrap justify-center gap-4">
-      {["Disclosures", "Privacy", "Terms", "Support"].map((label) => (
-        <button
+      {footerLinks.map(({ label, href }) => (
+        <a
           key={label}
-          type="button"
+          href={href}
           className="text-[12px] text-[#0066CC] transition hover:opacity-80"
           style={{ fontFamily: appleFont }}
         >
           {label}
-        </button>
+        </a>
       ))}
     </div>
   </footer>

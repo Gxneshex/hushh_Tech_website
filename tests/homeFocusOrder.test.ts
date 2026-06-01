@@ -71,11 +71,27 @@ describe("HomePage focus order", () => {
       "ALL",
       "Invest in Fund A",
       "Read the fund prospectus",
-      "Disclosures",
-      "Privacy",
-      "Terms",
-      "Support",
     ]);
     expect(buttons[7].getAttribute("tabindex")).toBeNull();
+  });
+
+  it("opens the populated legal and support pages from the home footer", async () => {
+    await act(async () => {
+      root.render(React.createElement(HomePage));
+    });
+
+    const footerLinks = Array.from(
+      container.querySelectorAll("footer a"),
+    ).map((link) => ({
+      text: link.textContent?.trim(),
+      href: link.getAttribute("href"),
+    }));
+
+    expect(footerLinks).toEqual([
+      { text: "Disclosures", href: "/risk-disclosures" },
+      { text: "Privacy", href: "/privacy-policy" },
+      { text: "Terms", href: "/terms" },
+      { text: "Support", href: "/contact" },
+    ]);
   });
 });
