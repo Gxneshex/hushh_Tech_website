@@ -177,3 +177,62 @@ export async function authenticateEdgeRequest(
 
   return null;
 }
+
+// ── Fund admin (team) authentication ───────────────────────────────
+// Allowlisted team members operate the /fund-admin cockpit. Kept here (not in
+// fundStripe.ts) to avoid a circular import — fundStripe already imports this.
+export const FUND_ADMIN_ALLOWLIST = [
+  "manish@hushh.ai",
+  "ankit@hushh.ai",
+  "kushal@hushh.ai",
+  "jhumma@hushh.ai",
+];
+
+export function isFundAdminEmail(email: string | null | undefined): boolean {
+  if (!email) return false;
+  return FUND_ADMIN_ALLOWLIST.includes(email.trim().toLowerCase());
+}
+
+export interface TeamMemberAuthResult {
+  user?: { id: string; email: string | null };
+  error?: string;
+  status?: number;
+}
+
+/**
+ * Validate a Supabase Bearer JWT and confirm the caller's email is on the
+ * fund-admin allowlist. Returns { user } on success, or { error, status }.
+ */
+export async function authenticateTeamMember(
+  req: Request,
+): Promise<TeamMemberAuthResult> {
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) {
+    return { error: "Missing authorization header", status: 401 };
+  }
+
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!supabaseUrl || !supabaseServiceKey) {
+    return { error: "Authentication unavailable", status: 500 };
+  }
+
+  const token = authHeader.replace("Bearer ", "").trim();
+  const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+
+  const { data: { user }, error } = await supabase.auth.getUser(token);
+  if (error || !user) {
+    return { error: "Invalid or expired token", status: 401 };
+  }
+
+  if (!isFundAdminEmail(user.email)) {
+    console.warn("[Security][team-auth] Email not on fund-admin allowlist", {
+      email: user.email,
+    });
+    return { error: "You are not authorized to access fund admin tools", status: 403 };
+  }
+
+  return { user: { id: user.id, email: user.email ?? null } };
+}

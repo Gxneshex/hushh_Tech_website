@@ -3,75 +3,89 @@ import { useSearchParams } from 'react-router-dom';
 import config from '../../resources/config/config';
 import { useAuthSession } from '../../auth/AuthSessionProvider';
 
-export type FundReviewDecision = 'verified_investor' | 'rejected';
+export type InvestorStage =
+  | 'verified'
+  | 'rejected'
+  | 'awaiting_review'
+  | 'meet_ceo'
+  | 'onboarding'
+  | 'nda_signed'
+  | 'lead';
+
+export interface FundFunnelMoney {
+  committed: string;
+  approved: string;
+  collected: string;
+}
+
+export interface FundFunnel {
+  ndaSigned: number;
+  meetCeoDone: number;
+  firstPaymentPaid: number;
+  pendingReview: number;
+  verified: number;
+  rejected: number;
+  totalInvestors: number;
+  money: FundFunnelMoney;
+}
 
 /**
- * One investor row as returned by the `fund-payment-admin-list` edge function.
- * Keep this in sync with that function's response shape.
+ * One investor row from `fund-payment-admin-overview`. Every person who entered
+ * the funnel (NDA OR onboarding OR payment) appears here, deduped by user with
+ * their furthest-reached `stage`.
  */
-export interface FundAdminInvestorRow {
-  paymentRequestId: string;
+export interface FundInvestorRow {
   userId: string;
-  requestReference: string | null;
   recipientName: string;
   userEmail: string | null;
+  stage: InvestorStage;
+  requestReference: string | null;
   selectedFund: string | null;
-  commitmentLabel: string;
-  firstPaymentLabel: string;
-  classAUnits: number;
-  classBUnits: number;
-  classCUnits: number;
-  recurringSummary: string | null;
-  plaidStatus: string | null;
-  kycStatus: string | null;
-  riskFlags: string[];
-  status: string;
+  commitmentLabel: string | null;
+  status: string | null;
   paidAt: string | null;
-  reviewedBy: string | null;
-  reviewedAt: string | null;
-  reviewerNote: string | null;
+  verifiedAt: string | null;
+  rejectedAt: string | null;
+  ndaSignedAt: string | null;
+  meetCeoDone: boolean;
+  currentStep: number | null;
+  riskFlags: string[];
 }
 
-interface AdminListResponse {
+interface OverviewResponse {
   success: boolean;
-  pending?: FundAdminInvestorRow[];
-  recentlyReviewed?: FundAdminInvestorRow[];
+  funnel?: FundFunnel;
+  investors?: FundInvestorRow[];
   error?: string;
 }
 
-interface AdminVerifyResponse {
-  success?: boolean;
-  investor_verification_status?: string;
-  already_reviewed?: boolean;
-  message?: string;
-  error?: string;
-}
+export type FundAdminTab = 'awaiting_review' | 'verified' | 'in_progress' | 'rejected' | 'all';
+
+// "In progress" = entered the funnel but not yet paid/decided.
+const IN_PROGRESS_STAGES: InvestorStage[] = ['meet_ceo', 'onboarding', 'nda_signed', 'lead'];
 
 const functionUrl = (name: string) => `${config.SUPABASE_URL}/functions/v1/${name}`;
 
-export function useFundAdminLogic() {
+export function useFundAdminOverview() {
   const { user, session, status } = useAuthSession();
   const [searchParams] = useSearchParams();
   const highlightRef = searchParams.get('ref');
 
   const accessToken = session?.access_token ?? null;
 
-  const [pending, setPending] = useState<FundAdminInvestorRow[]>([]);
-  const [reviewed, setReviewed] = useState<FundAdminInvestorRow[]>([]);
+  const [funnel, setFunnel] = useState<FundFunnel | null>(null);
+  const [investors, setInvestors] = useState<FundInvestorRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [tab, setTab] = useState<FundAdminTab>('awaiting_review');
+  const [search, setSearch] = useState('');
 
-  const [notesById, setNotesById] = useState<Record<string, string>>({});
-  const [actioningId, setActioningId] = useState<string | null>(null);
-  const [actionError, setActionError] = useState<string | null>(null);
-  const [banner, setBanner] = useState<string | null>(null);
-
-  const fetchList = useCallback(async () => {
+  const fetchOverview = useCallback(async () => {
     if (!accessToken) return;
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(functionUrl('fund-payment-admin-list'), {
+      const res = await fetch(functionUrl('fund-payment-admin-overview'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -79,14 +93,14 @@ export function useFundAdminLogic() {
         },
         body: JSON.stringify({}),
       });
-      const data: AdminListResponse = await res
+      const data: OverviewResponse = await res
         .json()
         .catch(() => ({ success: false, error: 'Invalid response from server' }));
       if (!res.ok || !data.success) {
         throw new Error(data.error || `Request failed (HTTP ${res.status})`);
       }
-      setPending(data.pending ?? []);
-      setReviewed(data.recentlyReviewed ?? []);
+      setFunnel(data.funnel ?? null);
+      setInvestors(data.investors ?? []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load investors');
     } finally {
@@ -96,91 +110,59 @@ export function useFundAdminLogic() {
 
   useEffect(() => {
     if (status === 'authenticated') {
-      void fetchList();
+      void fetchOverview();
     }
-  }, [status, fetchList]);
+  }, [status, fetchOverview]);
 
-  const setNote = useCallback((id: string, note: string) => {
-    setNotesById((prev) => ({ ...prev, [id]: note }));
-  }, []);
+  // Tab counts (computed once over the full list).
+  const counts = useMemo(() => {
+    const c: Record<FundAdminTab, number> = {
+      awaiting_review: 0,
+      verified: 0,
+      in_progress: 0,
+      rejected: 0,
+      all: investors.length,
+    };
+    for (const inv of investors) {
+      if (inv.stage === 'awaiting_review') c.awaiting_review += 1;
+      else if (inv.stage === 'verified') c.verified += 1;
+      else if (inv.stage === 'rejected') c.rejected += 1;
+      else c.in_progress += 1;
+    }
+    return c;
+  }, [investors]);
 
-  const act = useCallback(
-    async (row: FundAdminInvestorRow, decision: FundReviewDecision) => {
-      if (actioningId) return; // never run two writes at once
-      const notes = (notesById[row.paymentRequestId] || '').trim();
-      if (decision === 'rejected' && !notes) {
-        setActionError('A note is required to reject an investor (compliance trail).');
-        return;
+  // Active tab + free-text search (name / email / reference).
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return investors.filter((inv) => {
+      if (tab === 'awaiting_review' && inv.stage !== 'awaiting_review') return false;
+      if (tab === 'verified' && inv.stage !== 'verified') return false;
+      if (tab === 'rejected' && inv.stage !== 'rejected') return false;
+      if (tab === 'in_progress' && !IN_PROGRESS_STAGES.includes(inv.stage)) return false;
+      if (q) {
+        const hay = `${inv.recipientName} ${inv.userEmail ?? ''} ${inv.requestReference ?? ''}`.toLowerCase();
+        if (!hay.includes(q)) return false;
       }
-      if (!accessToken) {
-        setActionError('Your session expired. Please sign in again.');
-        return;
-      }
-      setActioningId(row.paymentRequestId);
-      setActionError(null);
-      setBanner(null);
-      try {
-        const res = await fetch(functionUrl('fund-payment-admin-verify'), {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${accessToken}`,
-          },
-          body: JSON.stringify({
-            paymentRequestId: row.paymentRequestId,
-            decision,
-            notes: notes || null,
-          }),
-        });
-        const data: AdminVerifyResponse = await res.json().catch(() => ({}));
-        if (!res.ok) {
-          throw new Error(data.error || `Action failed (HTTP ${res.status})`);
-        }
-        // If a teammate already decided this one, surface the server's note.
-        setBanner(
-          data.already_reviewed && data.message
-            ? data.message
-            : `${row.recipientName} ${
-                decision === 'verified_investor'
-                  ? 'approved as a verified investor'
-                  : 'marked as rejected'
-              }.`,
-        );
-        await fetchList();
-      } catch (err) {
-        setActionError(err instanceof Error ? err.message : 'Action failed');
-      } finally {
-        setActioningId(null);
-      }
-    },
-    [accessToken, actioningId, notesById, fetchList],
-  );
-
-  const approve = useCallback(
-    (row: FundAdminInvestorRow) => act(row, 'verified_investor'),
-    [act],
-  );
-  const reject = useCallback(
-    (row: FundAdminInvestorRow) => act(row, 'rejected'),
-    [act],
-  );
+      return true;
+    });
+  }, [investors, tab, search]);
 
   const reviewerEmail = useMemo(() => user?.email ?? null, [user]);
 
   return {
     reviewerEmail,
     highlightRef,
-    pending,
-    reviewed,
+    funnel,
+    investors,
     loading,
     error,
-    notesById,
-    setNote,
-    approve,
-    reject,
-    actioningId,
-    actionError,
-    banner,
-    refresh: fetchList,
+    tab,
+    setTab,
+    search,
+    setSearch,
+    counts,
+    filtered,
+    refresh: fetchOverview,
   };
 }

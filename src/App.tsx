@@ -81,6 +81,7 @@ import HushhHackathonPage from './pages/hushh-hackathon/ui';
 import MetricsPage from './pages/metrics';
 import NotFound from './pages/NotFound';
 import FundAdminPage from './pages/fund-admin/ui';
+import FundAdminInvestorDetail from './pages/fund-admin/detail/ui';
 import FundAdminRoute from './components/FundAdminRoute';
 
 const KaiIndiaApp = React.lazy(() => import('./kai-india/pages'));
@@ -109,7 +110,7 @@ const ContentWrapper = ({ children }: { children: ReactNode }) => {
   const isProfile = location.pathname === '/profile';
   const isHushhHackathon = location.pathname === '/hushh-hackathon';
   const isMetrics = location.pathname === '/metrics' || location.pathname === '/metric';
-  const isFundAdmin = location.pathname === '/fund-admin';
+  const isFundAdmin = location.pathname.startsWith('/fund-admin');
   const isModernPublicPage =
     location.pathname === '/contact' ||
     location.pathname === '/Contact' ||
@@ -153,7 +154,7 @@ const useLayoutVisibility = () => {
   const isPublicInvestorProfile = location.pathname.startsWith('/investor/');
   const isHushhHackathon = location.pathname === '/hushh-hackathon';
   const isMetrics = location.pathname === '/metrics' || location.pathname === '/metric';
-  const isFundAdmin = location.pathname === '/fund-admin';
+  const isFundAdmin = location.pathname.startsWith('/fund-admin');
   const hideOld = isHushhAI || isKai || isStudio || isHomePage || isOnboarding || isInvestorGuide || isProfile || isFundA || isCommunity || isDeleteAccount || isLogin || isSignup || isSignNda || isDocumentViewer || isHushhUserProfile || isModernPublicPage || isPublicInvestorProfile || isHushhHackathon || isMetrics || isFundAdmin;
   return {
     showNavbar: !hideOld,
@@ -400,6 +401,11 @@ function App() {
             <Route path='/fund-admin' element={
               <FundAdminRoute>
                 <FundAdminPage />
+              </FundAdminRoute>
+            } />
+            <Route path='/fund-admin/:userId' element={
+              <FundAdminRoute>
+                <FundAdminInvestorDetail />
               </FundAdminRoute>
             } />
             {/* 404 Not Found - Must be last route */}
