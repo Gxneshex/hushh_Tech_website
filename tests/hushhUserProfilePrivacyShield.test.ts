@@ -40,6 +40,10 @@ vi.mock("../src/components/wallet/WalletCardPreviewModal", () => ({
   default: () => null,
 }));
 
+vi.mock("../src/components/nda/MyNdaDocuments", () => ({
+  default: () => null,
+}));
+
 import HushhUserProfilePage from "../src/pages/hushh-user-profile/ui";
 
 describe("HushhUserProfile PrivacyShield integration", () => {

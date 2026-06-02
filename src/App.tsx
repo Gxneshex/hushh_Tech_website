@@ -74,6 +74,7 @@ import KaiApp from './kai/pages';
 import HushhStudioApp from './hushh-studio/pages';
 import GlobalNDAGate from './components/GlobalNDAGate';
 import SignNDAPage from './pages/sign-nda';
+import MyDocumentsPage from './pages/my-documents';
 import DocumentViewerPage from './pages/document-viewer';
 import NDAAdminPage from './pages/nda-admin';
 import { AuthSessionProvider, useAuthSession } from './auth/AuthSessionProvider';
@@ -100,6 +101,7 @@ const ContentWrapper = ({ children }: { children: ReactNode }) => {
   const isStudio = location.pathname.startsWith('/studio');
   const isHushhUserProfile = location.pathname.startsWith('/hushh-user-profile');
   const isSignNda = location.pathname.startsWith('/sign-nda');
+  const isMyDocuments = location.pathname.startsWith('/my-documents');
   const isDocumentViewer = location.pathname.startsWith('/document-viewer');
   const isInvestorProfile = location.pathname.startsWith('/investor-profile');
   const isPublicInvestorProfile = location.pathname.startsWith('/investor/');
@@ -126,7 +128,7 @@ const ContentWrapper = ({ children }: { children: ReactNode }) => {
     location.pathname === '/about/philosophy';
 
   return (
-    <div className={`${isHomePage || isAuthCallback || isUserRegistration || isOnboarding || isInvestorGuide || isHushhAI || isKai || isStudio || isHushhUserProfile || isSignNda || isDocumentViewer || isInvestorProfile || isPublicInvestorProfile || isDiscoverFundA || isCommunity || isDeleteAccount || isLogin || isSignup || isProfile || isHushhHackathon || isMetrics || isFundAdmin || isLegalPublicPage || isModernPublicPage ? '' : 'mt-20'}`}>
+    <div className={`${isHomePage || isAuthCallback || isUserRegistration || isOnboarding || isInvestorGuide || isHushhAI || isKai || isStudio || isHushhUserProfile || isSignNda || isMyDocuments || isDocumentViewer || isInvestorProfile || isPublicInvestorProfile || isDiscoverFundA || isCommunity || isDeleteAccount || isLogin || isSignup || isProfile || isHushhHackathon || isMetrics || isFundAdmin || isLegalPublicPage || isModernPublicPage ? '' : 'mt-20'}`}>
       {children}
     </div>
   );
@@ -148,6 +150,7 @@ const useLayoutVisibility = () => {
   const isLogin = location.pathname.toLowerCase() === '/login';
   const isSignup = location.pathname.toLowerCase() === '/signup';
   const isSignNda = location.pathname.startsWith('/sign-nda');
+  const isMyDocuments = location.pathname.startsWith('/my-documents');
   const isDocumentViewer = location.pathname.startsWith('/document-viewer');
   const isHushhUserProfile = location.pathname.startsWith('/hushh-user-profile');
   const isLegalPublicPage =
@@ -168,7 +171,7 @@ const useLayoutVisibility = () => {
   const isHushhHackathon = location.pathname === '/hushh-hackathon';
   const isMetrics = location.pathname === '/metrics' || location.pathname === '/metric';
   const isFundAdmin = location.pathname.startsWith('/fund-admin');
-  const hideOld = isHushhAI || isKai || isStudio || isHomePage || isOnboarding || isInvestorGuide || isProfile || isFundA || isCommunity || isDeleteAccount || isLogin || isSignup || isSignNda || isDocumentViewer || isHushhUserProfile || isLegalPublicPage || isModernPublicPage || isPublicInvestorProfile || isHushhHackathon || isMetrics || isFundAdmin;
+  const hideOld = isHushhAI || isKai || isStudio || isHomePage || isOnboarding || isInvestorGuide || isProfile || isFundA || isCommunity || isDeleteAccount || isLogin || isSignup || isSignNda || isMyDocuments || isDocumentViewer || isHushhUserProfile || isLegalPublicPage || isModernPublicPage || isPublicInvestorProfile || isHushhHackathon || isMetrics || isFundAdmin;
   return {
     showNavbar: !hideOld,
     showFooter: !hideOld,
@@ -408,6 +411,11 @@ function App() {
             <Route path='/studio' element={<HushhStudioApp />} />
             {/* Global NDA Signing Page */}
             <Route path='/sign-nda' element={<SignNDAPage />} />
+            <Route path="/my-documents" element={
+              <AuthRequiredRoute>
+                <MyDocumentsPage />
+              </AuthRequiredRoute>
+            } />
             <Route path='/document-viewer' element={<DocumentViewerPage />} />
             {/* NDA Admin Page - Password protected view of all NDA agreements */}
             <Route path='/nda-admin' element={<NDAAdminPage />} />

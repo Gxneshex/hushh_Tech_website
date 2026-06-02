@@ -210,6 +210,19 @@ const HushhTechNavDrawer: React.FC<HushhTechNavDrawerProps> = ({
             ))}
           </div>
 
+          {/* A signed-in user's own NDA + reviewed documents — always reachable
+              here, independent of payment status (page is auth-only, not gated). */}
+          {isAuthenticated ? (
+            <div className="mt-3 rounded-[16px] bg-[#FFFFFF]">
+              <MenuRow
+                item={{ icon: Icon.shield, label: "My NDA & Documents", path: "/my-documents" }}
+                isLast
+                isActive={location.pathname.startsWith("/my-documents")}
+                onClick={() => handleNavigate("/my-documents")}
+              />
+            </div>
+          ) : null}
+
           {/* P0.G — Manage onboarding quick link. Renders only for signed-in
               users who have not yet been verified (the journey CTA exposes
               isInvestor=false for those states). Gives a single-click path to

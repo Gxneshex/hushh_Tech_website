@@ -21,7 +21,6 @@ import {
 import { InvestorProfile, FIELD_LABELS, VALUE_LABELS } from '../../types/investorProfile';
 import type { ShadowProfile } from '../../types/shadowProfile';
 import { calculateNWSFromDB, NWSResult } from '../../services/networkScore/calculateNWS';
-import { getNDARecord, type NDARecord } from '../../services/nda/ndaService';
 import { useAuthSession } from '../../auth/AuthSessionProvider';
 import { buildLoginRedirectPath } from '../../auth/routePolicy';
 
@@ -143,9 +142,6 @@ export const useHushhUserProfileLogic = () => {
   // NWS Score state
   const [nwsResult, setNwsResult] = useState<NWSResult | null>(null);
   const [nwsLoading, setNwsLoading] = useState(true);
-  // NDA signature record for the "My NDA & Documents" section
-  const [ndaRecord, setNdaRecord] = useState<NDARecord | null>(null);
-  const [ndaLoading, setNdaLoading] = useState(true);
 
   // Elapsed timer — shows seconds while AI generates (UX feedback)
   const [loadingSeconds, setLoadingSeconds] = useState(0);
@@ -538,28 +534,6 @@ export const useHushhUserProfileLogic = () => {
 
     checkAuth();
   }, [navigate, session?.access_token, status, user]);
-
-  // Load the user's NDA signature for the "My NDA & Documents" section.
-  // Read-only + RLS-scoped to their own row; independent of the heavier checkAuth.
-  useEffect(() => {
-    let active = true;
-    if (status === 'booting') return;
-    if (status !== 'authenticated' || !user) {
-      setNdaLoading(false);
-      return;
-    }
-    setNdaLoading(true);
-    getNDARecord(user.id)
-      .then((rec) => {
-        if (active) setNdaRecord(rec);
-      })
-      .finally(() => {
-        if (active) setNdaLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, [status, user]);
 
   const handleChange = (key: keyof FormState, value: string) => {
     if (key === "phoneNumber") {
@@ -1002,7 +976,6 @@ export const useHushhUserProfileLogic = () => {
     isWalletPreviewOpen, googleWalletSupported, googleWalletSupportMessage,
     appleWalletSupported, appleWalletSupportMessage: APPLE_WALLET_SUPPORT_MESSAGE,
     editingField, setEditingField, nwsResult, nwsLoading,
-    ndaRecord, ndaLoading,
     isFooterVisible, hasCopied, onCopy, profileUrl, navigate, toast,
     FIELD_OPTIONS, MULTI_SELECT_FIELDS, COUNTRIES, defaultFormState,
     isDirty, isSaving, handleSaveChanges,
