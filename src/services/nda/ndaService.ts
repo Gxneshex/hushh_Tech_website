@@ -22,6 +22,10 @@ export interface SignNDAResult {
   signerName?: string;
   ndaVersion?: string;
   error?: string;
+  /** First-time sign or a genuine version change → notification emails fire. */
+  shouldNotify?: boolean;
+  wasInserted?: boolean;
+  versionChanged?: boolean;
 }
 
 /**
@@ -70,7 +74,9 @@ export const checkNDAStatus = async (userId: string): Promise<NDAStatus> => {
 export const signNDA = async (
   signerName: string,
   ndaVersion: string = 'v1.0',
-  pdfUrl?: string
+  pdfUrl?: string,
+  documentsAcknowledged?: string[],
+  consentVersion?: string,
 ): Promise<SignNDAResult> => {
   try {
     if (!config.supabaseClient) {
@@ -90,6 +96,8 @@ export const signNDA = async (
         p_nda_version: ndaVersion,
         p_pdf_url: pdfUrl || null,
         p_signer_ip: signerIp,
+        p_documents_acknowledged: documentsAcknowledged ?? [],
+        p_consent_version: consentVersion ?? null,
       });
     
     if (error) {
@@ -160,24 +168,22 @@ export const generateNDAPdf = async (
  */
 export const sendNDANotification = async (
   signerName: string,
-  signerEmail: string,
   signedAt: string,
   ndaVersion: string,
   pdfUrl?: string,
   pdfBlob?: Blob,
-  userId?: string,
+  documentsAcknowledged?: string[],
+  accessToken?: string,
   signerIp?: string,
-  documentsAcknowledged?: string[]
 ): Promise<{ success: boolean; error?: string }> => {
   try {
-    // Prepare payload
+    // Identity (signerEmail / userId) is intentionally NOT sent — the edge
+    // function derives it from the caller's JWT. Display/metadata only.
     const payload: Record<string, unknown> = {
       signerName,
-      signerEmail,
       signedAt,
       ndaVersion,
       signerIp: signerIp || 'Unknown',
-      userId,
     };
 
     // Include acknowledged fund documents list
@@ -206,12 +212,23 @@ export const sendNDANotification = async (
       }
     }
 
+    // Authenticate as the signer — the edge function now requires a real user
+    // JWT and derives identity from it, so the endpoint can't be abused.
+    let bearer = accessToken;
+    if (!bearer) {
+      const { data: sessionData } = await config.supabaseClient!.auth.getSession();
+      bearer = sessionData?.session?.access_token ?? undefined;
+    }
+    if (!bearer) {
+      return { success: false, error: 'Not authenticated — cannot send NDA notification' };
+    }
+
     // Call the Supabase Edge Function
     const response = await fetch(NDA_NOTIFICATION_FUNCTION_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${config.SUPABASE_ANON_KEY}`,
+        'Authorization': `Bearer ${bearer}`,
       },
       body: JSON.stringify(payload),
     });

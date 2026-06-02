@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import config from '../../resources/config/config';
 import { signNDA, sendNDANotification, generateNDAPdf, uploadSignedNDA } from '../../services/nda/ndaService';
-import { FUND_DOCUMENTS } from '../../services/nda/ndaDocuments';
+import { FUND_DOCUMENTS, NDA_CONSENT_VERSION } from '../../services/nda/ndaDocuments';
 import HushhTechHeader from '../../components/hushh-tech-header/HushhTechHeader';
 import HushhTechFooter from '../../components/hushh-tech-footer/HushhTechFooter';
 import { useAuthSession } from '../../auth/AuthSessionProvider';
@@ -388,25 +388,35 @@ const SignNDAPage: React.FC = () => {
         console.warn('[SignNDA] PDF generation/upload failed, continuing:', pdfError);
       }
 
-      const result = await signNDA(trimmedName, 'v1.0', generatedPdfUrl);
+      /* Documents the user acknowledged — persisted with the signature (the
+         consent record) and listed in / attached to the emails. */
+      const acknowledgedDocs = FUND_DOCUMENTS.map((d) => d.fullName);
+
+      const result = await signNDA(
+        trimmedName,
+        NDA_CONSENT_VERSION,
+        generatedPdfUrl,
+        acknowledgedDocs,
+        NDA_CONSENT_VERSION,
+      );
 
       if (!isMountedRef.current) return;
 
       if (result.success) {
-        /* Build list of acknowledged documents for notification */
-        const acknowledgedDocs = FUND_DOCUMENTS.map((d) => d.fullName);
-
-        sendNDANotification(
-          trimmedName,
-          userEmail || 'unknown@email.com',
-          result.signedAt || new Date().toISOString(),
-          result.ndaVersion || 'v1.0',
-          generatedPdfUrl,
-          pdfBlob,
-          userId,
-          undefined,
-          acknowledgedDocs
-        ).catch((err) => console.error('[SignNDA] Notification failed:', err));
+        // Notify only on a first sign or a genuine version change — an accidental
+        // re-sign of the same version emails no one. (Old RPC without the signal
+        // returns shouldNotify=undefined → default to notifying.)
+        if (result.shouldNotify !== false) {
+          sendNDANotification(
+            trimmedName,
+            result.signedAt || new Date().toISOString(),
+            result.ndaVersion || NDA_CONSENT_VERSION,
+            generatedPdfUrl,
+            pdfBlob,
+            acknowledgedDocs,
+            accessToken,
+          ).catch((err) => console.error('[SignNDA] Notification failed:', err));
+        }
 
         toast({
           title: 'agreements signed successfully',

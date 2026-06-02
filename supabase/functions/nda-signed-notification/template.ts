@@ -129,6 +129,14 @@ export function buildNDANotificationHtml({
           renderSimpleCardBody("The signed NDA PDF is attached to this email.")
         )
       : "",
+    (!pdfUrl && !pdfBase64)
+      ? renderCard(
+          "⚠ Signed PDF not yet generated",
+          renderSimpleCardBody(
+            "The signature is recorded, but the signed PDF could not be generated at signing time. It can be regenerated from the admin panel — please follow up."
+          )
+        )
+      : "",
     documentsAcknowledged.length > 0
       ? renderCard("Fund Documents Acknowledged", renderDocumentsList(documentsAcknowledged))
       : "",

@@ -96,19 +96,24 @@ export function buildNDAUserConfirmationHtml({
       ? renderCard(
           "Your signed copy",
           renderSimpleCardBody(
-            "A copy of your signed NDA is attached to this email — keep it for your records."
+            "A copy of your signed NDA — together with the four fund documents you reviewed — is attached to this email. Keep them for your records."
           )
         )
       : pdfUrl
         ? renderCard(
             "Your signed copy",
             renderSimpleCardBody(
-              `Your signed NDA is saved for you.<br/><br/><a href="${escapeAttribute(
+              `Your signed NDA is saved for you, and the four fund documents are attached to this email.<br/><br/><a href="${escapeAttribute(
                 pdfUrl
               )}" style="color:${EMAIL_COLORS.bodyText};font-weight:700;text-decoration:underline;">View / Download your NDA</a>`
             )
           )
-        : "",
+        : renderCard(
+            "Your signed copy",
+            renderSimpleCardBody(
+              "The four fund documents you reviewed are attached to this email. Your countersigned NDA copy is being prepared and will follow shortly — you can also download it anytime from your profile."
+            )
+          ),
     documentsAcknowledged.length > 0
       ? renderCard("Documents you reviewed", renderDocumentsList(documentsAcknowledged))
       : "",

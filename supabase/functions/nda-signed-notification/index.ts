@@ -7,6 +7,8 @@ import { collectInlineAssets } from "../_shared/emailInlineAssets.ts";
 import { base64urlEncode, createMixedEmailMessage, createRelatedEmailMessage } from "../_shared/emailMime.ts";
 import { buildNDANotificationHtml, NDA_INLINE_ASSET_KEYS } from "./template.ts";
 import { buildNDAUserConfirmationHtml } from "./userTemplate.ts";
+import { createAdminClient, requireAuthenticatedUser } from "../_shared/fundStripe.ts";
+import { FUND_ADMIN_ALLOWLIST, getPrimarySiteUrl } from "../_shared/security.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -14,22 +16,64 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
-// Recipients for NDA notifications
-const NDA_NOTIFICATION_RECIPIENTS = [
-  'manish@hushh.ai',
-  'ankit@hushh.ai',
-  'neelesh1@hushh.ai'
+// Admin recipients = the fund-admin allowlist (single source of truth, so the
+// NDA list never drifts from who actually operates the fund).
+const NDA_NOTIFICATION_RECIPIENTS = FUND_ADMIN_ALLOWLIST;
+
+const DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+
+// The fund documents the signer acknowledged — attached to the SIGNER's copy,
+// fetched from OUR OWN site assets (never a client-supplied URL).
+const FUND_DOCUMENTS_FN = [
+  { filename: "Delaware-Feeder-LPA.docx", path: "/fund-documents/delaware-feeder-lpa.docx" },
+  { filename: "Investment-Prospectus.docx", path: "/fund-documents/investment-prospectus.docx" },
+  { filename: "LP-Master-LPA.docx", path: "/fund-documents/lp-master-lpa.docx" },
+  { filename: "Private-Placement-Memorandum.docx", path: "/fund-documents/ppm.docx" },
 ];
+
+interface EmailAttachment {
+  filename: string;
+  mimeType: string;
+  base64Data: string;
+}
+
+function arrayBufferToBase64(buf: ArrayBuffer): string {
+  const bytes = new Uint8Array(buf);
+  let binary = "";
+  const chunk = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunk) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+  }
+  return btoa(binary);
+}
+
+// Best-effort: fetch the four fund docs from our assets; a doc that fails is
+// skipped (never fatal), so the signer still gets whatever is available.
+async function fetchFundDocAttachments(): Promise<EmailAttachment[]> {
+  const base = getPrimarySiteUrl();
+  const out: EmailAttachment[] = [];
+  for (const doc of FUND_DOCUMENTS_FN) {
+    try {
+      const r = await fetch(`${base}${doc.path}`);
+      if (!r.ok) {
+        console.warn(`[nda-signed-notification] fund doc fetch ${r.status}: ${doc.path}`);
+        continue;
+      }
+      out.push({ filename: doc.filename, mimeType: DOCX_MIME, base64Data: arrayBufferToBase64(await r.arrayBuffer()) });
+    } catch (err) {
+      console.warn(`[nda-signed-notification] fund doc fetch failed: ${doc.path}`, err);
+    }
+  }
+  return out;
+}
 
 interface NDANotificationPayload {
   signerName: string;
-  signerEmail: string;
   signedAt: string;
   ndaVersion: string;
   signerIp?: string;
   pdfUrl?: string;
   pdfBase64?: string;
-  userId?: string;
   documentsAcknowledged?: string[];
 }
 
@@ -127,13 +171,12 @@ function createEmailMessage(
   recipients: string[],
   subject: string,
   htmlContent: string,
-  pdfBase64?: string,
-  pdfFileName?: string,
+  attachments: EmailAttachment[] = [],
   fromLabel = "Hushh NDA Notifications"
 ): string {
   const inlineAssets = collectInlineAssets(NDA_INLINE_ASSET_KEYS);
 
-  if (pdfBase64 && pdfFileName) {
+  if (attachments.length > 0) {
     return createMixedEmailMessage({
       fromLabel,
       fromEmail: from,
@@ -141,13 +184,7 @@ function createEmailMessage(
       subject,
       htmlContent,
       inlineAssets,
-      attachments: [
-        {
-          filename: pdfFileName,
-          mimeType: "application/pdf",
-          base64Data: pdfBase64,
-        },
-      ],
+      attachments,
     });
   }
 
@@ -168,8 +205,7 @@ async function sendGmailEmail(
   recipients: string[],
   subject: string,
   htmlContent: string,
-  pdfBase64?: string,
-  pdfFileName?: string,
+  attachments: EmailAttachment[] = [],
   fromLabel = "Hushh NDA Notifications"
 ): Promise<{ success: boolean; messageId?: string; error?: string }> {
   try {
@@ -183,24 +219,11 @@ async function sendGmailEmail(
 
     const formattedPrivateKey = privateKey.replace(/\\n/g, "\n");
 
-    console.log(`Sending NDA notification email from ${senderEmail} to ${recipients.join(", ")}`);
+    console.log(`Sending NDA email from ${senderEmail} to ${recipients.join(", ")} (${attachments.length} attachment(s))`);
 
-    const accessToken = await getAccessToken(
-      serviceAccountEmail,
-      formattedPrivateKey,
-      senderEmail
-    );
+    const accessToken = await getAccessToken(serviceAccountEmail, formattedPrivateKey, senderEmail);
 
-    const rawMessage = createEmailMessage(
-      senderEmail,
-      recipients,
-      subject,
-      htmlContent,
-      pdfBase64,
-      pdfFileName,
-      fromLabel
-    );
-
+    const rawMessage = createEmailMessage(senderEmail, recipients, subject, htmlContent, attachments, fromLabel);
     const encodedMessage = base64urlEncode(rawMessage);
 
     const response = await fetch(
@@ -222,12 +245,61 @@ async function sendGmailEmail(
     }
 
     const result = await response.json();
-    console.log(`NDA notification sent successfully, message ID: ${result.id}`);
     return { success: true, messageId: result.id };
   } catch (error) {
     console.error("Error sending email:", error);
     return { success: false, error: error instanceof Error ? error.message : "Unknown error" };
   }
+}
+
+// Durable per-recipient send log — reuses fund_payment_notifications (like the
+// fund emails) so a failed admin/signer send is visible + auditable + retriable,
+// not console-only.
+async function logNdaEmail(
+  supabase: any,
+  params: {
+    userId: string | null;
+    type: string;
+    recipients: string[];
+    subject: string;
+    html: string;
+    attachments?: EmailAttachment[];
+    fromLabel?: string;
+    pdfMissing?: boolean;
+  },
+): Promise<{ success: boolean; messageId?: string; error?: string }> {
+  const { data: logRow } = await supabase
+    .from("fund_payment_notifications")
+    .insert({
+      user_id: params.userId,
+      notification_type: params.type,
+      recipient_email: params.recipients.join(", "),
+      subject: params.subject,
+      status: "pending",
+      error_message: params.pdfMissing ? "signed_pdf_missing" : null,
+    })
+    .select("id")
+    .maybeSingle();
+
+  const res = await sendGmailEmail(
+    params.recipients,
+    params.subject,
+    params.html,
+    params.attachments ?? [],
+    params.fromLabel,
+  );
+
+  await supabase
+    .from("fund_payment_notifications")
+    .update({
+      status: res.success ? "sent" : "failed",
+      provider_message_id: res.messageId ?? null,
+      error_message: res.error ?? (params.pdfMissing ? "signed_pdf_missing" : null),
+      sent_at: res.success ? new Date().toISOString() : null,
+    })
+    .eq("id", logRow?.id);
+
+  return res;
 }
 
 serve(async (req) => {
@@ -237,37 +309,54 @@ serve(async (req) => {
   }
 
   try {
-    const payload: NDANotificationPayload = await req.json();
-    
-    const { 
-      signerName, 
-      signerEmail, 
-      signedAt, 
-      ndaVersion, 
+    // ── Authenticate: identity comes from the JWT, NEVER the client body. This
+    // closes the abuse surface (anyone could previously email arbitrary
+    // addresses / spam admins via the anon key). ──
+    const supabase = createAdminClient();
+    const auth = await requireAuthenticatedUser(req, supabase);
+    if (auth.response || !auth.user) {
+      return auth.response ?? new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
+    const userId: string = auth.user.id;
+    const signerEmail: string | null = auth.user.email ?? null;
+
+    const payload: NDANotificationPayload = await req.json().catch(() => ({} as NDANotificationPayload));
+    const {
+      signerName,
+      signedAt,
+      ndaVersion,
       signerIp = 'Unknown',
       pdfUrl,
       pdfBase64,
-      userId,
-      documentsAcknowledged = []
+      documentsAcknowledged = [],
     } = payload;
 
-    if (!signerName || !signerEmail) {
+    if (!signerName) {
       return new Response(
-        JSON.stringify({ error: 'Missing required fields: signerName, signerEmail' }),
+        JSON.stringify({ error: 'Missing required field: signerName' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Format the signed date
-    const signedDate = new Date(signedAt).toLocaleString('en-US', {
+    const signedDate = new Date(signedAt || new Date().toISOString()).toLocaleString('en-US', {
       dateStyle: 'full',
       timeStyle: 'long',
     });
 
-    const subject = `[Hushh NDA] Agreement Signed by ${signerName}`;
-    const html = buildNDANotificationHtml({
+    const pdfMissing = !pdfBase64;
+    const safeName = signerName.replace(/[^a-zA-Z0-9]/g, '_');
+    const signedNdaFileName = `NDA_${safeName}_${new Date().toISOString().split('T')[0]}.pdf`;
+    const signedNdaAttachment: EmailAttachment | null = pdfBase64
+      ? { filename: signedNdaFileName, mimeType: 'application/pdf', base64Data: pdfBase64 }
+      : null;
+
+    // ── Admin notification — signed NDA only (admins already have the docs) ──
+    const adminHtml = buildNDANotificationHtml({
       signerName,
-      signerEmail,
+      signerEmail: signerEmail ?? 'unknown',
       signedDate,
       ndaVersion,
       signerIp,
@@ -276,77 +365,72 @@ serve(async (req) => {
       userId,
       documentsAcknowledged,
     });
+    const adminResult = await logNdaEmail(supabase, {
+      userId,
+      type: 'nda_admin',
+      recipients: NDA_NOTIFICATION_RECIPIENTS,
+      subject: `[Hushh NDA] Agreement Signed by ${signerName}`,
+      html: adminHtml,
+      attachments: signedNdaAttachment ? [signedNdaAttachment] : [],
+      pdfMissing,
+    });
 
-    // Prepare PDF attachment info
-    let pdfFileName: string | undefined;
-    if (pdfBase64) {
-      const safeFileName = signerName.replace(/[^a-zA-Z0-9]/g, '_');
-      pdfFileName = `NDA_${safeFileName}_${new Date().toISOString().split('T')[0]}.pdf`;
-    }
-
-    // Send email
-    const result = await sendGmailEmail(
-      NDA_NOTIFICATION_RECIPIENTS,
-      subject,
-      html,
-      pdfBase64,
-      pdfFileName
-    );
-
-    if (!result.success) {
-      return new Response(
-        JSON.stringify({ error: result.error }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Best-effort: also send the signer their OWN confirmation (warm, branded,
-    // with the signed PDF attached). Isolated in its own try/catch so a failure
-    // here never affects the admin notification or the completed signature.
+    // ── Signer confirmation — signed NDA + ALL FOUR fund documents attached ──
     let signerNotified = false;
-    try {
-      const looksLikeEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(signerEmail);
-      if (looksLikeEmail) {
-        const userHtml = buildNDAUserConfirmationHtml({
-          signerName,
-          signerEmail,
-          signedDate,
-          ndaVersion,
-          pdfAttached: Boolean(pdfBase64),
-          pdfUrl,
-          documentsAcknowledged,
-          profileUrl: 'https://hushhtech.com/hushh-user-profile',
-        });
-        const userResult = await sendGmailEmail(
-          [signerEmail],
-          'Your signed NDA — Hushh Technologies',
-          userHtml,
-          pdfBase64,
-          pdfFileName,
-          'Hushh Technologies'
-        );
-        signerNotified = userResult.success;
-        if (!userResult.success) {
-          console.error('[nda-signed-notification] Signer confirmation failed:', userResult.error);
-        } else {
-          console.log('[nda-signed-notification] Signer confirmation sent:', userResult.messageId);
-        }
-      } else {
-        console.warn('[nda-signed-notification] Skipping signer email — address looks invalid:', signerEmail);
-      }
-    } catch (signerErr) {
-      console.error('[nda-signed-notification] Signer confirmation threw:', signerErr);
+    let signerError: string | null = null;
+    const looksLikeEmail = signerEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(signerEmail);
+    if (looksLikeEmail) {
+      const fundDocAttachments = await fetchFundDocAttachments();
+      const signerAttachments = [
+        ...(signedNdaAttachment ? [signedNdaAttachment] : []),
+        ...fundDocAttachments,
+      ];
+      const userHtml = buildNDAUserConfirmationHtml({
+        signerName,
+        signerEmail: signerEmail as string,
+        signedDate,
+        ndaVersion,
+        pdfAttached: Boolean(pdfBase64),
+        pdfUrl,
+        documentsAcknowledged,
+        profileUrl: `${getPrimarySiteUrl()}/hushh-user-profile`,
+      });
+      const signerResult = await logNdaEmail(supabase, {
+        userId,
+        type: 'nda_signer',
+        recipients: [signerEmail as string],
+        subject: 'Your signed NDA — Hushh Technologies',
+        html: userHtml,
+        attachments: signerAttachments,
+        fromLabel: 'Hushh Technologies',
+        pdfMissing,
+      });
+      signerNotified = signerResult.success;
+      signerError = signerResult.error ?? null;
+    } else {
+      // No usable email — record a skipped row so the gap is auditable.
+      signerError = 'no_email_on_account';
+      await supabase.from('fund_payment_notifications').insert({
+        user_id: userId,
+        notification_type: 'nda_signer',
+        recipient_email: signerEmail || 'missing',
+        subject: 'Your signed NDA — Hushh Technologies',
+        status: 'skipped',
+        error_message: 'no_email_on_account',
+      });
     }
 
-    console.log(`NDA notification sent for: ${signerName} (${signerEmail})`);
-
+    // Never 500 after a recorded signature — both sends are best-effort + logged.
     return new Response(
       JSON.stringify({
         success: true,
-        message: `NDA notification sent to ${NDA_NOTIFICATION_RECIPIENTS.join(', ')}`,
-        recipients: NDA_NOTIFICATION_RECIPIENTS,
-        messageId: result.messageId,
-        signerNotified
+        adminSent: adminResult.success,
+        signerSent: signerNotified,
+        pdfMissing,
+        email_delivery: {
+          admin: { success: adminResult.success, error: adminResult.error ?? null, recipients: NDA_NOTIFICATION_RECIPIENTS },
+          signer: { success: signerNotified, error: signerError },
+        },
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

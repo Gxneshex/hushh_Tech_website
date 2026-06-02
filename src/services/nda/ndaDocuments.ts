@@ -42,3 +42,10 @@ export const FUND_DOCUMENTS = [
 ] as const;
 
 export type FundDocument = (typeof FUND_DOCUMENTS)[number];
+
+/**
+ * The NDA / consent copy version a signer agrees to. Bump when the NDA text or
+ * the acknowledged document set materially changes — a version bump re-notifies
+ * the signer + admins; re-signing the same version notifies no one.
+ */
+export const NDA_CONSENT_VERSION = 'v1.0';
