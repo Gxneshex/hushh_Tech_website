@@ -1,282 +1,293 @@
-import React, { useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import React, { ReactNode, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import {
+  Badge,
+  Box,
+  Button,
+  Container,
+  Divider,
+  Flex,
+  Heading,
+  HStack,
+  Icon,
+  ListItem,
+  Text,
+  UnorderedList,
+  VStack,
+} from "@chakra-ui/react";
+import { Briefcase, ChevronLeft, Clock, DollarSign, MapPin } from "lucide-react";
+
+import HushhTechHeader from "../../components/hushh-tech-header/HushhTechHeader";
 import { careers } from "../../data/career";
 import ApplicationForm from "./ApplicationForm";
 import {
-  Container,
-  Box,
-  Heading,
-  Text,
-  VStack,
-  HStack,
-  Icon,
-  Button,
-  Flex,
-  Divider,
-  UnorderedList,
-  ListItem,
-  Badge
-} from "@chakra-ui/react";
-import { MapPin, Clock, ChevronLeft, DollarSign } from "lucide-react";
+  appleDisplayFont,
+  appleFont,
+  brandBlue,
+  focusVisible,
+  glassCardChrome,
+  pageBg,
+  sectionHeadingProps,
+  textPrimary,
+  textSecondary,
+} from "./careerTheme";
+
+const metaTextProps = {
+  fontSize: "14px",
+  fontWeight: "400",
+  color: textSecondary,
+  lineHeight: "1.4",
+};
+
+function LiquidIcon({ icon, size = 44 }: { icon: typeof Briefcase; size?: number }) {
+  return (
+    <Flex
+      align="center"
+      justify="center"
+      w={`${size}px`}
+      h={`${size}px`}
+      flexShrink={0}
+      borderRadius="16px"
+      color={brandBlue}
+      bg="rgba(0, 102, 204, 0.1)"
+      boxShadow="inset 0 1px 0 rgba(255,255,255,0.7), 0 10px 24px rgba(29,29,31,0.08)"
+    >
+      <Icon as={icon} boxSize={`${Math.round(size * 0.45)}px`} strokeWidth={1.8} aria-hidden />
+    </Flex>
+  );
+}
+
+function SectionCard({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <Box p={{ base: 5, md: 7 }} {...glassCardChrome}>
+      <Heading as="h2" mb={5} {...sectionHeadingProps} style={{ fontFamily: appleDisplayFont }}>
+        {title}
+      </Heading>
+      {children}
+    </Box>
+  );
+}
+
+function BulletSection({ title, items }: { title: string; items?: string[] }) {
+  const visibleItems = (items ?? []).filter((item) => item.trim().length > 0);
+  if (!visibleItems.length) return null;
+
+  return (
+    <SectionCard title={title}>
+      <UnorderedList spacing={3} pl={5} m={0}>
+        {visibleItems.map((item, index) => (
+          <ListItem key={index} color={textSecondary} fontSize="16px" lineHeight="1.62" fontWeight="300">
+            {item}
+          </ListItem>
+        ))}
+      </UnorderedList>
+    </SectionCard>
+  );
+}
+
+const toTitleCase = (str: string) =>
+  str.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase());
 
 const JobDetails = () => {
   const { jobId } = useParams();
   const [showForm, setShowForm] = useState(false);
-  const toTitleCase = (str: string) => {
-    return str.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
-  };
   const job = Object.values(careers)
     .flat()
     .find((j) => j.id === jobId);
 
-  if (!job) return (
-    <Container maxW="container.xl" py={12}>
-      <Box textAlign="center">
-        <Heading>Position not found</Heading>
-        <Button as={Link} to="/career" mt={6} colorScheme="cyan">
-          Back to Careers
-        </Button>
+  if (!job) {
+    return (
+      <Box bg={pageBg} minH="100vh" style={{ fontFamily: appleFont }}>
+        <HushhTechHeader />
+        <Container maxW="4xl" pt={{ base: 28, md: 32 }} pb={16} px={{ base: 5, md: 6 }}>
+          <Box textAlign="center" p={{ base: 6, md: 8 }} {...glassCardChrome}>
+            <Heading
+              as="h1"
+              fontSize={{ base: "40px", md: "48px" }}
+              lineHeight="1.06"
+              letterSpacing="-0.028em"
+              fontWeight="500"
+              color={textPrimary}
+              style={{ fontFamily: appleDisplayFont }}
+            >
+              Position not found.
+            </Heading>
+            <Button as={Link} to="/career" mt={7} h="48px" px={6} borderRadius="full" bg={brandBlue} color="white">
+              Back to careers
+            </Button>
+          </Box>
+        </Container>
       </Box>
-    </Container>
-  );
+    );
+  }
 
   return (
-    <Container maxW="container.lg" py={8} px={{ base: 4, md: 6 }}>
-      {/* Back to Careers button */}
-      <Button 
-        as={Link}
-        to="/career"
-        leftIcon={<ChevronLeft size={18} />}
-        variant="ghost"
-        color="gray.600"
-        _hover={{ color: "gray.800", bg: "gray.100" }}
-        mb={6}
-        pl={0}
-      >
-        Back to Careers
-      </Button>
-
-      {/* Job Details Card */}
-      <Box 
-        bg="white" 
-        borderRadius="lg" 
-        borderWidth="1px" 
-        borderColor="gray.200"
-        boxShadow="sm"
-        p={8} 
-        mb={6}
-      >
-        <Heading as="h1" size="xl" color="gray.800" mb={3}>{job.title}</Heading>
-        
-        <Flex 
-          flexWrap="wrap" 
-          alignItems="center" 
-          gap={{ base: 2, md: 6 }}
-          mt={3} 
-          mb={6}
+    <Box bg={pageBg} minH="100vh" style={{ fontFamily: appleFont }}>
+      <HushhTechHeader />
+      <Container maxW="5xl" pt={{ base: 28, md: 32 }} pb={{ base: 12, md: 20 }} px={{ base: 5, md: 6 }}>
+        <Button
+          as={Link}
+          to="/career"
+          leftIcon={<ChevronLeft size={18} />}
+          variant="ghost"
+          color="rgba(29, 29, 31, 0.68)"
+          fontWeight="500"
+          borderRadius="full"
+          mb={5}
+          px={4}
+          _hover={{ bg: "rgba(29, 29, 31, 0.05)", color: textPrimary, textDecoration: "none" }}
+          {...focusVisible}
         >
-          {job.location && (
-            <HStack spacing={2}>
-              <Icon as={MapPin} color="gray.500" boxSize={4} />
-              <Text color="gray.600">{job.location}</Text>
-            </HStack>
-          )}
-          
-          {job.salary && (
-            <HStack spacing={2}>
-              <Icon as={DollarSign} color="gray.500" boxSize={4} />
-              <Text color="gray.600">{job.salary}</Text>
-            </HStack>
-          )}
-          
-          <HStack spacing={2}>
-            <Icon as={Clock} color="gray.500" boxSize={4} />
-            <Text color="gray.600">Full-time</Text>
-          </HStack>
-        </Flex>
-
-        <Button 
-          colorScheme="cyan"
-          size="lg"
-          color="white"
-          onClick={() => setShowForm(true)}
-          mt={4}
-        >
-          Apply Now
+          Back to careers
         </Button>
-      </Box>
 
-      {/* About Section */}
-      <Box 
-        bg="white" 
-        borderRadius="lg" 
-        borderWidth="1px" 
-        borderColor="gray.200"
-        boxShadow="sm"
-        p={8} 
-        mb={6}
-      >
-        <Heading as="h2" size="md" color="gray.800" mb={4}>About HushhTech</Heading>
-        <Text color="gray.700" lineHeight="tall">
-          Hushh Technologies LLC is a cutting-edge investment technology firm that leverages artificial intelligence and 
-          advanced mathematical models to generate superior risk-adjusted returns. We combine the precision of quantitative 
-          analysis with the power of machine learning to identify and capitalize on market opportunities that traditional 
-          investment approaches miss.
-        </Text>
-        <Text color="gray.700" lineHeight="tall" mt={4}>
-          Our team consists of world-class researchers, engineers, and investment professionals who are passionate about 
-          pushing the boundaries of what's possible in finance. We offer a collaborative environment where innovation thrives 
-          and exceptional talent is recognized and rewarded.
-        </Text>
-      </Box>
+        <VStack spacing={{ base: 5, md: 6 }} align="stretch">
+          <Box p={{ base: 6, md: 8 }} {...glassCardChrome}>
+            <Text
+              mb={4}
+              fontSize="13px"
+              fontWeight="600"
+              letterSpacing="0.18em"
+              textTransform="uppercase"
+              color={brandBlue}
+            >
+              Open role
+            </Text>
+            <Heading
+              as="h1"
+              fontSize={{ base: "42px", md: "56px" }}
+              lineHeight="1.06"
+              letterSpacing="-0.028em"
+              fontWeight="500"
+              color={textPrimary}
+              style={{ fontFamily: appleDisplayFont, textWrap: "balance" }}
+            >
+              {job.title}
+            </Heading>
 
-      {/* Responsibilities Section */}
-      <Box 
-        bg="white" 
-        borderRadius="lg" 
-        borderWidth="1px" 
-        borderColor="gray.200"
-        boxShadow="sm"
-        p={8} 
-        mb={6}
-      >
-        <Heading as="h2" size="md" color="gray.800" mb={4}>Responsibilities</Heading>
-        <UnorderedList spacing={2} pl={4}>
-          {job.responsibilities.map((resp, index) => (
-            <ListItem key={index} color="gray.700" lineHeight="tall">{resp}</ListItem>
-          ))}
-        </UnorderedList>
-      </Box>
+            <Flex
+              flexWrap="wrap"
+              alignItems="center"
+              gap={{ base: 3, md: 5 }}
+              mt={{ base: 6, md: 7 }}
+            >
+              {job.location && (
+                <HStack spacing={2.5}>
+                  <LiquidIcon icon={MapPin} size={38} />
+                  <Text {...metaTextProps}>{job.location}</Text>
+                </HStack>
+              )}
 
-      {/* Qualifications Section */}
-      <Box 
-        bg="white" 
-        borderRadius="lg" 
-        borderWidth="1px" 
-        borderColor="gray.200"
-        boxShadow="sm"
-        p={8} 
-        mb={6}
-      >
-        <Heading as="h2" size="md" color="gray.800" mb={4}>Skills, Qualifications, and Experience</Heading>
-        <UnorderedList spacing={2} pl={4}>
-          {job.qualifications.map((qual, index) => (
-            <ListItem key={index} color="gray.700" lineHeight="tall">{qual}</ListItem>
-          ))}
-        </UnorderedList>
-      </Box>
+              {job.salary && (
+                <HStack spacing={2.5}>
+                  <LiquidIcon icon={DollarSign} size={38} />
+                  <Text {...metaTextProps}>{job.salary}</Text>
+                </HStack>
+              )}
 
-      {/* Leadership Principles Section */}
-      {job.leadershipPrinciples && job.leadershipPrinciples.length > 0 && (
-        <Box 
-          bg="white" 
-          borderRadius="lg" 
-          borderWidth="1px" 
-          borderColor="gray.200"
-          boxShadow="sm"
-          p={8} 
-          mb={6}
-        >
-          <Heading as="h2" size="md" color="gray.800" mb={4}>Leadership Principles</Heading>
-          <UnorderedList spacing={2} pl={4}>
-            {job.leadershipPrinciples.map((principle, index) => (
-              <ListItem key={index} color="gray.700" lineHeight="tall">{principle}</ListItem>
-            ))}
-          </UnorderedList>
-        </Box>
-      )}
+              <HStack spacing={2.5}>
+                <LiquidIcon icon={Clock} size={38} />
+                <Text {...metaTextProps}>Full-time</Text>
+              </HStack>
+            </Flex>
 
-      {/* Hiring Procedure Section */}
-      {job?.hiringProcedure && job?.hiringProcedure.length > 0 && (
-        <Box 
-          bg="white" 
-          borderRadius="lg" 
-          borderWidth="1px" 
-          borderColor="gray.200"
-          boxShadow="sm"
-          p={8} 
-          mb={6}
-        >
-          <Heading as="h2" size="md" color="gray.800" mb={4}>Hiring Procedure</Heading>
-          <UnorderedList spacing={2} pl={4}>
-            {job.hiringProcedure.map((procedure, index) => (
-              <ListItem key={index} color="gray.700" lineHeight="tall">{procedure}</ListItem>
-            ))}
-          </UnorderedList>
-        </Box>
-      )}
+            <Button
+              onClick={() => setShowForm(true)}
+              mt={{ base: 7, md: 8 }}
+              h="52px"
+              px={8}
+              borderRadius="full"
+              bg={brandBlue}
+              color="white"
+              fontSize="16px"
+              fontWeight="500"
+              letterSpacing="-0.01em"
+              boxShadow="0 14px 30px rgba(0, 102, 204, 0.22)"
+              _hover={{ bg: "#0057B8" }}
+              _active={{ transform: "scale(0.98)" }}
+              {...focusVisible}
+            >
+              Apply now
+            </Button>
+          </Box>
 
-      {/* Compensation Procedure Section */}
-      {job?.compensationProcedure && job?.compensationProcedure.length > 0 && (
-        <Box 
-          bg="white" 
-          borderRadius="lg" 
-          borderWidth="1px" 
-          borderColor="gray.200"
-          boxShadow="sm"
-          p={8} 
-          mb={6}
-        >
-          <Heading as="h2" size="md" color="gray.800" mb={4}>Compensation Procedure</Heading>
-          <UnorderedList spacing={2} pl={4}>
-            {job.compensationProcedure.map((procedure, index) => (
-              <ListItem key={index} color="gray.700" lineHeight="tall">{procedure}</ListItem>
-            ))}
-          </UnorderedList>
-        </Box>
-      )}
+          <SectionCard title="About HushhTech">
+            <VStack spacing={4} align="stretch">
+              <Text color={textSecondary} fontSize="16px" lineHeight="1.62" fontWeight="300">
+                Hushh Technologies LLC is an investment technology firm that combines artificial
+                intelligence, quantitative research, and careful product design to improve how
+                capital is analyzed and allocated.
+              </Text>
+              <Text color={textSecondary} fontSize="16px" lineHeight="1.62" fontWeight="300">
+                Our team includes researchers, engineers, and investment professionals who care about
+                durable systems, clear thinking, and long-term value creation.
+              </Text>
+            </VStack>
+          </SectionCard>
 
-      {/* Salary Details Section */}
-      {job?.salaryDetails && (
-        <Box 
-          bg="white" 
-          borderRadius="lg" 
-          borderWidth="1px" 
-          borderColor="gray.200"
-          boxShadow="sm"
-          p={8} 
-          mb={6}
-        >
-          <Heading as="h2" size="md" color="gray.800" mb={4}>Salary Details</Heading>
-          <VStack spacing={4} align="stretch" divider={<Divider />}>
-            {Object.entries(job.salaryDetails).map(([role, details], index) => (
-              <Box key={index}>
-                <Text fontWeight="500" color="gray.800" mb={2}>
-                  {toTitleCase(role.replace(/([A-Z])/g, ' $1').trim())}
-                </Text>
-                <VStack spacing={1} align="start" pl={2}>
-                  {details.averageSalary && <Text color="gray.700">Average Salary: {details.averageSalary}</Text>}
-                  {details.range && <Text color="gray.700">Range: {details.range}</Text>}
-                  {details.competitiveSalaryRange && (
-                    <Box w="100%">
-                      <Text color="gray.700" mb={1}>Competitive Salary Range:</Text>
-                      <VStack spacing={1} align="start" pl={4}>
-                        {Object.entries(details.competitiveSalaryRange).map(([level, range], idx) => (
-                          <Text key={idx} color="gray.700">
-                            <Badge colorScheme="cyan" mr={2}>
-                              {level.charAt(0).toUpperCase() + level.slice(1)}
-                            </Badge>
-                            {range}
+          <BulletSection title="Responsibilities" items={job.responsibilities} />
+          <BulletSection title="Skills, qualifications, and experience" items={job.qualifications} />
+          <BulletSection title="Leadership principles" items={job.leadershipPrinciples} />
+          <BulletSection title="Hiring procedure" items={job.hiringProcedure} />
+          <BulletSection title="Compensation procedure" items={job.compensationProcedure} />
+
+          {job.salaryDetails && (
+            <SectionCard title="Salary details">
+              <VStack spacing={5} align="stretch" divider={<Divider borderColor="rgba(29, 29, 31, 0.08)" />}>
+                {Object.entries(job.salaryDetails).map(([role, details], index) => (
+                  <Box key={index}>
+                    <Text fontWeight="600" color={textPrimary} mb={2} fontSize="16px">
+                      {toTitleCase(role.replace(/([A-Z])/g, " $1").trim())}
+                    </Text>
+                    <VStack spacing={1.5} align="start">
+                      {details.averageSalary && (
+                        <Text color={textSecondary} fontSize="15px" lineHeight="1.55" fontWeight="300">
+                          Average salary: {details.averageSalary}
+                        </Text>
+                      )}
+                      {details.range && (
+                        <Text color={textSecondary} fontSize="15px" lineHeight="1.55" fontWeight="300">
+                          Range: {details.range}
+                        </Text>
+                      )}
+                      {details.competitiveSalaryRange && (
+                        <Box w="100%">
+                          <Text color={textSecondary} fontSize="15px" mb={2} fontWeight="300">
+                            Competitive salary range:
                           </Text>
-                        ))}
-                      </VStack>
-                    </Box>
-                  )}
-                </VStack>
-              </Box>
-            ))}
-          </VStack>
-        </Box>
-      )}
+                          <VStack spacing={2} align="start">
+                            {Object.entries(details.competitiveSalaryRange).map(([level, range], idx) => (
+                              <Text key={idx} color={textSecondary} fontSize="15px" lineHeight="1.55" fontWeight="300">
+                                <Badge
+                                  mr={2}
+                                  borderRadius="full"
+                                  px={2.5}
+                                  py={1}
+                                  bg="rgba(0, 102, 204, 0.08)"
+                                  color={brandBlue}
+                                  fontWeight="600"
+                                >
+                                  {level.charAt(0).toUpperCase() + level.slice(1)}
+                                </Badge>
+                                {range}
+                              </Text>
+                            ))}
+                          </VStack>
+                        </Box>
+                      )}
+                    </VStack>
+                  </Box>
+                ))}
+              </VStack>
+            </SectionCard>
+          )}
+        </VStack>
 
-      {showForm && (
-        <ApplicationForm
-          jobTitle={job.title}
-          jobLocation={job.location}
-          onClose={() => setShowForm(false)}
-        />
-      )}
-    </Container>
+        {showForm && (
+          <ApplicationForm jobTitle={job.title} jobLocation={job.location} onClose={() => setShowForm(false)} />
+        )}
+      </Container>
+    </Box>
   );
 };
 

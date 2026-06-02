@@ -1,292 +1,332 @@
-import React from 'react';
-import { Link, Routes, Route, useLocation } from 'react-router-dom';
-import { careers } from '../../data/career';
-import JobDetails from './JobDetails';
-import './Career.css';
-import { 
-  Container, 
-  Box, 
-  Heading, 
-  Text, 
-  VStack, 
-  HStack, 
-  Icon, 
-  Flex, 
-  Divider, 
+import React from "react";
+import { Link, Route, Routes, useLocation } from "react-router-dom";
+import {
+  Badge,
+  Box,
+  Button,
+  Container,
+  Flex,
+  Heading,
+  HStack,
+  Icon,
   SimpleGrid,
-  Button
+  Text,
+  VStack,
 } from "@chakra-ui/react";
-import { MapPin, Clock, ChevronRight, Rocket, DollarSign, Star } from "lucide-react";
+import {
+  Briefcase,
+  ChevronRight,
+  Clock,
+  DollarSign,
+  MapPin,
+  Rocket,
+  Sparkles,
+} from "lucide-react";
 
-const jobCardFocusVisible = {
-  _focusVisible: {
-    outline: "none",
-    boxShadow: "0 0 0 3px rgba(0, 169, 224, 0.45)",
+import HushhTechHeader from "../../components/hushh-tech-header/HushhTechHeader";
+import { careers } from "../../data/career";
+import JobDetails from "./JobDetails";
+import {
+  appleDisplayFont,
+  appleFont,
+  brandBlue,
+  focusVisible,
+  glassCardChrome,
+  glassCardInteractiveChrome,
+  pageBg,
+  sectionHeadingProps,
+  textPrimary,
+  textSecondary,
+  textTertiary,
+} from "./careerTheme";
+import "./Career.css";
+
+const benefitCards = [
+  {
+    icon: Rocket,
+    title: "Cutting-edge technology",
+    body: "Work with AI, quantitative research, and data systems built for real investing outcomes.",
+    tint: "#0066CC",
+    bg: "rgba(0, 102, 204, 0.1)",
   },
+  {
+    icon: DollarSign,
+    title: "Meaningful upside",
+    body: "Competitive compensation, ownership-minded incentives, and work tied directly to business impact.",
+    tint: "#34C759",
+    bg: "rgba(52, 199, 89, 0.11)",
+  },
+  {
+    icon: Sparkles,
+    title: "Fast growth",
+    body: "Learn from operators, researchers, and builders while taking on real responsibility early.",
+    tint: "#AF52DE",
+    bg: "rgba(175, 82, 222, 0.1)",
+  },
+];
+
+const totalRoles = Object.values(careers).reduce((count, jobs) => count + jobs.length, 0);
+const totalDepartments = Object.keys(careers).length;
+
+const metaTextProps = {
+  fontSize: "13px",
+  fontWeight: "400",
+  color: textTertiary,
+  lineHeight: "1.35",
 };
+
+function LiquidIcon({
+  icon,
+  tint = brandBlue,
+  bg = "rgba(0, 102, 204, 0.1)",
+  size = 42,
+}: {
+  icon: typeof Briefcase;
+  tint?: string;
+  bg?: string;
+  size?: number;
+}) {
+  return (
+    <Flex
+      align="center"
+      justify="center"
+      w={`${size}px`}
+      h={`${size}px`}
+      flexShrink={0}
+      borderRadius="16px"
+      color={tint}
+      bg={bg}
+      boxShadow="inset 0 1px 0 rgba(255,255,255,0.7), 0 10px 24px rgba(29,29,31,0.08)"
+    >
+      <Icon as={icon} boxSize={`${Math.round(size * 0.45)}px`} strokeWidth={1.8} aria-hidden />
+    </Flex>
+  );
+}
 
 const CareerList = () => {
   return (
-    <Container as="main" id="main-content" maxW="container.xl" px={{ base: 4, md: 6 }}>
-      {/* Main Header */}
-      <Box 
-        textAlign="center" 
-        display="flex"
-        flexDirection="column"
-        justifyContent="center" 
-        alignItems="center" 
-        minHeight={{ base: "auto", md: "90vh" }}
-        py={{ base: 10, md: 0 }}
-        my={0}
-        bg="rgb(255 255 255 / var(--tw-bg-opacity, 1))"
-      >
-        <Heading 
-          as="h1" 
-          lineHeight="1.1"
-          fontWeight="500"
-          mb={{base: 8, md: 0}}
-          display={'flex'}
-          flexDirection={'column'}
-          data-career-heading="true"
-        >
-          <Text 
-            as="span" 
-            className="gradient-text"
-            fontSize={{ base: "4xl", md: "7xl" }}
-            letterSpacing="-0.02em"
-            fontWeight="500"
-          >
-            Hushh Jobs
-          </Text>
-          <Text 
-            as="span" 
-            color="black"
-            fontSize={{ base: "4xl", md: "7xl" }}
-            letterSpacing="-0.02em"
-            fontWeight="300"
-            mt={{base: 2, md: 0}}
-          >  Join Our Team</Text>
-        </Heading>
-        
-        <Text 
-          fontSize={{ base: "md", md: "xl" }} 
-          maxW="3xl" 
-          mx="auto" 
-          
-          color="#6E6E73"
-          lineHeight="1.7"
-          fontWeight="400"
-          fontFamily={'-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen,Ubuntu,Cantarell,sans-serif'}
-          className='text-xl md:text-2xl text-[#6E6E73] max-w-4xl mx-auto leading-relaxed font-light'
-        >
-          Help us revolutionize the investment industry through cutting-edge AI and quantitative 
-          research. We're looking for brilliant minds who share our passion for innovation and 
-          excellence.
-        </Text>
-      </Box>
-
-      {/* Career Departments */}
-      <VStack spacing={14} align="stretch" maxW="container.lg" mx="auto" bg={'rgb(255 255 255 / var(--tw-bg-opacity, 1))'} opacity={1}>
-        {Object.entries(careers).map(([department, jobs]) => (
-          <Box key={department} bg={'white'} borderRadius={'2xl'} p={8}  >
-            <Heading 
-              as="h2" 
-              fontSize="2xl"
-              color="gray.800" 
-              mb={6} 
-              fontWeight="medium"
+    <Box bg={pageBg} minH="100vh" style={{ fontFamily: appleFont }}>
+      <HushhTechHeader />
+      <Box as="main" id="main-content" w="100%">
+        <Container maxW="7xl" pt={{ base: 28, md: 32 }} pb={{ base: 12, md: 20 }} px={{ base: 5, md: 6, lg: 8 }}>
+          <Box textAlign="center" mb={{ base: 10, md: 14 }}>
+            <Text
+              as="p"
+              mb={4}
+              fontSize="13px"
+              fontWeight="600"
+              letterSpacing="0.18em"
+              textTransform="uppercase"
+              color={brandBlue}
             >
-              {department}
+              Careers
+            </Text>
+            <Heading
+              as="h1"
+              fontSize={{ base: "48px", md: "56px" }}
+              mb={5}
+              letterSpacing="-0.028em"
+              lineHeight="1.06"
+              fontWeight="500"
+              color={textPrimary}
+              style={{ fontFamily: appleDisplayFont, textWrap: "balance" }}
+            >
+              Hushh Jobs.
             </Heading>
-            <Divider mb={8} borderColor="gray.200" />
-            
-            <VStack spacing={5} align="stretch" >
-              {jobs.map((job) => (
-                <Box 
-                  key={job.id} 
-                  as={Link} 
-                  to={`/career/${job.id}`}
-                  p={6}
-                  bg={'rgb(250 250 250 / var(--tw-bg-opacity, 1))'}
-                  // borderRadius="lg"
-                  // borderWidth="1px"
-                  borderColor="gray.200"
-                  boxShadow="sm"
-                  _hover={{ 
-                    boxShadow: "md",
-                    borderColor: "gray.300",
-                    textDecoration: "none"
-                  }}
-                  _focusVisible={{
-                    outline: "2px solid",
-                    outlineColor: "blue.400",
-                    outlineOffset: "2px",
-                    boxShadow: "md",
-                    borderColor: "gray.300",
-                  }}
-                  transition="all 0.2s"
-                  className="job-card"
-                  borderRadius="lg"
-                  {...jobCardFocusVisible}
+            <Text
+              fontSize={{ base: "17px", md: "20px" }}
+              maxW="640px"
+              mx="auto"
+              color={textSecondary}
+              fontWeight="300"
+              lineHeight="1.5"
+            >
+              Help us build the AI-powered investment company where rigorous research, product craft,
+              and long-term ownership meet.
+            </Text>
+
+            <HStack justify="center" spacing={{ base: 3, md: 5 }} mt={7} flexWrap="wrap">
+              <Badge
+                px={3}
+                py={1.5}
+                borderRadius="full"
+                bg="rgba(0, 102, 204, 0.08)"
+                color={brandBlue}
+                fontSize="12px"
+                fontWeight="600"
+                letterSpacing="0.08em"
+              >
+                {totalRoles} open roles
+              </Badge>
+              <Badge
+                px={3}
+                py={1.5}
+                borderRadius="full"
+                bg="rgba(29, 29, 31, 0.05)"
+                color="rgba(29, 29, 31, 0.62)"
+                fontSize="12px"
+                fontWeight="600"
+                letterSpacing="0.08em"
+              >
+                {totalDepartments} teams
+              </Badge>
+            </HStack>
+          </Box>
+
+          <VStack spacing={{ base: 6, md: 8 }} align="stretch" maxW="1060px" mx="auto">
+            {Object.entries(careers).map(([department, jobs]) => (
+              <Box key={department} p={{ base: 5, md: 7 }} {...glassCardChrome}>
+                <Flex
+                  align={{ base: "flex-start", md: "center" }}
+                  justify="space-between"
+                  gap={4}
+                  mb={{ base: 5, md: 6 }}
+                  direction={{ base: "column", md: "row" }}
                 >
-                  <Flex justify="space-between" align="center">
-                    <Box>
-                      <Heading as="h3" fontSize="xl" fontWeight="500" color="gray.800" mb={3}>
-                        {job.title}
-                      </Heading>
-                      <HStack
-                        alignItems={{ base: "flex-start", md: "center" }}
-                        spacing={{ base: 2, md: 8 }}
-                        mt={1}
-                        flexDirection={{ base: "column", md: "row" }}
-                      >
-                        <HStack spacing={2}>
-                          <Icon as={MapPin} color="gray.500" boxSize={4} aria-hidden />
-                          <Text color="gray.600" fontSize="sm">{job.location}</Text>
-                        </HStack>
-                        <HStack spacing={2}>
-                          <Icon as={Clock} color="gray.500" boxSize={4} aria-hidden />
-                          <Text color="gray.600" fontSize="sm">Full-time</Text>
-                        </HStack>
-                      </HStack>
+                  <Box>
+                    <Text
+                      mb={2}
+                      fontSize="12px"
+                      fontWeight="600"
+                      letterSpacing="0.16em"
+                      textTransform="uppercase"
+                      color={brandBlue}
+                    >
+                      Team
+                    </Text>
+                    <Heading as="h2" {...sectionHeadingProps} style={{ fontFamily: appleDisplayFont }}>
+                      {department}
+                    </Heading>
+                  </Box>
+                  <Text fontSize="14px" fontWeight="400" color={textTertiary}>
+                    {jobs.length} {jobs.length === 1 ? "role" : "roles"}
+                  </Text>
+                </Flex>
+
+                <VStack spacing={3.5} align="stretch">
+                  {jobs.map((job) => (
+                    <Box
+                      key={job.id}
+                      as={Link}
+                      to={`/career/${job.id}`}
+                      aria-label={`View ${job.title} role`}
+                      p={{ base: 4, md: 5 }}
+                      {...glassCardInteractiveChrome}
+                      {...focusVisible}
+                    >
+                      <Flex align="center" justify="space-between" gap={4}>
+                        <Flex align={{ base: "flex-start", md: "center" }} gap={4} minW={0}>
+                          <LiquidIcon icon={Briefcase} />
+                          <Box minW={0}>
+                            <Heading
+                              as="h3"
+                              fontSize={{ base: "18px", md: "20px" }}
+                              lineHeight="1.2"
+                              letterSpacing="-0.018em"
+                              fontWeight="600"
+                              color={textPrimary}
+                              style={{ fontFamily: appleDisplayFont }}
+                            >
+                              {job.title}
+                            </Heading>
+                            <HStack
+                              mt={3}
+                              spacing={{ base: 2, md: 5 }}
+                              alignItems={{ base: "flex-start", md: "center" }}
+                              flexDirection={{ base: "column", md: "row" }}
+                            >
+                              <HStack spacing={2}>
+                                <Icon as={MapPin} boxSize={4} color={brandBlue} aria-hidden />
+                                <Text {...metaTextProps}>{job.location}</Text>
+                              </HStack>
+                              <HStack spacing={2}>
+                                <Icon as={Clock} boxSize={4} color={brandBlue} aria-hidden />
+                                <Text {...metaTextProps}>Full-time</Text>
+                              </HStack>
+                            </HStack>
+                          </Box>
+                        </Flex>
+                        <Icon as={ChevronRight} color="rgba(29, 29, 31, 0.34)" boxSize={5} aria-hidden />
+                      </Flex>
                     </Box>
-                    <Icon as={ChevronRight} color="gray.400" boxSize={6} aria-hidden />
-                  </Flex>
+                  ))}
+                </VStack>
+              </Box>
+            ))}
+          </VStack>
+
+          <Box mt={{ base: 14, md: 18 }} maxW="1060px" mx="auto">
+            <Box textAlign="center" mb={{ base: 7, md: 9 }}>
+              <Text
+                mb={3}
+                fontSize="12px"
+                fontWeight="600"
+                letterSpacing="0.16em"
+                textTransform="uppercase"
+                color={brandBlue}
+              >
+                Why Hushh
+              </Text>
+              <Heading as="h2" {...sectionHeadingProps} style={{ fontFamily: appleDisplayFont }}>
+                Designed for ambitious builders.
+              </Heading>
+            </Box>
+
+            <SimpleGrid columns={{ base: 1, md: 3 }} spacing={5}>
+              {benefitCards.map((benefit) => (
+                <Box key={benefit.title} p={{ base: 5, md: 6 }} {...glassCardChrome}>
+                  <LiquidIcon icon={benefit.icon} tint={benefit.tint} bg={benefit.bg} size={48} />
+                  <Heading
+                    as="h3"
+                    mt={5}
+                    mb={2.5}
+                    fontSize="20px"
+                    lineHeight="1.2"
+                    letterSpacing="-0.018em"
+                    fontWeight="600"
+                    color={textPrimary}
+                    style={{ fontFamily: appleDisplayFont }}
+                  >
+                    {benefit.title}
+                  </Heading>
+                  <Text fontSize="15px" lineHeight="1.55" fontWeight="300" color={textSecondary}>
+                    {benefit.body}
+                  </Text>
                 </Box>
               ))}
-            </VStack>
+            </SimpleGrid>
           </Box>
-        ))}
-      </VStack>
 
-      {/* Why Work at Hushh Technologies? Section */}
-      <Box mt={24} mb={16}>
-        <Heading 
-          as="h2" 
-          fontSize="3xl"
-          color="gray.800" 
-          mb={16} 
-          textAlign="center"
-          fontWeight="500"
-          letterSpacing="-0.01em"
-        >
-          Why Work at Hushh Technologies?
-        </Heading>
-
-        <SimpleGrid columns={{ base: 1, md: 3 }} spacing={12} maxW="container.lg" mx="auto">
-          {/* Benefit 1 */}
-          <Box textAlign="center">
-            <Flex 
-              justifyContent="center" 
-              alignItems="center" 
-              mb={5}
-            >
-              <Icon as={Rocket} boxSize={12} color="#FF7171" aria-hidden />
-            </Flex>
-            <Heading 
-              as="h3" 
-              fontSize="xl"
-              color="gray.800" 
-              mb={3}
+          <Flex justify="center" mt={{ base: 10, md: 12 }}>
+            <Button
+              as={Link}
+              to="/benefits"
+              h="52px"
+              px={7}
+              borderRadius="full"
+              bg={brandBlue}
+              color="white"
+              fontSize="16px"
               fontWeight="500"
+              letterSpacing="-0.01em"
+              boxShadow="0 14px 30px rgba(0, 102, 204, 0.22)"
+              _hover={{ bg: "#0057B8", textDecoration: "none" }}
+              _active={{ transform: "scale(0.98)" }}
+              {...focusVisible}
             >
-              Cutting-Edge Technology
-            </Heading>
-            <Text 
-              color="gray.600"
-              fontSize="md"
-              lineHeight="tall"
-            >
-              Work with the latest AI and machine learning technologies
-            </Text>
-          </Box>
-
-          {/* Benefit 2 */}
-          <Box textAlign="center">
-            <Flex 
-              justifyContent="center" 
-              alignItems="center" 
-              mb={5}
-            >
-              <Icon as={DollarSign} boxSize={12} color="#F8B76B" aria-hidden />
-            </Flex>
-            <Heading 
-              as="h3" 
-              fontSize="xl"
-              color="gray.800" 
-              mb={3}
-              fontWeight="500"
-            >
-              Competitive Compensation
-            </Heading>
-            <Text 
-              color="gray.600"
-              fontSize="md"
-              lineHeight="tall"
-            >
-              Top-tier salaries, equity, and comprehensive benefits
-            </Text>
-          </Box>
-
-          {/* Benefit 3 */}
-          <Box textAlign="center">
-            <Flex 
-              justifyContent="center" 
-              alignItems="center" 
-              mb={5}
-            >
-              <Icon as={Star} boxSize={12} color="#F8ED62" aria-hidden />
-            </Flex>
-            <Heading 
-              as="h3" 
-              fontSize="xl"
-              color="gray.800" 
-              mb={3}
-              fontWeight="500"
-            >
-              Growth Opportunities
-            </Heading>
-            <Text 
-              color="gray.600"
-              fontSize="md"
-              lineHeight="tall"
-            >
-              Learn from industry experts and advance your career
-            </Text>
-          </Box>
-        </SimpleGrid>
+              View full benefits
+            </Button>
+          </Flex>
+        </Container>
       </Box>
-
-      {/* Benefits Button */}
-      <Flex justifyContent="center" mt={16} mb={10}>
-        <Button
-          as={Link}
-          to="/benefits"
-          bgGradient="linear-gradient(to right, #00A9E0, #6DD3EF)"
-          color="white"
-          px={8}
-          py={5}
-          fontSize="md"
-          fontWeight="500"
-          borderRadius="full"
-          _hover={{ bgGradient: "linear-gradient(to right, #0098cc, #5BC0DC)" }}
-          boxShadow="md"
-          height="auto"
-          className="benefits-button"
-          {...jobCardFocusVisible}
-        >
-          View Full Benefits Package
-        </Button>
-      </Flex>
-    </Container>
+    </Box>
   );
 };
 
 const Career = () => {
   const location = useLocation();
-  
-  // Only show the career list on the main career page
-  if (location.pathname === '/career') {
+
+  if (location.pathname === "/career") {
     return <CareerList />;
   }
 

@@ -10,36 +10,4 @@
   padding: 0 8px 0 12px !important;
 }
 
-/* Career page specific styles */
-@media (min-width: 768px) {
-  .chakra-heading[data-career-heading="true"] {
-    line-height: 1.1 !important;
-    letter-spacing: -0.02em !important;
-  }
-}
-
-/* Enhanced gradient text rendering */
-.gradient-text {
-  -webkit-background-clip: text !important;
-  background-clip: text !important;
-  color: transparent;
-  display: inline;
-  background-image: linear-gradient(to right, #00A9E0, #6DD3EF) !important;
-}
-
-/* Job card hover effect */
-.job-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08) !important;
-}
-
-/* Benefits button custom styling */
-.benefits-button {
-  transition: all 0.3s ease !important;
-}
-
-.benefits-button:hover {
-  transform: translateY(-2px);
-}
-
 /* Any special overrides for Chakra UI components if needed */

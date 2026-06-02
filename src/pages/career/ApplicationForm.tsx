@@ -5,6 +5,15 @@ import {
   Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalCloseButton,
   FormControl, FormLabel, Input, Button, VStack, Text, useToast, Box, Select
 } from '@chakra-ui/react';
+import {
+  appleDisplayFont,
+  appleFont,
+  brandBlue,
+  fieldChrome,
+  focusVisible,
+  textPrimary,
+  textSecondary,
+} from "./careerTheme";
 
 interface ApplicationFormProps {
   jobTitle: string;
@@ -127,31 +136,80 @@ const ApplicationForm = ({ jobTitle, jobLocation, onClose }: ApplicationFormProp
 
   return (
     <Modal isOpen={true} onClose={onClose} size="lg" isCentered>
-      <ModalOverlay bg="blackAlpha.700" />
-      <ModalContent borderRadius="lg" mx={4}>
-        <ModalHeader fontSize="xl">Apply for {jobTitle}</ModalHeader>
+      <ModalOverlay bg="rgba(0,0,0,0.42)" backdropFilter="blur(10px)" />
+      <ModalContent
+        borderRadius="24px"
+        mx={4}
+        bg="rgba(255,255,255,0.94)"
+        border="1px solid rgba(29,29,31,0.08)"
+        boxShadow="0 28px 90px rgba(29,29,31,0.18), inset 0 1px 0 rgba(255,255,255,0.8)"
+        style={{ fontFamily: appleFont }}
+      >
+        <ModalHeader
+          pt={7}
+          pb={2}
+          pr={14}
+          color={textPrimary}
+          fontSize="24px"
+          fontWeight="600"
+          letterSpacing="-0.022em"
+          lineHeight="1.12"
+          style={{ fontFamily: appleDisplayFont }}
+        >
+          Apply for {jobTitle}
+        </ModalHeader>
         <ModalCloseButton />
         <ModalBody pb={6}>
           <form onSubmit={handleSubmit}>
             <VStack spacing={4} align="stretch">
               <FormControl isRequired>
-                <FormLabel>First Name</FormLabel>
-                <Input value={formData.firstName} onChange={(e)=>updateFormField('firstName', e.target.value)} />
+                <FormLabel fontWeight="500" fontSize="13px" color="rgba(29, 29, 31, 0.62)" mb={1.5}>
+                  First Name
+                </FormLabel>
+                <Input
+                  h="50px"
+                  value={formData.firstName}
+                  onChange={(e)=>updateFormField('firstName', e.target.value)}
+                  {...fieldChrome}
+                />
               </FormControl>
 
               <FormControl isRequired>
-                <FormLabel>Last Name</FormLabel>
-                <Input value={formData.lastName} onChange={(e)=>updateFormField('lastName', e.target.value)} />
+                <FormLabel fontWeight="500" fontSize="13px" color="rgba(29, 29, 31, 0.62)" mb={1.5}>
+                  Last Name
+                </FormLabel>
+                <Input
+                  h="50px"
+                  value={formData.lastName}
+                  onChange={(e)=>updateFormField('lastName', e.target.value)}
+                  {...fieldChrome}
+                />
               </FormControl>
 
               <FormControl isRequired>
-                <FormLabel>Email</FormLabel>
-                <Input type="email" value={formData.email} onChange={(e)=>updateFormField('email', e.target.value)} />
+                <FormLabel fontWeight="500" fontSize="13px" color="rgba(29, 29, 31, 0.62)" mb={1.5}>
+                  Email
+                </FormLabel>
+                <Input
+                  h="50px"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e)=>updateFormField('email', e.target.value)}
+                  {...fieldChrome}
+                />
               </FormControl>
 
               <FormControl isRequired>
-                <FormLabel>College Email</FormLabel>
-                <Input type="email" value={formData.collegeEmail} onChange={(e)=>updateFormField('collegeEmail', e.target.value)} />
+                <FormLabel fontWeight="500" fontSize="13px" color="rgba(29, 29, 31, 0.62)" mb={1.5}>
+                  College Email
+                </FormLabel>
+                <Input
+                  h="50px"
+                  type="email"
+                  value={formData.collegeEmail}
+                  onChange={(e)=>updateFormField('collegeEmail', e.target.value)}
+                  {...fieldChrome}
+                />
               </FormControl>
 
               {/* <FormControl isRequired>
@@ -160,25 +218,46 @@ const ApplicationForm = ({ jobTitle, jobLocation, onClose }: ApplicationFormProp
               </FormControl> */}
 
               <FormControl isRequired>
-                <FormLabel>Phone Number</FormLabel>
-                <Box borderWidth="1px" borderColor="gray.200" borderRadius="md" p={1}>
+                <FormLabel fontWeight="500" fontSize="13px" color="rgba(29, 29, 31, 0.62)" mb={1.5}>
+                  Phone Number
+                </FormLabel>
+                <Box
+                  borderWidth="1px"
+                  borderColor="rgba(29, 29, 31, 0.08)"
+                  borderRadius="14px"
+                  bg="rgba(249, 250, 251, 0.78)"
+                  p={1}
+                  boxShadow="inset 0 1px 0 rgba(255, 255, 255, 0.75)"
+                >
                   <PhoneInput
                     country="us"
                     value={formData.phone}
                     onChange={(phone)=>updateFormField('phone', phone)}
-                    inputStyle={{ width:'100%', border:'none', outline:'none' }}
+                    inputStyle={{
+                      width:'100%',
+                      border:'none',
+                      outline:'none',
+                      background:'transparent',
+                      height: '42px',
+                      color: textPrimary,
+                      fontSize: '15px',
+                      fontFamily: appleFont,
+                    }}
                     buttonStyle={{ border:'none', background:'none' }}
                   />
                 </Box>
               </FormControl>
 
               <FormControl isRequired>
-                <FormLabel>College</FormLabel>
+                <FormLabel fontWeight="500" fontSize="13px" color="rgba(29, 29, 31, 0.62)" mb={1.5}>
+                  College
+                </FormLabel>
                 <Select
                   placeholder="Select your college"
                   value={formData.college}
                   onChange={(e)=>updateFormField('college', e.target.value)}
-                  focusBorderColor="cyan.400"
+                  h="50px"
+                  {...fieldChrome}
                 >
                   {ALLOWED_COLLEGES.map(({ value, label }) => (
                     <option key={value} value={value}>{label}</option>
@@ -187,17 +266,39 @@ const ApplicationForm = ({ jobTitle, jobLocation, onClose }: ApplicationFormProp
               </FormControl>
 
               <FormControl isRequired>
-                <FormLabel>Resume Link</FormLabel>
+                <FormLabel fontWeight="500" fontSize="13px" color="rgba(29, 29, 31, 0.62)" mb={1.5}>
+                  Resume Link
+                </FormLabel>
                 <Input
+                  h="50px"
                   type="url"
                   value={formData.resumeLink}
                   onChange={(e)=>updateFormField('resumeLink', e.target.value)}
                   placeholder="https://drive.google.com/your-resume-link"
+                  {...fieldChrome}
                 />
-                <Text fontSize="sm" color="gray.500" mt={1}>Please provide a public link to your resume</Text>
+                <Text fontSize="13px" color={textSecondary} mt={1.5} fontWeight="300">
+                  Please provide a public link to your resume.
+                </Text>
               </FormControl>
 
-              <Button type="submit" colorScheme="cyan" size="lg" isLoading={loading} w="100%" mt={4}>
+              <Button
+                type="submit"
+                h="50px"
+                isLoading={loading}
+                w="100%"
+                mt={4}
+                borderRadius="full"
+                bg={brandBlue}
+                color="white"
+                fontSize="16px"
+                fontWeight="500"
+                letterSpacing="-0.01em"
+                boxShadow="0 14px 30px rgba(0, 102, 204, 0.22)"
+                _hover={{ bg: "#0057B8" }}
+                _active={{ transform: "scale(0.98)" }}
+                {...focusVisible}
+              >
                 Submit Application
               </Button>
             </VStack>

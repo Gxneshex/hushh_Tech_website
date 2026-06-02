@@ -34,7 +34,7 @@ describe("legal and support footer pages", () => {
     }
 
     expect(app).toContain("isLegalPublicPage || isModernPublicPage");
-    expect(app).toContain("isHushhUserProfile || isLegalPublicPage || isModernPublicPage");
+    expect(app).toContain("isHushhUserProfile || isCareer || isLegalPublicPage || isModernPublicPage");
   });
 
   it("keeps legal pages on the shared HushhTech legal shell, not Chakra pages", () => {
