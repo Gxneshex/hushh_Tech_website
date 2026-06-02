@@ -38,6 +38,12 @@ describe("legal and support footer pages", () => {
   });
 
   it("keeps legal pages on the shared HushhTech legal shell, not Chakra pages", () => {
+    const shell = read("src/components/hushh-tech-legal-page/HushhTechLegalPage.tsx");
+
+    expect(shell).toContain("appleDisplayFont");
+    expect(shell).toContain("text-[48px] font-medium leading-[1.06] tracking-[-0.028em] text-[#1D1D1F] md:text-[56px]");
+    expect(shell).toContain("text-[17px] font-light leading-[1.5] tracking-normal text-[#1D1D1F]/60 md:text-[20px]");
+
     for (const path of [
       "src/pages/terms-of-service/index.tsx",
       "src/pages/privacy-policy/index.tsx",

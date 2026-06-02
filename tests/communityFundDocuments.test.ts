@@ -47,9 +47,13 @@ describe("Community Fund A document presentation", () => {
     const contact = read("src/pages/Contact.tsx");
 
     expect(contact).toContain(
-      'import { appleFont } from "../components/hushh-tech-ui/HushhAppleUI";',
+      'import { appleDisplayFont, appleFont } from "../components/hushh-tech-ui/HushhAppleUI";',
     );
     expect(contact).toContain("Get in touch.");
+    expect(contact).toContain('fontSize={{ base: "48px", md: "56px" }}');
+    expect(contact).toContain('fontWeight="500"');
+    expect(contact).toContain("style={{ fontFamily: appleDisplayFont");
+    expect(contact).toContain('color={textPrimary}');
     expect(contact).not.toMatch(/Playfair Display|font-serif|fontStyle="italic"/);
   });
 });

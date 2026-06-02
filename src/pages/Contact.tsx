@@ -23,37 +23,64 @@ import {
 } from "@chakra-ui/react";
 import { MapPin, Phone, Clock, ArrowRight } from "lucide-react";
 import HushhTechHeader from "../components/hushh-tech-header/HushhTechHeader";
-import { appleFont } from "../components/hushh-tech-ui/HushhAppleUI";
+import { appleDisplayFont, appleFont } from "../components/hushh-tech-ui/HushhAppleUI";
 
 /** Greys aligned with `home/ui.tsx` Tailwind tokens (gray-*, ios-gray-bg). */
 const iosGrayBg = "#F5F5F7";
 const gray50 = "#F9FAFB";
 const gray100 = "#F3F4F6";
-const gray200 = "#E5E7EB";
 const gray300 = "#D1D5DB";
-const gray500 = "#6B7280";
-const gray900 = "#111827";
 
 const pageBg = iosGrayBg;
+const textPrimary = "#1D1D1F";
+const textSecondary = "rgba(29, 29, 31, 0.6)";
+const textTertiary = "rgba(29, 29, 31, 0.48)";
 const brandBlue = "#0066CC";
-const cardBorder = "rgba(229, 231, 235, 0.6)";
+const cardBorder = "rgba(29, 29, 31, 0.07)";
 const inputFocus = {
   borderColor: brandBlue,
-  boxShadow: `0 0 0 1px ${brandBlue}`,
+  boxShadow: `0 0 0 1px ${brandBlue}, 0 0 0 4px rgba(0, 102, 204, 0.1)`,
 };
 
 /** Shared field chrome — matches home gray inputs / ios-gray-bg section. */
 const fieldChrome = {
-  borderRadius: "lg" as const,
-  borderColor: gray200,
-  bg: gray50,
-  color: gray900,
-  _placeholder: { color: gray500 },
+  borderRadius: "14px" as const,
+  borderColor: "rgba(29, 29, 31, 0.08)",
+  bg: "rgba(249, 250, 251, 0.78)",
+  color: textPrimary,
+  fontSize: "15px",
+  fontWeight: "400",
+  boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.75)",
+  _placeholder: { color: "rgba(29, 29, 31, 0.38)" },
   _hover: { borderColor: gray300 },
   _focusVisible: inputFocus,
 };
 
-const cardHoverBorder = "rgba(0, 102, 204, 0.3)";
+const cardHoverBorder = "rgba(0, 102, 204, 0.24)";
+const glassCardChrome = {
+  borderRadius: "24px" as const,
+  borderWidth: "1px",
+  borderColor: cardBorder,
+  bg: "rgba(255, 255, 255, 0.82)",
+  boxShadow:
+    "0 24px 70px rgba(29, 29, 31, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.82)",
+  backdropFilter: "blur(22px)",
+  transition: "border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease",
+  _hover: {
+    borderColor: cardHoverBorder,
+    boxShadow:
+      "0 28px 80px rgba(29, 29, 31, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.9)",
+    transform: "translateY(-1px)",
+  },
+};
+
+const sectionHeadingProps = {
+  fontSize: { base: "26px", md: "30px" },
+  lineHeight: "1.12",
+  letterSpacing: "-0.022em",
+  fontWeight: "600",
+  color: textPrimary,
+};
 
 const buttonFocusVisible = {
   _focusVisible: inputFocus,
@@ -174,39 +201,41 @@ export default function Contact() {
         id="main-content"
         w="100%"
       >
-      <Container maxW="7xl" py={{ base: 10, md: 14 }} px={{ base: 4, md: 6, lg: 8 }}>
+      <Container maxW="7xl" py={{ base: 12, md: 20 }} px={{ base: 5, md: 6, lg: 8 }}>
         {/* Main Header */}
-        <Box textAlign="center" mb={{ base: 8, md: 10 }}>
+        <Box textAlign="center" mb={{ base: 9, md: 12 }}>
           <Heading
             as="h1"
-            size={{ base: "2xl", md: "3xl" }}
-            mb={4}
-            letterSpacing="tight"
-            lineHeight="1.15"
-            fontWeight="600"
-            color="black"
-            style={{ fontFamily: appleFont }}
+            fontSize={{ base: "48px", md: "56px" }}
+            mb={5}
+            letterSpacing="-0.028em"
+            lineHeight="1.06"
+            fontWeight="500"
+            color={textPrimary}
+            style={{ fontFamily: appleDisplayFont, textWrap: "balance" }}
           >
             Get in touch.
           </Heading>
 
           <Text
-            fontSize={{ base: "md", md: "lg" }}
-            maxW="3xl"
+            fontSize={{ base: "17px", md: "20px" }}
+            maxW="560px"
             mx="auto"
-            color={gray500}
+            color={textSecondary}
             fontWeight="300"
-            lineHeight="1.65"
+            lineHeight="1.5"
           >
             Ready to transform your investment strategy? We'd love to hear from you.
           </Text>
 
           <Text
             mt={4}
-            fontSize={{ base: "md", md: "md" }}
-            color={gray500}
+            fontSize={{ base: "14px", md: "15px" }}
+            maxW="760px"
+            mx="auto"
+            color={textTertiary}
             fontWeight="400"
-            lineHeight="1.65"
+            lineHeight="1.6"
           >
             For career-related inquiries, please visit our{" "}
             <ChakraLink
@@ -214,7 +243,7 @@ export default function Contact() {
               // target="_blank"
               rel="noopener noreferrer"
               color={brandBlue}
-              fontWeight="600"
+              fontWeight="500"
               _hover={{ color: brandBlue, textDecoration: "underline" }}
             >
               Jobs page
@@ -227,8 +256,8 @@ export default function Contact() {
         <Grid
           templateColumns={{ base: "1fr", lg: "1fr 1fr" }}
           gap={{ base: 8, md: 10 }}
-          mt={{ base: 6, md: 8 }}
-          maxW="5xl"
+          mt={{ base: 7, md: 9 }}
+          maxW="1060px"
           mx="auto"
           alignItems="start"
         >
@@ -236,23 +265,15 @@ export default function Contact() {
           <GridItem
             as={Box}
             p={{ base: 6, md: 8 }}
-            borderRadius="2xl"
-            borderWidth="1px"
-            borderColor={cardBorder}
-            bg="white"
-            boxShadow="0 8px 30px -4px rgba(0, 0, 0, 0.04)"
-            transition="border-color 0.2s ease"
-            _hover={{ borderColor: cardHoverBorder }}
+            {...glassCardChrome}
           >
             <Heading
               as="h2"
-              size="lg"
               mb={6}
-              color="black"
-              fontWeight="500"
-              style={{ fontFamily: appleFont }}
+              {...sectionHeadingProps}
+              style={{ fontFamily: appleDisplayFont }}
             >
-              Send us a Message
+              Send us a message
             </Heading>
 
             <form onSubmit={handleSubmit} aria-busy={isSubmitting}>
@@ -274,7 +295,7 @@ export default function Contact() {
                   data-testid="contact-form-field-row"
                 >
                   <FormControl isRequired>
-                    <FormLabel fontWeight="500" fontSize="sm" color={gray500} mb={1.5}>
+                    <FormLabel fontWeight="500" fontSize="13px" color="rgba(29, 29, 31, 0.62)" mb={1.5}>
                       Full Name
                     </FormLabel>
                     <Input
@@ -283,22 +304,22 @@ export default function Contact() {
                       value={formData.name}
                       onChange={handleChange}
                       size="lg"
-                      h="48px"
+                      h="52px"
                       {...fieldChrome}
                     />
                   </FormControl>
 
                   <FormControl>
-                    <FormLabel fontWeight="500" fontSize="sm" color={gray500} mb={1.5}>
+                    <FormLabel fontWeight="500" fontSize="13px" color="rgba(29, 29, 31, 0.62)" mb={1.5}>
                       Company
                     </FormLabel>
                     <Input
                       name="company"
-                      placeholder="Enter your company name (optional)"
+                      placeholder="Company name (optional)"
                       value={formData.company}
                       onChange={handleChange}
                       size="lg"
-                      h="48px"
+                      h="52px"
                       {...fieldChrome}
                     />
                   </FormControl>
@@ -312,7 +333,7 @@ export default function Contact() {
                   data-testid="contact-form-field-row"
                 >
                   <FormControl isRequired>
-                    <FormLabel fontWeight="500" fontSize="sm" color={gray500} mb={1.5}>
+                    <FormLabel fontWeight="500" fontSize="13px" color="rgba(29, 29, 31, 0.62)" mb={1.5}>
                       Email Address
                     </FormLabel>
                     <Input
@@ -322,29 +343,29 @@ export default function Contact() {
                       value={formData.email}
                       onChange={handleChange}
                       size="lg"
-                      h="48px"
+                      h="52px"
                       {...fieldChrome}
                     />
                   </FormControl>
 
                   <FormControl>
-                    <FormLabel fontWeight="500" fontSize="sm" color={gray500} mb={1.5}>
+                    <FormLabel fontWeight="500" fontSize="13px" color="rgba(29, 29, 31, 0.62)" mb={1.5}>
                       Phone Number
                     </FormLabel>
                     <Input
                       name="phone"
-                      placeholder="Enter your phone number (optional)"
+                      placeholder="Phone number (optional)"
                       value={formData.phone}
                       onChange={handleChange}
                       size="lg"
-                      h="48px"
+                      h="52px"
                       {...fieldChrome}
                     />
                   </FormControl>
                 </SimpleGrid>
 
                 <FormControl isRequired>
-                  <FormLabel fontWeight="500" fontSize="sm" color={gray500} mb={1.5}>
+                  <FormLabel fontWeight="500" fontSize="13px" color="rgba(29, 29, 31, 0.62)" mb={1.5}>
                     Reason for Contact
                   </FormLabel>
                   <Select
@@ -353,7 +374,7 @@ export default function Contact() {
                     value={formData.reason}
                     onChange={handleChange}
                     size="lg"
-                    h="48px"
+                    h="52px"
                     {...fieldChrome}
                   >
                     {reasonOptions.map((option) => (
@@ -365,7 +386,7 @@ export default function Contact() {
                 </FormControl>
 
                 <FormControl isRequired>
-                  <FormLabel fontWeight="500" fontSize="sm" color={gray500} mb={1.5}>
+                  <FormLabel fontWeight="500" fontSize="13px" color="rgba(29, 29, 31, 0.62)" mb={1.5}>
                     Message
                   </FormLabel>
                   <Textarea
@@ -381,7 +402,7 @@ export default function Contact() {
                 </FormControl>
 
                 <FormControl isRequired>
-                  <FormLabel fontWeight="500" fontSize="sm" color={gray500} mb={1.5}>
+                  <FormLabel fontWeight="500" fontSize="13px" color="rgba(29, 29, 31, 0.62)" mb={1.5}>
                     What is the sum of {num1} and {num2}?
                   </FormLabel>
                   <Input
@@ -391,7 +412,7 @@ export default function Contact() {
                     value={formData.captcha}
                     onChange={handleChange}
                     size="lg"
-                    h="48px"
+                    h="52px"
                     aria-invalid={captchaError ? true : undefined}
                     aria-describedby={captchaError ? CAPTCHA_ERROR_ID : undefined}
                     isDisabled={isSubmitting}
@@ -410,26 +431,27 @@ export default function Contact() {
                   </Text>
                 </FormControl>
 
-                <Box pt={6} mt={1} borderTopWidth="1px" borderTopColor={gray100}>
+                <Box pt={6} mt={1} borderTopWidth="1px" borderTopColor="rgba(29, 29, 31, 0.06)">
                   <Button
                     type="submit"
                     width="full"
                     size="lg"
                     h="52px"
-                    borderRadius="lg"
-                    fontWeight="600"
-                    bg="gray.900"
+                    borderRadius="full"
+                    fontWeight="500"
+                    bg={brandBlue}
                     color="white"
                     isLoading={isSubmitting}
                     isDisabled={isSubmitting}
                     loadingText="Sending..."
                     aria-busy={isSubmitting}
-                    _hover={{ bg: isSubmitting ? "gray.900" : "black" }}
-                    _active={{ bg: "black" }}
-                    _disabled={{ bg: "gray.900", opacity: 0.7, cursor: "not-allowed" }}
+                    boxShadow="0 12px 26px rgba(0, 102, 204, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.24)"
+                    _hover={{ bg: isSubmitting ? brandBlue : "#0071E3" }}
+                    _active={{ bg: "#005BB5", transform: "scale(0.99)" }}
+                    _disabled={{ bg: brandBlue, opacity: 0.7, cursor: "not-allowed" }}
                     {...buttonFocusVisible}
                   >
-                    Submit Message
+                    Submit message
                   </Button>
                 </Box>
               </VStack>
@@ -440,85 +462,110 @@ export default function Contact() {
           <GridItem>
             <Box
               p={{ base: 6, md: 8 }}
-              borderRadius="2xl"
-              borderWidth="1px"
-              borderColor={cardBorder}
-              bg={iosGrayBg}
-              boxShadow="0 8px 30px -4px rgba(0, 0, 0, 0.03)"
               mb={8}
-              transition="border-color 0.2s ease"
-              _hover={{ borderColor: cardHoverBorder }}
+              {...glassCardChrome}
             >
               <Heading
                 as="h2"
-                size="lg"
                 mb={6}
-                color="black"
-                fontWeight="500"
-                style={{ fontFamily: appleFont }}
+                {...sectionHeadingProps}
+                style={{ fontFamily: appleDisplayFont }}
               >
                 Contact Information
               </Heading>
 
               <VStack spacing={6} align="start">
                 <HStack spacing={4} align="flex-start">
-                  <Icon
-                    as={MapPin}
-                    aria-hidden
-                    color={brandBlue}
-                    boxSize={5}
-                    mt={1}
-                    strokeWidth={1.75}
-                  />
+                  <Box
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                    w="40px"
+                    h="40px"
+                    flexShrink={0}
+                    borderRadius="14px"
+                    bg="rgba(255, 255, 255, 0.78)"
+                    boxShadow="0 10px 24px rgba(29, 29, 31, 0.08), inset 0 0 0 1px rgba(29, 29, 31, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.8)"
+                  >
+                    <Icon
+                      as={MapPin}
+                      aria-hidden
+                      color={brandBlue}
+                      boxSize={5}
+                      strokeWidth={1.8}
+                    />
+                  </Box>
                   <Box>
-                    <Text fontWeight="600" color="gray.900" fontSize="sm">
+                    <Text fontWeight="600" color={textPrimary} fontSize="15px">
                       Address
                     </Text>
-                    <Text color={gray500} fontSize="sm" lineHeight="1.6" mt={0.5} fontWeight="300">
+                    <Text color={textTertiary} fontSize="14px" lineHeight="1.6" mt={0.5} fontWeight="300">
                       1021 5th St W
                     </Text>
-                    <Text color={gray500} fontSize="sm" lineHeight="1.6" fontWeight="300">
+                    <Text color={textTertiary} fontSize="14px" lineHeight="1.6" fontWeight="300">
                       Kirkland, WA 98033
                     </Text>
                   </Box>
                 </HStack>
 
                 <HStack spacing={4} align="flex-start">
-                  <Icon
-                    as={Phone}
-                    aria-hidden
-                    color={brandBlue}
-                    boxSize={5}
-                    mt={1}
-                    strokeWidth={1.75}
-                  />
+                  <Box
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                    w="40px"
+                    h="40px"
+                    flexShrink={0}
+                    borderRadius="14px"
+                    bg="rgba(255, 255, 255, 0.78)"
+                    boxShadow="0 10px 24px rgba(29, 29, 31, 0.08), inset 0 0 0 1px rgba(29, 29, 31, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.8)"
+                  >
+                    <Icon
+                      as={Phone}
+                      aria-hidden
+                      color={brandBlue}
+                      boxSize={5}
+                      strokeWidth={1.8}
+                    />
+                  </Box>
                   <Box>
-                    <Text fontWeight="600" color="gray.900" fontSize="sm">
+                    <Text fontWeight="600" color={textPrimary} fontSize="15px">
                       Phone
                     </Text>
-                    <Text color={gray500} fontSize="sm" lineHeight="1.6" mt={0.5} fontWeight="300">
+                    <Text color={textTertiary} fontSize="14px" lineHeight="1.6" mt={0.5} fontWeight="300">
                       (888) 462-1726
                     </Text>
                   </Box>
                 </HStack>
 
                 <HStack spacing={4} align="flex-start">
-                  <Icon
-                    as={Clock}
-                    aria-hidden
-                    color={brandBlue}
-                    boxSize={5}
-                    mt={1}
-                    strokeWidth={1.75}
-                  />
+                  <Box
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                    w="40px"
+                    h="40px"
+                    flexShrink={0}
+                    borderRadius="14px"
+                    bg="rgba(255, 255, 255, 0.78)"
+                    boxShadow="0 10px 24px rgba(29, 29, 31, 0.08), inset 0 0 0 1px rgba(29, 29, 31, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.8)"
+                  >
+                    <Icon
+                      as={Clock}
+                      aria-hidden
+                      color={brandBlue}
+                      boxSize={5}
+                      strokeWidth={1.8}
+                    />
+                  </Box>
                   <Box>
-                    <Text fontWeight="600" color="gray.900" fontSize="sm">
+                    <Text fontWeight="600" color={textPrimary} fontSize="15px">
                       Office Hours
                     </Text>
-                    <Text color={gray500} fontSize="sm" lineHeight="1.6" mt={0.5} fontWeight="300">
+                    <Text color={textTertiary} fontSize="14px" lineHeight="1.6" mt={0.5} fontWeight="300">
                       Monday - Friday
                     </Text>
-                    <Text color={gray500} fontSize="sm" lineHeight="1.6" fontWeight="300">
+                    <Text color={textTertiary} fontSize="14px" lineHeight="1.6" fontWeight="300">
                       9:00 AM - 6:00 PM PST
                     </Text>
                   </Box>
@@ -528,20 +575,22 @@ export default function Contact() {
 
             <Box
               p={{ base: 6, md: 8 }}
-              borderRadius="2xl"
-              bg="#1D1D1F"
+              borderRadius="24px"
+              bg="linear-gradient(180deg, #1D1D1F 0%, #0F1115 100%)"
               color="white"
-              boxShadow="0 20px 40px -12px rgba(0, 0, 0, 0.2)"
+              boxShadow="0 24px 70px rgba(29, 29, 31, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.12)"
               borderWidth="1px"
-              borderColor="rgba(255, 255, 255, 0.08)"
+              borderColor="rgba(255, 255, 255, 0.1)"
             >
               <Heading
                 as="h3"
-                size="lg"
                 mb={4}
-                fontWeight="500"
+                fontSize={{ base: "24px", md: "28px" }}
+                lineHeight="1.12"
+                letterSpacing="-0.022em"
+                fontWeight="600"
                 color="white"
-                style={{ fontFamily: appleFont }}
+                style={{ fontFamily: appleDisplayFont }}
               >
                 Ready to Invest?
               </Heading>
@@ -559,14 +608,15 @@ export default function Contact() {
                 width="full"
                 size="lg"
                 h="52px"
-                borderRadius="lg"
+                borderRadius="full"
                 bg="white"
-                color="gray.900"
-                fontWeight="600"
+                color={textPrimary}
+                fontWeight="500"
                 borderWidth="1px"
-                borderColor={gray200}
+                borderColor="rgba(255, 255, 255, 0.7)"
+                boxShadow="0 10px 24px rgba(0, 0, 0, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.65)"
                 rightIcon={
-                  <Icon as={ArrowRight} aria-hidden boxSize={4} color={gray900} />
+                  <Icon as={ArrowRight} aria-hidden boxSize={4} color={textPrimary} />
                 }
                 _hover={{ bg: gray50 }}
                 _active={{ bg: gray100 }}
