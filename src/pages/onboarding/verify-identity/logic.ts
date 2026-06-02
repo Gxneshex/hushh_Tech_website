@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@chakra-ui/react';
 import config from '../../../resources/config/config';
 import { useAuthSession } from '../../../auth/AuthSessionProvider';
 import { buildLoginRedirectPath } from '../../../auth/routePolicy';
+import { upsertOnboardingData } from '../../../services/onboarding/upsertOnboardingData';
+import { CONSENT_VERSION } from '../../../services/consent/consentConfig';
 
 export interface OnboardingData {
   legal_first_name?: string;
@@ -38,7 +40,15 @@ export function useVerifyIdentityLogic() {
     phone_verified: false,
   });
 
-  // Check authentication and load data
+  // Legal consent checkpoint (mirrors the financial-link / step-9 pattern).
+  const [identityConsentChecked, setIdentityConsentChecked] = useState(false);
+  const [identityConsentPersisted, setIdentityConsentPersisted] = useState(false);
+  const [identityConsentError, setIdentityConsentError] = useState(false);
+
+  // Explicit defer ("I'll do this later") confirm modal.
+  const [isSkipConfirmOpen, setIsSkipConfirmOpen] = useState(false);
+  const [isSkipping, setIsSkipping] = useState(false);
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -67,7 +77,6 @@ export function useVerifyIdentityLogic() {
 
     const loadUserData = async () => {
       try {
-        // Load onboarding data
         const { data: onboarding } = await config.supabaseClient
           .from('onboarding_data')
           .select('*')
@@ -76,7 +85,13 @@ export function useVerifyIdentityLogic() {
 
         if (onboarding) {
           setOnboardingData(onboarding);
-          
+
+          // Pre-check consent for a returning user (don't re-prompt).
+          if (onboarding.identity_consent_at) {
+            setIdentityConsentChecked(true);
+            setIdentityConsentPersisted(true);
+          }
+
           // If already verified, redirect to profile
           if (onboarding.identity_verified) {
             navigate('/hushh-user-profile');
@@ -101,7 +116,7 @@ export function useVerifyIdentityLogic() {
             email_verified: verification.email_verified || false,
             phone_verified: verification.phone_verified || false,
           });
-          
+
           // If verified, redirect
           if (verification.stripe_status === 'verified') {
             navigate('/hushh-user-profile');
@@ -118,8 +133,49 @@ export function useVerifyIdentityLogic() {
     void loadUserData();
   }, [navigate, status, toast, user]);
 
+  /* Record the identity-verification consent once, BEFORE the Stripe session is
+     created. Reuses the onboarding_data row; upsert silently drops the column if
+     the migration hasn't landed yet. */
+  const persistIdentityConsent = useCallback(async () => {
+    if (identityConsentPersisted || !user?.id) return true;
+    setIdentityConsentPersisted(true);
+    const { error } = await upsertOnboardingData(user.id, {
+      identity_consent_at: new Date().toISOString(),
+      consent_version: CONSENT_VERSION,
+    });
+    if (error) {
+      setIdentityConsentPersisted(false);
+      toast({
+        title: 'Error',
+        description: error.message || 'Unable to save consent. Please try again.',
+        status: 'error',
+        duration: 5000,
+      });
+      return false;
+    }
+    return true;
+  }, [identityConsentPersisted, user, toast]);
+
+  const handleIdentityConsentChange = useCallback((checked: boolean) => {
+    setIdentityConsentChecked(checked);
+    if (checked) setIdentityConsentError(false);
+  }, []);
+
   const startVerification = async () => {
+    // Legal gate: the user must consent before a Stripe Identity session exists.
+    if (!identityConsentChecked) {
+      setIdentityConsentError(true);
+      return;
+    }
     setStartingVerification(true);
+
+    // Persist the consent BEFORE creating the verification session (audit order:
+    // never a Stripe session without a recorded consent).
+    const consentSaved = await persistIdentityConsent();
+    if (!consentSaved) {
+      setStartingVerification(false);
+      return;
+    }
 
     try {
       if (!session?.access_token) {
@@ -172,21 +228,51 @@ export function useVerifyIdentityLogic() {
     }
   };
 
-  const skipVerification = async () => {
-    // Mark as skipped and proceed to profile
-    // User can verify later from profile page
-    navigate('/hushh-user-profile');
-  };
+  /* Defer ("I'll do this later") — confirm first, then record an explicit,
+     auditable deferred state instead of a silent navigate. */
+  const openSkipConfirm = useCallback(() => setIsSkipConfirmOpen(true), []);
+  const closeSkipConfirm = useCallback(() => {
+    if (isSkipping) return;
+    setIsSkipConfirmOpen(false);
+  }, [isSkipping]);
+  const handleConfirmSkip = useCallback(async () => {
+    if (!user?.id) { navigate('/hushh-user-profile'); return; }
+    setIsSkipping(true);
+    try {
+      await upsertOnboardingData(user.id, {
+        identity_verification_deferred_at: new Date().toISOString(),
+      });
+      setIsSkipConfirmOpen(false);
+      navigate('/hushh-user-profile');
+    } catch {
+      navigate('/hushh-user-profile');
+    } finally {
+      setIsSkipping(false);
+    }
+  }, [user, navigate]);
 
   const goBack = () => navigate('/hushh-user-profile');
+
+  const startDisabled = startingVerification || !identityConsentChecked;
 
   return {
     loading,
     startingVerification,
+    startDisabled,
     onboardingData,
     verificationStatus,
+    // consent
+    identityConsentChecked,
+    identityConsentError,
+    handleIdentityConsentChange,
+    // actions
     startVerification,
-    skipVerification,
+    // defer
+    isSkipConfirmOpen,
+    isSkipping,
+    openSkipConfirm,
+    closeSkipConfirm,
+    handleConfirmSkip,
     goBack,
   };
 }

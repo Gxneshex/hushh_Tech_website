@@ -14,6 +14,7 @@ function VerifyCompletePage() {
   const {
     result,
     pollingCount,
+    checks,
     handleContinue,
     handleRetry,
   } = useVerifyCompleteLogic();
@@ -71,6 +72,30 @@ function VerifyCompletePage() {
         <p className="mt-3 text-sm text-black/60 font-light leading-[1.45] max-w-xs mb-8">
           {cfg.desc}
         </p>
+
+        {/* Live sub-checks — which Stripe Identity checks have cleared */}
+        {(result === 'verified' || result === 'processing') && (
+          <div className="w-full max-w-xs mb-8 space-y-2.5 text-left">
+            {[
+              { label: 'Document', done: checks.document },
+              { label: 'Selfie', done: checks.selfie },
+              { label: 'Email', done: checks.email },
+              { label: 'Phone', done: checks.phone },
+            ].map((c) => (
+              <div key={c.label} className="flex items-center gap-2.5">
+                <span
+                  className={`material-symbols-outlined text-[18px] ${c.done ? 'text-ios-green' : 'text-gray-300'}`}
+                  style={{ fontVariationSettings: "'FILL' 1" }}
+                >
+                  {c.done ? 'check_circle' : 'radio_button_unchecked'}
+                </span>
+                <span className={`text-[13px] font-medium ${c.done ? 'text-gray-900' : 'text-gray-400'}`}>
+                  {c.label} {c.done ? 'verified' : 'pending'}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Processing progress */}
         {result === 'processing' && (

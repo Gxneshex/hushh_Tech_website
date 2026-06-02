@@ -74,6 +74,7 @@ describe("onboarding consent contract", () => {
   it("shows consent language on KYC and identity verification surfaces", () => {
     const kyc = read("src/components/kyc/screens/KycDetailsConsentScreen.tsx");
     const verify = read("src/pages/onboarding/verify-identity/ui.tsx");
+    const verifyLogic = read("src/pages/onboarding/verify-identity/logic.ts");
     const step7 = read("src/pages/onboarding/step-7/ui.tsx");
     const signup = read("src/pages/signup/ui.tsx");
 
@@ -83,8 +84,11 @@ describe("onboarding consent contract", () => {
     expect(kyc).toContain("!formData.consentChecked");
     expect(kyc).not.toContain("securely reusing my existing KYC where possible");
     expect(verify).toContain("CONSENT_COPY.identityVerification");
-    expect(verify).not.toContain("<ConsentCheckbox");
-    expect(verify).not.toContain("type=\"checkbox\"");
+    // Identity verification now gates Stripe Identity on an explicit consent
+    // checkbox and persists that consent for audit (identity_consent_at).
+    expect(verify).toContain("<ConsentCheckbox");
+    expect(verifyLogic).toContain("identity_consent_at");
+    expect(verifyLogic).toContain("setIdentityConsentError(true)");
     expect(step7).toContain("CONSENT_LINKS.riskDisclosures");
     expect(step7).not.toContain("<ConsentCheckbox");
     expect(signup).toContain("CONSENT_COPY.signup");

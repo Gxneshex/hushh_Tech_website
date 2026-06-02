@@ -9,6 +9,7 @@ export function useVerifyCompleteLogic() {
   const navigate = useNavigate();
   const [result, setResult] = useState<VerificationResult>('loading');
   const [pollingCount, setPollingCount] = useState(0);
+  const [checks, setChecks] = useState({ document: false, selfie: false, email: false, phone: false });
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -50,6 +51,12 @@ export function useVerifyCompleteLogic() {
         .single();
 
       if (verification) {
+        setChecks({
+          document: Boolean(verification.document_verified),
+          selfie: Boolean(verification.selfie_verified),
+          email: Boolean(verification.email_verified),
+          phone: Boolean(verification.phone_verified),
+        });
         switch (verification.stripe_status) {
           case 'verified':
             setResult('verified');
@@ -92,6 +99,7 @@ export function useVerifyCompleteLogic() {
   return {
     result,
     pollingCount,
+    checks,
     handleContinue,
     handleRetry,
   };
