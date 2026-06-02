@@ -84,6 +84,7 @@ import MetricsPage from './pages/metrics';
 import NotFound from './pages/NotFound';
 import FundAdminPage from './pages/fund-admin/ui';
 import FundAdminInvestorDetail from './pages/fund-admin/detail/ui';
+import FundAdminAnalytics from './pages/fund-admin/analytics/ui';
 import FundAdminRoute from './components/FundAdminRoute';
 
 const KaiIndiaApp = React.lazy(() => import('./kai-india/pages'));
@@ -425,6 +426,11 @@ function App() {
             <Route path='/fund-admin' element={
               <FundAdminRoute>
                 <FundAdminPage />
+              </FundAdminRoute>
+            } />
+            <Route path='/fund-admin/analytics' element={
+              <FundAdminRoute>
+                <FundAdminAnalytics />
               </FundAdminRoute>
             } />
             <Route path='/fund-admin/:userId' element={
