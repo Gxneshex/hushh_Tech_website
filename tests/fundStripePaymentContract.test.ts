@@ -137,7 +137,7 @@ describe("Hushh Fund Stripe payment contract", () => {
   it("keeps investor unlock behind a manual admin decision", () => {
     const adminVerify = readRepoFile("supabase/functions/fund-payment-admin-verify/index.ts");
 
-    expect(adminVerify).toContain("HUSHH_FUND_ADMIN_TOKEN");
+    expect(adminVerify).toContain("authenticateTeamMember");
     expect(adminVerify).toContain("Stripe payment must be confirmed before investor approval");
     expect(adminVerify).toContain("verified_investor");
     expect(adminVerify).toContain("rejected");

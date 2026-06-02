@@ -11,6 +11,7 @@ import {
   json,
 } from "../_shared/fundStripe.ts";
 import { authenticateTeamMember } from "../_shared/security.ts";
+import { logAdminAccess } from "../_shared/fundAdminAudit.ts";
 
 const toCents = (a: unknown) => Math.round(Number(a || 0) * 100);
 
@@ -138,9 +139,18 @@ Deno.serve(async (req) => {
     if (!userId) return json({ error: "userId is required" }, 400, corsHeaders);
 
     const supabase = createAdminClient();
+    // Compliance: record that this admin viewed this investor's profile.
+    await logAdminAccess({
+      supabase,
+      actorUserId: teamAuth.user.id,
+      actorEmail: teamAuth.user.email,
+      action: "view_investor",
+      targetUserId: userId,
+      req,
+    });
     const sourceWarnings: SourceWarning[] = [];
 
-    const [authRes, onbRes, payRes, reviewRes, ceoRes, ndaRes, finRes, syncRes, kycRes] =
+    const [authRes, onbRes, payRes, reviewRes, ceoRes, ndaRes, finRes, syncRes, kycRes, notesRes, tagsRes] =
       await Promise.all([
         supabase.auth.admin.getUserById(userId),
         supabase.from("onboarding_data").select("*").eq("user_id", userId).maybeSingle(),
@@ -175,9 +185,19 @@ Deno.serve(async (req) => {
           .eq("user_id", userId),
         supabase
           .from("kyc_attestations")
-          .select("status, risk_band, risk_score, verified_at, provider_name")
+          .select("status, risk_band, risk_score, verified_at, provider_name, expires_at, sanctions_checked, pep_checked, aml_score, verification_level")
           .eq("user_id", userId)
           .order("verified_at", { ascending: false }),
+        supabase
+          .from("fund_investor_notes")
+          .select("id, body, author_email, created_at")
+          .eq("user_id", userId)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("fund_investor_tags")
+          .select("tag")
+          .eq("user_id", userId)
+          .order("created_at", { ascending: true }),
       ]);
 
     if (authRes.error) warn("auth.users", authRes.error, sourceWarnings);
@@ -193,6 +213,14 @@ Deno.serve(async (req) => {
     const kycRows = rows("kyc_attestations", kycRes, sourceWarnings);
     const kyc = kycRows[0] || null;
     const kycAvailable = !kycRes.error;
+    // CRM notes + tags (best-effort: empty if the migration hasn't been applied yet).
+    const notes = (notesRes?.data || []).map((n: any) => ({
+      id: n.id,
+      body: n.body,
+      authorEmail: n.author_email ?? null,
+      createdAt: n.created_at,
+    }));
+    const tags = (tagsRes?.data || []).map((t: any) => t.tag);
 
     let accounts: any[] = [];
     if (fin?.plaid_item_id) {
@@ -203,14 +231,28 @@ Deno.serve(async (req) => {
       accounts = rows("plaid_accounts", acctRes, sourceWarnings);
     }
 
+    // Reviewer emails: one batched read from public.users, with a bounded
+    // getUserById fallback for any ids missing there (reviewer count is tiny).
+    const reviewerIds = [...new Set(reviews.map((r) => r.reviewed_by).filter(Boolean))] as string[];
     const reviewerEmail = new Map<string, string | null>();
-    for (const id of [...new Set(reviews.map((r) => r.reviewed_by).filter(Boolean))]) {
+    if (reviewerIds.length) {
       try {
-        const { data } = await supabase.auth.admin.getUserById(id);
-        reviewerEmail.set(id, data?.user?.email ?? null);
+        const { data: profs } = await supabase.from("users").select("id, email").in("id", reviewerIds);
+        for (const p of profs || []) reviewerEmail.set(p.id, p.email ?? null);
       } catch {
-        reviewerEmail.set(id, null);
+        // fall through to per-id lookup
       }
+      const missing = reviewerIds.filter((id) => !reviewerEmail.has(id));
+      await Promise.all(
+        missing.map(async (id) => {
+          try {
+            const { data } = await supabase.auth.admin.getUserById(id);
+            reviewerEmail.set(id, data?.user?.email ?? null);
+          } catch {
+            reviewerEmail.set(id, null);
+          }
+        }),
+      );
     }
 
     const phone = ob
@@ -331,6 +373,11 @@ Deno.serve(async (req) => {
               riskScore: kyc.risk_score,
               provider: kyc.provider_name,
               verifiedAt: kyc.verified_at,
+              expiresAt: kyc.expires_at ?? null,
+              sanctionsChecked: Boolean(kyc.sanctions_checked),
+              pepChecked: Boolean(kyc.pep_checked),
+              amlScore: kyc.aml_score ?? null,
+              verificationLevel: kyc.verification_level ?? null,
             }
           : null,
         reviews: reviews.map((r) => ({
@@ -340,6 +387,8 @@ Deno.serve(async (req) => {
           reviewerEmail: r.reviewed_by ? reviewerEmail.get(r.reviewed_by) ?? null : null,
           flags: Array.isArray(r.flags) ? r.flags : [],
         })),
+        notes,
+        tags,
       },
     }, 200, corsHeaders);
   } catch (error) {

@@ -85,8 +85,22 @@ export interface InvestorDetail {
     riskScore: number | null;
     provider: string | null;
     verifiedAt: string | null;
+    expiresAt: string | null;
+    sanctionsChecked: boolean;
+    pepChecked: boolean;
+    amlScore: number | null;
+    verificationLevel: string | null;
   } | null;
   reviews: InvestorReview[];
+  notes: InvestorNote[];
+  tags: string[];
+}
+
+export interface InvestorNote {
+  id: string;
+  body: string;
+  authorEmail: string | null;
+  createdAt: string;
 }
 
 interface DetailResponse {
@@ -102,12 +116,20 @@ export interface SourceWarning {
   message: string;
 }
 
+interface KycGateInfo {
+  present: boolean;
+  status: string | null;
+  riskBand: string | null;
+}
+
 interface VerifyResponse {
   success?: boolean;
   investor_verification_status?: string;
   already_reviewed?: boolean;
   message?: string;
   error?: string;
+  code?: string;
+  kyc?: KycGateInfo;
 }
 
 const functionUrl = (name: string) => `${config.SUPABASE_URL}/functions/v1/${name}`;
@@ -125,6 +147,9 @@ export function useFundAdminDetail(userId: string | undefined) {
   const [actioning, setActioning] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [banner, setBanner] = useState<string | null>(null);
+  // P2 KYC gate: set when the server blocks approval pending a KYC acknowledgement.
+  const [kycGate, setKycGate] = useState<KycGateInfo | null>(null);
+  const [kycAck, setKycAck] = useState(false);
 
   const fetchDetail = useCallback(async () => {
     if (!accessToken || !userId) return;
@@ -187,9 +212,19 @@ export function useFundAdminDetail(userId: string | undefined) {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${accessToken}`,
           },
-          body: JSON.stringify({ paymentRequestId, decision, notes: trimmed || null }),
+          body: JSON.stringify({
+            paymentRequestId,
+            decision,
+            notes: trimmed || null,
+            acknowledgeKycRisk: decision === 'verified_investor' ? kycAck : undefined,
+          }),
         });
         const data: VerifyResponse = await res.json().catch(() => ({}));
+        if (res.status === 409 && data.code === 'KYC_RISK_UNACKNOWLEDGED') {
+          setKycGate(data.kyc ?? { present: false, status: null, riskBand: null });
+          setActionError(data.error || 'KYC review needed before approval.');
+          return;
+        }
         if (!res.ok) {
           throw new Error(data.error || `Action failed (HTTP ${res.status})`);
         }
@@ -203,6 +238,8 @@ export function useFundAdminDetail(userId: string | undefined) {
               }.`,
         );
         setNote('');
+        setKycGate(null);
+        setKycAck(false);
         await fetchDetail();
       } catch (err) {
         setActionError(err instanceof Error ? err.message : 'Action failed');
@@ -210,8 +247,152 @@ export function useFundAdminDetail(userId: string | undefined) {
         setActioning(false);
       }
     },
-    [accessToken, actioning, investor, note, fetchDetail],
+    [accessToken, actioning, investor, note, kycAck, fetchDetail],
   );
+
+  // ── CRM (notes + tags) ──
+  const [crmBusy, setCrmBusy] = useState(false);
+  const [crmError, setCrmError] = useState<string | null>(null);
+  const crmAction = useCallback(
+    async (payload: Record<string, unknown>) => {
+      if (!accessToken || !userId || crmBusy) return;
+      setCrmBusy(true);
+      setCrmError(null);
+      try {
+        const res = await fetch(functionUrl('fund-payment-admin-crm'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+          body: JSON.stringify({ userId, ...payload }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.success) throw new Error(data.error || `Request failed (HTTP ${res.status})`);
+        setInvestor((prev) =>
+          prev ? { ...prev, notes: data.notes ?? prev.notes, tags: data.tags ?? prev.tags } : prev,
+        );
+      } catch (err) {
+        setCrmError(err instanceof Error ? err.message : 'Action failed');
+      } finally {
+        setCrmBusy(false);
+      }
+    },
+    [accessToken, userId, crmBusy],
+  );
+  const addNote = useCallback((text: string) => crmAction({ action: 'add_note', body: text }), [crmAction]);
+  const addTag = useCallback((tag: string) => crmAction({ action: 'add_tag', tag }), [crmAction]);
+  const removeTag = useCallback((tag: string) => crmAction({ action: 'remove_tag', tag }), [crmAction]);
+
+  // ── Ops actions (resend link, nudge email) ──
+  const [opsBusy, setOpsBusy] = useState<string | null>(null);
+  const [opsBanner, setOpsBanner] = useState<string | null>(null);
+  const [opsError, setOpsError] = useState<string | null>(null);
+  const callOps = useCallback(
+    async (fn: string, payload: Record<string, unknown>, key: string, successMsg: (data: any) => string) => {
+      if (!accessToken || !userId || opsBusy) return;
+      setOpsBusy(key);
+      setOpsError(null);
+      setOpsBanner(null);
+      try {
+        const res = await fetch(functionUrl(fn), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+          body: JSON.stringify({ userId, ...payload }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || `Request failed (HTTP ${res.status})`);
+        setOpsBanner(successMsg(data));
+      } catch (err) {
+        setOpsError(err instanceof Error ? err.message : 'Action failed');
+      } finally {
+        setOpsBusy(null);
+      }
+    },
+    [accessToken, userId, opsBusy],
+  );
+  const resendLink = useCallback(
+    () =>
+      callOps('fund-payment-admin-resend', {}, 'resend', (d) =>
+        d.email_sent ? 'Payment link re-sent to the investor.' : 'Active link found, but the email could not be sent.',
+      ),
+    [callOps],
+  );
+  const sendReminder = useCallback(
+    (reminderType: string) =>
+      callOps('fund-payment-admin-remind', { reminderType }, `remind:${reminderType}`, (d) =>
+        d.email_sent ? 'Reminder sent to the investor.' : 'Could not send — no email on file.',
+      ),
+    [callOps],
+  );
+
+  // ── KYC review (record a manual sanctions/PEP outcome) ──
+  const [kycBusy, setKycBusy] = useState(false);
+  const [kycError, setKycError] = useState<string | null>(null);
+  const recordKycReview = useCallback(
+    async (payload: {
+      decision: 'cleared' | 'flagged';
+      riskBand?: string;
+      sanctionsChecked?: boolean;
+      pepChecked?: boolean;
+      note?: string;
+    }) => {
+      if (!accessToken || !userId || kycBusy) return;
+      setKycBusy(true);
+      setKycError(null);
+      setOpsBanner(null);
+      try {
+        const res = await fetch(functionUrl('fund-payment-admin-kyc-review'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+          body: JSON.stringify({ userId, ...payload }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.success) throw new Error(data.error || `Request failed (HTTP ${res.status})`);
+        setOpsBanner(
+          payload.decision === 'cleared'
+            ? 'KYC review recorded — investor cleared.'
+            : 'KYC review recorded — investor flagged.',
+        );
+        // A fresh cleared review changes the approval gate; reset + reload.
+        setKycGate(null);
+        setKycAck(false);
+        await fetchDetail();
+      } catch (err) {
+        setKycError(err instanceof Error ? err.message : 'Action failed');
+      } finally {
+        setKycBusy(false);
+      }
+    },
+    [accessToken, userId, kycBusy, fetchDetail],
+  );
+
+  // ── Automated KYC screen (provider; inert until KYC_PROVIDER + key are set) ──
+  const [screenBusy, setScreenBusy] = useState(false);
+  const runAutomatedScreen = useCallback(async () => {
+    if (!accessToken || !userId || screenBusy) return;
+    setScreenBusy(true);
+    setKycError(null);
+    setOpsBanner(null);
+    try {
+      const res = await fetch(functionUrl('fund-payment-admin-kyc-screen'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+        body: JSON.stringify({ userId }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) throw new Error(data.error || `Request failed (HTTP ${res.status})`);
+      setOpsBanner(
+        data.decision === 'cleared'
+          ? 'Automated screen: cleared (0 matches).'
+          : `Automated screen: ${data.matchCount ?? 'some'} match(es) — flagged for review.`,
+      );
+      setKycGate(null);
+      setKycAck(false);
+      await fetchDetail();
+    } catch (err) {
+      setKycError(err instanceof Error ? err.message : 'Screening failed');
+    } finally {
+      setScreenBusy(false);
+    }
+  }, [accessToken, userId, screenBusy, fetchDetail]);
 
   const canReview = useMemo(
     () => investor?.investment?.status === 'pending_manual_verification' && Boolean(investor?.timeline.firstPaidAt),
@@ -232,5 +413,28 @@ export function useFundAdminDetail(userId: string | undefined) {
     approve: () => act('verified_investor'),
     reject: () => act('rejected'),
     refresh: fetchDetail,
+    // CRM
+    addNote,
+    addTag,
+    removeTag,
+    crmBusy,
+    crmError,
+    // Ops
+    resendLink,
+    sendReminder,
+    opsBusy,
+    opsBanner,
+    opsError,
+    // KYC gate
+    kycGate,
+    kycAck,
+    setKycAck,
+    // KYC review
+    recordKycReview,
+    kycBusy,
+    kycError,
+    // Automated screen
+    runAutomatedScreen,
+    screenBusy,
   };
 }

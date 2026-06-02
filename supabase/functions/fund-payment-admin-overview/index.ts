@@ -8,6 +8,7 @@ import {
   json,
 } from "../_shared/fundStripe.ts";
 import { authenticateTeamMember } from "../_shared/security.ts";
+import { logAdminAccess } from "../_shared/fundAdminAudit.ts";
 
 const toCents = (amount: unknown) => Math.round(Number(amount || 0) * 100);
 
@@ -155,6 +156,14 @@ Deno.serve(async (req) => {
     }
 
     const supabase = createAdminClient();
+    // Compliance: record that this admin loaded the overview (best-effort).
+    await logAdminAccess({
+      supabase,
+      actorUserId: teamAuth.user.id,
+      actorEmail: teamAuth.user.email,
+      action: "view_overview",
+      req,
+    });
     const sourceWarnings: SourceWarning[] = [];
 
     const [

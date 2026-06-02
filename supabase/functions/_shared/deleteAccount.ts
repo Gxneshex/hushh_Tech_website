@@ -30,6 +30,8 @@ export const DELETE_ACCOUNT_SCHEMA_COVERED_TABLES = [
   "fund_payment_notifications",
   "fund_payment_reviews",
   "fund_investment_plans",
+  "fund_investor_notes",
+  "fund_investor_tags",
   "fund_recurring_transfers",
   "fund_stripe_events",
   "fund_stripe_payment_requests",
@@ -80,6 +82,10 @@ export const DELETE_ACCOUNT_SCHEMA_COVERED_TABLES = [
 ] as const;
 
 export const DELETE_ACCOUNT_SCHEMA_IGNORED_TABLES = [
+  // Admin-access audit log — intentionally RETAINED on account deletion for
+  // compliance/forensics (target_user_id has no FK so it survives the purge;
+  // actor_user_id is ON DELETE SET NULL).
+  "fund_admin_access_log",
   // These tables remain in historical migrations only; the forward cleanup
   // migration drops them from active environments.
   "hushh_agent_conversations",

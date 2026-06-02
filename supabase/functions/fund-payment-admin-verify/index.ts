@@ -9,6 +9,8 @@ import {
   logAndSendFundEmail,
   normalizeRecurringSummary,
 } from "../_shared/fundStripe.ts";
+import { authenticateTeamMember } from "../_shared/security.ts";
+import { logAdminAccess } from "../_shared/fundAdminAudit.ts";
 import {
   buildFundPaymentRequestTeamHtml,
   buildFundPaymentRequestUserHtml,
@@ -21,19 +23,20 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const adminToken = Deno.env.get("HUSHH_FUND_ADMIN_TOKEN");
-    if (!adminToken) {
-      return json({ error: "Admin verification is not configured" }, 503, corsHeaders);
+    // Team-gated via Supabase JWT + fund-admin allowlist — the SAME auth as the
+    // read endpoints. The reviewer identity comes from the authenticated token,
+    // NEVER the request body, so fund_payment_reviews.reviewed_by is trustworthy.
+    const teamAuth = await authenticateTeamMember(req);
+    if (teamAuth.error || !teamAuth.user) {
+      return json({ error: teamAuth.error || "Unauthorized" }, teamAuth.status || 401, corsHeaders);
     }
-    if (req.headers.get("x-hushh-admin-token") !== adminToken) {
-      return json({ error: "Unauthorized" }, 401, corsHeaders);
-    }
+    const reviewerUserId = teamAuth.user.id;
+    const reviewerEmail = teamAuth.user.email;
 
     const body = await req.json().catch(() => ({}));
     const paymentRequestId = body.paymentRequestId || body.payment_request_id;
     const decision = String(body.decision || "").trim();
     const notes = body.notes ? String(body.notes) : null;
-    const reviewerUserId = body.reviewerUserId || body.reviewer_user_id || null;
 
     if (!paymentRequestId) {
       return json({ error: "paymentRequestId is required" }, 400, corsHeaders);
@@ -53,8 +56,47 @@ Deno.serve(async (req) => {
       return json({ error: "Payment request not found" }, 404, corsHeaders);
     }
 
+    // Idempotency: a request already in a terminal state must not be re-decided
+    // (prevents duplicate investor/team emails + duplicate subscription rows).
+    // Return 200 with already_reviewed so the SPA shows its existing banner.
+    if (["verified_investor", "rejected"].includes(paymentRequest.status)) {
+      return json({
+        success: true,
+        already_reviewed: true,
+        payment_request_id: paymentRequest.id,
+        investor_verification_status: paymentRequest.status,
+        message: `This investor was already ${
+          paymentRequest.status === "verified_investor" ? "approved" : "rejected"
+        }.`,
+      }, 200, corsHeaders);
+    }
+
     if (decision === "verified_investor" && !paymentRequest.paid_at) {
       return json({ error: "Stripe payment must be confirmed before investor approval" }, 409, corsHeaders);
+    }
+
+    // P2 KYC gate: surface KYC risk before approval. If the investor has no KYC
+    // attestation, or it is HIGH risk / not active, require an explicit
+    // acknowledgement so the approval is a conscious, audited decision.
+    if (decision === "verified_investor") {
+      const { data: kyc } = await supabase
+        .from("kyc_attestations")
+        .select("status, risk_band")
+        .eq("user_id", paymentRequest.user_id)
+        .order("verified_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const band = String(kyc?.risk_band || "").toUpperCase();
+      const kycStatus = String(kyc?.status || "").toLowerCase();
+      const kycRisky = !kyc || band === "HIGH" || (kycStatus !== "" && kycStatus !== "active");
+      const acknowledged = body.acknowledgeKycRisk === true || body.acknowledge_kyc_risk === true;
+      if (kycRisky && !acknowledged) {
+        return json({
+          error: "KYC review needed before approval.",
+          code: "KYC_RISK_UNACKNOWLEDGED",
+          kyc: { present: Boolean(kyc), status: kyc?.status ?? null, riskBand: kyc?.risk_band ?? null },
+        }, 409, corsHeaders);
+      }
     }
 
     const now = new Date().toISOString();
@@ -174,6 +216,18 @@ Deno.serve(async (req) => {
       recipients: FUND_TEAM_RECIPIENTS,
       subject: `[Hushh Fund] Manual review ${decision} ${paymentRequest.request_reference}`,
       html: buildFundPaymentRequestTeamHtml(emailData),
+    });
+
+    // Compliance trail: who decided what (best-effort, never blocks).
+    await logAdminAccess({
+      supabase,
+      actorUserId: reviewerUserId,
+      actorEmail: reviewerEmail,
+      action: decision === "verified_investor" ? "approve" : "reject",
+      targetUserId: paymentRequest.user_id,
+      targetReference: paymentRequest.id,
+      metadata: { request_reference: paymentRequest.request_reference, notes },
+      req,
     });
 
     return json({
