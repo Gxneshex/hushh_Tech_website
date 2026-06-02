@@ -6,15 +6,20 @@ const root = process.cwd();
 const read = (path: string) => readFileSync(join(root, path), "utf8");
 
 describe("Community Fund A document presentation", () => {
-  it("publishes the Fund A document set as a categorized community article", () => {
+  it("publishes each Fund A document as a categorized community article row", () => {
     const posts = read("src/data/posts.ts");
     const logic = read("src/pages/community/logic.ts");
     const ui = read("src/pages/community/ui.tsx");
 
-    expect(posts).toContain("FundAOfferingDocuments");
-    expect(posts).toContain(
-      "fund-documents/hushh-alpha-aloha-fund-a-offering-documents",
-    );
+    expect(posts).not.toContain("FundAOfferingDocuments");
+    expect(posts).toContain("FundAInvestmentProspectusPost");
+    expect(posts).toContain("FundAPrivatePlacementMemorandumPost");
+    expect(posts).toContain("FundALpMasterLpaPost");
+    expect(posts).toContain("FundADelawareFeederLpaPost");
+    expect(posts).toContain("fund-documents/investment-prospectus");
+    expect(posts).toContain("fund-documents/private-placement-memorandum");
+    expect(posts).toContain("fund-documents/lp-master-lpa");
+    expect(posts).toContain("fund-documents/delaware-feeder-lpa");
     expect(posts).toContain("category: 'fund documents'");
     expect(posts).toContain("accessLevel: 'Public'");
 
@@ -24,23 +29,29 @@ describe("Community Fund A document presentation", () => {
     expect(logic).toContain("mergedBySlug.set(post.slug");
     expect(ui).toContain('documents: { label: "Fund Documents"');
     expect(ui).toContain('if (lower.includes("document")) return CATEGORY_META.documents;');
+    expect(ui).toContain("ArticleRow");
+    expect(ui).not.toContain("FundAOfferingDocuments");
   });
 
-  it("links every attached Fund A document from the community article", () => {
-    const component = read("src/content/posts/funds/fundAOfferingDocuments.tsx");
+  it("links every attached Fund A document from its community article page", () => {
+    const component = read("src/content/posts/fund-documents/fundADocumentPosts.tsx");
 
-    for (const href of [
-      "/fund-documents/investment-prospectus.docx",
-      "/fund-documents/ppm.docx",
-      "/fund-documents/lp-master-lpa.docx",
-      "/fund-documents/delaware-feeder-lpa.docx",
+    for (const src of [
+      'src: "/fund-documents/investment-prospectus.docx"',
+      'src: "/fund-documents/ppm.docx"',
+      'src: "/fund-documents/lp-master-lpa.docx"',
+      'src: "/fund-documents/delaware-feeder-lpa.docx"',
     ]) {
-      expect(component).toContain(`href: "${href}"`);
+      expect(component).toContain(src);
     }
 
-    expect(component).toContain("getDocumentReaderHref");
-    expect(component).toContain("href={getDocumentReaderHref(document)}");
-    expect(component).toMatch(/href=\{document\.href\}\s+download/);
+    expect(component).toContain("useDocxBlocks(document.src)");
+    expect(component).toContain("parseDocxDocument");
+    expect(component).toContain('files["word/document.xml"]');
+    expect(component).toContain("blocks.map");
+    expect(component).not.toContain("getDocumentReaderHref");
+    expect(component).not.toContain("Open document");
+    expect(component).not.toMatch(/download/);
   });
 
   it("keeps the contact page on the shared HushhTech typography", () => {

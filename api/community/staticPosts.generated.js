@@ -3,13 +3,43 @@
 
 export const STATIC_COMMUNITY_POSTS = [
   {
-    "slug": "fund-documents/hushh-alpha-aloha-fund-a-offering-documents",
-    "title": "Hushh Alpha Aloha Fund A Offering Documents",
+    "slug": "fund-documents/investment-prospectus",
+    "title": "Investment Prospectus",
     "publishedAt": "2026-03-01",
-    "description": "Prospectus, private placement memorandum, master fund agreement, and Delaware feeder agreement organized for investor review.",
+    "description": "Fund thesis, investment objective, Alpha Bets 27 portfolio design, and AI-first share accumulation strategy.",
     "category": "fund documents",
     "accessLevel": "Public",
-    "componentName": "FundAOfferingDocuments",
+    "componentName": "FundAInvestmentProspectusPost",
+    "sourceKind": "legacy"
+  },
+  {
+    "slug": "fund-documents/private-placement-memorandum",
+    "title": "Private Placement Memorandum",
+    "publishedAt": "2026-03-01",
+    "description": "Offering summary, eligibility, class structure, risk factors, disclosures, and subscription context.",
+    "category": "fund documents",
+    "accessLevel": "Public",
+    "componentName": "FundAPrivatePlacementMemorandumPost",
+    "sourceKind": "legacy"
+  },
+  {
+    "slug": "fund-documents/lp-master-lpa",
+    "title": "LP Master LPA",
+    "publishedAt": "2026-03-01",
+    "description": "Cayman master fund governance, partner rights, capital accounts, allocations, valuation, and withdrawal mechanics.",
+    "category": "fund documents",
+    "accessLevel": "Public",
+    "componentName": "FundALpMasterLpaPost",
+    "sourceKind": "legacy"
+  },
+  {
+    "slug": "fund-documents/delaware-feeder-lpa",
+    "title": "Delaware Feeder LPA",
+    "publishedAt": "2026-03-01",
+    "description": "Domestic feeder formation, tax treatment, admission requirements, and relationship to the master fund.",
+    "category": "fund documents",
+    "accessLevel": "Public",
+    "componentName": "FundADelawareFeederLpaPost",
     "sourceKind": "legacy"
   },
   {

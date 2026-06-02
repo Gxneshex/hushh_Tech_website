@@ -7,7 +7,12 @@ import SellTheWall from '../content/posts/general/selleWall';
 import FundAtHushh from '../content/posts/funds/hushhFunds';
 import SellTheWallMasterclass from '../content/posts/general/sellTheWalleMasterClass';
 import FundAHushh from '../content/posts/funds/fundAHushh';
-import FundAOfferingDocuments from '../content/posts/funds/fundAOfferingDocuments';
+import {
+  FundADelawareFeederLpaPost,
+  FundAInvestmentProspectusPost,
+  FundALpMasterLpaPost,
+  FundAPrivatePlacementMemorandumPost,
+} from '../content/posts/fund-documents/fundADocumentPosts';
 import CompensationReport from '../content/posts/general/compensationReport';
 import HushhAlphaFund from '../content/posts/investors-faq/sharedClassExplanation';
 import SubscriptionAgreementA from '../content/posts/investors-faq/subscriptionAgreementA';
@@ -181,12 +186,45 @@ const getPostComponentName = (post: PostData): string =>
 export const posts: PostData[] = [
   {
     count: 182,
-    slug: 'fund-documents/hushh-alpha-aloha-fund-a-offering-documents',
-    title: 'Hushh Alpha Aloha Fund A Offering Documents',
+    slug: 'fund-documents/investment-prospectus',
+    title: 'Investment Prospectus',
     publishedAt: '2026-03-01',
-    description: 'Prospectus, private placement memorandum, master fund agreement, and Delaware feeder agreement organized for investor review.',
+    description: 'Fund thesis, investment objective, Alpha Bets 27 portfolio design, and AI-first share accumulation strategy.',
     category: 'fund documents',
-    Component: FundAOfferingDocuments,
+    Component: FundAInvestmentProspectusPost,
+    image: HushhAiLogoImg,
+    accessLevel: 'Public',
+  },
+  {
+    count: 183,
+    slug: 'fund-documents/private-placement-memorandum',
+    title: 'Private Placement Memorandum',
+    publishedAt: '2026-03-01',
+    description: 'Offering summary, eligibility, class structure, risk factors, disclosures, and subscription context.',
+    category: 'fund documents',
+    Component: FundAPrivatePlacementMemorandumPost,
+    image: HushhAiLogoImg,
+    accessLevel: 'Public',
+  },
+  {
+    count: 184,
+    slug: 'fund-documents/lp-master-lpa',
+    title: 'LP Master LPA',
+    publishedAt: '2026-03-01',
+    description: 'Cayman master fund governance, partner rights, capital accounts, allocations, valuation, and withdrawal mechanics.',
+    category: 'fund documents',
+    Component: FundALpMasterLpaPost,
+    image: HushhAiLogoImg,
+    accessLevel: 'Public',
+  },
+  {
+    count: 185,
+    slug: 'fund-documents/delaware-feeder-lpa',
+    title: 'Delaware Feeder LPA',
+    publishedAt: '2026-03-01',
+    description: 'Domestic feeder formation, tax treatment, admission requirements, and relationship to the master fund.',
+    category: 'fund documents',
+    Component: FundADelawareFeederLpaPost,
     image: HushhAiLogoImg,
     accessLevel: 'Public',
   },

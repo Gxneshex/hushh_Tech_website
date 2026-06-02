@@ -33,6 +33,10 @@ const communityRoutes = [
   "/community/market/daily-update-30-may",
   
   // Funds
+  "/community/fund-documents/investment-prospectus",
+  "/community/fund-documents/private-placement-memorandum",
+  "/community/fund-documents/lp-master-lpa",
+  "/community/fund-documents/delaware-feeder-lpa",
   "/community/funds/hushh-technology-fund",
   "/community/funds/renaissance-tech",
   "/community/funds/fund-ahushh",
