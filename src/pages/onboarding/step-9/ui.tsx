@@ -216,7 +216,9 @@ export default function OnboardingStep9() {
           </Display>
           <Lede className="max-w-[500px]">
             Stripe collects the first payment while Plaid continues to support
-            verification, financial intelligence, and manual investor review.
+            verification, financial intelligence, and manual investor review. This
+            single $1 also unlocks your 1-on-1 with the fund manager and credits
+            300,000 Hushh Coins — no further charge.
           </Lede>
         </section>
 

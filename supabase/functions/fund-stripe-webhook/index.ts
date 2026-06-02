@@ -198,6 +198,34 @@ async function sendPaymentConfirmedEmails(supabase: any, params: {
   });
 }
 
+// Grant the Meet-CEO perk (300k Hushh coins + meeting unlock) as part of the
+// single step-9 fund payment — there is no separate $1. Idempotent on the
+// user_id-unique ceo_meeting_payments row: an existing 'completed' row (a legacy
+// $1, a coupon, or a prior webhook fire) is preserved, so coins are never
+// double-granted. NOTE: intentionally NOT revoked on refund/dispute — the
+// InvestorAccessRoute gate already evicts a refunded user from meet-ceo via
+// onboarding_data.fund_payment_status.
+async function grantMeetCeoPerk(supabase: any, userId: string) {
+  try {
+    const { data: existing } = await supabase
+      .from("ceo_meeting_payments")
+      .select("payment_status")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (existing?.payment_status === "completed") return;
+    await supabase.from("ceo_meeting_payments").upsert({
+      user_id: userId,
+      payment_status: "completed",
+      payment_method: "fund_step9",
+      amount_cents: 0,
+      hushh_coins_awarded: 300000,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: "user_id" });
+  } catch (err) {
+    console.warn("[fund-stripe-webhook] grantMeetCeoPerk failed (non-blocking):", err);
+  }
+}
+
 async function markPaymentSucceeded(supabase: any, stripe: any, params: {
   requestId: string;
   sessionId?: string | null;
@@ -291,6 +319,9 @@ async function markPaymentSucceeded(supabase: any, stripe: any, params: {
       updated_at: new Date().toISOString(),
     })
     .eq("user_id", paymentRequest.user_id);
+
+  // Single $1: the step-9 fund payment also grants the Meet-CEO perk (no 2nd charge).
+  await grantMeetCeoPerk(supabase, paymentRequest.user_id);
 
   const reviewPayload = {
     user_id: paymentRequest.user_id,

@@ -83,7 +83,7 @@ CREATE TABLE public.ceo_meeting_payments (
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   updated_at timestamp with time zone NOT NULL DEFAULT now(),
   coupon_code text,
-  payment_method text DEFAULT 'stripe'::text CHECK (payment_method = ANY (ARRAY['stripe'::text, 'coupon'::text])),
+  payment_method text DEFAULT 'stripe'::text CHECK (payment_method = ANY (ARRAY['stripe'::text, 'coupon'::text, 'fund_step9'::text])),
   CONSTRAINT ceo_meeting_payments_pkey PRIMARY KEY (id),
   CONSTRAINT ceo_meeting_payments_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
 );

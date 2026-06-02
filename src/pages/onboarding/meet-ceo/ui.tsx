@@ -5,14 +5,10 @@
 import type { LucideIcon } from "lucide-react";
 import {
   AlertCircle,
-  BadgeCheck,
   CalendarDays,
   CheckCircle2,
   Clock,
-  Coins,
   ShieldCheck,
-  Ticket,
-  UserRound,
 } from "lucide-react";
 import { useMeetCeoLogic } from "./logic";
 import HushhTechBackHeader from "../../../components/hushh-tech-back-header/HushhTechBackHeader";
@@ -23,7 +19,6 @@ import {
   AppleLineIcon,
   Display,
   Eyebrow,
-  Icon,
   Lede,
   appleFont,
 } from "../../../components/hushh-tech-ui/HushhAppleUI";
@@ -32,30 +27,6 @@ const primaryCtaClass =
   "!rounded-full !border-[#0066CC] !bg-[#0066CC] !text-white !font-medium !tracking-[-0.01em] !shadow-none";
 const secondaryCtaClass =
   "!rounded-full !border-[#1D1D1F]/15 !bg-white !text-[#1D1D1F] !font-medium !tracking-[-0.01em] !shadow-none";
-
-const unlockItems: Array<{
-  icon: LucideIcon;
-  label: string;
-  desc: string;
-  extra?: string;
-}> = [
-  {
-    icon: CalendarDays,
-    label: "1-Hour Private Consultation",
-    desc: "With Manish Sainani",
-    extra: "$3,000",
-  },
-  {
-    icon: Coins,
-    label: "300,000 Hushh Coins",
-    desc: "Credited instantly",
-  },
-  {
-    icon: BadgeCheck,
-    label: "KYC Verified Badge",
-    desc: "Identity verification complete",
-  },
-];
 
 function StatusBanner({
   icon,
@@ -91,41 +62,11 @@ function StatusBanner({
   );
 }
 
-function TrustFooter({
-  label,
-  helper,
-}: {
-  label: string;
-  helper?: string;
-}) {
-  return (
-    <section className="flex flex-col items-center justify-center gap-1 pb-8 text-center">
-      <div className="flex items-center gap-1">
-        {Icon.lock("#0066CC", 12)}
-        <span className="text-[10px] font-medium uppercase tracking-[1.6px] text-[#1D1D1F]/50">
-          {label}
-        </span>
-      </div>
-      {helper && (
-        <p className="text-[10px] font-light text-[#1D1D1F]/45">{helper}</p>
-      )}
-    </section>
-  );
-}
-
 function MeetCeoPage() {
   const {
     paymentState,
-    loading,
     error,
     hushhCoins,
-    showCoupon,
-    setShowCoupon,
-    couponCode,
-    setCouponCode,
-    couponError,
-    setCouponError,
-    couponLoading,
     calendarData,
     loadingSlots,
     selectedDate,
@@ -133,14 +74,12 @@ function MeetCeoPage() {
     selectedSlot,
     setSelectedSlot,
     bookingInProgress,
-    handlePayment,
-    handleCouponRedeem,
     handleBookMeeting,
     handleContinue,
     handleBack,
   } = useMeetCeoLogic();
 
-  if (paymentState === "loading" || paymentState === "verifying") {
+  if (paymentState === "loading") {
     return (
       <div
         className="flex min-h-screen flex-col bg-[#FFFFFF] text-[#1D1D1F] antialiased selection:bg-[#0066CC] selection:text-[#F5F5F7]"
@@ -151,7 +90,7 @@ function MeetCeoPage() {
           <div className="text-center">
             <div className="mx-auto mb-5 h-9 w-9 animate-spin rounded-full border-2 border-[#1D1D1F]/10 border-t-[#0066CC]" />
             <p className="text-[14px] font-light text-[#1D1D1F]/55">
-              {paymentState === "verifying" ? "Verifying payment..." : "Loading..."}
+              Loading...
             </p>
           </div>
         </div>
@@ -187,152 +126,32 @@ function MeetCeoPage() {
         )}
 
         {paymentState === "not_paid" && (
-          <>
-            <section className="mb-6 rounded-[22px] bg-[#F5F5F7] p-4 shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.08)]">
-              <h3 className="mb-2 text-[11px] font-medium uppercase tracking-[1.6px] text-[#0066CC]/85">
-                Fund Manager
-              </h3>
-              <div className="py-5">
-                <div className="flex items-center gap-4">
-                  <AppleLineIcon icon={UserRound} size={52} />
-                  <div className="min-w-0 flex-1">
-                    <span className="block text-[16px] font-medium text-[#1D1D1F]">
-                      Manish Sainani
-                    </span>
-                    <span className="text-[12px] font-normal text-[#1D1D1F]/55">
-                      Hedge Fund Manager · 1-hour private session
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            <section className="mb-6 rounded-[24px] bg-[#F5F5F7] p-5 text-center shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.08)]">
-              <p className="mx-auto max-w-[460px] text-[14px] font-light leading-[1.45] text-[#1D1D1F]/68">
-                A personal consultation with Manish typically costs{" "}
-                <span className="font-medium text-[#1D1D1F]">$3,000</span> per
-                session. Because you&apos;ve completed the full Hushh KYC
-                onboarding, you&apos;ve unlocked this exclusive benefit for just{" "}
-                <span className="font-medium text-[#1D1D1F]">$1</span>.
-              </p>
-            </section>
-
-            <section className="mb-6 rounded-[22px] bg-[#F5F5F7] p-4 shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.08)]">
-              <h3 className="mb-2 text-[11px] font-medium uppercase tracking-[1.6px] text-[#0066CC]/85">
-                What You Unlock
-              </h3>
-              {unlockItems.map((item, index) => (
-                <div
-                  key={item.label}
-                  className={`py-5 ${
-                    index < unlockItems.length - 1
-                      ? "border-b border-[#1D1D1F]/[0.08]"
-                      : ""
-                  }`}
-                >
-                  <div className="flex items-center gap-4">
-                    <AppleLineIcon icon={item.icon} size={40} />
-                    <div className="min-w-0 flex-1">
-                      <span className="block text-[14px] font-medium text-[#1D1D1F]">
-                        {item.label}
-                      </span>
-                      <span className="text-[12px] font-normal text-[#1D1D1F]/50">
-                        {item.desc}
-                      </span>
-                    </div>
-                    {item.extra && (
-                      <span className="text-[12px] font-medium text-[#1D1D1F]/35 line-through">
-                        {item.extra}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </section>
-
-            <section className="mb-8 rounded-[24px] bg-[#F5F5F7] p-6 text-center shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.08)]">
-              <span className="text-[11px] font-medium uppercase tracking-[1.6px] text-[#0066CC]/85">
-                Your Price Today
-              </span>
-              <div className="mt-3 flex items-baseline justify-center gap-3">
-                <span className="text-[56px] font-bold leading-none tracking-[-0.06em] text-[#1D1D1F]">
-                  $1
-                </span>
-                <span className="text-[16px] font-medium text-[#1D1D1F]/35 line-through">
-                  $3,000
-                </span>
-              </div>
-              <p className="mt-2 text-[11px] font-light text-[#1D1D1F]/45">
-                Exclusive KYC onboarding benefit
-              </p>
-            </section>
-
-            <section className="space-y-3 pb-6">
+          <section className="mb-6 rounded-[24px] bg-[#F5F5F7] p-6 text-center shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.08)]">
+            <p className="mx-auto max-w-[440px] text-[14px] font-light leading-[1.45] text-[#1D1D1F]/68">
+              Finishing setting up your investor access… your{" "}
+              <span className="font-medium text-[#1D1D1F]">$1 fund payment</span>{" "}
+              already covers this — there is nothing more to pay. If this doesn&apos;t
+              resolve in a moment, please refresh.
+            </p>
+            <div className="mt-5">
               <HushhTechCta
-                variant={HushhTechCtaVariant.BLACK}
-                onClick={handlePayment}
-                disabled={loading}
-                className={primaryCtaClass}
+                variant={HushhTechCtaVariant.WHITE}
+                onClick={handleContinue}
+                className={secondaryCtaClass}
               >
-                {loading ? "Redirecting..." : "Verify & Unlock - $1"}
+                Go to Profile
               </HushhTechCta>
-            </section>
-
-            <section className="mb-8 rounded-[22px] bg-[#F5F5F7] p-4 shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.08)]">
-              <button
-                onClick={() => setShowCoupon(!showCoupon)}
-                className="flex w-full items-center justify-center gap-2 py-2 text-[14px] font-medium text-[#1D1D1F]/70 transition hover:text-[#0066CC]"
-              >
-                <Ticket size={17} strokeWidth={1.7} aria-hidden="true" />
-                {showCoupon ? "Hide coupon code" : "Have a coupon code?"}
-              </button>
-              {showCoupon && (
-                <div className="mt-4 space-y-2">
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={couponCode}
-                      onChange={(e) => {
-                        setCouponCode(e.target.value.toUpperCase());
-                        setCouponError(null);
-                      }}
-                      placeholder="Enter coupon code"
-                      className="h-12 min-w-0 flex-1 rounded-full border border-[#1D1D1F]/10 bg-white px-4 font-mono text-[13px] font-medium uppercase tracking-[0.12em] text-[#1D1D1F] outline-none placeholder:normal-case placeholder:tracking-normal placeholder:text-[#1D1D1F]/35 focus:border-[#0066CC]/45 focus:ring-2 focus:ring-[#0066CC]/15"
-                      autoCapitalize="characters"
-                      autoComplete="off"
-                    />
-                    <button
-                      onClick={handleCouponRedeem}
-                      disabled={couponLoading || !couponCode.trim()}
-                      className="flex h-12 shrink-0 items-center justify-center rounded-full bg-[#1D1D1F] px-5 text-[14px] font-medium text-white transition active:scale-[0.98] disabled:pointer-events-none disabled:bg-[#1D1D1F]/20"
-                    >
-                      {couponLoading ? (
-                        <div className="h-4 w-4 rounded-full border-2 border-white/40 border-t-white" />
-                      ) : (
-                        "Apply"
-                      )}
-                    </button>
-                  </div>
-                  {couponError && (
-                    <p className="text-center text-[12px] font-medium text-[#B42318]">
-                      {couponError}
-                    </p>
-                  )}
-                </div>
-              )}
-            </section>
-
-            <TrustFooter label="Secure Payment" helper="Powered by Stripe" />
-          </>
+            </div>
+          </section>
         )}
 
         {paymentState === "paid" && (
           <>
             <div className="mb-6">
               <StatusBanner icon={CheckCircle2} tone="success">
-                <span className="block text-[#1D1D1F]">You&apos;re verified.</span>
+                <span className="block text-[#1D1D1F]">You&apos;re all set — your $1 fund payment unlocked this.</span>
                 <span className="text-[12px] font-normal text-[#1D1D1F]/55">
-                  {hushhCoins.toLocaleString()} Hushh Coins credited
+                  {hushhCoins.toLocaleString()} Hushh Coins credited · book your 1-on-1 below
                 </span>
               </StatusBanner>
             </div>
