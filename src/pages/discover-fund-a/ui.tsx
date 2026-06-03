@@ -118,13 +118,11 @@ const DarkFeatureCard = ({
 );
 
 const NumberedRow = ({
-  num,
   title,
   body,
   icon,
   isLast,
 }: {
-  num: string;
   title: string;
   body: string;
   icon: LucideIcon;
@@ -135,12 +133,6 @@ const NumberedRow = ({
       <FrameworkRowIcon icon={icon} />
     </div>
     <div className="min-w-0 pt-0.5">
-      <p
-        className="mb-1 text-[11px] font-semibold tracking-[0.08em] text-[#1D1D1F]/42"
-        style={{ fontFamily: appleFont }}
-      >
-        {num}
-      </p>
       <h3
         className="mb-1.5 text-[17px] font-medium leading-[1.08] tracking-[-0.028em] text-[#1D1D1F]"
         style={{ fontFamily: appleFont }}
@@ -449,7 +441,6 @@ const FundA = () => {
               {edgeCards.map((card, index) => (
                 <NumberedRow
                   key={card.title}
-                  num={String(index + 1).padStart(2, "0")}
                   title={card.title}
                   body={card.description}
                   icon={frameworkIconForTitle(card.title)}

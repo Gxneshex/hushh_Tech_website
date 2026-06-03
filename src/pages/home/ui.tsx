@@ -1,4 +1,4 @@
-import { useMemo, useState, type PointerEvent, type ReactNode } from "react";
+import { useEffect, useState, type PointerEvent, type ReactNode } from "react";
 import { useHomeLogic } from "./logic";
 import HushhTechHeader from "../../components/hushh-tech-header/HushhTechHeader";
 import HushhTechFooter, {
@@ -17,172 +17,115 @@ import {
   appleFont,
 } from "../../components/hushh-tech-ui/HushhAppleUI";
 
-const PERFORMANCE_RANGES = {
-  "6M": { pct: "+12.5%", start: "Nov 2025", seed: 31, n: 28, from: 38, vol: 1.15 },
-  "1Y": { pct: "+18.1%", start: "May 2025", seed: 53, n: 34, from: 30, vol: 1.25 },
-  ALL: { pct: "+21.4%", start: "Jan 2024", seed: 88, n: 42, from: 18, vol: 1.35 },
-} as const;
-
-type PerformanceRangeKey = keyof typeof PERFORMANCE_RANGES;
-
-const performanceRangeKeys = Object.keys(PERFORMANCE_RANGES) as PerformanceRangeKey[];
-
-const createLinearPath = (points: ReadonlyArray<readonly [number, number]>) => {
-  if (!points.length) return "";
-  return points
-    .map(([x, y], index) => `${index === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)}`)
-    .join(" ");
-};
-
 const PerformancePreview = () => {
-  const [range, setRange] = useState<PerformanceRangeKey>("ALL");
-  const active = PERFORMANCE_RANGES[range];
-  const pts = useMemo(() => {
-    const { seed, n, from, vol } = active;
-    let state = seed;
-    const rnd = () => {
-      state = (state * 1103515245 + 12345) & 0x7fffffff;
-      return state / 0x7fffffff;
-    };
-    const end = 52;
-    const out: number[] = [];
+  const [draw, setDraw] = useState(false);
+  const pct = "+21.4%";
+  const progress = 0.86;
+  const size = 270;
+  const stroke = 22;
+  const radius = (size - stroke) / 2 - 6;
+  const center = size / 2;
+  const circumference = 2 * Math.PI * radius;
+  const dash = circumference * progress;
+  const pctValue = pct.slice(1).replace("%", "");
 
-    for (let index = 0; index < n; index += 1) {
-      const t = index / (n - 1);
-      const trend = from + (end - from) * t;
-      const noise = (rnd() - 0.5) * vol * 2;
-      const pullback = index > 4 && index % 9 === 0 ? -vol * 0.72 : 0;
-      const previous = out[index - 1] ?? from;
-      const next = trend + noise + pullback;
-      out.push(Math.max(next, previous - vol * 0.55));
-    }
+  useEffect(() => {
+    setDraw(false);
+    const id = window.setTimeout(() => setDraw(true), 120);
 
-    out[0] = from;
-    out[n - 1] = end;
-    return out;
-  }, [active]);
-  const width = 320;
-  const height = 116;
-  const padX = 3;
-  const padTop = 12;
-  const padBottom = 16;
-  const maxY = Math.max(...pts);
-  const minY = Math.min(...pts);
-  const span = maxY - minY || 1;
-  const coords = pts.map((point, index) => {
-    const x = padX + (index / (pts.length - 1)) * (width - padX * 2);
-    const y =
-      padTop + (1 - (point - minY) / span) * (height - padTop - padBottom);
-    return [x, y] as const;
-  });
-  const baseY = height - padBottom;
-  const path = createLinearPath(coords);
-  const area = `${path} L ${coords[coords.length - 1][0].toFixed(1)} ${baseY} L ${coords[0][0].toFixed(1)} ${baseY} Z`;
-  const [endX, endY] = coords[coords.length - 1];
+    return () => window.clearTimeout(id);
+  }, []);
 
   return (
     <div
-      className="relative mx-auto max-w-[720px] overflow-hidden rounded-[18px] border border-white/[0.06] bg-[#1C1C1E] p-5 pb-4 shadow-[0_22px_48px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(255,255,255,0.04)]"
+      className="relative mx-auto max-w-[420px] text-center"
       aria-label="Fund A performance preview"
       style={{ fontFamily: appleFont }}
     >
-      <div className="mb-2.5 text-[12px] font-semibold uppercase tracking-[0.4px] text-[rgba(235,235,245,0.6)]">
-        Performance
-      </div>
-
-      <div className="mb-1 flex items-baseline text-[25.1px] font-semibold leading-none tracking-[-1.4px] text-white tabular-nums">
-        <span className="mr-0.5 text-[#34C759]">{active.pct[0]}</span>
-        {active.pct.slice(1).replace("%", "")}
-        <span className="ml-px text-[14.65px] font-medium text-[rgba(235,235,245,0.55)]">
-          %
-        </span>
-      </div>
-      <div className="mb-4 text-[13px] font-normal tracking-[-0.08px] text-[rgba(235,235,245,0.5)]">
-        Net of fees and expenses
-      </div>
-
-      <svg
-        viewBox={`0 0 ${width} ${height}`}
-        width="100%"
-        height={height}
-        preserveAspectRatio="none"
-        className="block overflow-visible"
-      >
-        <defs>
-          <linearGradient id="homeStocksFundAArea" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stopColor="#34C759" stopOpacity="0.2" />
-            <stop offset="52%" stopColor="#34C759" stopOpacity="0.075" />
-            <stop offset="100%" stopColor="#34C759" stopOpacity="0" />
-          </linearGradient>
-        </defs>
-        {[0.25, 0.5, 0.75].map((level) => (
-          <line
-            key={level}
-            x1={padX}
-            x2={width - padX}
-            y1={padTop + (height - padTop - padBottom) * level}
-            y2={padTop + (height - padTop - padBottom) * level}
-            stroke="rgba(235,235,245,0.055)"
-            strokeWidth="1"
-            vectorEffect="non-scaling-stroke"
+      <div className="relative mx-auto h-[248px] w-[248px] md:h-[270px] md:w-[270px]">
+        <svg
+          width={size}
+          height={size}
+          viewBox={`0 0 ${size} ${size}`}
+          className="block h-full w-full -rotate-90"
+        >
+          <defs>
+            <linearGradient id="homeFundARingGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="#2BD04E" />
+              <stop offset="100%" stopColor="#4CE86B" />
+            </linearGradient>
+            <filter id="homeFundARingGlow" x="-30%" y="-30%" width="160%" height="160%">
+              <feGaussianBlur stdDeviation="4.5" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+          <circle
+            cx={center}
+            cy={center}
+            r={radius}
+            fill="none"
+            stroke="rgba(235,235,245,0.08)"
+            strokeWidth={stroke}
           />
-        ))}
-        <path d={area} fill="url(#homeStocksFundAArea)" />
-        <path
-          d={path}
-          fill="none"
-          stroke={SYS.green}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="2.5"
-          vectorEffect="non-scaling-stroke"
-        />
-        <circle
-          cx={endX}
-          cy={endY}
-          r="2.7"
-          fill={SYS.green}
-          vectorEffect="non-scaling-stroke"
-        />
-      </svg>
+          <circle
+            cx={center}
+            cy={center}
+            r={radius}
+            fill="none"
+            stroke="url(#homeFundARingGrad)"
+            strokeLinecap="round"
+            strokeWidth={stroke}
+            strokeDasharray={`${dash} ${circumference}`}
+            strokeDashoffset={draw ? 0 : dash}
+            filter="url(#homeFundARingGlow)"
+            style={{
+              transition:
+                "stroke-dashoffset 1.3s cubic-bezier(0.34,0.85,0.3,1)",
+            }}
+          />
+        </svg>
 
-      <div className="mb-3.5 mt-2 flex justify-between">
-        <span className="text-[12px] font-normal text-[rgba(235,235,245,0.45)]">
-          {active.start}
-        </span>
-        <span className="text-[12px] font-medium text-[rgba(235,235,245,0.7)]">
-          Today
-        </span>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <div className="flex items-baseline font-semibold leading-none tracking-[-1.4px] text-white tabular-nums">
+            <span className="mr-0.5 text-[31px] text-[#34C759] md:text-[36px]">
+              {pct[0]}
+            </span>
+            <span className="text-[48px] md:text-[56px]">{pctValue}</span>
+            <span className="ml-px text-[21px] font-medium text-[rgba(235,235,245,0.55)] md:text-[25px]">
+              %
+            </span>
+          </div>
+          <div className="mt-2 text-[13px] font-normal tracking-[-0.08px] text-[rgba(235,235,245,0.5)]">
+            Net of fees
+          </div>
+        </div>
       </div>
 
-      <div className="flex rounded-[9px] bg-[rgba(118,118,128,0.24)] p-0.5">
-        {performanceRangeKeys.map((key) => {
-          const isActive = key === range;
+      <div className="mt-6 text-[12px] font-semibold uppercase tracking-[1.4px] text-[rgba(235,235,245,0.48)]">
+        Net return &middot; inception to date
+      </div>
 
-          return (
-            <button
-              key={key}
-              type="button"
-              aria-pressed={isActive}
-              onClick={() => setRange(key)}
-              className="h-[30px] flex-1 rounded-[7px] border-0 text-[13px] tracking-[-0.1px] transition-colors"
-              style={{
-                cursor: "pointer",
-                background: isActive ? "#636366" : "transparent",
-                boxShadow: isActive
-                  ? "0 1px 3px rgba(0,0,0,0.3), 0 1px 0.5px rgba(0,0,0,0.2)"
-                  : "none",
-                color: isActive ? "#FFFFFF" : "rgba(235,235,245,0.6)",
-                fontFamily: appleFont,
-                fontWeight: isActive ? 600 : 500,
-                touchAction: "manipulation",
-                WebkitTapHighlightColor: "transparent",
-              }}
-            >
-              {key}
-            </button>
-          );
-        })}
+      <div className="mx-auto mt-8 grid max-w-[400px] grid-cols-[1fr_1px_1fr] items-start border-t border-[rgba(235,235,245,0.13)] pt-7">
+        <div>
+          <div className="text-[22px] font-semibold leading-none tracking-[-0.5px] text-white tabular-nums">
+            18&ndash;23%
+          </div>
+          <div className="mt-3 text-[11px] font-semibold uppercase tracking-[0.6px] text-[rgba(235,235,245,0.43)]">
+            Target IRR
+          </div>
+        </div>
+        <div className="h-[44px] bg-[rgba(235,235,245,0.13)]" />
+        <div>
+          <div className="text-[22px] font-semibold leading-none tracking-[-0.5px] text-white tabular-nums">
+            Jan 2024
+          </div>
+          <div className="mt-3 text-[11px] font-semibold uppercase tracking-[0.6px] text-[rgba(235,235,245,0.43)]">
+            Inception
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -627,35 +570,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="mt-10 px-6 text-center md:mt-[52px]">
-              <div
-                className="mb-3.5 text-[11px] font-medium uppercase leading-tight tracking-[1.6px] text-[#2997FF]/85 md:mb-[18px]"
-                style={{ fontFamily: appleFont }}
-              >
-                Target Net IRR
-              </div>
-              <div
-                className="text-[44px] font-semibold leading-none tracking-normal text-[#F5F5F7] tabular-nums md:text-[61px]"
-                style={{ fontFamily: appleFont }}
-              >
-                18
-                <span className="font-light text-[rgba(234,230,220,0.45)]">
-                  {"\u2013"}
-                </span>
-                23
-                <span className="ml-1 text-[25.5px] font-medium text-[rgba(234,230,220,0.55)] md:text-[34px]">
-                  %
-                </span>
-              </div>
-              <div
-                className="mt-3.5 text-[13px] tracking-normal text-[#F5F5F7]/55 md:mt-[18px] md:text-[14px]"
-                style={{ fontFamily: appleFont }}
-              >
-                {"Annually \u00B7 post fees & expenses"}
-              </div>
-            </div>
-
-            <div className="mx-auto mt-6 w-full max-w-[720px] px-5 md:mt-8 md:px-12">
+            <div className="mx-auto mt-10 w-full max-w-[420px] px-5 md:mt-[52px] md:px-12">
               <PerformancePreview />
             </div>
 

@@ -537,7 +537,7 @@ export function AppIcon({
       bg: "linear-gradient(160deg, #2997FF 0%, #248FEF 56%, #1D82DE 100%)",
       glyph: (
         <svg width={size * 0.62} height={size * 0.62} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <g stroke="#fff" strokeWidth="1.5" strokeLinecap="round" opacity="0.92">
+          <g stroke="rgba(255,255,255,0.78)" strokeWidth="1.5" strokeLinecap="round">
             <path d="M9 3.5v2.5M12 3.5v2.5M15 3.5v2.5" />
             <path d="M9 18v2.5M12 18v2.5M15 18v2.5" />
             <path d="M3.5 9h2.5M3.5 12h2.5M3.5 15h2.5" />
@@ -549,11 +549,11 @@ export function AppIcon({
             width="12"
             height="12"
             rx="3"
-            stroke="#fff"
+            stroke="rgba(255,255,255,0.84)"
             strokeWidth="1.6"
             fill="none"
           />
-          <rect x="9.4" y="9.4" width="5.2" height="5.2" rx="1.6" fill="#fff" />
+          <rect x="9.4" y="9.4" width="5.2" height="5.2" rx="1.6" fill="rgba(255,255,255,0.82)" />
         </svg>
       ),
     },

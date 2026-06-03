@@ -54,7 +54,7 @@ describe("HomePage focus order", () => {
     vi.clearAllMocks();
   });
 
-  it("keeps the home CTAs and Fund A range controls in the natural button focus order", async () => {
+  it("keeps the home CTAs and Fund A investment CTAs in the natural button focus order", async () => {
     await act(async () => {
       root.render(React.createElement(HomePage));
     });
@@ -64,13 +64,10 @@ describe("HomePage focus order", () => {
     expect(buttons.map((button) => button.textContent?.trim())).toEqual([
       "Start investing",
       "Discover Fund A",
-      "6M",
-      "1Y",
-      "ALL",
       "Invest in Fund A",
       "Read the fund prospectus",
     ]);
-    expect(buttons[5].getAttribute("tabindex")).toBeNull();
+    expect(buttons[2].getAttribute("tabindex")).toBeNull();
   });
 
   it("opens the populated legal and support pages from the home footer", async () => {
