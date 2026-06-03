@@ -72,7 +72,7 @@ describe("HushhTechHeader layout stability", () => {
       .map((style) => style.textContent || "")
       .join("\n");
 
-    expect(styleText).toContain("animation: hushh-ticker-scroll 30s linear infinite");
+    expect(styleText).toContain("animation: hushh-ticker-scroll 28s linear infinite");
     expect(styleText).toContain("will-change: transform");
     expect(styleText).toContain("translate3d(-50%, 0, 0)");
   });

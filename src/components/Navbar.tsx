@@ -14,6 +14,7 @@ import { SkipToContentLink } from "./ui/SkipToContentLink";
 
 const WELCOME_TOAST_PENDING_KEY = "showWelcomeToast";
 const WELCOME_TOAST_USER_KEY = "showWelcomeToastUserId";
+const TICKER_SCROLL_DURATION_SECONDS = 28;
 
 // Chip-based ticker component - Light theme design
 const TickerChip = ({ quote, isLoading }: { quote: StockQuote; isLoading?: boolean }) => {
@@ -325,22 +326,21 @@ export default function Navbar() {
           <section aria-label="Live stock ticker" className="relative w-full bg-[#F8F9FA] py-2.5 border-b border-gray-200">
           {/* Ticker Marquee with Fade Mask */}
           <div className="ticker-mask relative flex w-full overflow-hidden">
-            <div className="ticker-track flex items-center gap-3 px-4">
-              {/* First set of tickers */}
-              {displayQuotes.map((quote, idx) => (
-                <TickerChip 
-                  key={`first-${quote.symbol}-${idx}`} 
-                  quote={quote} 
-                  isLoading={quotesLoading && quotes.length === 0}
-                />
-              ))}
-              {/* Duplicate for seamless loop */}
-              {displayQuotes.map((quote, idx) => (
-                <TickerChip 
-                  key={`second-${quote.symbol}-${idx}`} 
-                  quote={quote}
-                  isLoading={quotesLoading && quotes.length === 0}
-                />
+            <div className="ticker-track flex items-center">
+              {[0, 1].map((loopIndex) => (
+                <div
+                  key={loopIndex}
+                  aria-hidden={loopIndex === 1}
+                  className="ticker-loop flex shrink-0 items-center gap-3 px-4"
+                >
+                  {displayQuotes.map((quote, idx) => (
+                    <TickerChip
+                      key={`${loopIndex}-${quote.symbol}-${idx}`}
+                      quote={quote}
+                      isLoading={quotesLoading && quotes.length === 0}
+                    />
+                  ))}
+                </div>
               ))}
             </div>
           </div>
@@ -614,16 +614,22 @@ export default function Navbar() {
         /* Ticker animation */
         .ticker-track {
           display: flex;
-          animation: ticker-scroll 40s linear infinite;
+          animation: ticker-scroll ${TICKER_SCROLL_DURATION_SECONDS}s linear infinite;
           width: max-content;
+          transform: translate3d(0, 0, 0);
+          will-change: transform;
+        }
+
+        .ticker-loop {
+          min-width: max-content;
         }
         
         @keyframes ticker-scroll {
           0% {
-            transform: translateX(0);
+            transform: translate3d(0, 0, 0);
           }
           100% {
-            transform: translateX(-50%);
+            transform: translate3d(-50%, 0, 0);
           }
         }
         

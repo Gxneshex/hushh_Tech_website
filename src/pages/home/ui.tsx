@@ -18,11 +18,9 @@ import {
 } from "../../components/hushh-tech-ui/HushhAppleUI";
 
 const PERFORMANCE_RANGES = {
-  "1M": { pct: "+3.2%", start: "Apr 2026", seed: 7, n: 24, from: 49, vol: 1.1 },
-  "3M": { pct: "+7.8%", start: "Feb 2026", seed: 19, n: 32, from: 45, vol: 1.7 },
-  "6M": { pct: "+12.5%", start: "Nov 2025", seed: 31, n: 38, from: 40, vol: 2.3 },
-  "1Y": { pct: "+18.1%", start: "May 2025", seed: 53, n: 46, from: 30, vol: 2.8 },
-  ALL: { pct: "+21.4%", start: "Jan 2024", seed: 88, n: 54, from: 18, vol: 3.1 },
+  "6M": { pct: "+12.5%", start: "Nov 2025", seed: 31, n: 28, from: 38, vol: 1.15 },
+  "1Y": { pct: "+18.1%", start: "May 2025", seed: 53, n: 34, from: 30, vol: 1.25 },
+  ALL: { pct: "+21.4%", start: "Jan 2024", seed: 88, n: 42, from: 18, vol: 1.35 },
 } as const;
 
 type PerformanceRangeKey = keyof typeof PERFORMANCE_RANGES;
@@ -52,8 +50,11 @@ const PerformancePreview = () => {
     for (let index = 0; index < n; index += 1) {
       const t = index / (n - 1);
       const trend = from + (end - from) * t;
-      const noise = (rnd() - 0.5) * vol * 2 * (0.5 + 0.7 * t);
-      out.push(trend + noise);
+      const noise = (rnd() - 0.5) * vol * 2;
+      const pullback = index > 4 && index % 9 === 0 ? -vol * 0.72 : 0;
+      const previous = out[index - 1] ?? from;
+      const next = trend + noise + pullback;
+      out.push(Math.max(next, previous - vol * 0.55));
     }
 
     out[0] = from;
@@ -81,7 +82,7 @@ const PerformancePreview = () => {
 
   return (
     <div
-      className="relative mx-auto max-w-[720px] overflow-hidden rounded-[18px] bg-[#1C1C1E] p-5 pb-4"
+      className="relative mx-auto max-w-[720px] overflow-hidden rounded-[18px] border border-white/[0.06] bg-[#1C1C1E] p-5 pb-4 shadow-[0_22px_48px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(255,255,255,0.04)]"
       aria-label="Fund A performance preview"
       style={{ fontFamily: appleFont }}
     >
@@ -109,7 +110,8 @@ const PerformancePreview = () => {
       >
         <defs>
           <linearGradient id="homeStocksFundAArea" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stopColor="#34C759" stopOpacity="0.18" />
+            <stop offset="0%" stopColor="#34C759" stopOpacity="0.2" />
+            <stop offset="52%" stopColor="#34C759" stopOpacity="0.075" />
             <stop offset="100%" stopColor="#34C759" stopOpacity="0" />
           </linearGradient>
         </defs>

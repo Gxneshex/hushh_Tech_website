@@ -13,7 +13,7 @@ const logoTint = [
   "#F4ECFF",
 ];
 
-const TICKER_SCROLL_DURATION_SECONDS = 30;
+const TICKER_SCROLL_DURATION_SECONDS = 28;
 
 const BrandButton = ({ onClick }: { onClick: () => void }) => (
   <button
@@ -220,22 +220,22 @@ const HushhTechHeader: React.FC<HushhTechHeaderProps> = ({
               ) : null}
             </div>
             <div className="hushh-ticker-mask relative flex w-full overflow-hidden">
-              <div className="hushh-ticker-track flex w-max items-center gap-2 px-5">
-                {quotes.map((quote, idx) => (
-                  <TickerChip
-                    key={`a-${quote.symbol}-${idx}`}
-                    quote={quote}
-                    index={idx}
-                    isLoading={quotesLoading && quotes.length === 0}
-                  />
-                ))}
-                {quotes.map((quote, idx) => (
-                  <TickerChip
-                    key={`b-${quote.symbol}-${idx}`}
-                    quote={quote}
-                    index={idx}
-                    isLoading={quotesLoading && quotes.length === 0}
-                  />
+              <div className="hushh-ticker-track flex w-max items-center">
+                {[0, 1].map((loopIndex) => (
+                  <div
+                    key={loopIndex}
+                    aria-hidden={loopIndex === 1}
+                    className="hushh-ticker-loop flex shrink-0 items-center gap-2 px-5"
+                  >
+                    {quotes.map((quote, idx) => (
+                      <TickerChip
+                        key={`${loopIndex}-${quote.symbol}-${idx}`}
+                        quote={quote}
+                        index={idx}
+                        isLoading={quotesLoading && quotes.length === 0}
+                      />
+                    ))}
+                  </div>
                 ))}
               </div>
             </div>
@@ -259,6 +259,9 @@ const HushhTechHeader: React.FC<HushhTechHeaderProps> = ({
           animation: hushh-ticker-scroll ${TICKER_SCROLL_DURATION_SECONDS}s linear infinite;
           transform: translate3d(0, 0, 0);
           will-change: transform;
+        }
+        .hushh-ticker-loop {
+          min-width: max-content;
         }
         @keyframes hushh-ticker-scroll {
           0% { transform: translate3d(0, 0, 0); }

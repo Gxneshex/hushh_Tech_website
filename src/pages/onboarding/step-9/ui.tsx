@@ -494,8 +494,9 @@ export default function OnboardingStep9() {
                     onClick={openStartOverConfirm}
                     className="font-medium text-[#0066CC] underline hover:opacity-80"
                   >
-                    Start onboarding over
+                    Start over
                   </button>
+                  .
                 </p>
               )}
             </section>
@@ -535,7 +536,7 @@ export default function OnboardingStep9() {
                   </span>
                 </div>
                 <h2 id="start-over-title" className="text-[19px] font-semibold text-[#1D1D1F]">
-                  Start onboarding over?
+                  Start over?
                 </h2>
                 <p className="mx-auto mt-2 max-w-[320px] text-[14px] leading-5 text-[#1D1D1F]/65">
                   This clears your fund commitment selections, KYC details, and

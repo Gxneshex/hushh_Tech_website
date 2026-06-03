@@ -64,15 +64,13 @@ describe("HomePage focus order", () => {
     expect(buttons.map((button) => button.textContent?.trim())).toEqual([
       "Start investing",
       "Discover Fund A",
-      "1M",
-      "3M",
       "6M",
       "1Y",
       "ALL",
       "Invest in Fund A",
       "Read the fund prospectus",
     ]);
-    expect(buttons[7].getAttribute("tabindex")).toBeNull();
+    expect(buttons[5].getAttribute("tabindex")).toBeNull();
   });
 
   it("opens the populated legal and support pages from the home footer", async () => {
