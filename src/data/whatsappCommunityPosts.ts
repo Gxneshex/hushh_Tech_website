@@ -16,7 +16,7 @@ export const whatsappCommunityPosts: WhatsappCommunityPost[] = [
     "attachments": [
       {
         "name": "cf1bb070abd2.jpg",
-        "url": "/community-wa/files/cf1bb070abd2.jpg",
+        "url": "/community-wa/attachments/cf1bb070abd2.jpg",
         "type": "jpg"
       }
     ],
@@ -35,7 +35,7 @@ export const whatsappCommunityPosts: WhatsappCommunityPost[] = [
     "attachments": [
       {
         "name": "e9c4c0776242.jpg",
-        "url": "/community-wa/files/e9c4c0776242.jpg",
+        "url": "/community-wa/attachments/e9c4c0776242.jpg",
         "type": "jpg"
       }
     ],
@@ -54,7 +54,7 @@ export const whatsappCommunityPosts: WhatsappCommunityPost[] = [
     "attachments": [
       {
         "name": "63fa614a6792.jpg",
-        "url": "/community-wa/files/63fa614a6792.jpg",
+        "url": "/community-wa/attachments/63fa614a6792.jpg",
         "type": "jpg"
       }
     ],
@@ -73,7 +73,7 @@ export const whatsappCommunityPosts: WhatsappCommunityPost[] = [
     "attachments": [
       {
         "name": "620cd2cbac02.jpg",
-        "url": "/community-wa/files/620cd2cbac02.jpg",
+        "url": "/community-wa/attachments/620cd2cbac02.jpg",
         "type": "jpg"
       }
     ],
@@ -92,7 +92,7 @@ export const whatsappCommunityPosts: WhatsappCommunityPost[] = [
     "attachments": [
       {
         "name": "b2f548ae348b.jpg",
-        "url": "/community-wa/files/b2f548ae348b.jpg",
+        "url": "/community-wa/attachments/b2f548ae348b.jpg",
         "type": "jpg"
       }
     ],
@@ -111,7 +111,7 @@ export const whatsappCommunityPosts: WhatsappCommunityPost[] = [
     "attachments": [
       {
         "name": "e39a5a1e2c97.jpg",
-        "url": "/community-wa/files/e39a5a1e2c97.jpg",
+        "url": "/community-wa/attachments/e39a5a1e2c97.jpg",
         "type": "jpg"
       }
     ],
@@ -130,7 +130,7 @@ export const whatsappCommunityPosts: WhatsappCommunityPost[] = [
     "attachments": [
       {
         "name": "9e6358357a0a.jpg",
-        "url": "/community-wa/files/9e6358357a0a.jpg",
+        "url": "/community-wa/attachments/9e6358357a0a.jpg",
         "type": "jpg"
       }
     ],
@@ -149,7 +149,7 @@ export const whatsappCommunityPosts: WhatsappCommunityPost[] = [
     "attachments": [
       {
         "name": "5121c2a8e3fd.jpg",
-        "url": "/community-wa/files/5121c2a8e3fd.jpg",
+        "url": "/community-wa/attachments/5121c2a8e3fd.jpg",
         "type": "jpg"
       }
     ],
@@ -168,7 +168,7 @@ export const whatsappCommunityPosts: WhatsappCommunityPost[] = [
     "attachments": [
       {
         "name": "957710c0350d.jpg",
-        "url": "/community-wa/files/957710c0350d.jpg",
+        "url": "/community-wa/attachments/957710c0350d.jpg",
         "type": "jpg"
       }
     ],
@@ -187,7 +187,7 @@ export const whatsappCommunityPosts: WhatsappCommunityPost[] = [
     "attachments": [
       {
         "name": "509e14ee1f51.png",
-        "url": "/community-wa/files/509e14ee1f51.png",
+        "url": "/community-wa/attachments/509e14ee1f51.png",
         "type": "png"
       }
     ],
