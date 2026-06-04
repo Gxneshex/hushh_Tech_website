@@ -14,7 +14,9 @@ describe("Home Fund A visual contract", () => {
     expect(home).toContain("h-[176px] w-[176px]");
     expect(home).toContain("min-[390px]:h-[184px] min-[390px]:w-[184px]");
     expect(home).toContain("strokeDashoffset={0}");
-    expect(home).toContain("text-[41px] md:text-[56px]");
+    expect(home).toContain('const FUND_A_APPLE_GREEN = "#30D158";');
+    expect(home).toContain("text-[52px] md:text-[76px]");
+    expect(home).toContain('<Display size="sm" tone="dark" maxWidth="max-w-[520px]">');
     expect(home).toContain("!pt-20 !pb-[10rem] md:!pt-24 md:!pb-[6rem]");
     expect(home).toContain("h-[118px] w-[192px]");
     expect(home).toContain('id="homeFundARingGrad"');
@@ -30,6 +32,8 @@ describe("Home Fund A visual contract", () => {
     expect(home).not.toContain("Target Net IRR");
     expect(home).not.toContain("Annually \\u00B7 post fees & expenses");
     expect(home).not.toContain("homeStocksFundALine");
+    expect(home).not.toContain("text-[#34C759]");
+    expect(home).not.toContain("bg-[#34C759]");
   });
 
   it("keeps shared icon glass calmer and less gradient-heavy", () => {

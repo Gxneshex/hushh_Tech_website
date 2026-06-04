@@ -18,6 +18,8 @@ import {
   appleFont,
 } from "../../components/hushh-tech-ui/HushhAppleUI";
 
+const FUND_A_APPLE_GREEN = "#30D158";
+
 const PerformancePreview = () => {
   const pct = "+21.4%";
   const progress = 0.86;
@@ -44,11 +46,11 @@ const PerformancePreview = () => {
         >
           <defs>
             <linearGradient id="homeFundARingGrad" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="#2BD04E" />
-              <stop offset="100%" stopColor="#4CE86B" />
+              <stop offset="0%" stopColor={FUND_A_APPLE_GREEN} />
+              <stop offset="100%" stopColor={FUND_A_APPLE_GREEN} />
             </linearGradient>
             <filter id="homeFundARingGlow" x="-30%" y="-30%" width="160%" height="160%">
-              <feGaussianBlur stdDeviation="4.5" result="blur" />
+              <feGaussianBlur stdDeviation="3.2" result="blur" />
               <feMerge>
                 <feMergeNode in="blur" />
                 <feMergeNode in="SourceGraphic" />
@@ -82,12 +84,12 @@ const PerformancePreview = () => {
         </svg>
 
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <div className="flex items-baseline font-semibold leading-none tracking-[-1.1px] text-white tabular-nums md:tracking-[-1.4px]">
-            <span className="mr-0.5 text-[27px] text-[#34C759] md:text-[36px]">
+          <div className="flex items-baseline font-semibold leading-none tracking-[-1.35px] text-white tabular-nums md:tracking-[-2px]">
+            <span className="mr-1 text-[28px] md:text-[40px]" style={{ color: FUND_A_APPLE_GREEN }}>
               {pct[0]}
             </span>
-            <span className="text-[41px] md:text-[56px]">{pctValue}</span>
-            <span className="ml-px text-[18px] font-medium text-[rgba(235,235,245,0.55)] md:text-[25px]">
+            <span className="text-[52px] md:text-[76px]">{pctValue}</span>
+            <span className="ml-px text-[20px] font-medium text-[rgba(235,235,245,0.50)] md:text-[29px]">
               %
             </span>
           </div>
@@ -535,12 +537,12 @@ export default function HomePage() {
                 }}
               />
               <div className="relative z-[1]">
-                <Display size="md" tone="dark" maxWidth="max-w-[520px]">
+                <Display size="sm" tone="dark" maxWidth="max-w-[520px]">
                   Fund A
                   <span
                     style={{
-                      color: SYS.green,
-                      filter: "drop-shadow(0 0 18px rgba(52,199,89,0.5))",
+                      color: FUND_A_APPLE_GREEN,
+                      filter: "drop-shadow(0 0 12px rgba(48,209,88,0.34))",
                     }}
                   >
                     .
@@ -556,10 +558,10 @@ export default function HomePage() {
             <div className="mt-4 flex justify-center md:mt-[18px]">
               <div className="inline-flex items-center gap-2.5 rounded-full bg-white/[0.04] py-2 pl-3.5 pr-4 shadow-[0_4px_16px_rgba(0,0,0,0.3),inset_0_0_0_0.5px_rgba(255,255,255,0.12),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-xl">
                 <span
-                  className="h-1.5 w-1.5 rounded-full bg-[#34C759]"
+                  className="h-1.5 w-1.5 rounded-full bg-white/55"
                   style={{
                     boxShadow:
-                      "0 0 8px rgba(52,199,89,0.6), 0 0 0 3px rgba(52,199,89,0.18)",
+                      "0 0 0 3px rgba(255,255,255,0.08)",
                   }}
                 />
                 <span

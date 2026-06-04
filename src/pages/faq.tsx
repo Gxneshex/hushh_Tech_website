@@ -86,7 +86,7 @@ const FaqPage: React.FC = () => {
       minH="100vh"
       sx={{ WebkitFontSmoothing: "antialiased", MozOsxFontSmoothing: "grayscale" }}
     >
-      <HushhTechBackHeader rightLabel="FAQs" />
+      <HushhTechBackHeader showRightButton={false} />
       <Box as="main" id="main-content">
       <Container maxW="7xl" py={{ base: 10, md: 14, lg: 16 }} px={{ base: 4, sm: 6, lg: 8 }}>
         <Box textAlign="center" mb={{ base: 12, md: 14 }}>

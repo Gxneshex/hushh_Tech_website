@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import HushhTechFaqSheet from "../hushh-tech-faq-sheet/HushhTechFaqSheet";
 import HushhTechNavDrawer from "../hushh-tech-nav-drawer/HushhTechNavDrawer";
@@ -23,12 +23,27 @@ const HushhTechBackHeader: React.FC<HushhTechBackHeaderProps> = ({
   className = "",
 }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isFaqOpen, setIsFaqOpen] = useState(false);
 
-  const handleRightClick =
-    onRightClick ??
-    (rightLabel?.toLowerCase() === "faqs" ? () => setIsFaqOpen(true) : undefined);
+  const handleRightClick = () => {
+    if (onRightClick) {
+      onRightClick();
+      return;
+    }
+
+    if (rightLabel?.toLowerCase() !== "faqs") return;
+
+    if (location.pathname.startsWith("/onboarding")) {
+      setIsFaqOpen(true);
+      return;
+    }
+
+    if (location.pathname !== "/faq") {
+      navigate("/faq");
+    }
+  };
 
   const handleBackClick = () => {
     if (onBackClick) {

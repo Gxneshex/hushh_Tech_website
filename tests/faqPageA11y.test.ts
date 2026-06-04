@@ -7,7 +7,12 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("../src/components/hushh-tech-back-header/HushhTechBackHeader", () => ({
-  default: () => React.createElement("header", null, "HushhTechBackHeader"),
+  default: (props: { showRightButton?: boolean }) =>
+    React.createElement(
+      "header",
+      { "data-show-right-button": String(props.showRightButton) },
+      "HushhTechBackHeader",
+    ),
 }));
 
 import FaqPage from "../src/pages/faq";
@@ -42,6 +47,7 @@ describe("FAQ page", () => {
     });
 
     expect(container.textContent).toContain("HushhTechBackHeader");
+    expect(container.querySelector("header")?.getAttribute("data-show-right-button")).toBe("false");
     expect(container.textContent).toContain("Frequently Asked");
     expect(container.textContent).not.toContain("Hu$$h");
 
