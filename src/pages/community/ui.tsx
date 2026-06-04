@@ -17,6 +17,7 @@ import {
   appleFont,
 } from "../../components/hushh-tech-ui/HushhAppleUI";
 import { useCommunityListLogic } from "./logic";
+import SeoHead from "../../components/seo/SeoHead";
 
 const CATEGORY_META = {
   all: { label: "All", tint: "#1D1D1F" },
@@ -335,6 +336,11 @@ export default function CommunityPage() {
       className="min-h-screen bg-[#FFFFFF] text-[#1D1D1F] antialiased selection:bg-[#0066CC] selection:text-[#F5F5F7]"
       style={{ fontFamily: appleFont }}
     >
+      <SeoHead
+        title="Community"
+        description="Fund updates, market notes, and source-backed research from HushhTech — the AI-powered Berkshire Hathaway."
+        path="/community"
+      />
       <HushhTechBackHeader
         onBackClick={handleBackClick}
         rightType="hamburger"

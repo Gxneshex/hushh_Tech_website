@@ -14,6 +14,7 @@ import {
 } from "../../components/hushh-tech-ui/HushhAppleUI";
 import type { CommunityMediaItem } from "../../services/communityContent";
 import { useCommunityPostLogic } from "./post-logic";
+import SeoHead, { SITE_URL, ORGANIZATION_SCHEMA } from "../../components/seo/SeoHead";
 
 const richContentClassName = [
   "prose prose-neutral max-w-none prose-headings:font-medium prose-a:text-[#0066CC]",
@@ -84,6 +85,41 @@ export default function CommunityPostPage() {
 
   if (!post) return null;
 
+  // Deep SEO inherited by EVERY community post (static + Firestore) — this is
+  // the single shared detail renderer, so one <SeoHead> covers them all.
+  const firstImage = post.mediaItems?.find((item) => item.type === "image")?.url;
+  const ogImage = firstImage
+    ? firstImage.startsWith("http")
+      ? firstImage
+      : `${SITE_URL}${firstImage}`
+    : undefined;
+  const canonicalPath = `/community/${post.slug}`;
+  const seoHead = (
+    <SeoHead
+      title={post.title}
+      description={post.description}
+      path={canonicalPath}
+      image={ogImage}
+      type="article"
+      jsonLd={{
+        "@context": "https://schema.org",
+        "@type": "Article",
+        headline: post.title,
+        description: post.description,
+        datePublished: post.publishedAt || post.date || undefined,
+        articleSection: post.category || undefined,
+        image: ogImage || undefined,
+        mainEntityOfPage: `${SITE_URL}${canonicalPath}`,
+        author: {
+          "@type": "Organization",
+          name: "Hushh Technologies LLC",
+          url: SITE_URL,
+        },
+        publisher: ORGANIZATION_SCHEMA,
+      }}
+    />
+  );
+
   const LegacyPostComponent =
     legacyPost && typeof legacyPost.Component !== "string"
       ? legacyPost.Component
@@ -100,6 +136,7 @@ export default function CommunityPostPage() {
         className="min-h-screen bg-[#FFFFFF] text-[#1D1D1F] antialiased selection:bg-[#0066CC] selection:text-[#F5F5F7]"
         style={{ fontFamily: appleFont }}
       >
+        {seoHead}
         <HushhTechBackHeader onBackClick={handleBack} rightType="hamburger" />
 
         <main>
@@ -145,6 +182,7 @@ export default function CommunityPostPage() {
         className="min-h-screen bg-[#FFFFFF] text-[#1D1D1F] antialiased selection:bg-[#0066CC] selection:text-[#F5F5F7]"
         style={{ fontFamily: appleFont }}
       >
+        {seoHead}
         <HushhTechBackHeader onBackClick={handleBack} rightType="hamburger" />
         <main>
           <AppleSection tone="light" pad="tight">
@@ -185,6 +223,7 @@ export default function CommunityPostPage() {
       className="min-h-screen bg-[#FFFFFF] text-[#1D1D1F] antialiased selection:bg-[#0066CC] selection:text-[#F5F5F7]"
       style={{ fontFamily: appleFont }}
     >
+      {seoHead}
       <HushhTechBackHeader onBackClick={handleBack} rightType="hamburger" />
 
       <main id="main-content">
