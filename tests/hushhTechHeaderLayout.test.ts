@@ -63,17 +63,19 @@ describe("HushhTechHeader layout stability", () => {
     expect(tickerLogo?.getAttribute("loading")).toBe("lazy");
   });
 
-  it("keeps the live market ticker moving at a crisp home-page pace", async () => {
+  it("uses constant requestAnimationFrame motion for the live market ticker", async () => {
     await act(async () => {
       root.render(React.createElement(HushhTechHeader));
     });
 
+    const tickerTrack = container.querySelector("[data-ticker-motion='constant-raf']");
     const styleText = Array.from(container.querySelectorAll("style"))
       .map((style) => style.textContent || "")
       .join("\n");
 
-    expect(styleText).toContain("animation: hushh-ticker-scroll var(--ticker-duration, 28s) linear infinite");
+    expect(tickerTrack).not.toBeNull();
     expect(styleText).toContain("will-change: transform");
-    expect(styleText).toContain("translate3d(var(--ticker-distance, -50%), 0, 0)");
+    expect(styleText).not.toContain("animation: hushh-ticker-scroll");
+    expect(styleText).not.toContain("animation: ticker-scroll");
   });
 });

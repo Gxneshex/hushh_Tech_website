@@ -50,13 +50,13 @@ describe("FAQ page", () => {
       button.textContent?.includes("long-term value creation"),
     );
 
-    expect(firstFaq?.getAttribute("aria-expanded")).toBe("true");
+    expect(firstFaq?.getAttribute("aria-expanded")).toBe("false");
     expect(firstFaq?.getAttribute("aria-controls")).toBe("faq-panel-0");
 
     await act(async () => {
       firstFaq?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     });
 
-    expect(firstFaq?.getAttribute("aria-expanded")).toBe("false");
+    expect(firstFaq?.getAttribute("aria-expanded")).toBe("true");
   });
 });

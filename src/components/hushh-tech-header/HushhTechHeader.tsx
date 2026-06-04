@@ -3,6 +3,7 @@ import { useInRouterContext, useNavigate } from "react-router-dom";
 
 import HushhTechNavDrawer from "../hushh-tech-nav-drawer/HushhTechNavDrawer";
 import { useStockQuotes, StockQuote } from "../../hooks/useStockQuotes";
+import { useConstantTickerMotion } from "../../hooks/useConstantTickerMotion";
 import { SkipToContentLink } from "../ui/SkipToContentLink";
 import { GlassPill, HushhMark, Icon, SYS, appleFont } from "../hushh-tech-ui/HushhAppleUI";
 
@@ -13,8 +14,7 @@ const logoTint = [
   "#F4ECFF",
 ];
 
-const TICKER_SCROLL_FALLBACK_DURATION_SECONDS = 28;
-const TICKER_SCROLL_PIXELS_PER_SECOND = 52;
+const TICKER_SCROLL_PIXELS_PER_SECOND = 60;
 
 const BrandButton = ({ onClick }: { onClick: () => void }) => (
   <button
@@ -114,8 +114,7 @@ const HushhTechHeader: React.FC<HushhTechHeaderProps> = ({
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isTickerCollapsed, setIsTickerCollapsed] = useState(false);
   const tickerLoopRef = useRef<HTMLDivElement>(null);
-  const [tickerDuration, setTickerDuration] = useState(TICKER_SCROLL_FALLBACK_DURATION_SECONDS);
-  const [tickerDistance, setTickerDistance] = useState("-50%");
+  const tickerTrackRef = useRef<HTMLDivElement>(null);
   const hasRouter = useInRouterContext();
   const { quotes, loading: quotesLoading, lastUpdated } = useStockQuotes(120000);
 
@@ -148,47 +147,12 @@ const HushhTechHeader: React.FC<HushhTechHeaderProps> = ({
     };
   }, [showTicker]);
 
-  useEffect(() => {
-    if (!showTicker) return;
-
-    const loop = tickerLoopRef.current;
-    if (!loop) return;
-
-    let frame = 0;
-    const measureTicker = () => {
-      frame = 0;
-      const distance = loop.scrollWidth;
-      if (distance <= 0) return;
-      const duration = Math.max(
-        18,
-        Number((distance / TICKER_SCROLL_PIXELS_PER_SECOND).toFixed(2)),
-      );
-      setTickerDistance(`-${distance}px`);
-      setTickerDuration(duration);
-    };
-
-    const scheduleMeasure = () => {
-      if (frame) return;
-      frame = window.requestAnimationFrame(measureTicker);
-    };
-
-    scheduleMeasure();
-    window.addEventListener("resize", scheduleMeasure);
-
-    const resizeObserver =
-      typeof ResizeObserver !== "undefined"
-        ? new ResizeObserver(scheduleMeasure)
-        : null;
-    resizeObserver?.observe(loop);
-
-    return () => {
-      window.removeEventListener("resize", scheduleMeasure);
-      resizeObserver?.disconnect();
-      if (frame) {
-        window.cancelAnimationFrame(frame);
-      }
-    };
-  }, [quotes.length, showTicker]);
+  useConstantTickerMotion({
+    enabled: showTicker && quotes.length > 0,
+    loopRef: tickerLoopRef,
+    trackRef: tickerTrackRef,
+    pixelsPerSecond: TICKER_SCROLL_PIXELS_PER_SECOND,
+  });
 
   return (
     <>
@@ -267,11 +231,9 @@ const HushhTechHeader: React.FC<HushhTechHeaderProps> = ({
             </div>
             <div className="hushh-ticker-mask relative flex w-full overflow-hidden">
               <div
+                ref={tickerTrackRef}
                 className="hushh-ticker-track flex w-max items-center"
-                style={{
-                  "--ticker-duration": `${tickerDuration}s`,
-                  "--ticker-distance": tickerDistance,
-                } as React.CSSProperties}
+                data-ticker-motion="constant-raf"
               >
                 {[0, 1].map((loopIndex) => (
                   <div
@@ -309,19 +271,11 @@ const HushhTechHeader: React.FC<HushhTechHeaderProps> = ({
           -webkit-mask-image: linear-gradient(to right, transparent, black 4%, black 96%, transparent);
         }
         .hushh-ticker-track {
-          animation: hushh-ticker-scroll var(--ticker-duration, ${TICKER_SCROLL_FALLBACK_DURATION_SECONDS}s) linear infinite;
           transform: translate3d(0, 0, 0);
           will-change: transform;
         }
         .hushh-ticker-loop {
           min-width: max-content;
-        }
-        @keyframes hushh-ticker-scroll {
-          0% { transform: translate3d(0, 0, 0); }
-          100% { transform: translate3d(var(--ticker-distance, -50%), 0, 0); }
-        }
-        .hushh-ticker-mask:hover .hushh-ticker-track {
-          animation-play-state: paused;
         }
       `}</style>
     </>

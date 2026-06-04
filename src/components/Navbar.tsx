@@ -7,6 +7,7 @@ import hushhLogo from "../components/images/Hushhogo.png";
 import LanguageSwitcher from "./LanguageSwitcher";
 import DeleteAccountModal from "./DeleteAccountModal";
 import { useStockQuotes, StockQuote, STOCK_LOGOS } from "../hooks/useStockQuotes";
+import { useConstantTickerMotion } from "../hooks/useConstantTickerMotion";
 import config from "../resources/config/config";
 import { useAuthSession } from "../auth/AuthSessionProvider";
 import { useInvestorJourneyCta } from "../hooks/useInvestorJourneyCta";
@@ -14,8 +15,7 @@ import { SkipToContentLink } from "./ui/SkipToContentLink";
 
 const WELCOME_TOAST_PENDING_KEY = "showWelcomeToast";
 const WELCOME_TOAST_USER_KEY = "showWelcomeToastUserId";
-const TICKER_SCROLL_FALLBACK_DURATION_SECONDS = 28;
-const TICKER_SCROLL_PIXELS_PER_SECOND = 52;
+const TICKER_SCROLL_PIXELS_PER_SECOND = 60;
 
 // Chip-based ticker component - Light theme design
 const TickerChip = ({ quote, isLoading }: { quote: StockQuote; isLoading?: boolean }) => {
@@ -63,12 +63,11 @@ export default function Navbar() {
   const drawerRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const tickerLoopRef = useRef<HTMLDivElement>(null);
+  const tickerTrackRef = useRef<HTMLDivElement>(null);
   const careerDropdownRef = useRef<HTMLDivElement>(null);
   const profileDropdownRef = useRef<HTMLDivElement>(null);
   const [showScrollIndicator, setShowScrollIndicator] = useState(true);
   const [hushhCoins, setHushhCoins] = useState<number | null>(null);
-  const [tickerDuration, setTickerDuration] = useState(TICKER_SCROLL_FALLBACK_DURATION_SECONDS);
-  const [tickerDistance, setTickerDistance] = useState("-50%");
   const toast = useToast();
   const isMobile = useBreakpointValue({ base: true, lg: false });
   const isDesktop = isMobile === false;
@@ -85,47 +84,12 @@ export default function Navbar() {
   // quotes already includes fallback data from the hook, so we can use it directly
   const displayQuotes = quotes;
 
-  useEffect(() => {
-    if (hideTicker) return;
-
-    const loop = tickerLoopRef.current;
-    if (!loop) return;
-
-    let frame = 0;
-    const measureTicker = () => {
-      frame = 0;
-      const distance = loop.scrollWidth;
-      if (distance <= 0) return;
-      const duration = Math.max(
-        18,
-        Number((distance / TICKER_SCROLL_PIXELS_PER_SECOND).toFixed(2)),
-      );
-      setTickerDistance(`-${distance}px`);
-      setTickerDuration(duration);
-    };
-
-    const scheduleMeasure = () => {
-      if (frame) return;
-      frame = window.requestAnimationFrame(measureTicker);
-    };
-
-    scheduleMeasure();
-    window.addEventListener("resize", scheduleMeasure);
-
-    const resizeObserver =
-      typeof ResizeObserver !== "undefined"
-        ? new ResizeObserver(scheduleMeasure)
-        : null;
-    resizeObserver?.observe(loop);
-
-    return () => {
-      window.removeEventListener("resize", scheduleMeasure);
-      resizeObserver?.disconnect();
-      if (frame) {
-        window.cancelAnimationFrame(frame);
-      }
-    };
-  }, [displayQuotes.length, hideTicker]);
+  useConstantTickerMotion({
+    enabled: !hideTicker && displayQuotes.length > 0,
+    loopRef: tickerLoopRef,
+    trackRef: tickerTrackRef,
+    pixelsPerSecond: TICKER_SCROLL_PIXELS_PER_SECOND,
+  });
 
   useEffect(() => {
     const currentUserId = user?.id ?? null;
@@ -373,11 +337,9 @@ export default function Navbar() {
           {/* Ticker Marquee with Fade Mask */}
           <div className="ticker-mask relative flex w-full overflow-hidden">
             <div
+              ref={tickerTrackRef}
               className="ticker-track flex items-center"
-              style={{
-                "--ticker-duration": `${tickerDuration}s`,
-                "--ticker-distance": tickerDistance,
-              } as React.CSSProperties}
+              data-ticker-motion="constant-raf"
             >
               {[0, 1].map((loopIndex) => (
                 <div
@@ -667,7 +629,6 @@ export default function Navbar() {
         /* Ticker animation */
         .ticker-track {
           display: flex;
-          animation: ticker-scroll var(--ticker-duration, ${TICKER_SCROLL_FALLBACK_DURATION_SECONDS}s) linear infinite;
           width: max-content;
           transform: translate3d(0, 0, 0);
           will-change: transform;
@@ -675,20 +636,6 @@ export default function Navbar() {
 
         .ticker-loop {
           min-width: max-content;
-        }
-        
-        @keyframes ticker-scroll {
-          0% {
-            transform: translate3d(0, 0, 0);
-          }
-          100% {
-            transform: translate3d(var(--ticker-distance, -50%), 0, 0);
-          }
-        }
-        
-        /* Pause animation on hover */
-        .ticker-mask:hover .ticker-track {
-          animation-play-state: paused;
         }
         
         /* Scroll indicator bounce animation */

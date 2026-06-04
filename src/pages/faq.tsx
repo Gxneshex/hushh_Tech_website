@@ -72,7 +72,7 @@ const faqs: FaqItem[] = [
 ];
 
 const FaqPage: React.FC = () => {
-  const [openIndex, setOpenIndex] = React.useState<number | null>(0);
+  const [openIndex, setOpenIndex] = React.useState<number | null>(null);
 
   const toggleAccordion = (index: number) => {
     setOpenIndex(openIndex === index ? null : index);
