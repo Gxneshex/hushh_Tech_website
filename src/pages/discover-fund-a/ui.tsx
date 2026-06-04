@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import SeoHead from "../../components/seo/SeoHead";
 import {
   CircleDollarSign,
   Clock3,
@@ -333,6 +334,23 @@ const TermRow = ({
   </div>
 );
 
+const FUND_A_SCHEMA: Record<string, unknown> = {
+  "@context": "https://schema.org",
+  "@type": "FinancialProduct",
+  name: "HushhTech Fund A",
+  url: "https://hushhtech.com/discover-fund-a",
+  category: "Investment Fund",
+  provider: {
+    "@type": "Organization",
+    name: "Hushh Technologies LLC",
+    url: "https://hushhtech.com",
+  },
+  description:
+    "Fund A is HushhTech's AI-driven, long-term value investing strategy — " +
+    "disciplined capital allocation into exceptional businesses, modeled on " +
+    "Berkshire Hathaway.",
+};
+
 const FundA = () => {
   const navigate = useNavigate();
   const {
@@ -369,6 +387,12 @@ const FundA = () => {
       className="min-h-screen bg-[#FFFFFF] text-[#1D1D1F] antialiased selection:bg-[#0066CC] selection:text-[#F5F5F7]"
       style={{ fontFamily: appleFont }}
     >
+      <SeoHead
+        title="Fund A — AI-powered value investing"
+        description="Fund A is HushhTech's AI-driven, long-term value strategy: disciplined capital allocation into exceptional businesses, modeled on Berkshire Hathaway."
+        path="/discover-fund-a"
+        jsonLd={FUND_A_SCHEMA}
+      />
       <HushhTechBackHeader
         onBackClick={() => navigate("/")}
         rightType="hamburger"

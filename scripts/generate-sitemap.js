@@ -8,7 +8,27 @@ const __dirname = path.dirname(__filename);
 
 const SITE_URL = "https://hushhtech.com";
 const SITEMAP_PATH = path.join(__dirname, "../public/sitemap.xml");
-const staticPages = ["/", "/about", "/contact", "/blog", "/privacy-policy", "/terms-of-service"];
+// Real, indexable public routes (must match registered routes in src/App.tsx).
+// Auth/onboarding/profile routes are intentionally excluded from the sitemap.
+const staticPages = [
+  "/",
+  "/discover-fund-a",
+  "/ai-powered-berkshire",
+  "/sell-the-wall",
+  "/community",
+  "/benefits",
+  "/career",
+  "/faq",
+  "/contact",
+  "/about/leadership",
+  "/about/philosophy",
+  "/support",
+  "/privacy-policy",
+  "/terms-of-service",
+  "/risk-disclosures",
+  "/california-privacy-policy",
+  "/eu-uk-jobs-privacy-policy",
+];
 
 // Additional community routes based on observed URL structure in posts.ts
 const communityRoutes = [
