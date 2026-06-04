@@ -14,7 +14,8 @@ import { SkipToContentLink } from "./ui/SkipToContentLink";
 
 const WELCOME_TOAST_PENDING_KEY = "showWelcomeToast";
 const WELCOME_TOAST_USER_KEY = "showWelcomeToastUserId";
-const TICKER_SCROLL_DURATION_SECONDS = 28;
+const TICKER_SCROLL_FALLBACK_DURATION_SECONDS = 28;
+const TICKER_SCROLL_PIXELS_PER_SECOND = 52;
 
 // Chip-based ticker component - Light theme design
 const TickerChip = ({ quote, isLoading }: { quote: StockQuote; isLoading?: boolean }) => {
@@ -61,10 +62,13 @@ export default function Navbar() {
   const location = useLocation();
   const drawerRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const tickerLoopRef = useRef<HTMLDivElement>(null);
   const careerDropdownRef = useRef<HTMLDivElement>(null);
   const profileDropdownRef = useRef<HTMLDivElement>(null);
   const [showScrollIndicator, setShowScrollIndicator] = useState(true);
   const [hushhCoins, setHushhCoins] = useState<number | null>(null);
+  const [tickerDuration, setTickerDuration] = useState(TICKER_SCROLL_FALLBACK_DURATION_SECONDS);
+  const [tickerDistance, setTickerDistance] = useState("-50%");
   const toast = useToast();
   const isMobile = useBreakpointValue({ base: true, lg: false });
   const isDesktop = isMobile === false;
@@ -80,6 +84,48 @@ export default function Navbar() {
 
   // quotes already includes fallback data from the hook, so we can use it directly
   const displayQuotes = quotes;
+
+  useEffect(() => {
+    if (hideTicker) return;
+
+    const loop = tickerLoopRef.current;
+    if (!loop) return;
+
+    let frame = 0;
+    const measureTicker = () => {
+      frame = 0;
+      const distance = loop.scrollWidth;
+      if (distance <= 0) return;
+      const duration = Math.max(
+        18,
+        Number((distance / TICKER_SCROLL_PIXELS_PER_SECOND).toFixed(2)),
+      );
+      setTickerDistance(`-${distance}px`);
+      setTickerDuration(duration);
+    };
+
+    const scheduleMeasure = () => {
+      if (frame) return;
+      frame = window.requestAnimationFrame(measureTicker);
+    };
+
+    scheduleMeasure();
+    window.addEventListener("resize", scheduleMeasure);
+
+    const resizeObserver =
+      typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(scheduleMeasure)
+        : null;
+    resizeObserver?.observe(loop);
+
+    return () => {
+      window.removeEventListener("resize", scheduleMeasure);
+      resizeObserver?.disconnect();
+      if (frame) {
+        window.cancelAnimationFrame(frame);
+      }
+    };
+  }, [displayQuotes.length, hideTicker]);
 
   useEffect(() => {
     const currentUserId = user?.id ?? null;
@@ -326,10 +372,17 @@ export default function Navbar() {
           <section aria-label="Live stock ticker" className="relative w-full bg-[#F8F9FA] py-2.5 border-b border-gray-200">
           {/* Ticker Marquee with Fade Mask */}
           <div className="ticker-mask relative flex w-full overflow-hidden">
-            <div className="ticker-track flex items-center">
+            <div
+              className="ticker-track flex items-center"
+              style={{
+                "--ticker-duration": `${tickerDuration}s`,
+                "--ticker-distance": tickerDistance,
+              } as React.CSSProperties}
+            >
               {[0, 1].map((loopIndex) => (
                 <div
                   key={loopIndex}
+                  ref={loopIndex === 0 ? tickerLoopRef : undefined}
                   aria-hidden={loopIndex === 1}
                   className="ticker-loop flex shrink-0 items-center gap-3 px-4"
                 >
@@ -614,7 +667,7 @@ export default function Navbar() {
         /* Ticker animation */
         .ticker-track {
           display: flex;
-          animation: ticker-scroll ${TICKER_SCROLL_DURATION_SECONDS}s linear infinite;
+          animation: ticker-scroll var(--ticker-duration, ${TICKER_SCROLL_FALLBACK_DURATION_SECONDS}s) linear infinite;
           width: max-content;
           transform: translate3d(0, 0, 0);
           will-change: transform;
@@ -629,7 +682,7 @@ export default function Navbar() {
             transform: translate3d(0, 0, 0);
           }
           100% {
-            transform: translate3d(-50%, 0, 0);
+            transform: translate3d(var(--ticker-distance, -50%), 0, 0);
           }
         }
         

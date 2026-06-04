@@ -1,4 +1,4 @@
-import { useEffect, useState, type PointerEvent, type ReactNode } from "react";
+import { useState, type PointerEvent, type ReactNode } from "react";
 import { useHomeLogic } from "./logic";
 import HushhTechHeader from "../../components/hushh-tech-header/HushhTechHeader";
 import HushhTechFooter, {
@@ -18,31 +18,23 @@ import {
 } from "../../components/hushh-tech-ui/HushhAppleUI";
 
 const PerformancePreview = () => {
-  const [draw, setDraw] = useState(false);
   const pct = "+21.4%";
   const progress = 0.86;
-  const size = 270;
-  const stroke = 22;
+  const size = 220;
+  const stroke = 17;
   const radius = (size - stroke) / 2 - 6;
   const center = size / 2;
   const circumference = 2 * Math.PI * radius;
   const dash = circumference * progress;
   const pctValue = pct.slice(1).replace("%", "");
 
-  useEffect(() => {
-    setDraw(false);
-    const id = window.setTimeout(() => setDraw(true), 120);
-
-    return () => window.clearTimeout(id);
-  }, []);
-
   return (
     <div
-      className="relative mx-auto max-w-[420px] text-center"
+      className="relative mx-auto max-w-[360px] text-center md:max-w-[420px]"
       aria-label="Fund A performance preview"
       style={{ fontFamily: appleFont }}
     >
-      <div className="relative mx-auto h-[248px] w-[248px] md:h-[270px] md:w-[270px]">
+      <div className="relative mx-auto h-[176px] w-[176px] min-[390px]:h-[184px] min-[390px]:w-[184px] md:h-[252px] md:w-[252px]">
         <svg
           width={size}
           height={size}
@@ -79,7 +71,7 @@ const PerformancePreview = () => {
             strokeLinecap="round"
             strokeWidth={stroke}
             strokeDasharray={`${dash} ${circumference}`}
-            strokeDashoffset={draw ? 0 : dash}
+            strokeDashoffset={0}
             filter="url(#homeFundARingGlow)"
             style={{
               transition:
@@ -89,40 +81,40 @@ const PerformancePreview = () => {
         </svg>
 
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <div className="flex items-baseline font-semibold leading-none tracking-[-1.4px] text-white tabular-nums">
-            <span className="mr-0.5 text-[31px] text-[#34C759] md:text-[36px]">
+          <div className="flex items-baseline font-semibold leading-none tracking-[-1.1px] text-white tabular-nums md:tracking-[-1.4px]">
+            <span className="mr-0.5 text-[27px] text-[#34C759] md:text-[36px]">
               {pct[0]}
             </span>
-            <span className="text-[48px] md:text-[56px]">{pctValue}</span>
-            <span className="ml-px text-[21px] font-medium text-[rgba(235,235,245,0.55)] md:text-[25px]">
+            <span className="text-[41px] md:text-[56px]">{pctValue}</span>
+            <span className="ml-px text-[18px] font-medium text-[rgba(235,235,245,0.55)] md:text-[25px]">
               %
             </span>
           </div>
-          <div className="mt-2 text-[13px] font-normal tracking-[-0.08px] text-[rgba(235,235,245,0.5)]">
+          <div className="mt-1.5 text-[12px] font-normal tracking-[-0.08px] text-[rgba(235,235,245,0.5)] md:mt-2 md:text-[13px]">
             Net of fees
           </div>
         </div>
       </div>
 
-      <div className="mt-6 text-[12px] font-semibold uppercase tracking-[1.4px] text-[rgba(235,235,245,0.48)]">
+      <div className="mt-3.5 text-[11px] font-semibold uppercase tracking-[1.2px] text-[rgba(235,235,245,0.48)] md:mt-6 md:text-[12px] md:tracking-[1.4px]">
         Net return &middot; inception to date
       </div>
 
-      <div className="mx-auto mt-8 grid max-w-[400px] grid-cols-[1fr_1px_1fr] items-start border-t border-[rgba(235,235,245,0.13)] pt-7">
+      <div className="mx-auto mt-4 grid max-w-[310px] grid-cols-[1fr_1px_1fr] items-start border-t border-[rgba(235,235,245,0.13)] pt-4 md:mt-8 md:max-w-[400px] md:pt-7">
         <div>
-          <div className="text-[22px] font-semibold leading-none tracking-[-0.5px] text-white tabular-nums">
+          <div className="text-[19px] font-semibold leading-none tracking-[-0.35px] text-white tabular-nums md:text-[22px] md:tracking-[-0.5px]">
             18&ndash;23%
           </div>
-          <div className="mt-3 text-[11px] font-semibold uppercase tracking-[0.6px] text-[rgba(235,235,245,0.43)]">
+          <div className="mt-2.5 text-[10px] font-semibold uppercase tracking-[0.5px] text-[rgba(235,235,245,0.43)] md:mt-3 md:text-[11px] md:tracking-[0.6px]">
             Target IRR
           </div>
         </div>
-        <div className="h-[44px] bg-[rgba(235,235,245,0.13)]" />
+        <div className="h-[38px] bg-[rgba(235,235,245,0.13)] md:h-[44px]" />
         <div>
-          <div className="text-[22px] font-semibold leading-none tracking-[-0.5px] text-white tabular-nums">
+          <div className="text-[19px] font-semibold leading-none tracking-[-0.35px] text-white tabular-nums md:text-[22px] md:tracking-[-0.5px]">
             Jan 2024
           </div>
-          <div className="mt-3 text-[11px] font-semibold uppercase tracking-[0.6px] text-[rgba(235,235,245,0.43)]">
+          <div className="mt-2.5 text-[10px] font-semibold uppercase tracking-[0.5px] text-[rgba(235,235,245,0.43)] md:mt-3 md:text-[11px] md:tracking-[0.6px]">
             Inception
           </div>
         </div>
@@ -148,7 +140,7 @@ const FundACard = () => {
 
   return (
     <div
-      className="relative -m-[30px] p-[30px] [perspective-origin:50%_50%] [perspective:900px]"
+      className="relative -m-5 p-5 [perspective-origin:50%_50%] [perspective:900px] md:-m-[30px] md:p-[30px]"
       onPointerMove={handlePointerMove}
       onPointerLeave={handlePointerLeave}
       onPointerCancel={handlePointerLeave}
@@ -167,7 +159,7 @@ const FundACard = () => {
         }}
       />
       <div
-        className="relative h-[136px] w-[220px] overflow-hidden rounded-[18px] md:h-[160px] md:w-[260px]"
+        className="relative h-[118px] w-[192px] overflow-hidden rounded-[16px] min-[390px]:h-[126px] min-[390px]:w-[204px] md:h-[160px] md:w-[260px] md:rounded-[18px]"
         style={{
           background:
             "linear-gradient(135deg, #1a1a24 0%, #0e0e14 50%, #1a1620 100%)",
@@ -464,7 +456,11 @@ export default function HomePage() {
 
         </AppleSection>
 
-        <AppleSection tone="dark" pad="normal" className="bg-[#0A0A0E]">
+        <AppleSection
+          tone="dark"
+          pad="normal"
+          className="bg-[#0A0A0E] !pt-20 !pb-[10rem] md:!pt-24 md:!pb-[6rem]"
+        >
           <div
             aria-hidden="true"
             className="absolute inset-0 z-0 overflow-hidden bg-[#0A0A0E]"
@@ -507,7 +503,7 @@ export default function HomePage() {
           </div>
 
           <div className="relative z-[1]">
-            <div className="mx-auto mb-7 flex w-full max-w-[1100px] items-center justify-between px-6 md:mb-11 md:px-12">
+            <div className="mx-auto mb-5 flex w-full max-w-[1100px] items-center justify-between px-6 md:mb-11 md:px-12">
               <span
                 className="text-[11px] font-medium uppercase leading-tight tracking-[1.6px] text-[#2997FF]/85"
                 style={{ fontFamily: appleFont }}
@@ -520,7 +516,7 @@ export default function HomePage() {
               </span>
             </div>
 
-            <div className="mb-6 flex justify-center md:mb-7">
+            <div className="mb-5 flex justify-center md:mb-7">
               <FundACard />
             </div>
 
@@ -552,7 +548,7 @@ export default function HomePage() {
               A high-growth strategy engineered to compound capital with discipline.
             </Lede>
 
-            <div className="mt-[18px] flex justify-center">
+            <div className="mt-4 flex justify-center md:mt-[18px]">
               <div className="inline-flex items-center gap-2.5 rounded-full bg-white/[0.04] py-2 pl-3.5 pr-4 shadow-[0_4px_16px_rgba(0,0,0,0.3),inset_0_0_0_0.5px_rgba(255,255,255,0.12),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-xl">
                 <span
                   className="h-1.5 w-1.5 rounded-full bg-[#34C759]"
@@ -570,11 +566,11 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="mx-auto mt-10 w-full max-w-[420px] px-5 md:mt-[52px] md:px-12">
+            <div className="mx-auto mt-3 w-full max-w-[420px] px-5 md:mt-[52px] md:px-12">
               <PerformancePreview />
             </div>
 
-            <div className="mt-7 flex justify-center px-6 md:mt-8">
+            <div className="mt-14 flex justify-center px-6 md:mt-8">
               <PremiumCTA onClick={() => onNavigate("/discover-fund-a")}>
                 Invest in Fund A
               </PremiumCTA>

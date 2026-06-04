@@ -10,6 +10,13 @@ describe("Home Fund A visual contract", () => {
     const home = read("src/pages/home/ui.tsx");
 
     expect(home).toContain("const PerformancePreview = () =>");
+    expect(home).toContain("max-w-[360px] text-center md:max-w-[420px]");
+    expect(home).toContain("h-[176px] w-[176px]");
+    expect(home).toContain("min-[390px]:h-[184px] min-[390px]:w-[184px]");
+    expect(home).toContain("strokeDashoffset={0}");
+    expect(home).toContain("text-[41px] md:text-[56px]");
+    expect(home).toContain("!pt-20 !pb-[10rem] md:!pt-24 md:!pb-[6rem]");
+    expect(home).toContain("h-[118px] w-[192px]");
     expect(home).toContain('id="homeFundARingGrad"');
     expect(home).toContain('id="homeFundARingGlow"');
     expect(home).toContain('strokeDasharray={`${dash} ${circumference}`}');
@@ -29,8 +36,11 @@ describe("Home Fund A visual contract", () => {
     const ui = read("src/components/hushh-tech-ui/HushhAppleUI.tsx");
 
     expect(ui).toContain(
-      'linear-gradient(160deg, #2997FF 0%, #248FEF 56%, #1D82DE 100%)',
+      'linear-gradient(160deg, #0A84FF 0%, #0071E3 58%, #0066CC 100%)',
     );
+    expect(ui).toContain('stroke="rgba(255,255,255,0.58)"');
+    expect(ui).toContain('stroke="rgba(255,255,255,0.68)"');
+    expect(ui).toContain('fill="rgba(255,255,255,0.64)"');
     expect(ui).toContain('backdropFilter: "blur(22px) saturate(1.32)"');
     expect(ui).toContain('backdropFilter: "blur(20px) saturate(1.35)"');
     expect(ui).not.toContain(

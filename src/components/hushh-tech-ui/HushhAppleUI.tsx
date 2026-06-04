@@ -534,10 +534,10 @@ export function AppIcon({
       ),
     },
     intelligence: {
-      bg: "linear-gradient(160deg, #2997FF 0%, #248FEF 56%, #1D82DE 100%)",
+      bg: "linear-gradient(160deg, #0A84FF 0%, #0071E3 58%, #0066CC 100%)",
       glyph: (
         <svg width={size * 0.62} height={size * 0.62} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <g stroke="rgba(255,255,255,0.78)" strokeWidth="1.5" strokeLinecap="round">
+          <g stroke="rgba(255,255,255,0.58)" strokeWidth="1.5" strokeLinecap="round">
             <path d="M9 3.5v2.5M12 3.5v2.5M15 3.5v2.5" />
             <path d="M9 18v2.5M12 18v2.5M15 18v2.5" />
             <path d="M3.5 9h2.5M3.5 12h2.5M3.5 15h2.5" />
@@ -549,11 +549,11 @@ export function AppIcon({
             width="12"
             height="12"
             rx="3"
-            stroke="rgba(255,255,255,0.84)"
+            stroke="rgba(255,255,255,0.68)"
             strokeWidth="1.6"
             fill="none"
           />
-          <rect x="9.4" y="9.4" width="5.2" height="5.2" rx="1.6" fill="rgba(255,255,255,0.82)" />
+          <rect x="9.4" y="9.4" width="5.2" height="5.2" rx="1.6" fill="rgba(255,255,255,0.64)" />
         </svg>
       ),
     },
@@ -650,6 +650,7 @@ export function AppIcon({
     },
   };
   const variant = variants[kind] ?? variants.api;
+  const isIntelligence = kind === "intelligence";
 
   return (
     <div
@@ -663,7 +664,9 @@ export function AppIcon({
         backdropFilter: "blur(22px) saturate(1.32)",
         WebkitBackdropFilter: "blur(22px) saturate(1.32)",
         boxShadow:
-          "0 18px 34px rgba(29,29,31,0.16), 0 6px 14px rgba(29,29,31,0.08), inset 0 1px 0 rgba(255,255,255,0.86), inset 0 -1px 0 rgba(29,29,31,0.07)",
+          isIntelligence
+            ? "0 18px 34px rgba(0,113,227,0.22), 0 6px 14px rgba(29,29,31,0.08), inset 0 1px 0 rgba(255,255,255,0.42), inset 0 -1px 0 rgba(0,0,0,0.12)"
+            : "0 18px 34px rgba(29,29,31,0.16), 0 6px 14px rgba(29,29,31,0.08), inset 0 1px 0 rgba(255,255,255,0.86), inset 0 -1px 0 rgba(29,29,31,0.07)",
       }}
     >
       <div
@@ -671,7 +674,9 @@ export function AppIcon({
         style={{
           borderRadius: radius,
           background:
-            "linear-gradient(145deg, rgba(255,255,255,0.48) 0%, rgba(255,255,255,0.16) 34%, rgba(255,255,255,0.02) 58%, rgba(255,255,255,0.18) 100%)",
+            isIntelligence
+              ? "linear-gradient(145deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.05) 38%, rgba(255,255,255,0.01) 64%, rgba(255,255,255,0.08) 100%)"
+              : "linear-gradient(145deg, rgba(255,255,255,0.48) 0%, rgba(255,255,255,0.16) 34%, rgba(255,255,255,0.02) 58%, rgba(255,255,255,0.18) 100%)",
           mixBlendMode: "screen",
         }}
       />
@@ -679,7 +684,9 @@ export function AppIcon({
         className="pointer-events-none absolute -left-[18%] -top-[22%] h-[62%] w-[72%] rounded-full"
         style={{
           background:
-            "radial-gradient(circle, rgba(255,255,255,0.58) 0%, rgba(255,255,255,0.20) 42%, rgba(255,255,255,0) 70%)",
+            isIntelligence
+              ? "radial-gradient(circle, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.08) 42%, rgba(255,255,255,0) 70%)"
+              : "radial-gradient(circle, rgba(255,255,255,0.58) 0%, rgba(255,255,255,0.20) 42%, rgba(255,255,255,0) 70%)",
           filter: "blur(1px)",
         }}
       />
@@ -688,7 +695,9 @@ export function AppIcon({
         style={{
           borderRadius: radius,
           boxShadow:
-            "inset 0 0 0 0.5px rgba(29,29,31,0.10), inset 0 0 0 1px rgba(255,255,255,0.62), inset 0 -10px 18px rgba(255,255,255,0.12)",
+            isIntelligence
+              ? "inset 0 0 0 0.5px rgba(0,0,0,0.14), inset 0 0 0 1px rgba(255,255,255,0.28), inset 0 -10px 18px rgba(0,0,0,0.08)"
+              : "inset 0 0 0 0.5px rgba(29,29,31,0.10), inset 0 0 0 1px rgba(255,255,255,0.62), inset 0 -10px 18px rgba(255,255,255,0.12)",
         }}
       />
       <div className="relative z-[1] flex items-center justify-center">{variant.glyph}</div>
