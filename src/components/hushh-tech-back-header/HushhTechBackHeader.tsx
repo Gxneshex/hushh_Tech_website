@@ -142,7 +142,7 @@ const HushhTechBackHeader: React.FC<HushhTechBackHeaderProps> = ({
             <button
               type="button"
               onClick={handleRightClick}
-              className="flex h-[42px] items-center justify-center px-5 text-[12px] font-medium uppercase tracking-[0.08em] text-[#1D1D1F] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066CC]/35 focus-visible:ring-offset-2"
+              className="flex h-[42px] items-center justify-center px-5 text-[12px] font-medium tracking-[0.08em] text-[#1D1D1F] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066CC]/35 focus-visible:ring-offset-2"
               aria-label={rightLabel}
               style={{ fontFamily: appleFont }}
             >

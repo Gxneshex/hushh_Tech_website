@@ -15,7 +15,9 @@ describe("Home Fund A visual contract", () => {
     expect(home).toContain("min-[390px]:h-[184px] min-[390px]:w-[184px]");
     expect(home).toContain("strokeDashoffset={0}");
     expect(home).toContain('const FUND_A_APPLE_GREEN = "#30D158";');
-    expect(home).toContain("text-[52px] md:text-[76px]");
+    expect(home).toContain("const stroke = 14;");
+    expect(home).toContain('stdDeviation="2.2"');
+    expect(home).toContain("text-[46px] md:text-[64px]");
     expect(home).toContain('<Display size="sm" tone="dark" maxWidth="max-w-[520px]">');
     expect(home).toContain("!pt-20 !pb-[10rem] md:!pt-24 md:!pb-[6rem]");
     expect(home).toContain("h-[118px] w-[192px]");
@@ -40,11 +42,12 @@ describe("Home Fund A visual contract", () => {
     const ui = read("src/components/hushh-tech-ui/HushhAppleUI.tsx");
 
     expect(ui).toContain(
-      'linear-gradient(160deg, #0A84FF 0%, #0071E3 58%, #0066CC 100%)',
+      'linear-gradient(160deg, #3A96E2 0%, #0E77D4 58%, #075EAD 100%)',
     );
+    expect(ui).toContain('stroke="rgba(255,255,255,0.46)"');
     expect(ui).toContain('stroke="rgba(255,255,255,0.58)"');
-    expect(ui).toContain('stroke="rgba(255,255,255,0.68)"');
-    expect(ui).toContain('fill="rgba(255,255,255,0.64)"');
+    expect(ui).toContain('fill="rgba(255,255,255,0.46)"');
+    expect(ui).toContain('filter: isIntelligence ? "none" : "blur(1px)"');
     expect(ui).toContain('backdropFilter: "blur(22px) saturate(1.32)"');
     expect(ui).toContain('backdropFilter: "blur(20px) saturate(1.35)"');
     expect(ui).not.toContain(

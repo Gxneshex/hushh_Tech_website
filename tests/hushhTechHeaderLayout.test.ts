@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 
+import fs from "node:fs";
 import React from "react";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
@@ -77,5 +78,16 @@ describe("HushhTechHeader layout stability", () => {
     expect(styleText).toContain("will-change: transform");
     expect(styleText).not.toContain("animation: hushh-ticker-scroll");
     expect(styleText).not.toContain("animation: ticker-scroll");
+  });
+
+  it("keeps both ticker surfaces on the faster shared speed", () => {
+    const modernHeader = fs.readFileSync(
+      "src/components/hushh-tech-header/HushhTechHeader.tsx",
+      "utf8",
+    );
+    const legacyNavbar = fs.readFileSync("src/components/Navbar.tsx", "utf8");
+
+    expect(modernHeader).toContain("const TICKER_SCROLL_PIXELS_PER_SECOND = 78;");
+    expect(legacyNavbar).toContain("const TICKER_SCROLL_PIXELS_PER_SECOND = 78;");
   });
 });
