@@ -202,8 +202,47 @@ const generateSitemap = () => {
       </url>`;
   });
 
+  // WhatsApp community blog posts so the live community blog is indexable:
+  //  - static posts from whatsappCommunityPosts.ts route as /community/wa/<slugified-title>
+  //  - public Firestore-published posts route as /community/<slug>
+  const slugifyTitle = (value) =>
+    String(value || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 64);
+  const communityBlogSlugs = [];
+  try {
+    const waData = fs.readFileSync(path.join(__dirname, "../src/data/whatsappCommunityPosts.ts"), "utf8");
+    for (const match of waData.matchAll(/"title":\s*"((?:[^"\\]|\\.)*)"/g)) {
+      const slug = slugifyTitle(match[1].replace(/\\"/g, '"'));
+      if (slug) communityBlogSlugs.push(`wa/${slug}`);
+    }
+  } catch {
+    // whatsappCommunityPosts.ts may be absent in some checkouts — ignore.
+  }
+  // Public Firestore-published community blog posts (community_posts collection).
+  const COMMUNITY_FIRESTORE_SLUGS = [
+    "whatsapp-blog-hussh-market-memo",
+    "whatsapp-blog-the-hussh-one",
+    "whatsapp-blog-the-27-alphabets-fund-a",
+    "whatsapp-blog-ai-labor-market-risk",
+    "whatsapp-blog-great-dislocation-2026",
+    "whatsapp-blog-nvidia-compute-substrate",
+    "whatsapp-blog-nvda-ace-of-aces",
+    "whatsapp-blog-hgir-nvda-research",
+  ];
+  communityBlogSlugs.push(...COMMUNITY_FIRESTORE_SLUGS);
+  const communityBlogUrls = [...new Set(communityBlogSlugs)].map((slug) => {
+    const url = `${SITE_URL}/community/${slug}`;
+    const lastMod = getStableLastMod(existingLastMods, url, fallbackLastMod);
+    return `
+      <url>
+        <loc>${url}</loc>
+        <lastmod>${lastMod}</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.7</priority>
+      </url>`;
+  });
+
   // Combine all URLs
-  const allUrls = [...staticUrls, ...communityUrls, ...postUrls].join("\n");
+  const allUrls = [...staticUrls, ...communityUrls, ...communityBlogUrls, ...postUrls].join("\n");
 
   const sitemapContent = `<?xml version="1.0" encoding="UTF-8"?>
     <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -213,7 +252,7 @@ const generateSitemap = () => {
   fs.writeFileSync(SITEMAP_PATH, sitemapContent);
 
   console.log(`✅ Sitemap successfully generated at ${SITEMAP_PATH}`);
-  console.log(`✅ Added ${staticUrls.length} static pages, ${communityUrls.length} community pages, and ${postCount} scanned posts`);
+  console.log(`✅ Added ${staticUrls.length} static pages, ${communityUrls.length} community pages, ${communityBlogUrls.length} community blog posts, and ${postCount} scanned posts`);
   console.log(`🔎 Verifying file: ${fs.existsSync(SITEMAP_PATH) ? "✅ Exists" : "❌ Not Found"}`);
 };
 
