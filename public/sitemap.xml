@@ -9,8 +9,50 @@
       </url>
 
       <url>
-        <loc>https://hushhtech.com/about</loc>
-        <lastmod>2026-05-21T11:21:56.631Z</lastmod>
+        <loc>https://hushhtech.com/discover-fund-a</loc>
+        <lastmod>2026-06-04T12:22:27.957Z</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+      </url>
+
+      <url>
+        <loc>https://hushhtech.com/ai-powered-berkshire</loc>
+        <lastmod>2026-06-04T12:22:27.957Z</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+      </url>
+
+      <url>
+        <loc>https://hushhtech.com/sell-the-wall</loc>
+        <lastmod>2026-06-04T12:22:27.957Z</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+      </url>
+
+      <url>
+        <loc>https://hushhtech.com/community</loc>
+        <lastmod>2026-06-04T12:22:27.957Z</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+      </url>
+
+      <url>
+        <loc>https://hushhtech.com/benefits</loc>
+        <lastmod>2026-06-04T12:22:27.957Z</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+      </url>
+
+      <url>
+        <loc>https://hushhtech.com/career</loc>
+        <lastmod>2026-06-04T12:22:27.957Z</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+      </url>
+
+      <url>
+        <loc>https://hushhtech.com/faq</loc>
+        <lastmod>2026-06-04T12:22:27.957Z</lastmod>
         <changefreq>daily</changefreq>
         <priority>0.7</priority>
       </url>
@@ -23,8 +65,22 @@
       </url>
 
       <url>
-        <loc>https://hushhtech.com/blog</loc>
-        <lastmod>2026-05-21T11:21:56.631Z</lastmod>
+        <loc>https://hushhtech.com/about/leadership</loc>
+        <lastmod>2026-06-04T12:22:27.957Z</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+      </url>
+
+      <url>
+        <loc>https://hushhtech.com/about/philosophy</loc>
+        <lastmod>2026-06-04T12:22:27.957Z</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+      </url>
+
+      <url>
+        <loc>https://hushhtech.com/support</loc>
+        <lastmod>2026-06-04T12:22:27.957Z</lastmod>
         <changefreq>daily</changefreq>
         <priority>0.7</priority>
       </url>
@@ -39,6 +95,27 @@
       <url>
         <loc>https://hushhtech.com/terms-of-service</loc>
         <lastmod>2026-05-21T11:21:56.631Z</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+      </url>
+
+      <url>
+        <loc>https://hushhtech.com/risk-disclosures</loc>
+        <lastmod>2026-06-04T12:22:27.957Z</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+      </url>
+
+      <url>
+        <loc>https://hushhtech.com/california-privacy-policy</loc>
+        <lastmod>2026-06-04T12:22:27.957Z</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+      </url>
+
+      <url>
+        <loc>https://hushhtech.com/eu-uk-jobs-privacy-policy</loc>
+        <lastmod>2026-06-04T12:22:27.957Z</lastmod>
         <changefreq>daily</changefreq>
         <priority>0.7</priority>
       </url>
@@ -108,7 +185,7 @@
 
       <url>
         <loc>https://hushhtech.com/community/market/weekly-report</loc>
-        <lastmod>2026-05-25T13:06:21.651Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.514Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
@@ -170,6 +247,34 @@
       </url>
 
       <url>
+        <loc>https://hushhtech.com/community/fund-documents/investment-prospectus</loc>
+        <lastmod>2026-06-04T12:22:27.957Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+      </url>
+
+      <url>
+        <loc>https://hushhtech.com/community/fund-documents/private-placement-memorandum</loc>
+        <lastmod>2026-06-04T12:22:27.957Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+      </url>
+
+      <url>
+        <loc>https://hushhtech.com/community/fund-documents/lp-master-lpa</loc>
+        <lastmod>2026-06-04T12:22:27.957Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+      </url>
+
+      <url>
+        <loc>https://hushhtech.com/community/fund-documents/delaware-feeder-lpa</loc>
+        <lastmod>2026-06-04T12:22:27.957Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+      </url>
+
+      <url>
         <loc>https://hushhtech.com/community/funds/hushh-technology-fund</loc>
         <lastmod>2026-05-21T11:21:56.631Z</lastmod>
         <changefreq>weekly</changefreq>
@@ -185,14 +290,14 @@
 
       <url>
         <loc>https://hushhtech.com/community/funds/fund-ahushh</loc>
-        <lastmod>2026-05-25T13:06:21.642Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.506Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/funds/fee-schedule</loc>
-        <lastmod>2026-05-25T13:06:21.642Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.505Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
@@ -213,7 +318,7 @@
 
       <url>
         <loc>https://hushhtech.com/community/general/manifesto</loc>
-        <lastmod>2026-05-25T13:06:21.642Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.506Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
@@ -227,14 +332,14 @@
 
       <url>
         <loc>https://hushhtech.com/community/general/fund-afaq</loc>
-        <lastmod>2026-05-25T13:06:21.643Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.507Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/general/hushh-fund-faq</loc>
-        <lastmod>2026-05-25T13:06:21.644Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.508Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
@@ -255,7 +360,7 @@
 
       <url>
         <loc>https://hushhtech.com/community/general/compensation-report</loc>
-        <lastmod>2026-05-25T13:06:21.643Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.507Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
@@ -276,7 +381,7 @@
 
       <url>
         <loc>https://hushhtech.com/community/product/renaissance-tech</loc>
-        <lastmod>2026-05-25T13:06:21.655Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.518Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
@@ -290,14 +395,14 @@
 
       <url>
         <loc>https://hushhtech.com/community/investors-faq/shared-class-explanation</loc>
-        <lastmod>2026-05-25T13:06:21.646Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.510Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/investors-faq/withdrawal-schedule</loc>
-        <lastmod>2026-05-25T13:06:21.647Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.510Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
@@ -346,728 +451,728 @@
 
       <url>
         <loc>https://hushhtech.com/community/market/daily-market-updates</loc>
-        <lastmod>2026-05-25T13:06:21.647Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.510Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/market/dmu10apr</loc>
-        <lastmod>2026-05-25T13:06:21.647Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.510Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/market/dmu10mar</loc>
-        <lastmod>2026-05-25T13:06:21.647Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.510Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/market/dmu11apr</loc>
-        <lastmod>2026-05-25T13:06:21.647Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.510Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/market/dmu11feb</loc>
-        <lastmod>2026-05-25T13:06:21.647Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.510Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/market/dmu12feb</loc>
-        <lastmod>2026-05-25T13:06:21.647Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.510Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/market/dmu13feb</loc>
-        <lastmod>2026-05-25T13:06:21.647Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.511Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/market/dmu13mar</loc>
-        <lastmod>2026-05-25T13:06:21.648Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.511Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/market/dmu14feb</loc>
-        <lastmod>2026-05-25T13:06:21.648Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.511Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/market/dmu14mar</loc>
-        <lastmod>2026-05-25T13:06:21.648Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.511Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/market/dmu15apr</loc>
-        <lastmod>2026-05-25T13:06:21.648Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.511Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/market/dmu16apr</loc>
-        <lastmod>2026-05-25T13:06:21.648Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.511Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/market/dmu17apr</loc>
-        <lastmod>2026-05-25T13:06:21.648Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.511Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/market/dmu18feb</loc>
-        <lastmod>2026-05-25T13:06:21.648Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.511Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/market/dmu1april</loc>
-        <lastmod>2026-05-25T13:06:21.648Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.511Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/market/dmu21apr</loc>
-        <lastmod>2026-05-25T13:06:21.648Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.511Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/market/dmu21mar</loc>
-        <lastmod>2026-05-25T13:06:21.648Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.511Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/market/dmu22apr</loc>
-        <lastmod>2026-05-25T13:06:21.648Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.512Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/market/dmu23apr</loc>
-        <lastmod>2026-05-25T13:06:21.648Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.512Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/market/dmu24apr</loc>
-        <lastmod>2026-05-25T13:06:21.648Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.512Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/market/dmu24feb</loc>
-        <lastmod>2026-05-25T13:06:21.649Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.512Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/market/dmu24mar</loc>
-        <lastmod>2026-05-25T13:06:21.649Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.512Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/market/dmu25feb</loc>
-        <lastmod>2026-05-25T13:06:21.649Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.512Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/market/dmu25mar</loc>
-        <lastmod>2026-05-25T13:06:21.649Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.512Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/market/dmu26feb</loc>
-        <lastmod>2026-05-25T13:06:21.649Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.512Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/market/dmu26mar</loc>
-        <lastmod>2026-05-25T13:06:21.649Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.512Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/market/dmu27feb</loc>
-        <lastmod>2026-05-25T13:06:21.649Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.512Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/market/dmu27mar</loc>
-        <lastmod>2026-05-25T13:06:21.649Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.512Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/market/dmu28feb</loc>
-        <lastmod>2026-05-25T13:06:21.649Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.512Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/market/dmu28mar</loc>
-        <lastmod>2026-05-25T13:06:21.649Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.513Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/market/dmu2apr</loc>
-        <lastmod>2026-05-25T13:06:21.649Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.513Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/market/dmu30may</loc>
-        <lastmod>2026-05-25T13:06:21.649Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.513Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/market/dmu3apr</loc>
-        <lastmod>2026-05-25T13:06:21.650Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.513Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/market/dmu3mar</loc>
-        <lastmod>2026-05-25T13:06:21.650Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.513Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/market/dmu4apr</loc>
-        <lastmod>2026-05-25T13:06:21.650Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.513Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/market/dmu4mar</loc>
-        <lastmod>2026-05-25T13:06:21.650Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.513Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/market/dmu7apr</loc>
-        <lastmod>2026-05-25T13:06:21.650Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.513Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/market/dmu7mar</loc>
-        <lastmod>2026-05-25T13:06:21.650Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.513Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/market/dmu8apr</loc>
-        <lastmod>2026-05-25T13:06:21.650Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.513Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/market/dmu9apr</loc>
-        <lastmod>2026-05-25T13:06:21.650Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.513Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/market/marekt-update2</loc>
-        <lastmod>2026-05-25T13:06:21.650Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.513Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/market/market-outlook-mid2025</loc>
-        <lastmod>2026-05-25T13:06:21.650Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.513Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/market/market-update</loc>
-        <lastmod>2026-05-25T13:06:21.650Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.514Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/market/market-update10feb</loc>
-        <lastmod>2026-05-25T13:06:21.650Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.514Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/market/market-update19feb</loc>
-        <lastmod>2026-05-25T13:06:21.651Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.514Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/market/market-update20feb</loc>
-        <lastmod>2026-05-25T13:06:21.651Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.514Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/market/market-update5feb</loc>
-        <lastmod>2026-05-25T13:06:21.651Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.514Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/market/market-update6feb</loc>
-        <lastmod>2026-05-25T13:06:21.651Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.514Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/market/market-update7feb</loc>
-        <lastmod>2026-05-25T13:06:21.651Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.514Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/market/weekly-report</loc>
-        <lastmod>2026-05-25T13:06:21.651Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.514Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/funds/fund-performance</loc>
-        <lastmod>2026-05-25T13:06:21.642Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.505Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/funds/fee-schedule</loc>
-        <lastmod>2026-05-25T13:06:21.642Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.505Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/funds/fund-ahushh</loc>
-        <lastmod>2026-05-25T13:06:21.642Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.506Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/funds/fund-updates-jan</loc>
-        <lastmod>2026-05-25T13:06:21.642Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.506Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/funds/hushh-funds</loc>
-        <lastmod>2026-05-25T13:06:21.642Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.506Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/funds/kyc-fund-updates</loc>
-        <lastmod>2026-05-25T13:06:21.642Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.506Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/funds/wire-transformation</loc>
-        <lastmod>2026-05-25T13:06:21.642Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.506Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/general/ai-skill-testing</loc>
-        <lastmod>2026-05-25T13:06:21.642Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.506Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/general/manifesto</loc>
-        <lastmod>2026-05-25T13:06:21.642Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.506Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/general/ai-driven-personal-agents</loc>
-        <lastmod>2026-05-25T13:06:21.642Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.506Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/general/ai-infrastructure</loc>
-        <lastmod>2026-05-25T13:06:21.643Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.506Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/general/ai-powered-berkshire</loc>
-        <lastmod>2026-05-25T13:06:21.643Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.506Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/general/alpha27cash-flow-monarchy</loc>
-        <lastmod>2026-05-25T13:06:21.643Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.506Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/general/alpha27india-strategic-plan</loc>
-        <lastmod>2026-05-25T13:06:21.643Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.507Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/general/alpha-agents-portfolio</loc>
-        <lastmod>2026-05-25T13:06:21.643Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.507Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/general/compensation-report</loc>
-        <lastmod>2026-05-25T13:06:21.643Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.507Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/general/fcf-aces-of-aces-portfolio-update_corrected</loc>
-        <lastmod>2026-05-25T13:06:21.643Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.507Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/general/fund-afaq</loc>
-        <lastmod>2026-05-25T13:06:21.643Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.507Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/general/growth-plan</loc>
-        <lastmod>2026-05-25T13:06:21.643Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.507Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/general/head-of-quants</loc>
-        <lastmod>2026-05-25T13:06:21.643Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.508Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/general/holy-grail-portfolio</loc>
-        <lastmod>2026-05-25T13:06:21.644Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.508Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/general/hushh-employee-handbook</loc>
-        <lastmod>2026-05-25T13:06:21.644Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.508Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/general/hushh-fund-faq</loc>
-        <lastmod>2026-05-25T13:06:21.644Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.508Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/general/hushh-pda</loc>
-        <lastmod>2026-05-25T13:06:21.644Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.508Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/general/hushh-renaissance-ainative</loc>
-        <lastmod>2026-05-25T13:06:21.644Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.508Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/general/hushh-tech-prospectus</loc>
-        <lastmod>2026-05-25T13:06:21.644Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.508Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/general/hushh-ventures</loc>
-        <lastmod>2026-05-25T13:06:21.644Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.508Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/general/investment-perspective</loc>
-        <lastmod>2026-05-25T13:06:21.644Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.508Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/general/medallion-model-india</loc>
-        <lastmod>2026-05-25T13:06:21.644Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.508Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/general/pattern-of-alpha</loc>
-        <lastmod>2026-05-25T13:06:21.644Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.508Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/general/perpetual-alpha-engine</loc>
-        <lastmod>2026-05-25T13:06:21.644Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.508Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/general/renaissance-aifirst-fund</loc>
-        <lastmod>2026-05-25T13:06:21.644Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.509Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/general/sell-the-wall-context</loc>
-        <lastmod>2026-05-25T13:06:21.645Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.509Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/general/sell-the-wall-featured</loc>
-        <lastmod>2026-05-25T13:06:21.645Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.509Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/general/sell-the-walle-master-class</loc>
-        <lastmod>2026-05-25T13:06:21.645Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.509Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/general/selle-wall</loc>
-        <lastmod>2026-05-25T13:06:21.645Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.509Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/investors-faq/investors</loc>
-        <lastmod>2026-05-25T13:06:21.646Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.509Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/investors-faq/delta-allocation-report</loc>
-        <lastmod>2026-05-25T13:06:21.646Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.509Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/investors-faq/exhibit-lpa</loc>
-        <lastmod>2026-05-25T13:06:21.646Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.509Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/investors-faq/investor-update</loc>
-        <lastmod>2026-05-25T13:06:21.646Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.509Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/investors-faq/investors-news</loc>
-        <lastmod>2026-05-25T13:06:21.646Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.509Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/investors-faq/investors-questionnaire</loc>
-        <lastmod>2026-05-25T13:06:21.646Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.509Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/investors-faq/limited-partnership-agreement</loc>
-        <lastmod>2026-05-25T13:06:21.646Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.510Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/investors-faq/profit-margin-report</loc>
-        <lastmod>2026-05-25T13:06:21.646Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.510Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/investors-faq/shared-class-explanation</loc>
-        <lastmod>2026-05-25T13:06:21.646Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.510Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/investors-faq/subscription-agreement-a</loc>
-        <lastmod>2026-05-25T13:06:21.646Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.510Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/investors-faq/subscription-agreement-b</loc>
-        <lastmod>2026-05-25T13:06:21.646Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.510Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/investors-faq/subscription-agreement-c</loc>
-        <lastmod>2026-05-25T13:06:21.646Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.510Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/investors-faq/subscription-cshares</loc>
-        <lastmod>2026-05-25T13:06:21.647Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.510Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/investors-faq/withdrawal-schedule</loc>
-        <lastmod>2026-05-25T13:06:21.647Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.510Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/product/hushh-product-updates</loc>
-        <lastmod>2026-05-25T13:06:21.655Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.517Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/product/products-update</loc>
-        <lastmod>2026-05-25T13:06:21.655Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.517Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/product/renaissance-tech</loc>
-        <lastmod>2026-05-25T13:06:21.655Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.518Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
 
       <url>
         <loc>https://hushhtech.com/community/product/set-walls</loc>
-        <lastmod>2026-05-25T13:06:21.655Z</lastmod>
+        <lastmod>2026-06-04T12:22:28.518Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>

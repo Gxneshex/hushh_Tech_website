@@ -41,6 +41,7 @@ import AIPoweredBerkshirePage from './pages/ai-powered-berkshire';
 import UserRegistration from './pages/UserRegistration';
 import ProtectedRoute from './components/ProtectedRoute';
 import InvestorAccessRoute from './components/InvestorAccessRoute';
+import SeoHead, { ORGANIZATION_SCHEMA } from './components/seo/SeoHead';
 import YourProfilePage from './pages/your-profile';
 import HushhUserProfilePage from './pages/hushh-user-profile';
 import ViewPreferencesPage from './pages/hushh-user-profile/view';
@@ -190,6 +191,9 @@ function App() {
     
     return (
       <div className="min-h-screen flex flex-col">
+        {/* Site-wide SEO defaults + Organization schema. Individual pages
+            render their own <SeoHead> to override title/description/canonical. */}
+        <SeoHead jsonLd={ORGANIZATION_SCHEMA} />
         {showNavbar && <Navbar />}
         <ContentWrapper>
           <Routes>

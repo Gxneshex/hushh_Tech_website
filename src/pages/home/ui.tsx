@@ -1,6 +1,7 @@
 import { useEffect, useState, type PointerEvent, type ReactNode } from "react";
 import { useHomeLogic } from "./logic";
 import HushhTechHeader from "../../components/hushh-tech-header/HushhTechHeader";
+import SeoHead from "../../components/seo/SeoHead";
 import HushhTechFooter, {
   HushhFooterTab,
 } from "../../components/hushh-tech-footer/HushhTechFooter";
@@ -409,6 +410,10 @@ export default function HomePage() {
       className="min-h-screen overflow-x-hidden bg-[#FFFFFF] text-[#1D1D1F] antialiased selection:bg-[#0066CC] selection:text-[#F5F5F7]"
       style={{ fontFamily: appleFont }}
     >
+      <SeoHead
+        path="/"
+        description="Invest alongside HushhTech — an AI-driven, long-term value strategy modeled on Berkshire Hathaway. We combine AI and human expertise to back exceptional businesses."
+      />
       <HushhTechHeader />
 
       <main id="main-content">
