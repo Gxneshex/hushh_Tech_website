@@ -217,18 +217,21 @@ const generateSitemap = () => {
   } catch {
     // whatsappCommunityPosts.ts may be absent in some checkouts — ignore.
   }
-  // Public Firestore-published community blog posts (community_posts collection).
-  const COMMUNITY_FIRESTORE_SLUGS = [
-    "whatsapp-blog-hussh-market-memo",
-    "whatsapp-blog-the-hussh-one",
-    "whatsapp-blog-the-27-alphabets-fund-a",
-    "whatsapp-blog-ai-labor-market-risk",
-    "whatsapp-blog-great-dislocation-2026",
-    "whatsapp-blog-nvidia-compute-substrate",
-    "whatsapp-blog-nvda-ace-of-aces",
-    "whatsapp-blog-hgir-nvda-research",
-  ];
-  communityBlogSlugs.push(...COMMUNITY_FIRESTORE_SLUGS);
+  // Public Firestore-published community posts (community_posts collection),
+  // routed as /community/<slug>. This is a committed snapshot of the live
+  // /api/community/posts slugs — refresh it by re-running the capture in
+  // scripts/community/community-firestore-slugs.json when posts change.
+  try {
+    const firestoreSlugs = JSON.parse(
+      fs.readFileSync(path.join(__dirname, "community/community-firestore-slugs.json"), "utf8"),
+    );
+    if (Array.isArray(firestoreSlugs)) {
+      communityBlogSlugs.push(...firestoreSlugs.filter(Boolean));
+    }
+  } catch {
+    // Snapshot may be absent in some checkouts — the directory scanner above
+    // still covers content-derived community posts; ignore.
+  }
   const communityBlogUrls = [...new Set(communityBlogSlugs)].map((slug) => {
     const url = `${SITE_URL}/community/${slug}`;
     const lastMod = getStableLastMod(existingLastMods, url, fallbackLastMod);
