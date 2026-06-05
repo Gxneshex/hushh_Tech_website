@@ -252,28 +252,10 @@ const fetchGcsText = async (objectName) => {
   return response.text();
 };
 
-const listGcpPostDocuments = async () => {
-  const documents = [];
-  let pageToken = "";
-
-  do {
-    const url = new URL(
-      `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/${COLLECTION}`,
-    );
-    url.searchParams.set("pageSize", "300");
-    if (pageToken) url.searchParams.set("pageToken", pageToken);
-
-    const data = await fetchJson(url.toString());
-    documents.push(...(data.documents || []));
-    pageToken = data.nextPageToken || "";
-  } while (pageToken);
-
-  return documents;
-};
-
 const listGcpPosts = async (accessLevel) => {
-  const documents = await listGcpPostDocuments();
-  return documents
+  const url = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/${COLLECTION}`;
+  const data = await fetchJson(url);
+  return (data.documents || [])
     .map(firestoreDocToPost)
     .filter(accessLevel === NDA_ACCESS ? ndaPublished : publicPublished)
     .sort((a, b) => String(b.publishedAt).localeCompare(String(a.publishedAt)));

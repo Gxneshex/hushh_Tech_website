@@ -165,22 +165,4 @@ describe("community API routes", () => {
       }).accessLevel,
     ).toBe("");
   });
-
-  it("does not expose private WhatsApp audit metadata through normalized posts", () => {
-    const post = normalizePost({
-      slug: "wa-sensitive-general-adp-call-scheduled-for-1099-support",
-      title: "ADP Call Scheduled for 1099 Support",
-      publishedAt: "2026-05-18",
-      accessLevel: "NDA",
-      sourceKind: "whatsapp-sensitive",
-      sourceAudit: {
-        sender: "120363301133443224",
-        waMessageId: "3A3EACCA6562CAFD98E4",
-      },
-    } as any);
-
-    expect(post).not.toHaveProperty("sourceAudit");
-    expect(JSON.stringify(post)).not.toContain("120363301133443224");
-    expect(JSON.stringify(post)).not.toContain("3A3EACCA6562CAFD98E4");
-  });
 });

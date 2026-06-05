@@ -5,7 +5,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join, resolve } from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { fileURLToPath } from "node:url";
 import vm from "node:vm";
 import { google } from "googleapis";
 
@@ -49,230 +49,12 @@ if (TARGET === "prod" && !ALLOW_PROD) {
   throw new Error("Production sensitive publishing is blocked. Use UAT first or pass --allow-prod explicitly.");
 }
 
-export const PROVENANCE_MARKER_PATTERN =
-  /(?:^|\n)\s*[-*]?\s*(?:\*\*)?(?:Group|Sender|Timestamp|WhatsApp message id|dedupe_hash)(?:\*\*)?\s*:|Source references|immutable provenance/i;
-
-const RAW_ID_PATTERN =
-  /\b(?:[0-9A-F]{16,}|[a-f0-9]{40,}|120363\d{8,})\b/i;
-
-const PRIVATE_URL_HOST_PATTERN =
-  /\b(?:webex\.com|zoom\.us|meet\.google\.com|calendar\.google\.com|docs\.google\.com|drive\.google\.com)\b/i;
-
-export const slugify = (value) =>
+const slugify = (value) =>
   String(value || "")
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "")
     .slice(0, 90);
-
-const parseJsonField = (value, fallback) => {
-  if (!value) return fallback;
-  try {
-    return JSON.parse(value);
-  } catch {
-    return fallback;
-  }
-};
-
-const stripDraftBanner = (body) =>
-  String(body || "").replace(/^(\s*# [^\n]+\n)> _Draft[^\n]*\n\n?/i, "$1\n");
-
-const stripProvenanceBlock = (body) =>
-  body
-    .replace(/\n-{3,}\s*\n#{2,4}\s*Source references[^\n]*[\s\S]*$/i, "")
-    .replace(/\n#{2,4}\s*Source references[^\n]*[\s\S]*$/i, "");
-
-const normalizeTldr = (body) =>
-  body.replace(/^\s*\*\*TL;?DR:\*\*\s*(.+)$/gim, (_match, summary) => summary.trim());
-
-const sanitizePrivateUrls = (body) =>
-  body.replace(/https?:\/\/[^\s)>\]]+/gi, (url) => {
-    try {
-      const parsed = new URL(url);
-      if (PRIVATE_URL_HOST_PATTERN.test(parsed.hostname)) {
-        return referenceLabelForUrl(parsed.toString());
-      }
-    } catch {
-      return "";
-    }
-    return url;
-  });
-
-const removeMetadataLines = (body) =>
-  body
-    .split("\n")
-    .filter((line) => {
-      const normalized = line.trim();
-      return !/^[-*]?\s*(?:\*\*)?(?:Group|Sender|Timestamp|WhatsApp message id|dedupe_hash)(?:\*\*)?\s*:/i.test(
-        normalized,
-      );
-    })
-    .join("\n");
-
-const tidyMarkdown = (body) =>
-  body
-    .replace(/[ \t]+\n/g, "\n")
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
-
-const safeBasename = (value) =>
-  String(value || "")
-    .split(/[\\/]/)
-    .pop()
-    .replace(/[`*_#[\]<>]/g, "")
-    .trim();
-
-export const referenceLabelForUrl = (rawUrl) => {
-  try {
-    const parsed = new URL(rawUrl);
-    const host = parsed.hostname.replace(/^www\./i, "");
-    const joined = `${host}${parsed.pathname}`.toLowerCase();
-
-    if (/adp.*webex|webex.*adp/.test(joined)) return "ADP Webex meeting reference";
-    if (/webex\.com/i.test(host)) return "Webex meeting reference";
-    if (/zoom\.us/i.test(host)) return "Zoom meeting reference";
-    if (/meet\.google\.com/i.test(host)) return "Google Meet reference";
-    if (/docs\.google\.com|drive\.google\.com/i.test(host)) return "Google document reference";
-
-    return `${host} reference`;
-  } catch {
-    return "";
-  }
-};
-
-const sourceAuditForDraft = (draft) => {
-  const sourceRefs = parseJsonField(draft.source_refs, {});
-  const attachmentPaths = parseJsonField(draft.attachment_paths, []);
-
-  return {
-    sourceDraftId: draft.id,
-    originalSlug: draft.slug || "",
-    originalCategory: draft.category || "",
-    originalTargetFolder: draft.target_folder || "",
-    group: sourceRefs.group || "",
-    sender: sourceRefs.sender || "",
-    timestamp: sourceRefs.timestamp || "",
-    waMessageId: sourceRefs.wa_message_id || "",
-    dedupeHash: sourceRefs.dedupe_hash || "",
-    media: Array.isArray(sourceRefs.media) ? sourceRefs.media : [],
-    links: Array.isArray(sourceRefs.links) ? sourceRefs.links : [],
-    attachmentPaths: Array.isArray(attachmentPaths) ? attachmentPaths : [],
-  };
-};
-
-export const cleanReferenceLabels = (sourceAudit) => {
-  const labels = [];
-
-  for (const media of sourceAudit?.media || []) {
-    const filename = safeBasename(media?.original_filename);
-    if (filename) labels.push(`Source document: ${filename}`);
-  }
-
-  for (const link of sourceAudit?.links || []) {
-    const label = referenceLabelForUrl(link?.canonical_url || link?.url || "");
-    if (label) labels.push(label);
-  }
-
-  if (!labels.length) {
-    for (const attachmentPath of sourceAudit?.attachmentPaths || []) {
-      const filename = safeBasename(attachmentPath);
-      if (filename) labels.push(`Attachment reference: ${filename}`);
-    }
-  }
-
-  return [...new Set(labels)];
-};
-
-const appendCleanReferences = (body, sourceAudit) => {
-  const labels = cleanReferenceLabels(sourceAudit);
-  if (!labels.length) return body;
-
-  return `${body}\n\n## References\n\n${labels.map((label) => `- ${label}`).join("\n")}`;
-};
-
-export const cleanSensitiveBody = (body, sourceAudit = {}) => {
-  const cleaned = tidyMarkdown(
-    removeMetadataLines(
-      sanitizePrivateUrls(normalizeTldr(stripProvenanceBlock(stripDraftBanner(body)))),
-    ),
-  );
-
-  return appendCleanReferences(cleaned, sourceAudit);
-};
-
-export const hasRenderedProvenance = (body) =>
-  PROVENANCE_MARKER_PATTERN.test(String(body || "")) || RAW_ID_PATTERN.test(String(body || ""));
-
-const sensitivePayloadForDraft = (draft, slug) => {
-  const sourceAudit = sourceAuditForDraft(draft);
-  const bodyMarkdown = cleanSensitiveBody(draft.body, sourceAudit);
-
-  if (hasRenderedProvenance(bodyMarkdown)) {
-    throw new Error(`Rendered provenance marker remained in ${slug}`);
-  }
-
-  return {
-    slug,
-    title: draft.title,
-    description: draft.description || "",
-    category: "sensitive documents",
-    publishedAt: draft.updated_at || draft.created_at,
-    accessLevel: "NDA",
-    status: "published",
-    sourceKind: "whatsapp-sensitive",
-    bodyMarkdown,
-    sourceAudit,
-    originalTargetFolder: draft.target_folder || "",
-    originalCategory: draft.category || "",
-    sourceDraftId: draft.id,
-  };
-};
-
-export const buildSensitivePayloadsFromDrafts = ({
-  publicPosts,
-  ndaDrafts,
-  expectedCount = EXPECTED_COUNT,
-}) => {
-  const publicTitles = new Set(publicPosts.map((post) => post.title.trim()));
-  const publicSourceSlugs = new Set(publicPosts.map((post) => post.slug.trim()));
-
-  const heldSensitive = ndaDrafts.filter(
-    (draft) => !publicTitles.has(draft.title.trim()) && !publicSourceSlugs.has(draft.slug.trim()),
-  );
-  const excludedAsPublic = ndaDrafts.filter((draft) => !heldSensitive.includes(draft));
-
-  if (heldSensitive.length !== expectedCount) {
-    throw new Error(
-      `Expected ${expectedCount} held sensitive drafts, got ${heldSensitive.length}. ` +
-        `NDA drafts=${ndaDrafts.length}, already-public=${ndaDrafts.length - heldSensitive.length}.`,
-    );
-  }
-
-  const slugs = new Set();
-  const payloads = heldSensitive.map((draft) => {
-    const slug = `wa-sensitive-${slugify(draft.slug || draft.title)}`;
-    if (slugs.has(slug)) throw new Error(`Duplicate sensitive slug generated: ${slug}`);
-    slugs.add(slug);
-
-    return sensitivePayloadForDraft(draft, slug);
-  });
-
-  return {
-    payloads,
-    heldSensitive,
-    excludedAsPublic,
-    summary: {
-      publicWhatsappPosts: publicPosts.length,
-      ndaDrafts: ndaDrafts.length,
-      alreadyPublicFromNda: ndaDrafts.length - heldSensitive.length,
-      heldSensitive: heldSensitive.length,
-      byOriginalFolder: heldSensitive.reduce((acc, draft) => {
-        acc[draft.target_folder] = (acc[draft.target_folder] || 0) + 1;
-        return acc;
-      }, {}),
-    },
-  };
-};
 
 const readPublicWhatsappPosts = () => {
   const source = readFileSync(join(root, "src/data/whatsappCommunityPosts.ts"), "utf8");
@@ -285,7 +67,7 @@ const readPublicWhatsappPosts = () => {
 const readNdaDrafts = () => {
   const query = `
     select id, title, slug, description, body, target_folder, category, access_level,
-           status, source_refs, attachment_paths, created_at, updated_at
+           status, created_at, updated_at
     from blog_drafts
     where access_level = 'NDA'
     order by created_at asc;
@@ -294,18 +76,63 @@ const readNdaDrafts = () => {
   return JSON.parse(output || "[]");
 };
 
+const cleanBody = (body) =>
+  String(body || "")
+    .replace(/^(\s*# [^\n]+\n)> _Draft[^\n]*\n\n?/i, "$1\n")
+    .trim();
+
 const buildPayloads = () => {
   const publicPosts = readPublicWhatsappPosts();
+  const publicTitles = new Set(publicPosts.map((post) => post.title.trim()));
+  const publicSourceSlugs = new Set(publicPosts.map((post) => post.slug.trim()));
   const ndaDrafts = readNdaDrafts();
-  const { payloads, heldSensitive, excludedAsPublic, summary } = buildSensitivePayloadsFromDrafts({
-    publicPosts,
-    ndaDrafts,
-    expectedCount: EXPECTED_COUNT,
+
+  const heldSensitive = ndaDrafts.filter(
+    (draft) => !publicTitles.has(draft.title.trim()) && !publicSourceSlugs.has(draft.slug.trim()),
+  );
+  const excludedAsPublic = ndaDrafts.filter((draft) => !heldSensitive.includes(draft));
+
+  if (heldSensitive.length !== EXPECTED_COUNT) {
+    throw new Error(
+      `Expected ${EXPECTED_COUNT} held sensitive drafts, got ${heldSensitive.length}. ` +
+        `NDA drafts=${ndaDrafts.length}, already-public=${ndaDrafts.length - heldSensitive.length}.`,
+    );
+  }
+
+  const slugs = new Set();
+  const payloads = heldSensitive.map((draft) => {
+    const slug = `wa-sensitive-${slugify(draft.slug || draft.title)}`;
+    if (slugs.has(slug)) throw new Error(`Duplicate sensitive slug generated: ${slug}`);
+    slugs.add(slug);
+
+    return {
+      slug,
+      title: draft.title,
+      description: draft.description || "",
+      category: "sensitive documents",
+      publishedAt: draft.updated_at || draft.created_at,
+      accessLevel: "NDA",
+      status: "published",
+      sourceKind: "whatsapp-sensitive",
+      bodyMarkdown: cleanBody(draft.body),
+      originalTargetFolder: draft.target_folder || "",
+      originalCategory: draft.category || "",
+      sourceDraftId: draft.id,
+    };
   });
 
   return {
     payloads,
-    summary,
+    summary: {
+      publicWhatsappPosts: publicPosts.length,
+      ndaDrafts: ndaDrafts.length,
+      alreadyPublicFromNda: ndaDrafts.length - heldSensitive.length,
+      heldSensitive: heldSensitive.length,
+      byOriginalFolder: heldSensitive.reduce((acc, draft) => {
+        acc[draft.target_folder] = (acc[draft.target_folder] || 0) + 1;
+        return acc;
+      }, {}),
+    },
     allNdaDraftIds: ndaDrafts.map((draft) => draft.id),
     heldSensitiveDraftIds: heldSensitive.map((draft) => draft.id),
     excludedPublicDraftIds: excludedAsPublic.map((draft) => draft.id),
@@ -480,9 +307,7 @@ const main = async () => {
   );
 };
 
-if (import.meta.url === pathToFileURL(process.argv[1] || "").href) {
-  main().catch((error) => {
-    console.error(error);
-    process.exit(1);
-  });
-}
+main().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});
