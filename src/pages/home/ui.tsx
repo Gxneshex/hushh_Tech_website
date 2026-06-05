@@ -100,7 +100,7 @@ const PerformancePreview = () => {
       </div>
 
       <div className="mt-3.5 text-[11px] font-semibold uppercase tracking-[1.2px] text-[rgba(235,235,245,0.48)] md:mt-6 md:text-[12px] md:tracking-[1.4px]">
-        Net return &middot; inception to date
+        2025 Net Return
       </div>
 
       <div className="mx-auto mt-4 grid max-w-[310px] grid-cols-[1fr_1px_1fr] items-start border-t border-[rgba(235,235,245,0.13)] pt-4 md:mt-8 md:max-w-[400px] md:pt-7">
@@ -115,10 +115,10 @@ const PerformancePreview = () => {
         <div className="h-[38px] bg-[rgba(235,235,245,0.13)] md:h-[44px]" />
         <div>
           <div className="text-[19px] font-semibold leading-none tracking-[-0.35px] text-white tabular-nums md:text-[22px] md:tracking-[-0.5px]">
-            Jan 2024
+            Quarterly
           </div>
           <div className="mt-2.5 text-[10px] font-semibold uppercase tracking-[0.5px] text-[rgba(235,235,245,0.43)] md:mt-3 md:text-[11px] md:tracking-[0.6px]">
-            Inception
+            Liquidity
           </div>
         </div>
       </div>

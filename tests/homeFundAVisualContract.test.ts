@@ -24,11 +24,11 @@ describe("Home Fund A visual contract", () => {
     expect(home).toContain('id="homeFundARingGrad"');
     expect(home).toContain('id="homeFundARingGlow"');
     expect(home).toContain('strokeDasharray={`${dash} ${circumference}`}');
-    expect(home).toContain("Net return &middot; inception to date");
+    expect(home).toContain("2025 Net Return");
     expect(home).toContain("18&ndash;23%");
     expect(home).toContain("Target IRR");
-    expect(home).toContain("Jan 2024");
-    expect(home).toContain("Inception");
+    expect(home).toContain("Quarterly");
+    expect(home).toContain("Liquidity");
     expect(home).not.toContain("PERFORMANCE_RANGES");
     expect(home).not.toContain("performanceRangeKeys");
     expect(home).not.toContain("Target Net IRR");
