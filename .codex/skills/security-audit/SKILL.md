@@ -77,4 +77,6 @@ Non-owned surfaces:
 npm run env:check
 npm run security:gitleaks
 npm run security:audit
+npm run test -- tests/communityApiRoute.test.ts tests/communityGcpRuntime.test.ts
+npm run verify:sensitive-nda-gate -- --target=uat
 ```

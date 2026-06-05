@@ -66,7 +66,10 @@ Non-owned surfaces:
 1. Determine whether the visible checks are the full intended check surface.
 2. Separate PR feedback lane, queue lane, and post-merge lane.
 3. Report which failing checks are process-only versus code-authoritative.
-4. Hand back the PR decision to `oss-contribution-triage` once the CI truth is clear.
+4. For community sensitive-document work, require the blocking `Sensitive NDA Gate`
+   PR/queue check and the deployed-host UAT verifier before calling the gate
+   healthy.
+5. Hand back the PR decision to `oss-contribution-triage` once the CI truth is clear.
 
 ## Handoff Rules
 
@@ -81,5 +84,6 @@ Non-owned surfaces:
 npm run env:check
 npm run lint:ci
 npm run security:audit
+npm run verify:sensitive-nda-gate -- --target=uat
 bash scripts/ci/orchestrate.sh queue
 ```

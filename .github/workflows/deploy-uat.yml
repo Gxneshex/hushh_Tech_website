@@ -143,6 +143,7 @@ jobs:
           printf 'VITE_SUPABASE_URL=%s\n' "$supabase_url" >> "$GITHUB_ENV"
           printf 'VITE_SUPABASE_ANON_KEY=%s\n' "$supabase_anon_key" >> "$GITHUB_ENV"
           printf 'SUPABASE_URL=%s\n' "$supabase_url" >> "$GITHUB_ENV"
+          printf 'SUPABASE_ANON_KEY=%s\n' "$supabase_anon_key" >> "$GITHUB_ENV"
           printf 'SUPABASE_SERVICE_ROLE_KEY=%s\n' "$supabase_service_role_key" >> "$GITHUB_ENV"
           [ -n "$analytics_hash_salt" ] && printf 'ANALYTICS_HASH_SALT=%s\n' "$analytics_hash_salt" >> "$GITHUB_ENV"
           [ -n "$ga4_property_id" ] && printf 'GA4_PROPERTY_ID=%s\n' "$ga4_property_id" >> "$GITHUB_ENV"
@@ -263,6 +264,12 @@ jobs:
       - name: Smoke OAuth startup on deployed host
         run: node scripts/smoke-oauth-start.mjs "$SMOKE_BASE_URL" > /tmp/uat-oauth-smoke.json
 
+      - name: Verify sensitive NDA gate on deployed host
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm --silent run verify:sensitive-nda-gate -- --target=uat --expected-min=1 2>&1 | tee /tmp/uat-sensitive-nda-gate.json
+
       - name: Upload UAT smoke artifact
         if: always()
         uses: actions/upload-artifact@v4
@@ -270,3 +277,11 @@ jobs:
           name: uat-oauth-smoke
           if-no-files-found: error
           path: /tmp/uat-oauth-smoke.json
+
+      - name: Upload UAT sensitive NDA gate artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: uat-sensitive-nda-gate
+          if-no-files-found: warn
+          path: /tmp/uat-sensitive-nda-gate.json

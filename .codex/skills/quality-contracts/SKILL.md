@@ -68,4 +68,11 @@ npm test
 npx tsc --noEmit
 npm run build:web
 npm run smoke:ci
+npm run test -- tests/communityApiRoute.test.ts tests/communityGcpRuntime.test.ts
 ```
+
+For community sensitive-document or NDA-gate changes, the authoritative proof is
+split across two lanes: the blocking `Sensitive NDA Gate` CI/queue job covers API
+regressions and verifier syntax, while `Deploy to UAT` runs the live
+`npm run verify:sensitive-nda-gate -- --target=uat --expected-min=1` check
+against the deployed host.

@@ -114,6 +114,27 @@ jobs:
       - name: Enforce audit regression budget
         run: node scripts/ci/check-audit-regression.mjs tmp/ci/npm-audit-report.json
 
+  sensitive-nda-gate:
+    name: Sensitive NDA Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run sensitive community API gate regressions
+        run: npm run test -- tests/communityApiRoute.test.ts tests/communityGcpRuntime.test.ts
+
+      - name: Syntax-check live NDA gate verifier
+        run: node --check scripts/community/verify-sensitive-nda-gate.mjs
+
   ci-status:
     name: CI Status Gate
     if: always()
@@ -123,6 +144,7 @@ jobs:
       - web-validation
       - lint
       - security-audit
+      - sensitive-nda-gate
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -135,6 +157,7 @@ jobs:
             ["Web Validation"]="${{ needs.web-validation.result }}"
             ["Lint"]="${{ needs.lint.result }}"
             ["Security Audit"]="${{ needs.security-audit.result }}"
+            ["Sensitive NDA Gate"]="${{ needs.sensitive-nda-gate.result }}"
           )
 
           failed=0

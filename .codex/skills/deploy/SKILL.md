@@ -49,6 +49,13 @@ gh workflow run deploy-uat.yml --ref main            # latest green main
 gh workflow run deploy-uat.yml --ref main -f sha=<green-main-sha>
 ```
 
+For community sensitive-document work, a UAT deploy is not done until the hosted
+`Verify sensitive NDA gate on deployed host` step passes. That step runs
+`npm run verify:sensitive-nda-gate -- --target=uat --expected-min=1` against
+`https://uat.hushhtech.com`, creates a temporary user, proves sensitive posts are
+blocked before NDA signature, signs the NDA, proves list/detail access opens,
+browser-smokes a sensitive article, and deletes the temporary user.
+
 ### PROD
 PROD is **manual only** and requires the exact SHA:
 
@@ -71,7 +78,8 @@ deploy to start another**; let it finish so Cloud Run isn't left half-updated.
 `npm run env:check` → `npm run build:web` (builds `dist/` in the runner) →
 `gcloud run deploy --source .` (remote Cloud Build from the runtime
 [`Dockerfile`](../../../Dockerfile)) → Playwright Chromium install → OAuth smoke
-against the deployed host. Full step-by-step in
+against the deployed host → sensitive-document NDA gate verification against the
+deployed host. Full step-by-step in
 [references/pipeline.md](references/pipeline.md).
 
 ## Why deploys feel slow (and the fix)

@@ -60,7 +60,8 @@ Current `PR Validation` check surface:
 7. `Web Validation`
 8. `Lint`
 9. `Security Audit`
-10. `CI Status Gate`
+10. `Sensitive NDA Gate`
+11. `CI Status Gate`
 
 ## Queue and post-merge lanes
 
@@ -82,7 +83,10 @@ Current `PR Validation` check surface:
 
 - file: `.github/workflows/deploy-uat.yml`
 - trigger: successful `Main Post-Merge Smoke` via `workflow_run`, plus optional manual dispatch with `sha`
-- purpose: UAT promotion from a green `main` SHA
+- purpose: UAT promotion from a green `main` SHA, followed by hosted OAuth smoke and live sensitive-document NDA gate verification
+
+After Cloud Run deployment, the UAT lane runs `npm run verify:sensitive-nda-gate -- --target=uat --expected-min=1`.
+That check creates a temporary test user, proves sensitive community posts fail closed before NDA signature, signs the NDA, proves the gated sensitive list/detail page opens, browser-smokes a sensitive article, and deletes the temporary user. A green UAT deploy is not authoritative for community sensitive content unless this step passes.
 
 ### `Deploy to PROD`
 
@@ -101,8 +105,9 @@ Current `PR Validation` check surface:
 2. `Hushh Signalkeeper` is an input, not merge authority.
 3. `Semantic PR Guard` is the progressive-enforcement lane. Start new semantic checks here as advisory, and promote only the ones that prove high signal into the blocking gate later.
 4. `PR Validation` is the main pre-merge code-executing check surface, and its aggregate branch-protection signal is `CI Status Gate`.
-5. GitHub runs `pull_request` workflows from the PR merge branch, so merge-conflicted PRs will not show `PR Validation` until the conflicts are resolved.
-6. For fork PRs, a maintainer may still need to approve code-executing workflows before the full `PR Validation` story is visible.
-7. `Queue Validation` matters for freshness and merge authority, not contributor patch review.
-8. `Main Post-Merge Smoke` gates the automatic UAT promotion path for the website lane, while `Deploy Email Template API` is a separate main-branch service deploy lane.
-9. If `Reviewer Context & Compliance` fails, treat `Hushh Signalkeeper` output as ungrounded until `.pr_agent.toml`, the repo-root metadata files, or `pr_compliance_checklist.yaml` are repaired on `main`.
+5. `Sensitive NDA Gate` is blocking in PR validation and queue validation for community API regressions; the deployed-host version runs in `Deploy to UAT` because it needs UAT secrets and a real hosted app.
+6. GitHub runs `pull_request` workflows from the PR merge branch, so merge-conflicted PRs will not show `PR Validation` until the conflicts are resolved.
+7. For fork PRs, a maintainer may still need to approve code-executing workflows before the full `PR Validation` story is visible.
+8. `Queue Validation` matters for freshness and merge authority, not contributor patch review.
+9. `Main Post-Merge Smoke` gates the automatic UAT promotion path for the website lane, while `Deploy Email Template API` is a separate main-branch service deploy lane.
+10. If `Reviewer Context & Compliance` fails, treat `Hushh Signalkeeper` output as ungrounded until `.pr_agent.toml`, the repo-root metadata files, or `pr_compliance_checklist.yaml` are repaired on `main`.
