@@ -26,16 +26,52 @@ export interface CommunityPostDetail extends CommunityPostSummary {
   bodyHtml?: string;
 }
 
+export class CommunityContentError extends Error {
+  status: number;
+
+  constructor(status: number, message: string) {
+    super(message);
+    this.name = "CommunityContentError";
+    this.status = status;
+  }
+}
+
+interface CommunityFetchOptions {
+  accessLevel?: "Public" | "NDA";
+  accessToken?: string;
+  fetcher?: typeof fetch;
+}
+
+const resolveOptions = (
+  optionsOrFetcher?: CommunityFetchOptions | typeof fetch,
+): Required<Pick<CommunityFetchOptions, "fetcher">> & Omit<CommunityFetchOptions, "fetcher"> => {
+  if (typeof optionsOrFetcher === "function") {
+    return { fetcher: optionsOrFetcher };
+  }
+
+  return { fetcher: fetch, ...(optionsOrFetcher || {}) };
+};
+
+const authenticatedHeaders = (accessToken?: string) => ({
+  Accept: "application/json",
+  ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+});
+
 export const fetchCommunityPosts = async (
-  fetcher: typeof fetch = fetch,
+  optionsOrFetcher: CommunityFetchOptions | typeof fetch = fetch,
 ): Promise<CommunityPostSummary[]> => {
-  const response = await fetcher("/api/community/posts", {
-    headers: { Accept: "application/json" },
+  const { fetcher, accessLevel, accessToken } = resolveOptions(optionsOrFetcher);
+  const url = accessLevel === "NDA" ? "/api/community/posts?accessLevel=NDA" : "/api/community/posts";
+  const response = await fetcher(url, {
+    headers: authenticatedHeaders(accessToken),
     cache: "no-store",
   });
 
   if (!response.ok) {
-    throw new Error(`Community posts request failed with HTTP ${response.status}`);
+    throw new CommunityContentError(
+      response.status,
+      `Community posts request failed with HTTP ${response.status}`,
+    );
   }
 
   const payload = (await response.json()) as { posts?: CommunityPostSummary[] };
@@ -44,18 +80,22 @@ export const fetchCommunityPosts = async (
 
 export const fetchCommunityPost = async (
   slug: string,
-  fetcher: typeof fetch = fetch,
+  optionsOrFetcher: CommunityFetchOptions | typeof fetch = fetch,
 ): Promise<CommunityPostDetail | null> => {
+  const { fetcher, accessToken } = resolveOptions(optionsOrFetcher);
   const encodedSlug = slug.split("/").map(encodeURIComponent).join("/");
   const response = await fetcher(`/api/community/posts/${encodedSlug}`, {
-    headers: { Accept: "application/json" },
+    headers: authenticatedHeaders(accessToken),
     cache: "no-store",
   });
 
   if (response.status === 404) return null;
 
   if (!response.ok) {
-    throw new Error(`Community post request failed with HTTP ${response.status}`);
+    throw new CommunityContentError(
+      response.status,
+      `Community post request failed with HTTP ${response.status}`,
+    );
   }
 
   const payload = (await response.json()) as { post?: CommunityPostDetail };

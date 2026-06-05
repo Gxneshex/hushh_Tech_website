@@ -1,4 +1,4 @@
-import { streamCommunityAsset } from "./content-service.js";
+import { isCommunityAccessError, streamCommunityAsset } from "./content-service.js";
 
 export default async function handler(req, res) {
   if (req.method !== "GET" && req.method !== "HEAD") {
@@ -7,5 +7,13 @@ export default async function handler(req, res) {
     return;
   }
 
-  await streamCommunityAsset(req, res);
+  try {
+    await streamCommunityAsset(req, res);
+  } catch (error) {
+    if (isCommunityAccessError(error)) {
+      res.status(error.statusCode).json({ error: error.message });
+      return;
+    }
+    throw error;
+  }
 }

@@ -13,6 +13,8 @@ const CONTENT_BACKEND = (process.env.COMMUNITY_CONTENT_BACKEND || "static").trim
 const COLLECTION = process.env.COMMUNITY_CONTENT_COLLECTION || "community_posts";
 const BUCKET = process.env.COMMUNITY_CONTENT_BUCKET || "";
 const CACHE_SECONDS = Number.parseInt(process.env.COMMUNITY_CONTENT_CACHE_SECONDS || "300", 10);
+const PUBLIC_ACCESS = "Public";
+const NDA_ACCESS = "NDA";
 
 const LOCAL_ASSET_ALLOWLIST = new Set(
   STATIC_COMMUNITY_POSTS.map((post) => post.pdfUrl).filter(Boolean).map((pdfUrl) =>
@@ -25,6 +27,98 @@ const auth = new google.auth.GoogleAuth({
 });
 
 const isGcpEnabled = () => CONTENT_BACKEND === "gcp" && Boolean(PROJECT_ID && COLLECTION);
+
+export class CommunityAccessError extends Error {
+  constructor(statusCode, message) {
+    super(message);
+    this.name = "CommunityAccessError";
+    this.statusCode = statusCode;
+  }
+}
+
+export const isCommunityAccessError = (error) =>
+  error instanceof CommunityAccessError ||
+  (error?.name === "CommunityAccessError" && Number.isInteger(error?.statusCode));
+
+const trimEnv = (value) => (typeof value === "string" ? value.trim() : "");
+
+const supabaseBaseUrl = () =>
+  trimEnv(process.env.SUPABASE_URL) || trimEnv(process.env.VITE_SUPABASE_URL);
+
+const supabaseServiceKey = () => trimEnv(process.env.SUPABASE_SERVICE_ROLE_KEY);
+
+const bearerTokenFromRequest = (req) => {
+  const header =
+    req?.headers?.authorization ||
+    req?.headers?.Authorization ||
+    (typeof req?.get === "function" ? req.get("authorization") : "");
+  const match = String(header || "").match(/^Bearer\s+(.+)$/i);
+  return match?.[1]?.trim() || "";
+};
+
+export const requestAccessLevel = (req) => {
+  const value = String(req?.query?.accessLevel || req?.query?.access || "").toLowerCase();
+  return value === "nda" || value === "sensitive" ? NDA_ACCESS : PUBLIC_ACCESS;
+};
+
+const fetchSupabaseJson = async (url, headers) => {
+  const response = await fetch(url, { headers });
+  const text = await response.text();
+  const payload = text ? JSON.parse(text) : null;
+  return { response, payload };
+};
+
+export const assertNdaAccess = async (req) => {
+  const token = bearerTokenFromRequest(req);
+  if (!token) {
+    throw new CommunityAccessError(401, "NDA access requires sign-in");
+  }
+
+  const baseUrl = supabaseBaseUrl();
+  const serviceKey = supabaseServiceKey();
+  if (!baseUrl || !serviceKey) {
+    throw new CommunityAccessError(503, "NDA access is not configured");
+  }
+
+  const authHeaders = {
+    apikey: serviceKey,
+    Authorization: `Bearer ${token}`,
+    Accept: "application/json",
+  };
+  const { response: authResponse, payload: user } = await fetchSupabaseJson(
+    `${baseUrl.replace(/\/+$/, "")}/auth/v1/user`,
+    authHeaders,
+  );
+
+  if (!authResponse.ok || !user?.id) {
+    throw new CommunityAccessError(401, "Invalid or expired session");
+  }
+
+  const params = new URLSearchParams({
+    select: "signed_at",
+    user_id: `eq.${user.id}`,
+    signed_at: "not.is.null",
+    limit: "1",
+  });
+  const dataHeaders = {
+    apikey: serviceKey,
+    Authorization: `Bearer ${serviceKey}`,
+    Accept: "application/json",
+  };
+  const { response: dataResponse, payload: rows } = await fetchSupabaseJson(
+    `${baseUrl.replace(/\/+$/, "")}/rest/v1/nda_signatures?${params.toString()}`,
+    dataHeaders,
+  );
+
+  if (!dataResponse.ok) {
+    throw new CommunityAccessError(503, "NDA status could not be verified");
+  }
+  if (!Array.isArray(rows) || !rows.some((row) => Boolean(row?.signed_at))) {
+    throw new CommunityAccessError(403, "Signed NDA required");
+  }
+
+  return { userId: user.id };
+};
 
 const fieldValue = (field) => {
   if (!field) return undefined;
@@ -83,7 +177,7 @@ const firestoreDocToPost = (doc) => {
     publishedAt: fieldValue(fields.publishedAt),
     description: fieldValue(fields.description),
     category: fieldValue(fields.category),
-    accessLevel: fieldValue(fields.accessLevel) || "Public",
+    accessLevel: fieldValue(fields.accessLevel) || "",
     status: fieldValue(fields.status) || "published",
     sourceKind: fieldValue(fields.sourceKind) || "article",
     bodyMarkdown: fieldValue(fields.bodyMarkdown),
@@ -109,7 +203,7 @@ export const normalizePost = (post) => {
     publishedAt: post.publishedAt || post.date,
     description: post.description || "",
     category: post.category || "general",
-    accessLevel: post.accessLevel || "Public",
+    accessLevel: post.accessLevel || "",
     status: post.status || "published",
     sourceKind,
     componentName: post.componentName || "",
@@ -122,12 +216,17 @@ export const normalizePost = (post) => {
   };
 };
 
-const publicPublished = (post) => post.accessLevel === "Public" && post.status !== "draft";
+const publishedWithAccess = (accessLevel) => (post) =>
+  post.accessLevel === accessLevel && post.status !== "draft";
+const publicPublished = publishedWithAccess(PUBLIC_ACCESS);
+const ndaPublished = publishedWithAccess(NDA_ACCESS);
 
-export const staticPosts = () =>
+export const staticPosts = (accessLevel = PUBLIC_ACCESS) =>
   STATIC_COMMUNITY_POSTS.map(normalizePost)
-    .filter(publicPublished)
+    .filter(accessLevel === NDA_ACCESS ? ndaPublished : publicPublished)
     .sort((a, b) => String(b.publishedAt).localeCompare(String(a.publishedAt)));
+
+const allStaticPosts = () => STATIC_COMMUNITY_POSTS.map(normalizePost);
 
 const getAuthHeaders = async () => {
   const client = await auth.getClient();
@@ -153,25 +252,54 @@ const fetchGcsText = async (objectName) => {
   return response.text();
 };
 
-export const listCommunityPosts = async () => {
-  if (!isGcpEnabled()) return staticPosts();
+const listGcpPosts = async (accessLevel) => {
+  const url = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/${COLLECTION}`;
+  const data = await fetchJson(url);
+  return (data.documents || [])
+    .map(firestoreDocToPost)
+    .filter(accessLevel === NDA_ACCESS ? ndaPublished : publicPublished)
+    .sort((a, b) => String(b.publishedAt).localeCompare(String(a.publishedAt)));
+};
+
+const withDetailContent = async (post) => {
+  if (!post.bodyMarkdown && post.contentObject) {
+    post.bodyMarkdown = await fetchGcsText(post.contentObject);
+  }
+  if (!post.assetUrl && post.assetObject) {
+    post.assetUrl = `/api/community/assets/${encodeURIComponent(post.assetObject).replace(/%2F/g, "/")}`;
+  }
+  return post;
+};
+
+const authorizePost = async (post, req) => {
+  if (publicPublished(post)) return post;
+  if (ndaPublished(post)) {
+    await assertNdaAccess(req);
+    return post;
+  }
+  return null;
+};
+
+export const listCommunityPosts = async (req) => {
+  const accessLevel = requestAccessLevel(req);
+  if (accessLevel === NDA_ACCESS) {
+    await assertNdaAccess(req);
+  }
+
+  if (!isGcpEnabled()) return staticPosts(accessLevel);
 
   try {
-    const url = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/${COLLECTION}`;
-    const data = await fetchJson(url);
-    const posts = (data.documents || [])
-      .map(firestoreDocToPost)
-      .filter(publicPublished)
-      .sort((a, b) => String(b.publishedAt).localeCompare(String(a.publishedAt)));
+    const posts = await listGcpPosts(accessLevel);
 
-    return posts.length ? posts : staticPosts();
+    return posts.length ? posts : staticPosts(accessLevel);
   } catch (error) {
+    if (isCommunityAccessError(error)) throw error;
     console.error("[community] Falling back to static post snapshot:", error.message);
-    return staticPosts();
+    return staticPosts(accessLevel);
   }
 };
 
-export const getCommunityPost = async (slug) => {
+export const getCommunityPost = async (slug, req) => {
   if (!slug) return null;
 
   if (isGcpEnabled()) {
@@ -180,27 +308,33 @@ export const getCommunityPost = async (slug) => {
       const url = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/${COLLECTION}/${encodedSlug}`;
       const data = await fetchJson(url);
       const post = firestoreDocToPost(data);
+      const authorizedPost = await authorizePost(post, req);
 
-      if (!publicPublished(post)) return null;
-      if (!post.bodyMarkdown && post.contentObject) {
-        post.bodyMarkdown = await fetchGcsText(post.contentObject);
-      }
-      if (!post.assetUrl && post.assetObject) {
-        post.assetUrl = `/api/community/assets/${encodeURIComponent(post.assetObject).replace(/%2F/g, "/")}`;
-      }
-      return post;
+      if (!authorizedPost) return null;
+      return withDetailContent(authorizedPost);
     } catch (error) {
+      if (isCommunityAccessError(error)) throw error;
       console.error("[community] Falling back to static post detail:", error.message);
     }
   }
 
-  return staticPosts().find((post) => post.slug === slug) || null;
+  const post = allStaticPosts().find((item) => item.slug === slug);
+  if (!post) return null;
+  const authorizedPost = await authorizePost(post, req);
+  return authorizedPost ? withDetailContent(authorizedPost) : null;
 };
 
-export const setCommunityCacheHeaders = (res) => {
+export const setCommunityCacheHeaders = (res, options = {}) => {
+  if (options.privateContent) {
+    res.setHeader("Cache-Control", "private, no-store");
+    return;
+  }
   const maxAge = Number.isFinite(CACHE_SECONDS) && CACHE_SECONDS >= 0 ? CACHE_SECONDS : 300;
   res.setHeader("Cache-Control", `public, max-age=${maxAge}, stale-while-revalidate=${maxAge}`);
 };
+
+const isNdaAsset = (objectName) =>
+  /^(gated|nda|private|sensitive)\//i.test(objectName || "");
 
 export const streamCommunityAsset = async (req, res) => {
   const rawObject = req.params?.[0] || req.params?.object || "";
@@ -233,6 +367,11 @@ export const streamCommunityAsset = async (req, res) => {
     return;
   }
 
+  const privateAsset = isNdaAsset(objectName);
+  if (privateAsset) {
+    await assertNdaAccess(req);
+  }
+
   const encodedObject = encodeURIComponent(objectName);
   const url = `https://storage.googleapis.com/storage/v1/b/${encodeURIComponent(BUCKET)}/o/${encodedObject}?alt=media`;
   const headers = await getAuthHeaders();
@@ -243,7 +382,7 @@ export const streamCommunityAsset = async (req, res) => {
   }
 
   res.setHeader("Content-Type", upstream.headers.get("content-type") || "application/octet-stream");
-  res.setHeader("Cache-Control", "public, max-age=3600");
+  res.setHeader("Cache-Control", privateAsset ? "private, no-store" : "public, max-age=3600");
   const reader = upstream.body.getReader();
   const pump = async () => {
     const { done, value } = await reader.read();

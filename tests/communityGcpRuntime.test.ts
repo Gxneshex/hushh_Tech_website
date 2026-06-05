@@ -15,6 +15,25 @@ describe("community GCP runtime contract", () => {
     await expect(fetchCommunityPosts(fetcher as typeof fetch)).resolves.toEqual([]);
   });
 
+  it("uses bearer auth only for NDA community summaries", async () => {
+    const fetcher = async (url: RequestInfo | URL, init?: RequestInit) => {
+      expect(String(url)).toBe("/api/community/posts?accessLevel=NDA");
+      expect(init?.headers).toMatchObject({
+        Accept: "application/json",
+        Authorization: "Bearer signed-token",
+      });
+      return new Response(JSON.stringify({ posts: [] }), { status: 200 });
+    };
+
+    await expect(
+      fetchCommunityPosts({
+        accessLevel: "NDA",
+        accessToken: "signed-token",
+        fetcher: fetcher as typeof fetch,
+      }),
+    ).resolves.toEqual([]);
+  });
+
   it("fetches post details from the same-origin community API", async () => {
     const fetcher = async (url: RequestInfo | URL) => {
       expect(String(url)).toBe("/api/community/posts/general/the-perpetual-alpha-engine");
@@ -43,6 +62,24 @@ describe("community GCP runtime contract", () => {
       slug: "general/the-perpetual-alpha-engine",
       title: "The Perpetual Alpha Engine",
     });
+  });
+
+  it("passes bearer auth to community post details when available", async () => {
+    const fetcher = async (url: RequestInfo | URL, init?: RequestInit) => {
+      expect(String(url)).toBe("/api/community/posts/wa-sensitive-fund-note");
+      expect(init?.headers).toMatchObject({
+        Accept: "application/json",
+        Authorization: "Bearer signed-token",
+      });
+      return new Response(JSON.stringify({ post: null }), { status: 404 });
+    };
+
+    await expect(
+      fetchCommunityPost("wa-sensitive-fund-note", {
+        accessToken: "signed-token",
+        fetcher: fetcher as typeof fetch,
+      }),
+    ).resolves.toBeNull();
   });
 
   it("keeps community code free of Supabase reports and Vercel config", () => {

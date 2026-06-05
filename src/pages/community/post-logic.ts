@@ -13,6 +13,7 @@ import {
   NDA_REQUIRED_STATUS,
 } from "../../services/access/accessControlApi";
 import {
+  CommunityContentError,
   fetchCommunityPost,
   type CommunityPostDetail,
 } from "../../services/communityContent";
@@ -44,8 +45,28 @@ export const useCommunityPostLogic = () => {
       let gcpPost: CommunityPostDetail | null = null;
       const foundPost = getPostBySlug(activeSlug);
       try {
-        gcpPost = await fetchCommunityPost(activeSlug);
+        gcpPost = await fetchCommunityPost(activeSlug, {
+          accessToken: session?.access_token,
+        });
       } catch (error) {
+        if (error instanceof CommunityContentError && [401, 403].includes(error.status)) {
+          if (status === "booting") {
+            return;
+          }
+
+          showToastOnce(`access-restricted-gcp-${activeSlug}`, {
+            title: "Access Restricted",
+            description:
+              error.status === 401
+                ? "You must be logged in and complete the NDA process to view confidential posts."
+                : "Please sign the NDA to view this confidential post.",
+            status: "warning",
+            duration: 4000,
+            isClosable: true,
+          });
+          navigate(error.status === 403 ? "/sign-nda" : "/community");
+          return;
+        }
         console.error("Error loading community post:", error);
       }
 

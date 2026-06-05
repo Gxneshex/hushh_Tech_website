@@ -128,6 +128,7 @@ export const useCommunityListLogic = () => {
 
   /* Public GCP-backed community posts */
   const [publicPosts, setPublicPosts] = useState<CommunityPostSummary[]>([]);
+  const [ndaPosts, setNdaPosts] = useState<CommunityPostSummary[]>([]);
   const [apiLoading, setApiLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
 
@@ -158,12 +159,6 @@ export const useCommunityListLogic = () => {
     };
     if (mountRef.current) fetchPosts();
   }, []);
-
-  /* category lists */
-  const ndaPosts = useMemo(
-    () => localPosts.filter((p) => p.accessLevel === "NDA"),
-    [localPosts]
-  );
 
   /* combine + sort all posts */
   const allContentSorted = useMemo<UnifiedPost[]>(() => {
@@ -243,11 +238,11 @@ export const useCommunityListLogic = () => {
       dataToSearch = ndaPosts.map((p) => ({
         id: p.slug,
         title: p.title,
-        date: p.publishedAt,
+        date: p.publishedAt || p.date,
         slug: p.slug,
         description:
           p.description ||
-          getPostDescription({ id: p.slug, title: p.title, date: p.publishedAt }),
+          getPostDescription({ id: p.slug, title: p.title, date: p.publishedAt || p.date }),
         category: p.category,
       }));
     } else if (selectedCategory !== "All") {
@@ -291,6 +286,31 @@ export const useCommunityListLogic = () => {
   }, [filteredContent.length, searchQuery, selectedCategory]);
 
   /* NDA check */
+  const loadNdaPosts = useCallback(async (accessToken: string) => {
+    setApiLoading(true);
+    setApiError(null);
+    try {
+      const posts = await fetchCommunityPosts({
+        accessLevel: "NDA",
+        accessToken,
+      });
+      setNdaPosts(posts);
+      return true;
+    } catch (err: any) {
+      console.error(err);
+      setNdaPosts([]);
+      setApiError(err.message || "Failed to fetch sensitive documents");
+      toast({
+        title: "Sensitive documents unavailable",
+        description: err.message || "Failed to fetch sensitive documents",
+        status: "error",
+      });
+      return false;
+    } finally {
+      setApiLoading(false);
+    }
+  }, [toast]);
+
   const checkNda = useCallback(async () => {
     if (!session) {
       toast({ title: "Please sign in to view the files", status: "error" });
@@ -301,7 +321,7 @@ export const useCommunityListLogic = () => {
       const status = await checkAccessStatus(session.access_token);
       if (status === "Approved") {
         setNdaApproved(true);
-        return true;
+        return loadNdaPosts(session.access_token);
       }
       toast({
         title: "NDA required",
@@ -319,7 +339,7 @@ export const useCommunityListLogic = () => {
     } finally {
       setNdaLoading(false);
     }
-  }, [navigate, session, toast]);
+  }, [loadNdaPosts, navigate, session, toast]);
 
   /* category change handler */
   const onCategoryChange = useCallback(
@@ -349,7 +369,7 @@ export const useCommunityListLogic = () => {
       properties: {
         surface: "community",
         category: post.category || "unknown",
-        result: selectedCategory === NDA_OPTION ? "local-nda-post" : "gcp-community-post",
+        result: selectedCategory === NDA_OPTION ? "server-nda-post" : "gcp-community-post",
       },
     });
   }, [selectedCategory]);
