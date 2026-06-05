@@ -322,7 +322,7 @@ const BigCard = ({
   iconKind,
 }: {
   tone?: "light" | "dark";
-  eyebrow: string;
+  eyebrow?: string;
   title: string;
   body: string;
   iconKind: "api" | "intelligence" | "person";
@@ -336,12 +336,14 @@ const BigCard = ({
       <div className="mb-6">
         <AppIcon kind={iconKind} size={56} />
       </div>
-      <p
-        className={`mb-2 text-[11px] font-medium uppercase tracking-[1.6px] ${dark ? "text-[#2997FF]/85" : "text-[#0066CC]/85"}`}
-        style={{ fontFamily: appleFont }}
-      >
-        {eyebrow}
-      </p>
+      {eyebrow && (
+        <p
+          className={`mb-2 text-[11px] font-medium uppercase tracking-[1.6px] ${dark ? "text-[#2997FF]/85" : "text-[#0066CC]/85"}`}
+          style={{ fontFamily: appleFont }}
+        >
+          {eyebrow}
+        </p>
+      )}
       <h3
         className="mb-2 text-[28px] font-medium leading-[1.06] tracking-[-0.028em]"
         style={{ fontFamily: appleFont }}
@@ -598,13 +600,11 @@ export default function HomePage() {
           <div className="mx-auto mt-9 grid max-w-5xl gap-3 px-5 md:grid-cols-2">
             <BigCard
               tone="dark"
-              eyebrow="AI"
               title="AI-Powered"
               body="Institutional analytics processing millions of signals."
               iconKind="intelligence"
             />
             <BigCard
-              eyebrow="Human"
               title="Human-Led"
               body="Seasoned oversight ensuring long-term, conviction-led decisions."
               iconKind="person"

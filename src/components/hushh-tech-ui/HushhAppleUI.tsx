@@ -507,7 +507,7 @@ export function AppIcon({
   kind = "api",
   size = 56,
 }: {
-  kind?: "api" | "intelligence" | "person" | "chart" | "balance" | "dollar" | "clock" | "layers" | "shield" | "liquidity" | "leaf" | "bolt" | "monoA";
+  kind?: "api" | "intelligence" | "person" | "profile" | "chart" | "balance" | "dollar" | "clock" | "layers" | "shield" | "liquidity" | "leaf" | "bolt" | "monoA";
   size?: number;
 }) {
   const radius = size * 0.235;
@@ -563,6 +563,17 @@ export function AppIcon({
         <svg width={iconSize} height={iconSize} viewBox="0 0 28 28" fill="none" aria-hidden="true">
           <circle cx="14" cy="10.2" r="4.4" fill={ink} />
           <path d="M6.2 23c1-5 4.2-7.6 7.8-7.6s6.8 2.6 7.8 7.6H6.2z" fill={ink} />
+        </svg>
+      ),
+    },
+    profile: {
+      bg: "linear-gradient(180deg, #FFFFFF 0%, #F4F7FA 100%)",
+      glyph: (
+        <svg width={iconSize} height={iconSize} viewBox="0 0 28 28" fill="none" aria-hidden="true">
+          <circle cx="14" cy="10" r="4.2" fill={ink} />
+          <path d="M6.5 23.2c1-5.2 4.1-7.8 7.5-7.8s6.5 2.6 7.5 7.8h-15z" fill={ink} />
+          <circle cx="20.6" cy="6.8" r="2.5" fill="#0066CC" />
+          <circle cx="20.6" cy="6.8" r="1" fill="#F5F5F7" />
         </svg>
       ),
     },

@@ -540,7 +540,7 @@ const FundA = () => {
             >
               <div className="min-w-0">
                 <p
-                  className="mb-0.5 text-[11px] font-medium uppercase tracking-[1.6px] text-[#2997FF]/85"
+                  className="mb-0.5 text-[11px] font-medium uppercase tracking-[1.6px] text-[#F5F5F7]/75"
                   style={{ fontFamily: appleFont }}
                 >
                   {totalRow?.label ?? "Target Net IRR"}
@@ -647,14 +647,6 @@ const FundA = () => {
             <AppleButton kind="bordered" onClick={handleCompleteProfile}>
               {joinButtonLabel}
             </AppleButton>
-            <button
-              type="button"
-              onClick={() => navigate("/")}
-              className="h-12 text-[15px] font-medium tracking-[-0.01em] text-[#2997FF] transition hover:opacity-80"
-              style={{ fontFamily: appleFont }}
-            >
-              Back to Home
-            </button>
           </div>
         </AppleSection>
       </main>

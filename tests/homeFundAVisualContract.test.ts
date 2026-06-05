@@ -62,8 +62,29 @@ describe("Home Fund A visual contract", () => {
       'const FUND_A_NET_IRR_GRADIENT = "linear-gradient(135deg, #006FE6 0%, #4F50D6 100%)";',
     );
     expect(fundA).toContain("background: FUND_A_NET_IRR_GRADIENT");
+    expect(fundA).toContain("text-[#F5F5F7]/75");
     expect(fundA).toContain('WebkitBackgroundClip: "text"');
+    expect(fundA).not.toContain("Back to Home");
     expect(fundA).not.toContain("bg-gradient-to-br from-[#007AFF] to-[#5E5CE6]");
+  });
+
+  it("keeps home technology cards direct without redundant eyebrow labels", () => {
+    const home = read("src/pages/home/ui.tsx");
+
+    expect(home).toContain("eyebrow?: string;");
+    expect(home).toContain("{eyebrow && (");
+    expect(home).not.toContain('eyebrow="AI"');
+    expect(home).not.toContain('eyebrow="Human"');
+  });
+
+  it("keeps profile hero icon on the enhanced profile variant", () => {
+    const ui = read("src/components/hushh-tech-ui/HushhAppleUI.tsx");
+    const profile = read("src/pages/profile/ui.tsx");
+
+    expect(ui).toContain('kind?: "api" | "intelligence" | "person" | "profile"');
+    expect(ui).toContain("profile: {");
+    expect(ui).toContain('<circle cx="20.6" cy="6.8" r="2.5" fill="#0066CC" />');
+    expect(profile).toContain('<AppIcon kind="profile" size={62} />');
   });
 
   it("keeps Fund A framework row icons on the liquid-glass black-white system", () => {

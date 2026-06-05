@@ -41,7 +41,7 @@ const ProfilePage: React.FC = () => {
       <main className="flex flex-1 flex-col items-center justify-center px-5 pb-36 pt-8 sm:px-6 md:px-12 lg:px-20">
         <div className="flex w-full max-w-[640px] flex-col items-center gap-8 text-center">
           <div className="flex justify-center">
-            <AppIcon kind="person" size={62} />
+            <AppIcon kind="profile" size={62} />
           </div>
           <div>
             <Eyebrow>Profile</Eyebrow>

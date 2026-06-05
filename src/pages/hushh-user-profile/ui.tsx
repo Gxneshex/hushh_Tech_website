@@ -417,7 +417,7 @@ const HushhUserProfilePage: React.FC = () => {
         {/* ── Hero ── */}
         <section className="pb-9 pt-8 text-center">
           <div className="mb-6 flex justify-center">
-            <AppIcon kind="person" size={62} />
+            <AppIcon kind="profile" size={62} />
           </div>
           <Eyebrow>Premium Member</Eyebrow>
           <Display as="h1" size="sm" maxWidth="max-w-[440px]">
