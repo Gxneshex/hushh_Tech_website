@@ -164,7 +164,7 @@ import Alpha27IndiaStrategicPlan from '../content/posts/general/alpha27IndiaStra
 import HushhVentures from '../content/posts/general/hushhVentures';
 import MarketOutlookMid2025 from '../content/posts/market/marketOutlookMid2025';
 import FcfAcesOfAcesPortfolioUpdate from '../content/posts/general/fcfAcesOfAcesPortfolioUpdate_corrected';
-import { waPosts } from '../content/posts/wa';
+import { communityBlogPostList } from '../content/posts/community-blog';
 export interface PostData {
   slug: string;
   title: string;
@@ -1927,7 +1927,7 @@ export const posts: PostData[] = [
   accessLevel: 'Public',
   pdfUrl: '/cash-free-manifesto.pdf', 
 },
-  ...waPosts,
+  ...communityBlogPostList,
 ];
 
 export function getPosts(): PostData[] {
