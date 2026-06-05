@@ -119,16 +119,6 @@ const HushhTechBackHeader: React.FC<HushhTechBackHeaderProps> = ({
                 type="button"
                 onClick={() => setIsDrawerOpen(true)}
                 className="flex h-[38px] w-[38px] items-center justify-center text-[#1D1D1F] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066CC]/35 focus-visible:ring-offset-2"
-                aria-label="Open site search"
-              >
-                {Icon.search("currentColor", 18)}
-              </button>
-            </GlassPill>
-            <GlassPill className="relative">
-              <button
-                type="button"
-                onClick={() => setIsDrawerOpen(true)}
-                className="flex h-[38px] w-[38px] items-center justify-center text-[#1D1D1F] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066CC]/35 focus-visible:ring-offset-2"
                 aria-label="Open menu"
               >
                 {Icon.menu("currentColor", 18)}

@@ -175,7 +175,7 @@ const AlphaRow = ({
         {label}
       </h3>
       <p
-        className="mt-0.5 text-[12px] tracking-normal text-[#F5F5F7]/55"
+        className="mt-0.5 text-[12px] tracking-normal text-[#F5F5F7]/75"
         style={{ fontFamily: appleFont }}
       >
         Illustrative annual contribution
@@ -249,21 +249,17 @@ const ClassCard = ({
   managementFee,
   performanceFee,
   hurdleRate,
-  highlight,
 }: {
   name: string;
   min: string;
   managementFee: string;
   performanceFee: string;
   hurdleRate: string;
-  highlight: boolean;
 }) => {
-  const dark = highlight;
-
   return (
     <div
       data-testid="share-class-pricing-card"
-      className={`flex flex-col gap-3 rounded-[16px] p-4 sm:flex-row sm:items-center ${dark ? "bg-[#1D1D1F] text-[#F5F5F7]" : "bg-[#FFFFFF] text-[#1D1D1F]"}`}
+      className="flex flex-col gap-3 rounded-[16px] bg-[#FFFFFF] p-4 text-[#1D1D1F] transition-colors hover:bg-[#F5F5F7] sm:flex-row sm:items-center"
     >
       <div
         data-testid="share-class-pricing-header"
@@ -276,7 +272,7 @@ const ClassCard = ({
           {name}
         </h3>
         <p
-          className={`mt-0.5 text-[12px] font-normal ${dark ? "text-[#F5F5F7]/55" : "text-[#1D1D1F]/55"}`}
+          className="mt-0.5 text-[12px] font-normal text-[#1D1D1F]/55"
           style={{ fontFamily: appleFont }}
         >
           Min {min}
@@ -284,9 +280,9 @@ const ClassCard = ({
       </div>
       <div data-testid="share-class-pricing-metrics" className="grid min-w-0 flex-1 grid-cols-1 gap-2 sm:grid-cols-3">
         {[
-          ["Mgmt", managementFee],
-          ["Perf", performanceFee],
-          ["Hurdle", hurdleRate],
+          ["Management fee", managementFee],
+          ["Performance fee", performanceFee],
+          ["Hurdle rate", hurdleRate],
         ].map(([label, value]) => (
           <div key={label} className="min-w-0 text-left sm:text-center">
             <p
@@ -296,7 +292,7 @@ const ClassCard = ({
               {value}
             </p>
             <p
-              className={`mt-0.5 text-[11px] font-medium uppercase tracking-[1.6px] ${dark ? "text-[#2997FF]/85" : "text-[#0066CC]/85"}`}
+              className="mt-0.5 text-[11px] font-medium uppercase tracking-[1.05px] text-[#0066CC]/85"
               style={{ fontFamily: appleFont }}
             >
               {label}
@@ -382,8 +378,6 @@ const FundA = () => {
   } = useDiscoverFundALogic();
 
   const assetTags = ["Alpha 27", "Aloha 27", "Ultra 27"];
-  const totalRow = alphaStackRows.find((row) => row.isTotalRow);
-
   return (
     <div
       className="min-h-screen bg-[#FFFFFF] text-[#1D1D1F] antialiased selection:bg-[#0066CC] selection:text-[#F5F5F7]"
@@ -534,31 +528,6 @@ const FundA = () => {
               />
             </div>
 
-            <div
-              className="mt-3 flex items-center justify-between rounded-[16px] px-5 py-5"
-              style={{ background: FUND_A_NET_IRR_GRADIENT }}
-            >
-              <div className="min-w-0">
-                <p
-                  className="mb-0.5 text-[11px] font-medium uppercase tracking-[1.6px] text-[#F5F5F7]/75"
-                  style={{ fontFamily: appleFont }}
-                >
-                  {totalRow?.label ?? "Target Net IRR"}
-                </p>
-                <p
-                  className="text-[13px] text-[#F5F5F7]/85"
-                  style={{ fontFamily: appleFont }}
-                >
-                  Post-fees and expenses
-                </p>
-              </div>
-              <p
-                className="shrink-0 text-[32px] font-bold leading-none tracking-[-0.03em] text-[#F5F5F7]"
-                style={{ fontFamily: appleFont }}
-              >
-                {totalRow?.value ?? targetIRRValue}
-              </p>
-            </div>
           </div>
         </AppleSection>
 
@@ -616,7 +585,6 @@ const FundA = () => {
                   managementFee={shareClass.managementFee}
                   performanceFee={shareClass.performanceFee}
                   hurdleRate={shareClass.hurdleRate}
-                  highlight={index === shareClasses.length - 1}
                 />
               ))}
             </div>

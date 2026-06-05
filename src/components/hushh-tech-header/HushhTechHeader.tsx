@@ -46,6 +46,20 @@ const RoutedBrandButton = () => {
   return <BrandButton onClick={() => navigate("/")} />;
 };
 
+const RoutedSearchButton = () => {
+  const navigate = useNavigate();
+  return (
+    <button
+      type="button"
+      onClick={() => navigate("/community?focus=search")}
+      className="flex h-[38px] w-[38px] items-center justify-center text-[#1D1D1F] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066CC]/35 focus-visible:ring-offset-2"
+      aria-label="Search HushhTech articles"
+    >
+      {Icon.search("currentColor", 18)}
+    </button>
+  );
+};
+
 const TickerChip = ({
   quote,
   isLoading,
@@ -104,11 +118,13 @@ const TickerChip = ({
 
 interface HushhTechHeaderProps {
   showTicker?: boolean;
+  showSearch?: boolean;
   className?: string;
 }
 
 const HushhTechHeader: React.FC<HushhTechHeaderProps> = ({
   showTicker = true,
+  showSearch = true,
   className = "",
 }) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -173,16 +189,22 @@ const HushhTechHeader: React.FC<HushhTechHeaderProps> = ({
             </GlassPill>
 
             <div className="flex shrink-0 items-center gap-1.5">
-              <GlassPill>
-                <button
-                  type="button"
-                  onClick={() => setIsDrawerOpen(true)}
-                  className="flex h-[38px] w-[38px] items-center justify-center text-[#1D1D1F] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066CC]/35 focus-visible:ring-offset-2"
-                  aria-label="Open site search"
-                >
-                  {Icon.search("currentColor", 18)}
-                </button>
-              </GlassPill>
+              {showSearch ? (
+                <GlassPill>
+                  {hasRouter ? (
+                    <RoutedSearchButton />
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => window.location.assign("/community?focus=search")}
+                      className="flex h-[38px] w-[38px] items-center justify-center text-[#1D1D1F] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066CC]/35 focus-visible:ring-offset-2"
+                      aria-label="Search HushhTech articles"
+                    >
+                      {Icon.search("currentColor", 18)}
+                    </button>
+                  )}
+                </GlassPill>
+              ) : null}
               <GlassPill>
                 <button
                   type="button"

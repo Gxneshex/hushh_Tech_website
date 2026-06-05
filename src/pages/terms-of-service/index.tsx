@@ -117,7 +117,6 @@ const TermsOfServicePage = () => (
   <HushhTechLegalPage
     eyebrow="Legal Information & Notices"
     title="Website Terms of Use."
-    lede="The approved terms governing access to hushhtech.com and related HushhTech website experiences."
     updated="Approved Terms of Use"
     sections={termsSections}
     primaryAction={{ label: "Privacy Policy", href: "/privacy-policy" }}

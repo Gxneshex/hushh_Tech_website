@@ -100,7 +100,7 @@ const PerformancePreview = () => {
       </div>
 
       <div className="mt-3.5 text-[11px] font-semibold uppercase tracking-[1.2px] text-[rgba(235,235,245,0.48)] md:mt-6 md:text-[12px] md:tracking-[1.4px]">
-        2025 Net Return
+        FY 2025
       </div>
 
       <div className="mx-auto mt-4 grid max-w-[310px] grid-cols-[1fr_1px_1fr] items-start border-t border-[rgba(235,235,245,0.13)] pt-4 md:mt-8 md:max-w-[400px] md:pt-7">
@@ -512,19 +512,6 @@ export default function HomePage() {
           </div>
 
           <div className="relative z-[1]">
-            <div className="mx-auto mb-5 flex w-full max-w-[1100px] items-center justify-between px-6 md:mb-11 md:px-12">
-              <span
-                className="text-[11px] font-medium uppercase leading-tight tracking-[1.6px] text-[#2997FF]/85"
-                style={{ fontFamily: appleFont }}
-              >
-                {"Flagship \u00B7 01"}
-              </span>
-              <span className="text-right font-mono text-[9px] font-medium tracking-[0.8px] text-[#F5F5F7]/55 sm:text-[10px] sm:tracking-[1.4px]">
-                <span className="sm:hidden">2024</span>
-                <span className="hidden sm:inline">{"Inception \u00B7 2024"}</span>
-              </span>
-            </div>
-
             <div className="mb-5 flex justify-center md:mb-7">
               <FundACard />
             </div>

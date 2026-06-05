@@ -1,5 +1,5 @@
-import { useState, type ReactNode } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useRef, useState, type ReactNode, type RefObject } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 
 import NDADocumentModal from "../../components/NDADocumentModal";
 import NDARequestModal from "../../components/NDARequestModal";
@@ -54,9 +54,11 @@ const getTint = (value: string) => {
 const SearchBar = ({
   value,
   onChange,
+  inputRef,
 }: {
   value: string;
   onChange: (value: string) => void;
+  inputRef?: RefObject<HTMLInputElement>;
 }) => (
   <div className="flex h-10 items-center gap-2 rounded-[12px] bg-[#767680]/10 px-3.5">
     {Icon.search("rgba(60,60,67,0.55)", 15)}
@@ -65,6 +67,7 @@ const SearchBar = ({
     </label>
     <input
       id="community-search"
+      ref={inputRef}
       type="text"
       value={value}
       onChange={(event) => onChange(event.target.value)}
@@ -288,6 +291,8 @@ const ArticleRow = ({
 );
 
 export default function CommunityPage() {
+  const [searchParams] = useSearchParams();
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const {
     filteredContent,
     dropdownOptions,
@@ -315,6 +320,17 @@ export default function CommunityPage() {
 
   const [featured, ...rest] = filteredContent;
   const labelFor = (value: string) => getCategoryMeta(value).label || (value === "All" ? "All" : toTitleCase(value));
+
+  useEffect(() => {
+    if (searchParams.get("focus") !== "search") return;
+
+    const timeout = window.setTimeout(() => {
+      searchInputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      searchInputRef.current?.focus({ preventScroll: true });
+    }, 120);
+
+    return () => window.clearTimeout(timeout);
+  }, [searchParams]);
 
   const renderPostLink = (
     post: CommunityPost,
@@ -358,7 +374,11 @@ export default function CommunityPage() {
           </Lede>
 
           <div className="mx-auto mt-7 flex max-w-2xl flex-col gap-2.5 px-5">
-            <SearchBar value={searchQuery} onChange={setSearchQuery} />
+            <SearchBar
+              value={searchQuery}
+              onChange={setSearchQuery}
+              inputRef={searchInputRef}
+            />
             <CategoryDropdown
               value={selectedCategory}
               options={dropdownOptions}

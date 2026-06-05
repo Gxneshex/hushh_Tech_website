@@ -49,7 +49,6 @@ const SupportPage = () => (
   <HushhTechLegalPage
     eyebrow="Support"
     title="How can we help?"
-    lede="Fast paths for investor support, website questions, legal links, and contact information."
     sections={supportSections}
     primaryAction={{ label: "Email Support", href: "mailto:support@hushh.ai" }}
     secondaryAction={{ label: "Contact Form", href: "/contact" }}

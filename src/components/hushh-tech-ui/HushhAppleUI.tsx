@@ -80,6 +80,12 @@ export const Icon = {
       <path d="M9 12l2 2 4-4" {...strokeProps(color, 1.8)} />
     </svg>
   ),
+  briefcase: (color = "currentColor", size = 22) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <rect x="4" y="7.5" width="16" height="12" rx="2.6" {...strokeProps(color, 1.6)} />
+      <path d="M9 7.5V6a2 2 0 012-2h2a2 2 0 012 2v1.5M4 12h16" {...strokeProps(color, 1.6)} />
+    </svg>
+  ),
   chart: (color = "currentColor", size = 22) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <rect x="4" y="13" width="3" height="7" rx="0.8" {...strokeProps(color, 1.4)} />

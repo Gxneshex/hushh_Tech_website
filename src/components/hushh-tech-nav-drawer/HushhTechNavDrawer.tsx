@@ -20,6 +20,7 @@ const PRIMARY_NAV: NavItem[] = [
   { icon: Icon.community, label: "Community", path: "/community" },
   { icon: Icon.mail, label: "Contact", path: "/contact" },
   { icon: Icon.help, label: "FAQs", path: "/faq" },
+  { icon: Icon.briefcase, label: "Careers", path: "/career" },
 ];
 
 interface HushhTechNavDrawerProps {

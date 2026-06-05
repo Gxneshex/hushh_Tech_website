@@ -95,7 +95,6 @@ const PrivacyPolicyPage = () => (
   <HushhTechLegalPage
     eyebrow="Privacy"
     title="Website Privacy Policy."
-    lede="How Hushh treats personal information collected on the HushhTech.com website."
     updated="Last updated February 5, 2025"
     sections={privacySections}
     primaryAction={{ label: "Terms of Use", href: "/terms" }}

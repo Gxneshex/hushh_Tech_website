@@ -1,22 +1,40 @@
 import React from "react";
-import { Check } from "lucide-react";
+import {
+  BadgeDollarSign,
+  Check,
+  HeartPulse,
+  Leaf,
+  Sparkles,
+  type LucideIcon,
+} from "lucide-react";
 
-/** Matches `src/pages/home/ui.tsx` hero `h1` */
-const playfair = { fontFamily: "'Playfair Display', serif" };
+const appleFont =
+  '-apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif';
+const appleDisplayFont =
+  '-apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif';
 const featureRowClassName = "flex items-start gap-3.5";
 const featureIconClassName = "mt-[3px] h-5 w-5 shrink-0 text-hushh-blue";
 const benefitCardGridClassName =
   "grid grid-cols-1 gap-4 sm:gap-5 lg:grid-cols-2 lg:items-stretch lg:gap-6 xl:gap-8";
 const benefitCardClassName =
-  "h-full rounded-2xl border border-gray-200/60 bg-ios-gray-bg p-5 transition-colors hover:border-hushh-blue/30 sm:p-6";
+  "h-full rounded-[28px] border border-black/[0.06] bg-white p-5 shadow-[0_24px_80px_rgba(29,29,31,0.08)] transition-colors hover:border-hushh-blue/25 sm:p-6";
 const benefitFeatureGridClassName =
   "grid grid-cols-1 gap-x-6 gap-y-3 sm:gap-y-3.5 md:grid-cols-2 md:gap-y-4";
+
+function BenefitIcon({ icon: Icon }: { icon: LucideIcon }) {
+  return (
+    <span className="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-[18px] border border-white/70 bg-white text-hushh-blue shadow-[0_14px_36px_rgba(29,29,31,0.12),inset_0_1px_0_rgba(255,255,255,0.85)]">
+      <Icon className="h-6 w-6" strokeWidth={1.9} aria-hidden />
+    </span>
+  );
+}
 
 const BenefitsPage: React.FC = () => {
   return (
     <div
       data-page="benefits"
-      className="bg-white antialiased text-gray-900 selection:bg-hushh-blue selection:text-white"
+      className="bg-[#F5F5F7] antialiased text-[#1D1D1F] selection:bg-hushh-blue selection:text-white"
+      style={{ fontFamily: appleFont }}
     >
       <main
         id="main-content"
@@ -24,14 +42,16 @@ const BenefitsPage: React.FC = () => {
       >
         {/* Hero — compact; same copy as before */}
         <header className="mx-auto max-w-3xl py-6 text-center sm:py-8 md:py-10">
+          <p className="mb-4 text-[12px] font-semibold uppercase tracking-[0.24em] text-[#0071E3]">
+            Benefits
+          </p>
           <h1
-            className="mb-3 text-[2.75rem] font-normal leading-[1.1] tracking-tight text-black font-serif sm:text-[3.25rem] lg:text-[4rem]"
-            style={playfair}
+            className="mb-4 text-[42px] font-semibold leading-[0.96] tracking-[-0.045em] text-[#1D1D1F] sm:text-[56px] lg:text-[76px]"
+            style={{ fontFamily: appleDisplayFont, textWrap: "balance" }}
           >
-            World-Class Benefits <br /> for World-Class{" "}
-            <span className="text-gray-400 italic font-light">Talent</span>
+            World-Class Benefits for World-Class Talent.
           </h1>
-          <p className="mx-auto max-w-3xl text-sm font-light leading-relaxed text-gray-500 sm:text-base">
+          <p className="mx-auto max-w-2xl text-[19px] font-normal leading-[1.42] tracking-[-0.012em] text-[#86868B] sm:text-[23px]">
             We believe that exceptional people deserve exceptional benefits. Our comprehensive package is
             designed to support your professional growth, personal wellbeing, and financial future.
           </p>
@@ -40,13 +60,11 @@ const BenefitsPage: React.FC = () => {
         <div className={benefitCardGridClassName} data-testid="benefits-card-grid">
           {/* Compensation & Investment Opportunities */}
           <section className={benefitCardClassName}>
-            <div className="mb-4 flex flex-col items-center gap-2 text-center sm:mb-5 sm:flex-row sm:items-center sm:justify-center sm:gap-3 sm:text-left">
-              <span className="text-2xl sm:text-3xl" aria-hidden>
-                💰
-              </span>
+            <div className="mb-5 flex flex-col items-start gap-4 text-left sm:flex-row sm:items-center">
+              <BenefitIcon icon={BadgeDollarSign} />
               <h2
-                className="text-2xl font-medium tracking-tight text-black sm:text-3xl"
-                style={playfair}
+                className="text-[25px] font-semibold leading-[1.05] tracking-[-0.028em] text-[#1D1D1F] sm:text-[31px]"
+                style={{ fontFamily: appleDisplayFont }}
               >
                 Compensation & Investment Opportunities
               </h2>
@@ -93,13 +111,11 @@ const BenefitsPage: React.FC = () => {
 
           {/* Health, Wellness & Family Support */}
           <section className={benefitCardClassName}>
-            <div className="mb-4 flex flex-col items-center gap-2 text-center sm:mb-5 sm:flex-row sm:items-center sm:justify-center sm:gap-3 sm:text-left">
-              <span className="text-2xl sm:text-3xl" aria-hidden>
-                🏥
-              </span>
+            <div className="mb-5 flex flex-col items-start gap-4 text-left sm:flex-row sm:items-center">
+              <BenefitIcon icon={HeartPulse} />
               <h2
-                className="text-2xl font-medium tracking-tight text-black sm:text-3xl"
-                style={playfair}
+                className="text-[25px] font-semibold leading-[1.05] tracking-[-0.028em] text-[#1D1D1F] sm:text-[31px]"
+                style={{ fontFamily: appleDisplayFont }}
               >
                 Health, Wellness & Family Support
               </h2>
@@ -146,13 +162,11 @@ const BenefitsPage: React.FC = () => {
 
           {/* Work-Life, Growth & Giving Back */}
           <section className={benefitCardClassName}>
-            <div className="mb-4 flex flex-col items-center gap-2 text-center sm:mb-5 sm:flex-row sm:items-center sm:justify-center sm:gap-3 sm:text-left">
-              <span className="text-2xl sm:text-3xl" aria-hidden>
-                🌱
-              </span>
+            <div className="mb-5 flex flex-col items-start gap-4 text-left sm:flex-row sm:items-center">
+              <BenefitIcon icon={Leaf} />
               <h2
-                className="text-2xl font-medium tracking-tight text-black sm:text-3xl"
-                style={playfair}
+                className="text-[25px] font-semibold leading-[1.05] tracking-[-0.028em] text-[#1D1D1F] sm:text-[31px]"
+                style={{ fontFamily: appleDisplayFont }}
               >
                 Work-Life, Growth & Giving Back
               </h2>
@@ -211,13 +225,11 @@ const BenefitsPage: React.FC = () => {
 
           {/* Perks, Culture & Quality of Life */}
           <section className={benefitCardClassName}>
-            <div className="mb-4 flex flex-col items-center gap-2 text-center sm:mb-5 sm:flex-row sm:items-center sm:justify-center sm:gap-3 sm:text-left">
-              <span className="text-2xl sm:text-3xl" aria-hidden>
-                🎯
-              </span>
+            <div className="mb-5 flex flex-col items-start gap-4 text-left sm:flex-row sm:items-center">
+              <BenefitIcon icon={Sparkles} />
               <h2
-                className="text-2xl font-medium tracking-tight text-black sm:text-3xl"
-                style={playfair}
+                className="text-[25px] font-semibold leading-[1.05] tracking-[-0.028em] text-[#1D1D1F] sm:text-[31px]"
+                style={{ fontFamily: appleDisplayFont }}
               >
                 Perks, Culture & Quality of Life
               </h2>
@@ -251,10 +263,10 @@ const BenefitsPage: React.FC = () => {
           </section>
 
           {/* Why Join Hushh Technologies? — home-style CTA card + primary black button */}
-          <section className="mx-auto w-full max-w-3xl rounded-2xl border border-gray-200/60 bg-ios-gray-bg p-6 text-center transition-colors hover:border-hushh-blue/30 sm:p-8 lg:col-span-2">
+          <section className="mx-auto w-full max-w-3xl rounded-[28px] border border-black/[0.06] bg-white p-6 text-center shadow-[0_24px_80px_rgba(29,29,31,0.08)] transition-colors hover:border-hushh-blue/25 sm:p-8 lg:col-span-2">
             <h2
-              className="mb-3 text-xl font-medium tracking-tight text-black sm:mb-4 sm:text-3xl md:text-4xl"
-              style={playfair}
+              className="mb-3 text-[28px] font-semibold leading-[1.05] tracking-[-0.035em] text-[#1D1D1F] sm:mb-4 sm:text-[40px]"
+              style={{ fontFamily: appleDisplayFont }}
             >
               Why Join Hushh Technologies?
             </h2>

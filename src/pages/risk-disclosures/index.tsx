@@ -71,7 +71,6 @@ const RiskDisclosuresPage = () => (
   <HushhTechLegalPage
     eyebrow="Disclosures"
     title="Risk Disclosures."
-    lede="Plain-English investment and strategy risks to review before committing capital."
     updated="For investor review"
     sections={riskSections}
     primaryAction={{ label: "Terms of Use", href: "/terms" }}
