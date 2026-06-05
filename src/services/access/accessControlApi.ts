@@ -1,8 +1,14 @@
 import axios from "axios";
 import config from "../../resources/config/config";
-import { getNdaGenerationUrl, getSupabaseRpcUrl } from "../runtime/mainWeb";
+import {
+  getNdaGenerationUrl,
+  getSupabaseBaseUrl,
+  getSupabaseRpcUrl,
+} from "../runtime/mainWeb";
 
 export type AccessStatus = string;
+const APPROVED_STATUS = "Approved";
+export const NDA_REQUIRED_STATUS = "Pending: Waiting for NDA Process";
 
 export interface NdaMetadataResponse {
   metadata?: Record<string, unknown>;
@@ -34,8 +40,22 @@ async function postRpc<T>(
   return response.data;
 }
 
-export function checkAccessStatus(accessToken: string) {
-  return postRpc<AccessStatus>("check_access_status", accessToken);
+export async function checkAccessStatus(accessToken: string): Promise<AccessStatus> {
+  const response = await axios.get<Array<{ signed_at: string | null }>>(
+    `${getSupabaseBaseUrl()}/rest/v1/nda_signatures`,
+    {
+      headers: getAuthenticatedHeaders(accessToken),
+      params: {
+        select: "signed_at",
+        signed_at: "not.is.null",
+        limit: "1",
+      },
+    }
+  );
+
+  return response.data?.some((row) => Boolean(row.signed_at))
+    ? APPROVED_STATUS
+    : NDA_REQUIRED_STATUS;
 }
 
 export function getNdaMetadata(accessToken: string) {
