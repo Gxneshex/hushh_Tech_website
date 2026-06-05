@@ -37,6 +37,7 @@ describe("community API routes", () => {
     expect(res.statusCode).toBe(200);
     expect(res.payload.posts.length).toBeGreaterThan(0);
     expect(res.payload.posts[0]).not.toHaveProperty("bodyMarkdown");
+    expect(res.payload.posts.every((post: any) => post.accessLevel === "Public")).toBe(true);
     expect(res.payload.posts.some((post: any) => post.slug === "general/the-perpetual-alpha-engine")).toBe(true);
   });
 
@@ -76,6 +77,22 @@ describe("community API routes", () => {
     expect(res.payload).toEqual({ error: "NDA access requires sign-in" });
   });
 
+  it("treats sensitive access aliases as NDA-gated", async () => {
+    const res = createRes();
+
+    await postsHandler(
+      {
+        method: "GET",
+        query: { access: "sensitive" },
+        headers: {},
+      } as any,
+      res,
+    );
+
+    expect(res.statusCode).toBe(401);
+    expect(res.payload).toEqual({ error: "NDA access requires sign-in" });
+  });
+
   it("does not return an NDA post detail without a signed session", async () => {
     const res = createRes();
 
@@ -90,6 +107,57 @@ describe("community API routes", () => {
 
     expect(res.statusCode).toBe(401);
     expect(res.payload).toEqual({ error: "NDA access requires sign-in" });
+  });
+
+  it("rejects an invalid bearer token before listing NDA posts", async () => {
+    vi.stubEnv("SUPABASE_URL", "https://example.supabase.co");
+    vi.stubEnv("SUPABASE_SERVICE_ROLE_KEY", "service-role-key");
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValueOnce(
+        new Response(JSON.stringify({ message: "invalid token" }), { status: 401 }),
+      ),
+    );
+    const res = createRes();
+
+    await postsHandler(
+      {
+        method: "GET",
+        query: { accessLevel: "NDA" },
+        headers: { authorization: "Bearer expired-token" },
+      } as any,
+      res,
+    );
+
+    expect(res.statusCode).toBe(401);
+    expect(res.payload).toEqual({ error: "Invalid or expired session" });
+  });
+
+  it("rejects authenticated users who have not signed the NDA", async () => {
+    vi.stubEnv("SUPABASE_URL", "https://example.supabase.co");
+    vi.stubEnv("SUPABASE_SERVICE_ROLE_KEY", "service-role-key");
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockResolvedValueOnce(
+          new Response(JSON.stringify({ id: "unsigned-user" }), { status: 200 }),
+        )
+        .mockResolvedValueOnce(new Response(JSON.stringify([]), { status: 200 })),
+    );
+    const res = createRes();
+
+    await postsHandler(
+      {
+        method: "GET",
+        query: { accessLevel: "NDA" },
+        headers: { authorization: "Bearer unsigned-token" },
+      } as any,
+      res,
+    );
+
+    expect(res.statusCode).toBe(403);
+    expect(res.payload).toEqual({ error: "Signed NDA required" });
   });
 
   it("returns NDA summaries only after the bearer token has a signed NDA row", async () => {
@@ -124,6 +192,61 @@ describe("community API routes", () => {
     expect(res.payload.posts.length).toBeGreaterThan(0);
     expect(res.payload.posts.every((post: any) => post.accessLevel === "NDA")).toBe(true);
     expect(res.payload.posts[0]).not.toHaveProperty("bodyMarkdown");
+  });
+
+  it("returns NDA post details only after the bearer token has a signed NDA row", async () => {
+    vi.stubEnv("SUPABASE_URL", "https://example.supabase.co");
+    vi.stubEnv("SUPABASE_SERVICE_ROLE_KEY", "service-role-key");
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockResolvedValueOnce(
+          new Response(JSON.stringify({ id: "signed-user" }), { status: 200 }),
+        )
+        .mockResolvedValueOnce(
+          new Response(JSON.stringify([{ signed_at: "2026-06-05T00:00:00.000Z" }]), {
+            status: 200,
+          }),
+        ),
+    );
+    const res = createRes();
+
+    await postDetailHandler(
+      {
+        method: "GET",
+        params: { 0: "funds/fund-performance" },
+        headers: { authorization: "Bearer signed-token" },
+      } as any,
+      res,
+    );
+
+    expect(res.statusCode).toBe(200);
+    expect(res.headers.get("Cache-Control")).toBe("private, no-store");
+    expect(res.payload.post).toMatchObject({
+      slug: "funds/fund-performance",
+      title: "Fund Performance",
+      accessLevel: "NDA",
+    });
+  });
+
+  it("does not stream sensitive community assets without a signed session", async () => {
+    vi.resetModules();
+    vi.stubEnv("COMMUNITY_CONTENT_BUCKET", "community-private-assets");
+    const { default: guardedAssetHandler } = await import("../api/community/asset.js");
+    const res = createRes();
+
+    await guardedAssetHandler(
+      {
+        method: "GET",
+        params: { 0: "sensitive/fund-performance.pdf" },
+        headers: {},
+      } as any,
+      res,
+    );
+
+    expect(res.statusCode).toBe(401);
+    expect(res.payload).toEqual({ error: "NDA access requires sign-in" });
   });
 
   it("normalizes media object names to same-origin community asset URLs", () => {
