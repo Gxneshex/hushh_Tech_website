@@ -8,7 +8,10 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useToast } from "@chakra-ui/react";
 import { getPostBySlug, getPostBySlugOrComponentName, PostData } from "../../data/posts";
 import { useAuthSession } from "../../auth/AuthSessionProvider";
-import { checkAccessStatus } from "../../services/access/accessControlApi";
+import {
+  checkAccessStatus,
+  NDA_REQUIRED_STATUS,
+} from "../../services/access/accessControlApi";
 import {
   fetchCommunityPost,
   type CommunityPostDetail,
@@ -92,12 +95,14 @@ export const useCommunityPostLogic = () => {
             showToastOnce("access-restricted-nda", {
               title: "Access Restricted",
               description:
-                "You are not approved to view this confidential post. Please complete the NDA process.",
-              status: "error",
+                response === NDA_REQUIRED_STATUS
+                  ? "Please sign the NDA to view this confidential post."
+                  : "You are not approved to view this confidential post.",
+              status: "warning",
               duration: 4000,
               isClosable: true,
             });
-            navigate("/community");
+            navigate(response === NDA_REQUIRED_STATUS ? "/sign-nda" : "/community");
             return;
           }
         } catch (error) {

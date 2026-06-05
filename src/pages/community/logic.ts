@@ -11,7 +11,7 @@ import { formatShortDate, parseDate } from "../../utils/dateFormatter";
 import { useAuthSession } from "../../auth/AuthSessionProvider";
 import {
   checkAccessStatus,
-  getNdaMetadata,
+  NDA_REQUIRED_STATUS,
 } from "../../services/access/accessControlApi";
 import {
   trackSearchEvent,
@@ -303,13 +303,15 @@ export const useCommunityListLogic = () => {
         setNdaApproved(true);
         return true;
       }
-      if (status === "Pending: Waiting for NDA Process") {
-        const meta = await getNdaMetadata(session.access_token);
-        setNdaMetadata(meta.metadata);
-        setShowNdaDocModal(true);
-        return false;
-      }
-      toast({ title: status, status: "error" });
+      toast({
+        title: "NDA required",
+        description:
+          status === NDA_REQUIRED_STATUS
+            ? "Please sign the NDA to view sensitive documents."
+            : status,
+        status: "warning",
+      });
+      navigate("/sign-nda");
       return false;
     } catch (e: any) {
       toast({ title: e.message || "NDA check failed", status: "error" });
@@ -317,7 +319,7 @@ export const useCommunityListLogic = () => {
     } finally {
       setNdaLoading(false);
     }
-  }, [session, toast]);
+  }, [navigate, session, toast]);
 
   /* category change handler */
   const onCategoryChange = useCallback(
