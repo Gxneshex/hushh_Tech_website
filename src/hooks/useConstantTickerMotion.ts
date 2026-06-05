@@ -7,7 +7,7 @@ interface ConstantTickerMotionOptions {
   pixelsPerSecond?: number;
 }
 
-const DEFAULT_TICKER_PIXELS_PER_SECOND = 60;
+const DEFAULT_TICKER_PIXELS_PER_SECOND = 108;
 
 export const useConstantTickerMotion = ({
   enabled,
@@ -52,7 +52,7 @@ export const useConstantTickerMotion = ({
     };
 
     const tick = (time: number) => {
-      const delta = Math.min(64, Math.max(0, time - lastTime));
+      const delta = Math.min(40, Math.max(0, time - lastTime));
       lastTime = time;
 
       offset = (offset + (delta / 1000) * pixelsPerSecond) % distance;

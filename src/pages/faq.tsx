@@ -94,22 +94,22 @@ const FaqPage: React.FC = () => {
             as="h1"
             fontFamily={appleDisplayFont}
             fontWeight="500"
-            fontSize={{ base: "2.5rem", sm: "3.25rem", lg: "4rem" }}
-            lineHeight="1.04"
-            letterSpacing="-0.032em"
+            fontSize={{ base: "36px", md: "56px" }}
+            lineHeight="1.06"
+            letterSpacing="-0.028em"
             color="#1D1D1F"
           >
             Frequently Asked Questions.
           </Heading>
 
           <Text
-            fontSize={{ base: "sm", sm: "md" }}
+            fontSize={{ base: "16px", sm: "17px", md: "20px" }}
             fontWeight="300"
             maxW="lg"
             mx="auto"
             color="#1D1D1F99"
-            mt={4}
-            lineHeight="relaxed"
+            mt="18px"
+            lineHeight="1.45"
           >
             Find answers to common questions about our investment strategies, processes, and
             services.

@@ -26,6 +26,8 @@ import {
 } from "../../components/hushh-tech-ui/HushhAppleUI";
 import { useDiscoverFundALogic } from "./logic";
 
+const FUND_A_NET_IRR_GRADIENT = "linear-gradient(135deg, #006FE6 0%, #4F50D6 100%)";
+
 const iconForTitle = (title: string) => {
   const lower = title.toLowerCase();
 
@@ -417,7 +419,14 @@ const FundA = () => {
             </p>
             <div
               className="text-[72px] font-bold leading-[0.96] tracking-[-0.06em] md:text-[96px]"
-              style={{ color: "rgba(0,102,204,0.85)", fontFamily: appleFont }}
+              style={{
+                background: FUND_A_NET_IRR_GRADIENT,
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+                color: "transparent",
+                fontFamily: appleFont,
+              }}
             >
               {targetIRRValue}
             </div>
@@ -525,7 +534,10 @@ const FundA = () => {
               />
             </div>
 
-            <div className="mt-3 flex items-center justify-between rounded-[16px] bg-gradient-to-br from-[#007AFF] to-[#5E5CE6] px-5 py-5">
+            <div
+              className="mt-3 flex items-center justify-between rounded-[16px] px-5 py-5"
+              style={{ background: FUND_A_NET_IRR_GRADIENT }}
+            >
               <div className="min-w-0">
                 <p
                   className="mb-0.5 text-[11px] font-medium uppercase tracking-[1.6px] text-[#2997FF]/85"

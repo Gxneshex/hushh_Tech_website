@@ -15,7 +15,7 @@ import { SkipToContentLink } from "./ui/SkipToContentLink";
 
 const WELCOME_TOAST_PENDING_KEY = "showWelcomeToast";
 const WELCOME_TOAST_USER_KEY = "showWelcomeToastUserId";
-const TICKER_SCROLL_PIXELS_PER_SECOND = 78;
+const TICKER_SCROLL_PIXELS_PER_SECOND = 108;
 
 // Chip-based ticker component - Light theme design
 const TickerChip = ({ quote, isLoading }: { quote: StockQuote; isLoading?: boolean }) => {

@@ -44,15 +44,26 @@ describe("Home Fund A visual contract", () => {
     expect(ui).toContain(
       'linear-gradient(160deg, #3A96E2 0%, #0E77D4 58%, #075EAD 100%)',
     );
-    expect(ui).toContain('stroke="rgba(255,255,255,0.46)"');
-    expect(ui).toContain('stroke="rgba(255,255,255,0.58)"');
-    expect(ui).toContain('fill="rgba(255,255,255,0.46)"');
+    expect(ui).toContain('stroke="rgba(245,250,255,0.72)"');
+    expect(ui).toContain('stroke="rgba(245,250,255,0.82)"');
+    expect(ui).toContain('fill="rgba(245,250,255,0.66)"');
     expect(ui).toContain('filter: isIntelligence ? "none" : "blur(1px)"');
-    expect(ui).toContain('backdropFilter: "blur(22px) saturate(1.32)"');
+    expect(ui).toContain('backdropFilter: isIntelligence ? "none" : "blur(22px) saturate(1.32)"');
     expect(ui).toContain('backdropFilter: "blur(20px) saturate(1.35)"');
     expect(ui).not.toContain(
       'linear-gradient(160deg, #2997ff 0%, #0071e3 100%)',
     );
+  });
+
+  it("keeps Fund A page net IRR on the shared calmer blue gradient", () => {
+    const fundA = read("src/pages/discover-fund-a/ui.tsx");
+
+    expect(fundA).toContain(
+      'const FUND_A_NET_IRR_GRADIENT = "linear-gradient(135deg, #006FE6 0%, #4F50D6 100%)";',
+    );
+    expect(fundA).toContain("background: FUND_A_NET_IRR_GRADIENT");
+    expect(fundA).toContain('WebkitBackgroundClip: "text"');
+    expect(fundA).not.toContain("bg-gradient-to-br from-[#007AFF] to-[#5E5CE6]");
   });
 
   it("keeps Fund A framework row icons on the liquid-glass black-white system", () => {

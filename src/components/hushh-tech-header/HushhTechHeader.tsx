@@ -14,7 +14,7 @@ const logoTint = [
   "#F4ECFF",
 ];
 
-const TICKER_SCROLL_PIXELS_PER_SECOND = 78;
+const TICKER_SCROLL_PIXELS_PER_SECOND = 108;
 
 const BrandButton = ({ onClick }: { onClick: () => void }) => (
   <button
