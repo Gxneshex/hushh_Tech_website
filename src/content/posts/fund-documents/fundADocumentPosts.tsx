@@ -16,7 +16,7 @@ import {
  * under the "Fund Documents" category. The legal content is authored by counsel
  * and is rendered VERBATIM from the source .docx — we never edit or paraphrase
  * it. What this module adds is presentation: a branded title page, a real
- * heading hierarchy, styled tables and legal notices, a Step 1-4 sequence across
+ * heading hierarchy, styled tables and legal notices, a connected index across
  * the four documents, and a Hushh business identity footer. Business identity
  * (entity names, website, contact) is sourced from hushhtech.com — not invented.
  */
@@ -51,7 +51,8 @@ const COUNSEL_META = {
 type DocMeta = { label: string; value: string };
 
 type FundDocument = {
-  step: number;
+  order: number;
+  role: string;
   slug: string;
   src: string;
   eyebrow: string;
@@ -65,7 +66,8 @@ type FundDocument = {
 
 const fundDocuments = {
   investmentProspectus: {
-    step: 1,
+    order: 1,
+    role: "Overview",
     slug: "fund-documents/investment-prospectus",
     src: "/fund-documents/investment-prospectus.docx",
     eyebrow: "Investor Overview",
@@ -78,7 +80,8 @@ const fundDocuments = {
     meta: [GP_META, FOUNDER_META, COUNSEL_META, { label: "Dated", value: "March 2026" }],
   },
   ppm: {
-    step: 2,
+    order: 2,
+    role: "Offering Terms",
     slug: "fund-documents/private-placement-memorandum",
     src: "/fund-documents/ppm.docx",
     eyebrow: "Offering Terms",
@@ -98,7 +101,8 @@ const fundDocuments = {
     ],
   },
   lpMaster: {
-    step: 3,
+    order: 3,
+    role: "Master Fund",
     slug: "fund-documents/lp-master-lpa",
     src: "/fund-documents/lp-master-lpa.docx",
     eyebrow: "Master Fund",
@@ -111,7 +115,8 @@ const fundDocuments = {
     meta: [GP_META, COUNSEL_META, { label: "Dated", value: "2026" }],
   },
   delawareFeeder: {
-    step: 4,
+    order: 4,
+    role: "US Feeder",
     slug: "fund-documents/delaware-feeder-lpa",
     src: "/fund-documents/delaware-feeder-lpa.docx",
     eyebrow: "US Feeder",
@@ -131,7 +136,6 @@ const DOC_SEQUENCE: FundDocument[] = [
   fundDocuments.lpMaster,
   fundDocuments.delawareFeeder,
 ];
-const TOTAL_STEPS = DOC_SEQUENCE.length;
 
 /* ───────────────────────── .docx parsing ───────────────────────── */
 
@@ -475,46 +479,65 @@ function renderBlock(block: DocumentBlock, index: number, isFirst: boolean): Rea
   }
 }
 
-function StepIndex({ current }: { current: number }) {
+const DocGlyph = ({ className }: { className?: string }) => (
+  <svg
+    width="15"
+    height="15"
+    viewBox="0 0 24 24"
+    fill="none"
+    aria-hidden="true"
+    className={className}
+  >
+    <path
+      d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8l-5-5z"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinejoin="round"
+    />
+    <path d="M14 3v5h5" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+  </svg>
+);
+
+function DocIndex({ currentOrder }: { currentOrder: number }) {
   return (
-    <nav aria-label="Fund document steps" className="mb-6">
-      <p className="mb-2.5 text-[11px] font-semibold uppercase tracking-[1.6px] text-[#0066CC]/85">
-        Fund Documents · Step {current} of {TOTAL_STEPS}
+    <nav aria-label="Fund A offering documents" className="mb-6">
+      <p className="text-[11px] font-semibold uppercase tracking-[1.6px] text-[#0066CC]/85">
+        Fund A · Offering Documents
       </p>
-      <ol className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+      <p className="mt-2 max-w-[640px] text-[14px] font-light leading-[1.55] text-[#1D1D1F]/65">
+        The four documents that define Hushh Alpha Aloha Fund A — the investment
+        thesis, the offering terms, and the partnership agreements that govern it.
+      </p>
+      <ol className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
         {DOC_SEQUENCE.map((doc) => {
-          const isCurrent = doc.step === current;
+          const isCurrent = doc.order === currentOrder;
           return (
             <li key={doc.slug}>
               <Link
                 to={`/community/${doc.slug}`}
-                aria-current={isCurrent ? "step" : undefined}
-                className={`flex h-full items-center gap-2.5 rounded-[14px] px-3 py-2.5 transition ${
+                aria-current={isCurrent ? "page" : undefined}
+                className={`flex h-full items-start gap-2.5 rounded-[14px] px-3 py-2.5 transition ${
                   isCurrent
                     ? "bg-[#0066CC] shadow-[0_8px_20px_rgba(0,102,204,0.22)]"
                     : "bg-[#F5F5F7] hover:bg-[#ECECEF]"
                 }`}
               >
-                <span
-                  className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[12px] font-semibold tabular-nums ${
-                    isCurrent
-                      ? "bg-white/20 text-white"
-                      : "bg-white text-[#1D1D1F]/70 shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.12)]"
+                <DocGlyph
+                  className={`mt-0.5 shrink-0 ${
+                    isCurrent ? "text-white/90" : "text-[#1D1D1F]/35"
                   }`}
-                >
-                  {doc.step}
-                </span>
+                />
                 <span className="min-w-0">
                   <span
                     className={`block text-[9.5px] font-semibold uppercase tracking-[0.8px] ${
-                      isCurrent ? "text-white/70" : "text-[#1D1D1F]/40"
+                      isCurrent ? "text-white/70" : "text-[#1D1D1F]/45"
                     }`}
                   >
-                    Step {doc.step}
+                    {doc.role}
                   </span>
                   <span
                     className={`block truncate text-[12.5px] font-medium leading-tight ${
-                      isCurrent ? "text-white" : "text-[#1D1D1F]/75"
+                      isCurrent ? "text-white" : "text-[#1D1D1F]/80"
                     }`}
                   >
                     {doc.title}
@@ -570,48 +593,53 @@ function DocumentCover({ document }: { document: FundDocument }) {
   );
 }
 
-function StepNav({ current }: { current: number }) {
-  const prev = DOC_SEQUENCE.find((doc) => doc.step === current - 1);
-  const next = DOC_SEQUENCE.find((doc) => doc.step === current + 1);
+function DocSetNav({ currentOrder }: { currentOrder: number }) {
+  const prev = DOC_SEQUENCE.find((doc) => doc.order === currentOrder - 1);
+  const next = DOC_SEQUENCE.find((doc) => doc.order === currentOrder + 1);
 
   if (!prev && !next) return null;
 
   return (
-    <nav className="mt-8 grid gap-2 sm:grid-cols-2" aria-label="Document navigation">
-      {prev ? (
-        <Link
-          to={`/community/${prev.slug}`}
-          className="flex items-center gap-3 rounded-[14px] bg-[#F5F5F7] px-4 py-3 transition hover:bg-[#ECECEF]"
-        >
-          <span className="rotate-180">{Icon.chevronRight(SYS.blue, 14)}</span>
-          <span className="min-w-0">
-            <span className="block text-[10px] font-semibold uppercase tracking-[1px] text-[#1D1D1F]/40">
-              Previous · Step {prev.step}
+    <nav className="mt-8" aria-label="More Fund A documents">
+      <p className="mb-2.5 text-[11px] font-semibold uppercase tracking-[1.6px] text-[#0066CC]/85">
+        More in this set
+      </p>
+      <div className="grid gap-2 sm:grid-cols-2">
+        {prev ? (
+          <Link
+            to={`/community/${prev.slug}`}
+            className="flex items-center gap-3 rounded-[14px] bg-[#F5F5F7] px-4 py-3 transition hover:bg-[#ECECEF]"
+          >
+            <span className="rotate-180">{Icon.chevronRight(SYS.blue, 14)}</span>
+            <span className="min-w-0">
+              <span className="block text-[10px] font-semibold uppercase tracking-[1px] text-[#1D1D1F]/40">
+                Previous · {prev.role}
+              </span>
+              <span className="block truncate text-[14px] font-medium text-[#1D1D1F]">
+                {prev.title}
+              </span>
             </span>
-            <span className="block truncate text-[14px] font-medium text-[#1D1D1F]">
-              {prev.title}
+          </Link>
+        ) : (
+          <span className="hidden sm:block" />
+        )}
+        {next ? (
+          <Link
+            to={`/community/${next.slug}`}
+            className="flex items-center justify-end gap-3 rounded-[14px] bg-[#F5F5F7] px-4 py-3 text-right transition hover:bg-[#ECECEF]"
+          >
+            <span className="min-w-0">
+              <span className="block text-[10px] font-semibold uppercase tracking-[1px] text-[#1D1D1F]/40">
+                Next · {next.role}
+              </span>
+              <span className="block truncate text-[14px] font-medium text-[#1D1D1F]">
+                {next.title}
+              </span>
             </span>
-          </span>
-        </Link>
-      ) : (
-        <span className="hidden sm:block" />
-      )}
-      {next ? (
-        <Link
-          to={`/community/${next.slug}`}
-          className="flex items-center justify-end gap-3 rounded-[14px] bg-[#F5F5F7] px-4 py-3 text-right transition hover:bg-[#ECECEF]"
-        >
-          <span className="min-w-0">
-            <span className="block text-[10px] font-semibold uppercase tracking-[1px] text-[#1D1D1F]/40">
-              Next · Step {next.step}
-            </span>
-            <span className="block truncate text-[14px] font-medium text-[#1D1D1F]">
-              {next.title}
-            </span>
-          </span>
-          {Icon.chevronRight(SYS.blue, 14)}
-        </Link>
-      ) : null}
+            {Icon.chevronRight(SYS.blue, 14)}
+          </Link>
+        ) : null}
+      </div>
     </nav>
   );
 }
@@ -673,7 +701,7 @@ function FundADocumentPost({ document }: { document: FundDocument }) {
   // Cover = everything before the first Heading 1 (consistent across all four
   // docs). We re-present the cover with our own branded title page, surface the
   // verbatim legal disclaimers as notices, and skip the empty "Table of
-  // Contents" field heading — the Step 1-4 nav replaces it.
+  // Contents" field heading — the document index replaces it.
   const firstHeadingIndex = blocks.findIndex(
     (block) => block.type === "heading" && block.level === 1
   );
@@ -699,7 +727,7 @@ function FundADocumentPost({ document }: { document: FundDocument }) {
       className="mx-auto w-full max-w-[860px] text-[#1D1D1F]"
       style={{ fontFamily: appleFont }}
     >
-      <StepIndex current={document.step} />
+      <DocIndex currentOrder={document.order} />
       <DocumentCover document={document} />
 
       {isLoading ? (
@@ -740,7 +768,7 @@ function FundADocumentPost({ document }: { document: FundDocument }) {
         </>
       )}
 
-      <StepNav current={document.step} />
+      <DocSetNav currentOrder={document.order} />
       <DocumentFooter />
     </article>
   );

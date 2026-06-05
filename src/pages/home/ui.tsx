@@ -640,7 +640,12 @@ export default function HomePage() {
           </div>
 
           <div className="mt-9 text-center">
-            <ChevLink tone="dark" onClick={() => onNavigate("/discover-fund-a")}>
+            <ChevLink
+              tone="dark"
+              onClick={() =>
+                onNavigate("/community/fund-documents/investment-prospectus")
+              }
+            >
               Read the fund prospectus
             </ChevLink>
           </div>
