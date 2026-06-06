@@ -11,13 +11,13 @@ describe("Home Fund A visual contract", () => {
 
     expect(home).toContain("const PerformancePreview = () =>");
     expect(home).toContain("max-w-[360px] text-center md:max-w-[420px]");
-    expect(home).toContain("h-[176px] w-[176px]");
-    expect(home).toContain("min-[390px]:h-[184px] min-[390px]:w-[184px]");
+    expect(home).toContain("h-[168px] w-[168px]");
+    expect(home).toContain("min-[390px]:h-[176px] min-[390px]:w-[176px]");
     expect(home).toContain("strokeDashoffset={0}");
     expect(home).toContain('const FUND_A_APPLE_GREEN = "#30D158";');
-    expect(home).toContain("const stroke = 14;");
-    expect(home).toContain('stdDeviation="2.2"');
-    expect(home).toContain("text-[46px] md:text-[64px]");
+    expect(home).toContain("const stroke = 12;");
+    expect(home).toContain('stdDeviation="1.6"');
+    expect(home).toContain("text-[42px] md:text-[58px]");
     expect(home).toContain('<Display size="sm" tone="dark" maxWidth="max-w-[520px]">');
     expect(home).toContain("!pt-20 !pb-[10rem] md:!pt-24 md:!pb-[6rem]");
     expect(home).toContain("h-[118px] w-[192px]");

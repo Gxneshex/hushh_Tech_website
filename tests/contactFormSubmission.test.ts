@@ -11,6 +11,10 @@ vi.mock("../src/components/hushh-tech-header/HushhTechHeader", () => ({
   default: () => React.createElement("header", null, "HushhTechHeader"),
 }));
 
+vi.mock("../src/components/hushh-tech-back-header/HushhTechBackHeader", () => ({
+  default: () => React.createElement("header", null, "HushhTechBackHeader"),
+}));
+
 import Contact from "../src/pages/Contact";
 
 const setInputValue = (element: HTMLInputElement | HTMLTextAreaElement, value: string) => {

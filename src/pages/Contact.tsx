@@ -22,7 +22,7 @@ import {
   Link as ChakraLink,
 } from "@chakra-ui/react";
 import { MapPin, Phone, Clock, ArrowRight } from "lucide-react";
-import HushhTechHeader from "../components/hushh-tech-header/HushhTechHeader";
+import HushhTechBackHeader from "../components/hushh-tech-back-header/HushhTechBackHeader";
 import { appleDisplayFont, appleFont } from "../components/hushh-tech-ui/HushhAppleUI";
 
 /** Greys aligned with `home/ui.tsx` Tailwind tokens (gray-*, ios-gray-bg). */
@@ -195,7 +195,7 @@ export default function Contact() {
 
   return (
     <Box bg={pageBg} minH="100vh" className="antialiased text-gray-900" style={{ fontFamily: appleFont }}>
-      <HushhTechHeader />
+      <HushhTechBackHeader rightType="hamburger" />
       <Box
         as="main"
         id="main-content"
@@ -206,7 +206,7 @@ export default function Contact() {
         <Box textAlign="center" mb={{ base: 9, md: 12 }}>
           <Heading
             as="h1"
-            fontSize={{ base: "48px", md: "56px" }}
+            fontSize={{ base: "36px", sm: "44px", md: "56px" }}
             mb={5}
             letterSpacing="-0.028em"
             lineHeight="1.06"
@@ -218,12 +218,12 @@ export default function Contact() {
           </Heading>
 
           <Text
-            fontSize={{ base: "17px", md: "20px" }}
-            maxW="560px"
+            fontSize={{ base: "16px", sm: "17px", md: "20px" }}
+            maxW="520px"
             mx="auto"
             color={textSecondary}
             fontWeight="300"
-            lineHeight="1.5"
+            lineHeight="1.45"
           >
             Ready to transform your investment strategy? We'd love to hear from you.
           </Text>
@@ -620,7 +620,7 @@ export default function Contact() {
                 }
                 _hover={{ bg: gray50 }}
                 _active={{ bg: gray100 }}
-                onClick={() => navigate("/about/leadership")}
+                onClick={() => navigate("/discover-fund-a")}
                 {...buttonFocusVisible}
               >
                 Learn About Our Strategy

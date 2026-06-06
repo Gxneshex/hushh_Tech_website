@@ -5,9 +5,13 @@ import { ChakraProvider } from "@chakra-ui/react";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { MemoryRouter } from "react-router-dom";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import Leadership from "../src/components/Leadership";
+
+vi.mock("../src/components/hushh-tech-back-header/HushhTechBackHeader", () => ({
+  default: () => React.createElement("header", null, "HushhTechBackHeader"),
+}));
 
 describe("Leadership card grid", () => {
   let container: HTMLDivElement | null = null;
@@ -48,12 +52,18 @@ describe("Leadership card grid", () => {
       );
     });
 
-    const grid = container.querySelector('[data-testid="leadership-card-grid"]');
-    const cards = grid?.querySelectorAll('[data-testid="leadership-card"]');
+    const leadershipHeading = Array.from(container.querySelectorAll("h2")).find((heading) =>
+      heading.textContent?.includes("People behind the strategy."),
+    );
+    const grid = leadershipHeading?.parentElement?.querySelector(".mt-8.grid");
+    const cards = Array.from(grid?.children || []);
 
     expect(grid).not.toBeNull();
     expect(cards).toHaveLength(2);
+    expect(grid?.className).toContain("md:grid-cols-2");
     expect(grid?.textContent).toContain("Manish");
     expect(grid?.textContent).toContain("Justin");
+    expect(grid?.textContent).toContain("Founder & CEO");
+    expect(grid?.textContent).toContain("Chief Scientist & Investment Strategist");
   });
 });

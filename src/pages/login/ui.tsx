@@ -123,7 +123,7 @@ export default function LoginPage() {
                 Terms
               </Link>{" "}
               and{" "}
-              <Link to="/privacy" className="underline underline-offset-2">
+              <Link to="/privacy-policy" className="underline underline-offset-2">
                 Privacy Policy
               </Link>
               .

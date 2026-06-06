@@ -12,6 +12,10 @@ vi.mock("../src/components/hushh-tech-header/HushhTechHeader", () => ({
   default: () => React.createElement("header", null, "HushhTechHeader"),
 }));
 
+vi.mock("../src/components/hushh-tech-back-header/HushhTechBackHeader", () => ({
+  default: () => React.createElement("header", null, "HushhTechBackHeader"),
+}));
+
 describe("Contact form spacing", () => {
   let container: HTMLDivElement | null = null;
   let root: Root | null = null;

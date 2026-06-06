@@ -123,7 +123,7 @@ const CareerList = () => {
             </Text>
             <Heading
               as="h1"
-              fontSize={{ base: "48px", md: "56px" }}
+              fontSize={{ base: "36px", sm: "44px", md: "56px" }}
               mb={5}
               letterSpacing="-0.028em"
               lineHeight="1.06"
@@ -134,12 +134,12 @@ const CareerList = () => {
               Hushh Jobs.
             </Heading>
             <Text
-              fontSize={{ base: "17px", md: "20px" }}
-              maxW="640px"
+              fontSize={{ base: "16px", sm: "17px", md: "20px" }}
+              maxW="520px"
               mx="auto"
               color={textSecondary}
               fontWeight="300"
-              lineHeight="1.5"
+              lineHeight="1.45"
             >
               Help us build the AI-powered investment company where rigorous research, product craft,
               and long-term ownership meet.

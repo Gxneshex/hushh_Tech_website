@@ -7,6 +7,7 @@ import {
   Sparkles,
   type LucideIcon,
 } from "lucide-react";
+import HushhTechHeader from "../../components/hushh-tech-header/HushhTechHeader";
 
 const appleFont =
   '-apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif';
@@ -36,9 +37,10 @@ const BenefitsPage: React.FC = () => {
       className="bg-[#F5F5F7] antialiased text-[#1D1D1F] selection:bg-hushh-blue selection:text-white"
       style={{ fontFamily: appleFont }}
     >
+      <HushhTechHeader />
       <main
         id="main-content"
-        className="mx-auto w-full max-w-7xl px-4 pt-4 pb-12 sm:px-6 lg:px-8"
+        className="mx-auto w-full max-w-7xl px-4 pt-28 pb-12 sm:px-6 md:pt-32 lg:px-8"
       >
         {/* Hero — compact; same copy as before */}
         <header className="mx-auto max-w-3xl py-6 text-center sm:py-8 md:py-10">
@@ -46,12 +48,12 @@ const BenefitsPage: React.FC = () => {
             Benefits
           </p>
           <h1
-            className="mb-4 text-[42px] font-semibold leading-[0.96] tracking-[-0.045em] text-[#1D1D1F] sm:text-[56px] lg:text-[76px]"
+            className="mx-auto mb-4 max-w-[720px] text-[36px] font-medium leading-[1.06] tracking-[-0.028em] text-[#1D1D1F] sm:text-[44px] md:text-[56px]"
             style={{ fontFamily: appleDisplayFont, textWrap: "balance" }}
           >
             World-Class Benefits for World-Class Talent.
           </h1>
-          <p className="mx-auto max-w-2xl text-[19px] font-normal leading-[1.42] tracking-[-0.012em] text-[#86868B] sm:text-[23px]">
+          <p className="mx-auto max-w-[520px] text-[16px] font-light leading-[1.45] tracking-normal text-[#1D1D1F]/60 sm:text-[17px] md:text-[20px]">
             We believe that exceptional people deserve exceptional benefits. Our comprehensive package is
             designed to support your professional growth, personal wellbeing, and financial future.
           </p>

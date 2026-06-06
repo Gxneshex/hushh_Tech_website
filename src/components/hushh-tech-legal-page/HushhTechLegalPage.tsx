@@ -85,8 +85,6 @@ const ActionLink = ({
 export default function HushhTechLegalPage({
   eyebrow,
   title,
-  lede,
-  updated,
   sections,
   primaryAction,
   secondaryAction,
@@ -105,19 +103,11 @@ export default function HushhTechLegalPage({
             {eyebrow}
           </p>
           <h1
-            className="mx-auto max-w-[680px] text-[48px] font-medium leading-[1.06] tracking-[-0.028em] text-[#1D1D1F] md:text-[56px]"
+            className="mx-auto max-w-[680px] text-[36px] font-medium leading-[1.06] tracking-[-0.028em] text-[#1D1D1F] sm:text-[44px] md:text-[56px]"
             style={{ fontFamily: appleDisplayFont, textWrap: "balance" }}
           >
             {title}
           </h1>
-          <p className="mx-auto mt-5 max-w-[560px] text-[17px] font-light leading-[1.5] tracking-normal text-[#1D1D1F]/60 md:text-[20px]">
-            {lede}
-          </p>
-          {updated ? (
-            <p className="mt-5 text-[12px] font-medium uppercase tracking-[1.5px] text-[#1D1D1F]/45">
-              {updated}
-            </p>
-          ) : null}
 
           {primaryAction || secondaryAction ? (
             <div className="mt-7 flex flex-wrap justify-center gap-3">

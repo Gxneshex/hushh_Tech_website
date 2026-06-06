@@ -1,6 +1,12 @@
-import HushhTechHeader from "./hushh-tech-header/HushhTechHeader";
-
-const playfair = { fontFamily: "'Playfair Display', serif" };
+import HushhTechBackHeader from "./hushh-tech-back-header/HushhTechBackHeader";
+import {
+  AppleSection,
+  Display,
+  Eyebrow,
+  Lede,
+  appleDisplayFont,
+  appleFont,
+} from "./hushh-tech-ui/HushhAppleUI";
 
 const philosophyPillars = [
   {
@@ -32,85 +38,84 @@ const operatingPrinciples = [
 
 export default function Philosophy() {
   return (
-    <div className="min-h-screen bg-white antialiased text-gray-900 selection:bg-hushh-blue selection:text-white">
-      <HushhTechHeader />
+    <div
+      className="min-h-screen bg-[#F5F5F7] text-[#1D1D1F] antialiased selection:bg-[#0066CC] selection:text-white"
+      style={{ fontFamily: appleFont }}
+    >
+      <HushhTechBackHeader rightType="hamburger" />
 
-      <main
-        id="main-content"
-        className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-24"
-      >
-        <section className="max-w-3xl" aria-labelledby="philosophy-heading">
-          <p className="text-[10px] uppercase tracking-[0.22em] text-hushh-blue font-semibold mb-4">
-            Investment philosophy
-          </p>
-          <h1
-            id="philosophy-heading"
-            className="text-[2.75rem] leading-[1.08] font-normal text-black tracking-tight sm:text-[3.25rem] lg:text-[4rem]"
-            style={playfair}
-          >
-            Data. Volatility.{" "}
-            <span className="text-gray-400 italic font-light">Alpha.</span>
-          </h1>
-          <p className="text-gray-500 text-sm font-light mt-5 leading-relaxed max-w-2xl sm:text-base">
+      <main id="main-content">
+        <AppleSection tone="gray" pad="normal" overflow="visible">
+          <Eyebrow>Investment Philosophy</Eyebrow>
+          <Display as="h1" size="md" maxWidth="max-w-[620px]">
+            Data. Volatility. Alpha.
+          </Display>
+          <Lede>
             Hushh Technologies blends rigorous research, risk-aware execution,
             and AI-assisted analysis to build strategies that can compound with
-            patience instead of chasing every market spike.
-          </p>
-        </section>
+            patience.
+          </Lede>
 
-        <section
-          className="grid grid-cols-1 gap-4 mt-12 md:grid-cols-3"
-          aria-label="Philosophy pillars"
-        >
-          {philosophyPillars.map((pillar) => (
-            <article
-              key={pillar.title}
-              className="rounded-2xl border border-gray-200/70 bg-[#F5F5F7] p-6 min-h-[220px] transition-colors hover:border-hushh-blue/30"
-            >
-              <div className="w-11 h-11 rounded-full border border-hushh-blue/15 bg-white flex items-center justify-center mb-6">
-                <span
-                  className="material-symbols-outlined thin-icon text-hushh-blue"
-                  aria-hidden="true"
-                >
-                  {pillar.icon}
-                </span>
-              </div>
-              <h2
-                className="text-2xl font-normal text-black mb-3"
-                style={playfair}
+          <section
+            className="mx-auto mt-10 grid max-w-[1060px] gap-4 px-5 md:grid-cols-3 md:px-6"
+            aria-label="Philosophy pillars"
+          >
+            {philosophyPillars.map((pillar) => (
+              <article
+                key={pillar.title}
+                className="relative overflow-hidden rounded-[24px] border border-[#1D1D1F]/[0.06] bg-white/78 p-6 shadow-[0_18px_50px_rgba(29,29,31,0.06)] backdrop-blur-xl transition hover:border-[#0066CC]/25"
               >
-                {pillar.title}
-              </h2>
-              <p className="text-sm text-gray-500 leading-relaxed font-light">
-                {pillar.description}
-              </p>
-            </article>
-          ))}
-        </section>
-
-        <section className="mt-14 rounded-2xl border border-gray-200/70 bg-white p-6 sm:p-8">
-          <p className="text-[10px] uppercase tracking-[0.2em] text-gray-400 font-semibold mb-5">
-            Operating principles
-          </p>
-          <div className="grid gap-3 md:grid-cols-2">
-            {operatingPrinciples.map((principle) => (
-              <div
-                key={principle}
-                className="flex items-start gap-3 rounded-xl border border-gray-100 bg-gray-50 px-4 py-4"
-              >
-                <span
-                  className="material-symbols-outlined thin-icon text-ios-green text-lg mt-0.5"
+                <div
                   aria-hidden="true"
-                >
-                  check_circle
-                </span>
-                <p className="text-sm text-gray-600 leading-relaxed">
-                  {principle}
-                </p>
-              </div>
+                  className="pointer-events-none absolute inset-0 rounded-[24px]"
+                  style={{
+                    background:
+                      "linear-gradient(145deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.1) 48%, rgba(255,255,255,0.36) 100%)",
+                  }}
+                />
+                <div className="relative z-[1]">
+                  <span className="mb-6 flex h-12 w-12 items-center justify-center rounded-[16px] bg-white text-[#0066CC] shadow-[0_14px_36px_rgba(29,29,31,0.10),inset_0_1px_0_rgba(255,255,255,0.85)]">
+                    <span className="material-symbols-outlined thin-icon text-[22px]" aria-hidden="true">
+                      {pillar.icon}
+                    </span>
+                  </span>
+                  <h2
+                    className="text-[24px] font-semibold leading-[1.12] tracking-[-0.022em] text-[#1D1D1F] md:text-[28px]"
+                    style={{ fontFamily: appleDisplayFont }}
+                  >
+                    {pillar.title}
+                  </h2>
+                  <p className="mt-3 text-[15px] leading-[1.55] text-[#1D1D1F]/60">
+                    {pillar.description}
+                  </p>
+                </div>
+              </article>
             ))}
-          </div>
-        </section>
+          </section>
+
+          <section className="mx-auto mt-6 max-w-[1060px] px-5 md:px-6">
+            <div className="rounded-[24px] border border-[#1D1D1F]/[0.06] bg-white/78 p-6 shadow-[0_18px_50px_rgba(29,29,31,0.06)] backdrop-blur-xl md:p-8">
+              <p className="mb-5 text-[11px] font-medium uppercase tracking-[1.6px] text-[#0066CC]/85">
+                Operating Principles
+              </p>
+              <div className="grid gap-3 md:grid-cols-2">
+                {operatingPrinciples.map((principle) => (
+                  <div
+                    key={principle}
+                    className="flex items-start gap-3 rounded-[18px] bg-[#F5F5F7]/80 px-4 py-4"
+                  >
+                    <span className="material-symbols-outlined thin-icon mt-0.5 text-[18px] text-[#34C759]" aria-hidden="true">
+                      check_circle
+                    </span>
+                    <p className="text-[15px] leading-[1.55] text-[#1D1D1F]/64">
+                      {principle}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        </AppleSection>
       </main>
     </div>
   );

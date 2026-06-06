@@ -24,7 +24,7 @@ const PerformancePreview = () => {
   const pct = "+21.4%";
   const progress = 0.86;
   const size = 220;
-  const stroke = 14;
+  const stroke = 12;
   const radius = (size - stroke) / 2 - 6;
   const center = size / 2;
   const circumference = 2 * Math.PI * radius;
@@ -37,7 +37,7 @@ const PerformancePreview = () => {
       aria-label="Fund A performance preview"
       style={{ fontFamily: appleFont }}
     >
-      <div className="relative mx-auto h-[176px] w-[176px] min-[390px]:h-[184px] min-[390px]:w-[184px] md:h-[252px] md:w-[252px]">
+      <div className="relative mx-auto h-[168px] w-[168px] min-[390px]:h-[176px] min-[390px]:w-[176px] md:h-[234px] md:w-[234px]">
         <svg
           width={size}
           height={size}
@@ -50,7 +50,7 @@ const PerformancePreview = () => {
               <stop offset="100%" stopColor={FUND_A_APPLE_GREEN} />
             </linearGradient>
             <filter id="homeFundARingGlow" x="-30%" y="-30%" width="160%" height="160%">
-              <feGaussianBlur stdDeviation="2.2" result="blur" />
+              <feGaussianBlur stdDeviation="1.6" result="blur" />
               <feMerge>
                 <feMergeNode in="blur" />
                 <feMergeNode in="SourceGraphic" />
@@ -85,11 +85,11 @@ const PerformancePreview = () => {
 
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <div className="flex items-baseline font-semibold leading-none tracking-[-1.2px] text-white tabular-nums md:tracking-[-1.7px]">
-            <span className="mr-1 text-[25px] md:text-[34px]" style={{ color: FUND_A_APPLE_GREEN }}>
+            <span className="mr-1 text-[23px] md:text-[30px]" style={{ color: FUND_A_APPLE_GREEN }}>
               {pct[0]}
             </span>
-            <span className="text-[46px] md:text-[64px]">{pctValue}</span>
-            <span className="ml-px text-[18px] font-medium text-[rgba(235,235,245,0.50)] md:text-[24px]">
+            <span className="text-[42px] md:text-[58px]">{pctValue}</span>
+            <span className="ml-px text-[17px] font-medium text-[rgba(235,235,245,0.50)] md:text-[22px]">
               %
             </span>
           </div>

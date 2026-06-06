@@ -12,7 +12,7 @@ describe("Career page public styling", () => {
     expect(career).toContain("HushhTechHeader");
     expect(career).toContain("appleDisplayFont");
     expect(career).toContain("appleFont");
-    expect(career).toContain('fontSize={{ base: "48px", md: "56px" }}');
+    expect(career).toContain('fontSize={{ base: "36px", sm: "44px", md: "56px" }}');
     expect(career).toContain('fontWeight="500"');
     expect(career).toContain('letterSpacing="-0.028em"');
     expect(career).toContain("glassCardChrome");
@@ -40,7 +40,7 @@ describe("Career page public styling", () => {
     const app = read("src/App.tsx");
 
     expect(app).toContain("const isCareer = location.pathname.startsWith('/career');");
-    expect(app).toContain("isProfile || isCareer || isHushhHackathon");
-    expect(app).toContain("isHushhUserProfile || isCareer || isLegalPublicPage");
+    expect(app).toContain("isProfile || isCareer || isBenefits || isHushhHackathon");
+    expect(app).toContain("isHushhUserProfile || isCareer || isBenefits || isLegalPublicPage");
   });
 });

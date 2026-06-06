@@ -3,9 +3,13 @@
 import React from "react";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import BenefitsPage from "../src/pages/benefits";
+
+vi.mock("../src/components/hushh-tech-header/HushhTechHeader", () => ({
+  default: () => React.createElement("header", null, "HushhTechHeader"),
+}));
 
 describe("Benefits feature rows", () => {
   let container: HTMLDivElement;

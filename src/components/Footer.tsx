@@ -99,8 +99,8 @@ export default function Footer() {
                 >
                   Benefits
                 </a>
-                <a 
-                  href="/careers" 
+                <a
+                  href="/career"
                   className="py-2 text-gray-300 hover:text-white text-base font-medium flex items-center justify-between group block transition-colors duration-200"
                 >
                   Careers
@@ -154,8 +154,8 @@ export default function Footer() {
             >
               California Privacy Policy
             </a>
-            <a 
-              href="/carrer-privacy-policy" 
+            <a
+              href="/career-privacy-policy"
               className="py-2 text-gray-300 hover:text-white text-base font-medium flex items-center justify-between group transition-colors duration-200"
             >
               Careers Site Privacy Notice
@@ -195,7 +195,7 @@ export default function Footer() {
 
         {/* Copyright */}
         <p className="text-gray-400 text-sm font-normal mb-4">
-          © 2025 Hushh All Rights Reserved.
+          © 2026 Hushh All Rights Reserved.
         </p>
 
         {/* Disclaimer */}
