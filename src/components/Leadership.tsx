@@ -66,7 +66,7 @@ function GlassCard({
             "linear-gradient(145deg, rgba(255,255,255,0.72) 0%, rgba(255,255,255,0.14) 48%, rgba(255,255,255,0.38) 100%)",
         }}
       />
-      <div className="relative z-[1]">{children}</div>
+      <div className="relative z-[1] h-full">{children}</div>
     </article>
   );
 }
@@ -85,23 +85,26 @@ export default function Leadership() {
           <Display as="h1" size="md" maxWidth="max-w-[720px]">
             Investing with integrity and intelligent systems.
           </Display>
-          <Lede>
+          <Lede className="max-w-[680px] md:max-w-[720px]">
             We combine quantitative expertise, AI-assisted research, and human
             judgment to build durable investment experiences.
           </Lede>
 
-          <section className="mx-auto mt-10 max-w-[900px] px-5 md:px-6">
-            <GlassCard className="p-6 md:p-8">
+          <section
+            data-testid="leadership-mission-block"
+            className="mx-auto mt-10 max-w-[1060px] px-5 md:px-6"
+          >
+            <GlassCard className="p-6 md:p-8 lg:p-10">
               <p className="text-[11px] font-medium uppercase tracking-[1.6px] text-[#0066CC]/85">
                 Mission
               </p>
               <h2
-                className="mt-3 text-[24px] font-semibold leading-[1.12] tracking-[-0.022em] text-[#1D1D1F] md:text-[30px]"
+                className="mt-3 max-w-[820px] text-[24px] font-semibold leading-[1.12] tracking-[-0.022em] text-[#1D1D1F] md:text-[30px]"
                 style={{ fontFamily: appleDisplayFont }}
               >
                 Make sophisticated strategy feel clear, disciplined, and useful.
               </h2>
-              <p className="mt-4 text-[15px] leading-[1.65] text-[#1D1D1F]/68 md:text-[16px]">
+              <p className="mt-4 max-w-[880px] text-[15px] leading-[1.65] text-[#1D1D1F]/68 md:text-[16px]">
                 Hushh Technologies uses data science, AI, and structured risk
                 management to make institutional-style investment thinking more
                 transparent and accessible.
@@ -109,18 +112,25 @@ export default function Leadership() {
             </GlassCard>
           </section>
 
-          <section className="mx-auto mt-6 grid max-w-[1060px] gap-4 px-5 md:grid-cols-2 md:px-6">
+          <section
+            data-testid="leadership-approach-grid"
+            className="mx-auto mt-6 grid max-w-[1060px] auto-rows-fr gap-4 px-5 md:grid-cols-2 md:px-6"
+          >
             {approachCards.map((card) => (
-              <GlassCard key={card.title} className="p-6">
-                <h3
-                  className="text-[22px] font-semibold leading-[1.14] tracking-[-0.022em] text-[#1D1D1F]"
-                  style={{ fontFamily: appleDisplayFont }}
-                >
-                  {card.title}
-                </h3>
-                <p className="mt-3 text-[15px] leading-[1.58] text-[#1D1D1F]/62">
-                  {card.body}
-                </p>
+              <GlassCard key={card.title} className="flex h-full p-6 md:p-7">
+                <div className="flex h-full flex-col justify-between">
+                  <div>
+                    <h3
+                      className="text-[22px] font-semibold leading-[1.14] tracking-[-0.022em] text-[#1D1D1F]"
+                      style={{ fontFamily: appleDisplayFont }}
+                    >
+                      {card.title}
+                    </h3>
+                    <p className="mt-3 max-w-[460px] text-[15px] leading-[1.58] text-[#1D1D1F]/62">
+                      {card.body}
+                    </p>
+                  </div>
+                </div>
               </GlassCard>
             ))}
           </section>

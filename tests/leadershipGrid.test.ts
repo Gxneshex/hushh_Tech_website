@@ -66,4 +66,37 @@ describe("Leadership card grid", () => {
     expect(grid?.textContent).toContain("Founder & CEO");
     expect(grid?.textContent).toContain("Chief Scientist & Investment Strategist");
   });
+
+  it("keeps the strategy overview aligned to the home-page grid rhythm", () => {
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+
+    act(() => {
+      root?.render(
+        React.createElement(
+          MemoryRouter,
+          null,
+          React.createElement(
+            ChakraProvider,
+            null,
+            React.createElement(Leadership),
+          ),
+        ),
+      );
+    });
+
+    const lede = Array.from(container.querySelectorAll("p")).find((node) =>
+      node.textContent?.includes("We combine quantitative expertise"),
+    );
+    const mission = container.querySelector('[data-testid="leadership-mission-block"]');
+    const approachGrid = container.querySelector('[data-testid="leadership-approach-grid"]');
+    const approachCards = Array.from(approachGrid?.children || []);
+
+    expect(lede?.className).toContain("max-w-[680px]");
+    expect(mission?.className).toContain("max-w-[1060px]");
+    expect(approachGrid?.className).toContain("auto-rows-fr");
+    expect(approachCards).toHaveLength(4);
+    expect(approachCards.every((card) => card.className.includes("h-full"))).toBe(true);
+  });
 });
