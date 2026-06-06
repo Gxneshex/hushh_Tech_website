@@ -23,7 +23,7 @@ import {
   Sparkles,
 } from "lucide-react";
 
-import HushhTechHeader from "../../components/hushh-tech-header/HushhTechHeader";
+import HushhTechBackHeader from "../../components/hushh-tech-back-header/HushhTechBackHeader";
 import { careers } from "../../data/career";
 import JobDetails from "./JobDetails";
 import {
@@ -106,7 +106,7 @@ function LiquidIcon({
 const CareerList = () => {
   return (
     <Box bg={pageBg} minH="100vh" style={{ fontFamily: appleFont }}>
-      <HushhTechHeader />
+      <HushhTechBackHeader rightType="hamburger" />
       <Box as="main" id="main-content" w="100%">
         <Container maxW="7xl" pt={{ base: 28, md: 32 }} pb={{ base: 12, md: 20 }} px={{ base: 5, md: 6, lg: 8 }}>
           <Box textAlign="center" mb={{ base: 10, md: 14 }}>

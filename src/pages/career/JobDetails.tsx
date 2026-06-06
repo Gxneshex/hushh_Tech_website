@@ -17,7 +17,7 @@ import {
 } from "@chakra-ui/react";
 import { Briefcase, ChevronLeft, Clock, DollarSign, MapPin } from "lucide-react";
 
-import HushhTechHeader from "../../components/hushh-tech-header/HushhTechHeader";
+import HushhTechBackHeader from "../../components/hushh-tech-back-header/HushhTechBackHeader";
 import { careers } from "../../data/career";
 import ApplicationForm from "./ApplicationForm";
 import {
@@ -98,7 +98,7 @@ const JobDetails = () => {
   if (!job) {
     return (
       <Box bg={pageBg} minH="100vh" style={{ fontFamily: appleFont }}>
-        <HushhTechHeader />
+        <HushhTechBackHeader rightType="hamburger" />
         <Container maxW="4xl" pt={{ base: 28, md: 32 }} pb={16} px={{ base: 5, md: 6 }}>
           <Box textAlign="center" p={{ base: 6, md: 8 }} {...glassCardChrome}>
             <Heading
@@ -123,7 +123,7 @@ const JobDetails = () => {
 
   return (
     <Box bg={pageBg} minH="100vh" style={{ fontFamily: appleFont }}>
-      <HushhTechHeader />
+      <HushhTechBackHeader rightType="hamburger" />
       <Container maxW="5xl" pt={{ base: 28, md: 32 }} pb={{ base: 12, md: 20 }} px={{ base: 5, md: 6 }}>
         <Button
           as={Link}

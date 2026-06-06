@@ -389,6 +389,12 @@ const PageFooter = () => (
         </a>
       ))}
     </div>
+    <p
+      className="mt-5 text-[11px] leading-[1.5] tracking-normal text-[#1D1D1F]/45"
+      style={{ fontFamily: appleFont }}
+    >
+      © 2026 Hushh All Rights Reserved.
+    </p>
   </footer>
 );
 
@@ -410,7 +416,7 @@ export default function HomePage() {
         path="/"
         description="Invest alongside HushhTech — an AI-driven, long-term value strategy modeled on Berkshire Hathaway. We combine AI and human expertise to back exceptional businesses."
       />
-      <HushhTechHeader />
+      <HushhTechHeader showSearch={false} />
 
       <main id="main-content">
         <AppleSection tone="light" pad="tight" fill>

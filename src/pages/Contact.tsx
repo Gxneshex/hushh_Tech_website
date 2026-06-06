@@ -620,7 +620,7 @@ export default function Contact() {
                 }
                 _hover={{ bg: gray50 }}
                 _active={{ bg: gray100 }}
-                onClick={() => navigate("/discover-fund-a")}
+                onClick={() => navigate("/about/leadership")}
                 {...buttonFocusVisible}
               >
                 Learn About Our Strategy

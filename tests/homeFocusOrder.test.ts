@@ -6,6 +6,7 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const navigateMock = vi.hoisted(() => vi.fn());
+const headerMock = vi.hoisted(() => vi.fn(() => null));
 
 vi.mock("../src/pages/home/logic", () => ({
   useHomeLogic: () => ({
@@ -23,7 +24,7 @@ vi.mock("../src/pages/home/logic", () => ({
 }));
 
 vi.mock("../src/components/hushh-tech-header/HushhTechHeader", () => ({
-  default: () => null,
+  default: headerMock,
 }));
 
 vi.mock("../src/components/hushh-tech-footer/HushhTechFooter", () => ({
@@ -44,6 +45,7 @@ describe("HomePage focus order", () => {
     document.body.appendChild(container);
     root = createRoot(container);
     navigateMock.mockClear();
+    headerMock.mockClear();
   });
 
   afterEach(async () => {
@@ -68,6 +70,9 @@ describe("HomePage focus order", () => {
       "Read the fund prospectus",
     ]);
     expect(buttons[2].getAttribute("tabindex")).toBeNull();
+    expect(headerMock.mock.calls[0]?.[0]).toEqual(
+      expect.objectContaining({ showSearch: false }),
+    );
   });
 
   it("opens the populated legal and support pages from the home footer", async () => {
@@ -88,5 +93,6 @@ describe("HomePage focus order", () => {
       { text: "Terms", href: "/terms" },
       { text: "Support", href: "/support" },
     ]);
+    expect(container.textContent).toContain("© 2026 Hushh All Rights Reserved.");
   });
 });

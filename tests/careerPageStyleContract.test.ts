@@ -9,7 +9,9 @@ describe("Career page public styling", () => {
     const career = read("src/pages/career/index.tsx");
     const css = read("src/pages/career/Career.css");
 
-    expect(career).toContain("HushhTechHeader");
+    expect(career).toContain("HushhTechBackHeader");
+    expect(career).toContain('rightType="hamburger"');
+    expect(career).not.toContain("HushhTechHeader");
     expect(career).toContain("appleDisplayFont");
     expect(career).toContain("appleFont");
     expect(career).toContain('fontSize={{ base: "36px", sm: "44px", md: "56px" }}');
@@ -24,7 +26,9 @@ describe("Career page public styling", () => {
     const details = read("src/pages/career/JobDetails.tsx");
     const form = read("src/pages/career/ApplicationForm.tsx");
 
-    expect(details).toContain("HushhTechHeader");
+    expect(details).toContain("HushhTechBackHeader");
+    expect(details).toContain('rightType="hamburger"');
+    expect(details).not.toContain("HushhTechHeader");
     expect(details).toContain("appleDisplayFont");
     expect(details).toContain("glassCardChrome");
     expect(details).toContain('fontSize={{ base: "42px", md: "56px" }}');
