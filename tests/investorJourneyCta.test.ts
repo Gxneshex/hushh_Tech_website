@@ -45,11 +45,11 @@ describe("useInvestorJourneyCta CTA matrix", () => {
       isInvestor: false,
     },
     {
-      label: "needs_onboarding + step 5 resumes from that step",
+      label: "needs_onboarding mid-flow resumes at the folded canonical step",
       state: "needs_onboarding",
       currentStep: 5,
-      expectedText: "Continue from step 4",
-      expectedRoute: "/onboarding/step-4",
+      expectedText: "Continue from step 3",
+      expectedRoute: "/onboarding/step-3",
       isInvestor: false,
     },
     {

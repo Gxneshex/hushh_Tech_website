@@ -24,6 +24,7 @@ import {
   isGuestAuthRoute,
   isPublicSharedProfileRoute,
 } from '../auth/routePolicy';
+import { isLocalOnboardingPreview } from '../services/onboarding/flow';
 
 interface GlobalNDAGateProps {
   children: ReactNode;
@@ -71,6 +72,15 @@ const GlobalNDAGate: React.FC<GlobalNDAGateProps> = ({ children }) => {
 
     const checkNDA = async () => {
       const pathname = location.pathname;
+      const isDevOnboardingPreview = isLocalOnboardingPreview(pathname, location.search);
+
+      if (isDevOnboardingPreview) {
+        if (!cancelled) {
+          setIsChecking(false);
+          setHasSignedNDA(true);
+        }
+        return;
+      }
 
       // Always allow auth-related routes (login, signup, sign-nda, callback)
       if (isGuestAuthRoute(pathname)) {
@@ -223,7 +233,11 @@ const GlobalNDAGate: React.FC<GlobalNDAGateProps> = ({ children }) => {
 
   // Security Check: Only render children if access is explicitly allowed
   // or it's a public/guest-accessible route.
-  const canAccess = hasSignedNDA || canGuestAccessRoute(location.pathname) || isPublicSharedProfileRoute(location.pathname);
+  const canAccess =
+    hasSignedNDA ||
+    isLocalOnboardingPreview(location.pathname, location.search) ||
+    canGuestAccessRoute(location.pathname) ||
+    isPublicSharedProfileRoute(location.pathname);
   
   if (!canAccess && status === 'authenticated') {
     return null; // Fallback while navigation to /sign-nda completes

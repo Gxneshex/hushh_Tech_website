@@ -2,19 +2,17 @@ export const FINANCIAL_LINK_ROUTE = '/onboarding/financial-link' as const;
 export const FINANCIAL_LINK_REVIEW_ROUTE = `${FINANCIAL_LINK_ROUTE}?mode=review` as const;
 
 export type FinancialLinkStatus = 'pending' | 'completed' | 'skipped';
+const LOCAL_ONBOARDING_PREVIEW_PARAM = 'preview';
 
-const TOTAL_VISIBLE_ONBOARDING_STEPS = 9;
+const TOTAL_VISIBLE_ONBOARDING_STEPS = 6;
 
 const CANONICAL_STEP_ROUTE_BY_DISPLAY_STEP = {
   1: '/onboarding/step-1',
   2: '/onboarding/step-2',
   3: '/onboarding/step-3',
-  4: '/onboarding/step-4',
-  5: '/onboarding/step-5',
-  6: '/onboarding/step-6',
-  7: '/onboarding/step-7',
-  8: '/onboarding/step-8',
-  9: '/onboarding/step-9',
+  4: '/onboarding/step-7',
+  5: '/onboarding/step-8',
+  6: '/onboarding/step-9',
 } as const;
 
 export type CanonicalOnboardingRoute =
@@ -32,12 +30,9 @@ const DISPLAY_STEP_BY_ROUTE: Record<CanonicalOnboardingRoute, number> = {
   '/onboarding/step-1': 1,
   '/onboarding/step-2': 2,
   '/onboarding/step-3': 3,
-  '/onboarding/step-4': 4,
-  '/onboarding/step-5': 5,
-  '/onboarding/step-6': 6,
-  '/onboarding/step-7': 7,
-  '/onboarding/step-8': 8,
-  '/onboarding/step-9': 9,
+  '/onboarding/step-7': 4,
+  '/onboarding/step-8': 5,
+  '/onboarding/step-9': 6,
 };
 
 /**
@@ -53,14 +48,14 @@ const RAW_STEP_TO_ROUTE: Record<number, CanonicalOnboardingRoute> = {
   2: '/onboarding/step-2',
   3: '/onboarding/step-3',
   4: '/onboarding/step-3',
-  5: '/onboarding/step-4',
-  6: '/onboarding/step-4',
-  7: '/onboarding/step-5',
+  5: '/onboarding/step-3',
+  6: '/onboarding/step-3',
+  7: '/onboarding/step-3',
   8: '/onboarding/step-3',  // old address step → now folded into combined step-3
-  9: '/onboarding/step-6',
+  9: '/onboarding/step-3',
   10: '/onboarding/step-7',
   11: '/onboarding/step-7',
-  12: '/onboarding/step-8',
+  12: '/onboarding/step-7',
   13: '/onboarding/step-9',
 };
 
@@ -116,6 +111,29 @@ export const isFinancialLinkReviewMode = (search: string): boolean => {
   return params.get('mode') === 'review';
 };
 
+export const isLocalOnboardingPreview = (
+  pathname: string,
+  search: string = ''
+): boolean => {
+  if (!import.meta.env.DEV) return false;
+  if (!pathname.startsWith('/onboarding/')) return false;
+  const params = new URLSearchParams(search);
+  return params.get(LOCAL_ONBOARDING_PREVIEW_PARAM) === '1';
+};
+
+export const isCurrentLocalOnboardingPreview = (): boolean => (
+  typeof window !== 'undefined' &&
+  isLocalOnboardingPreview(window.location.pathname, window.location.search)
+);
+
+export const withLocalOnboardingPreview = (route: string): string => {
+  if (!isCurrentLocalOnboardingPreview()) return route;
+
+  const parsed = new URL(route, 'https://hushh.local');
+  parsed.searchParams.set(LOCAL_ONBOARDING_PREVIEW_PARAM, '1');
+  return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+};
+
 export const getFinancialLinkContinuationRoute = (
   currentStep: number
 ): CanonicalOnboardingRoute => {
@@ -136,9 +154,19 @@ export const normalizeLegacyOnboardingRedirectTarget = (target: string): string 
   }
 };
 
+const COMPATIBLE_ROUTE_ALIAS: Record<string, CanonicalOnboardingRoute> = {
+  '/onboarding/step-4': '/onboarding/step-7',
+  '/onboarding/step-5': '/onboarding/step-8',
+  '/onboarding/step-6': '/onboarding/step-3',
+};
+
 const normalizeCompatibleOnboardingRoute = (route: string): CanonicalOnboardingRoute => {
   if (CANONICAL_ONBOARDING_ROUTES.includes(route as CanonicalOnboardingRoute)) {
     return route as CanonicalOnboardingRoute;
+  }
+
+  if (COMPATIBLE_ROUTE_ALIAS[route]) {
+    return COMPATIBLE_ROUTE_ALIAS[route];
   }
 
   return '/onboarding/step-1';

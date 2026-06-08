@@ -11,15 +11,24 @@ const readRepoFile = (path: string) =>
   readFileSync(join(process.cwd(), path), "utf8");
 
 describe("onboarding display sequence", () => {
-  it("renders the canonical onboarding routes as steps 1 through 9 without gaps", () => {
+  it("renders the canonical onboarding routes as steps 1 through 6 without gaps", () => {
+    expect(CANONICAL_ONBOARDING_ROUTES).toEqual([
+      "/onboarding/step-1",
+      "/onboarding/step-2",
+      "/onboarding/step-3",
+      "/onboarding/step-7",
+      "/onboarding/step-8",
+      "/onboarding/step-9",
+    ]);
+
     const displaySteps = CANONICAL_ONBOARDING_ROUTES.map(
       (route) => getOnboardingDisplayMeta(route).displayStep,
     );
 
-    expect(displaySteps).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
-    expect(new Set(displaySteps).size).toBe(9);
+    expect(displaySteps).toEqual([1, 2, 3, 4, 5, 6]);
+    expect(new Set(displaySteps).size).toBe(6);
     CANONICAL_ONBOARDING_ROUTES.forEach((route) => {
-      expect(getOnboardingDisplayMeta(route).totalSteps).toBe(9);
+      expect(getOnboardingDisplayMeta(route).totalSteps).toBe(6);
     });
   });
 

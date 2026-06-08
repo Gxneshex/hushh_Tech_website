@@ -35,6 +35,10 @@ import {
   appleFont,
 } from '../../../components/hushh-tech-ui/HushhAppleUI';
 import { CONSENT_LINKS } from '../../../services/consent/consentConfig';
+import {
+  OptionalMarker,
+  RequiredAsterisk,
+} from '../../../components/onboarding-field-marker/FieldMarkers';
 
 const primaryCtaClass =
   "!rounded-full !border-[#0066CC] !bg-[#0066CC] !text-white !font-medium !tracking-[-0.01em] !shadow-none";
@@ -90,6 +94,7 @@ export default function OnboardingStep11() {
     getUnits,
     getModalUnits,
     getUnitsSummary,
+    handleSelectShareClass,
     handleBack,
     handleSkip,
     handleContinue,
@@ -137,12 +142,12 @@ export default function OnboardingStep11() {
 
         {/* ── Title Section ── */}
         <section className="pb-8 pt-8 text-center">
-          <Eyebrow>Investment</Eyebrow>
+          <Eyebrow>Institutional Series</Eyebrow>
           <Display as="h1" size="xs" maxWidth="max-w-[500px]">
-            Your investment summary.
+            Hushh Fund A multi-strategy alpha.
           </Display>
           <Lede className="max-w-[480px]">
-            Review your share class allocation and set up recurring investments.
+            Choose the share class and optional recurring investment schedule that matches your allocation plan.
           </Lede>
         </section>
 
@@ -157,7 +162,10 @@ export default function OnboardingStep11() {
         {/* ── Share Class Units Section ── */}
         <section className="mb-6">
           <div className="py-4">
-            <h3 className="text-[11px] font-medium uppercase tracking-[1.6px] text-[#0066CC]/85">Share Class Units</h3>
+            <h3 className="text-[11px] font-medium uppercase tracking-[1.6px] text-[#0066CC]/85">
+              Share Class Units
+              <RequiredAsterisk />
+            </h3>
           </div>
 
           <div className="grid gap-3">
@@ -167,44 +175,50 @@ export default function OnboardingStep11() {
               const hasUnits = units > 0;
 
               return (
-                <div
+                <button
                   key={shareClass.id}
-                  className={`rounded-[20px] p-4 transition sm:rounded-[22px] ${
+                  type="button"
+                  onClick={() => handleSelectShareClass(shareClass.id)}
+                  className={`flex w-full items-center gap-4 rounded-[20px] p-4 text-left transition sm:rounded-[22px] ${
                     hasUnits
                       ? 'bg-[#F5F5F7] shadow-[inset_0_0_0_1px_rgba(0,102,204,0.24)]'
-                      : 'bg-white shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.10)]'
+                      : 'bg-white shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.10)] hover:bg-[#F5F5F7]'
                   }`}
                 >
-                  <div className="flex items-start gap-4">
-                    <ClassMark id={shareClass.id} active={hasUnits} />
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-[15px] font-medium text-[#1D1D1F]">{shareClass.name}</span>
-                        {hasUnits && (
-                          <span className="rounded-full bg-[#34C759]/10 px-2 py-0.5 text-[10px] font-medium text-[#188038] shadow-[inset_0_0_0_1px_rgba(52,199,89,0.18)]">Active</span>
-                        )}
-                      </div>
-                      <span className="mt-1 block text-[12px] font-normal leading-relaxed text-[#1D1D1F]/55">
-                        {formatCurrency(shareClass.unitPrice)}/unit · {units} {units === 1 ? 'unit' : 'units'}
-                      </span>
-                    </div>
+                  <ClassMark id={shareClass.id} active={hasUnits} />
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-[16px] font-medium text-[#1D1D1F]">
+                      {shareClass.name}
+                    </span>
+                    <span className="mt-1 block text-[12px] font-normal leading-relaxed text-[#1D1D1F]/55">
+                      {formatCurrency(shareClass.unitPrice)}/unit
+                    </span>
                     {hasUnits && (
-                      <span className="shrink-0 text-right text-[14px] font-medium text-[#1D1D1F]">{formatCurrency(subtotal)}</span>
+                      <span className="mt-0.5 block text-[12px] font-normal text-[#1D1D1F]/48">
+                        {units} {units === 1 ? 'unit' : 'units'} selected · {formatCurrency(subtotal)}
+                      </span>
                     )}
-                  </div>
-                </div>
+                  </span>
+                  {hasUnits && (
+                    <span className="material-symbols-outlined text-[18px] text-[#0066CC]">
+                      check
+                    </span>
+                  )}
+                </button>
               );
             })}
           </div>
 
           {/* Edit link */}
-          <button
-            onClick={handleOpenModal}
-            className="mt-3 flex items-center gap-2 rounded-full px-1 py-3 text-[13px] font-medium text-[#1D1D1F] transition hover:text-[#0066CC]"
-          >
-            <Pencil size={15} strokeWidth={1.8} aria-hidden="true" />
-            <span>Edit Share Allocation</span>
-          </button>
+          {hasAnyUnits && (
+            <button
+              onClick={handleOpenModal}
+              className="mt-3 flex items-center gap-2 rounded-full px-1 py-3 text-[13px] font-medium text-[#1D1D1F] transition hover:text-[#0066CC]"
+            >
+              <Pencil size={15} strokeWidth={1.8} aria-hidden="true" />
+              <span>Customize units</span>
+            </button>
+          )}
         </section>
 
         {/* ── Total Investment Card ── */}
@@ -236,7 +250,10 @@ export default function OnboardingStep11() {
         {/* ── Recurring Investment Section ── */}
         <section className="mb-6">
           <div className="py-4">
-            <h3 className="text-[11px] font-medium uppercase tracking-[1.6px] text-[#0066CC]/85">Recurring Investment</h3>
+            <h3 className="text-[11px] font-medium uppercase tracking-[1.6px] text-[#0066CC]/85">
+              Recurring Investment
+              <OptionalMarker />
+            </h3>
           </div>
 
           {/* Collapsed summary + edit */}

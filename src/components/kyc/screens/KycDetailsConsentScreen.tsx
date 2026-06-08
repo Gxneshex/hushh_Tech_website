@@ -25,6 +25,12 @@ import {
 } from '../../../types/kyc';
 import { CONSENT_COPY, CONSENT_LINKS } from '../../../services/consent/consentConfig';
 
+const RequiredStar = () => (
+  <Text as="span" color="red.300" ml={1}>
+    *
+  </Text>
+);
+
 // Logos
 const BankIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -168,6 +174,7 @@ const KycDetailsConsentScreen: React.FC<KycDetailsConsentScreenProps> = ({
         <FormControl isInvalid={!!errors.fullName}>
           <FormLabel fontSize="xs" color="whiteAlpha.600" mb={1}>
             Full Legal Name
+            <RequiredStar />
           </FormLabel>
           <Input
             value={formData.fullName}
@@ -189,6 +196,7 @@ const KycDetailsConsentScreen: React.FC<KycDetailsConsentScreenProps> = ({
         <FormControl isInvalid={!!errors.dob}>
           <FormLabel fontSize="xs" color="whiteAlpha.600" mb={1}>
             Date of Birth
+            <RequiredStar />
           </FormLabel>
           <Input
             type="date"
@@ -214,6 +222,7 @@ const KycDetailsConsentScreen: React.FC<KycDetailsConsentScreenProps> = ({
         <FormControl isInvalid={!!errors.country}>
           <FormLabel fontSize="xs" color="whiteAlpha.600" mb={1}>
             Country / Nationality
+            <RequiredStar />
           </FormLabel>
           <Select
             value={formData.country}
@@ -247,6 +256,7 @@ const KycDetailsConsentScreen: React.FC<KycDetailsConsentScreenProps> = ({
           <FormControl isInvalid={!!errors.idType} flex="1">
             <FormLabel fontSize="xs" color="whiteAlpha.600" mb={1}>
               ID Type
+              <RequiredStar />
             </FormLabel>
             <Select
               value={formData.idType}
@@ -278,6 +288,7 @@ const KycDetailsConsentScreen: React.FC<KycDetailsConsentScreenProps> = ({
           <FormControl isInvalid={!!errors.idNumber} flex="1.5">
             <FormLabel fontSize="xs" color="whiteAlpha.600" mb={1}>
               ID Number
+              <RequiredStar />
             </FormLabel>
             <Input
               value={formData.idNumber}
@@ -379,6 +390,9 @@ const KycDetailsConsentScreen: React.FC<KycDetailsConsentScreenProps> = ({
             size="md"
           >
             <Text fontSize="sm" color="white" lineHeight="1.6">
+              <Text as="span" color="red.300" mr={1}>
+                *
+              </Text>
               {CONSENT_COPY.kycIdentity.split('Privacy Policy')[0]}
               <Link
                 href={CONSENT_LINKS.privacyPolicy}

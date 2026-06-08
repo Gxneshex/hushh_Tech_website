@@ -1,257 +1,237 @@
 /**
- * Step 1 — All Business Logic
- * Share class selection, recurring investment config, Supabase upsert
+ * Step 1 — Referral Source
  */
-import { useEffect, useState, type ChangeEvent } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import config from '../../../resources/config/config';
 import { upsertOnboardingData } from '../../../services/onboarding/upsertOnboardingData';
 import {
-  FINANCIAL_LINK_ROUTE,
   FINANCIAL_LINK_REVIEW_ROUTE,
   TOTAL_VISIBLE_ONBOARDING_STEPS,
-  resolveFinancialLinkStatus,
+  isCurrentLocalOnboardingPreview,
+  withLocalOnboardingPreview,
 } from '../../../services/onboarding/flow';
-import { fetchOnboardingProgress } from '../../../services/onboarding/progress';
-import { useFooterVisibility } from '../../../utils/useFooterVisibility';
+import type { ReferralSource } from '../../../types/onboarding';
 
-/* ─── Types & Constants ─── */
-export type RecurringFrequency = 'once_a_month' | 'twice_a_month' | 'weekly' | 'every_other_week';
+export const CURRENT_STEP = 1;
+export const TOTAL_STEPS = TOTAL_VISIBLE_ONBOARDING_STEPS;
+export const PROGRESS_PCT = Math.round((CURRENT_STEP / TOTAL_STEPS) * 100);
 
-export interface ShareClass {
-  id: string; name: string; tier: 'ultra' | 'premium' | 'standard';
-  unitPrice: number; displayPrice: string; description: string;
-  tierLabel?: string; tierBg?: string; tierText?: string;
+export type ReferralChoice =
+  | 'social_media_ad'
+  | 'family_friend'
+  | 'podcast'
+  | 'website_blog_article'
+  | 'ai_tool'
+  | 'other';
+
+export interface ReferralOption {
+  value: ReferralChoice;
+  label: string;
+  icon: string;
 }
 
-export const SHARE_CLASSES: ShareClass[] = [
-  { id: 'class_a', name: 'Class A', tier: 'ultra', unitPrice: 25000000, displayPrice: '$25M',
-    description: 'Maximum allocation priority with exclusive institutional benefits.',
-    tierLabel: 'Ultra', tierBg: 'bg-indigo-100 dark:bg-indigo-900', tierText: 'text-indigo-600 dark:text-indigo-300' },
-  { id: 'class_b', name: 'Class B', tier: 'premium', unitPrice: 5000000, displayPrice: '$5M',
-    description: 'Enhanced portfolio access and relationship management.',
-    tierLabel: 'Premium', tierBg: 'bg-yellow-100 dark:bg-yellow-900/40', tierText: 'text-yellow-700 dark:text-yellow-400' },
-  { id: 'class_c', name: 'Class C', tier: 'standard', unitPrice: 1000000, displayPrice: '$1M',
-    description: 'Standard tier with full access to AI-powered multi-strategy alpha.' },
+export const REFERRAL_OPTIONS: ReferralOption[] = [
+  { value: 'social_media_ad', label: 'Social Media', icon: 'campaign' },
+  { value: 'family_friend', label: 'Friend or Family', icon: 'group' },
+  { value: 'podcast', label: 'Podcast', icon: 'mic' },
+  { value: 'website_blog_article', label: 'Publication', icon: 'newspaper' },
+  { value: 'ai_tool', label: 'Google Search', icon: 'search' },
+  { value: 'other', label: 'Other', icon: 'more_horiz' },
 ];
 
-export const TOTAL_STEPS = TOTAL_VISIBLE_ONBOARDING_STEPS;
-export const MIN_RECURRING_AMOUNT = 100;
-export const MAX_RECURRING_AMOUNT = 100000000;
-
-export const FREQ_OPTIONS: { value: RecurringFrequency; label: string }[] = [
-  { value: 'once_a_month', label: 'Once a month' },
-  { value: 'twice_a_month', label: 'Twice a month' },
-  { value: 'weekly', label: 'Weekly' },
-  { value: 'every_other_week', label: 'Bi-weekly' },
+export const SOCIAL_MEDIA_OPTIONS = [
+  'LinkedIn',
+  'X',
+  'Instagram',
+  'Facebook',
+  'YouTube',
+  'Reddit',
+  'TikTok',
+  'Threads',
 ];
 
-export const AMOUNT_PRESETS = [500000, 750000, 1000000, 1500000];
+export const PUBLICATION_OPTIONS = [
+  'The New York Times',
+  'The Wall Street Journal',
+  'The Washington Post',
+  'USA Today',
+  'Los Angeles Times',
+  'New York Post',
+  'Chicago Tribune',
+  'Bloomberg',
+  'Forbes',
+  'CNBC',
+];
 
-export const formatCurrency = (amount: number): string => {
-  if (amount === 0) return '$0';
-  if (amount >= 1000000000) return `$${(amount / 1000000000).toFixed(1)}B`;
-  if (amount >= 1000000) return `$${(amount / 1000000).toFixed(0)}M`;
-  return `$${amount.toLocaleString()}`;
+const normalizeReferralChoice = (source: unknown): ReferralChoice | null => {
+  if (!source) return null;
+  const key = String(source).trim().toLowerCase();
+  if (key.includes('social')) return 'social_media_ad';
+  if (key.includes('publication') || key.includes('news') || key === 'website_blog_article') {
+    return 'website_blog_article';
+  }
+  if (key.includes('friend') || key.includes('family')) return 'family_friend';
+  if (key.includes('podcast')) return 'podcast';
+  if (key.includes('google') || key.includes('search') || key === 'ai_tool') return 'ai_tool';
+  if (key.includes('other')) return 'other';
+  return null;
 };
 
-export const formatNumberWithCommas = (value: string): string => {
-  const numbers = value.replace(/[^\d]/g, '');
-  return numbers.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-};
-
-export const parseFormattedNumber = (value: string): number =>
-  parseInt(value.replace(/[^\d]/g, ''), 10) || 0;
-
-/* ─── Hook Return Type ─── */
 export interface Step1Logic {
-  units: Record<string, number>;
-  frequency: RecurringFrequency;
-  investmentDay: string;
-  selectedAmount: number | null;
-  customAmount: string;
-  customAmountError: string | null;
-  error: string | null;
+  selectedSource: ReferralChoice | null;
+  detailValue: string;
+  detailQuery: string;
+  filteredDetailOptions: string[];
+  isDetailRequired: boolean;
   isLoading: boolean;
-  isFooterVisible: boolean;
-  totalInvestment: number;
-  hasSelection: boolean;
-  recurringEnabled: boolean;
-  handleUnitChange: (classId: string, delta: number) => void;
-  handleAmountClick: (amount: number) => void;
-  handleCustomAmountChange: (e: ChangeEvent<HTMLInputElement>) => void;
-  setFrequency: (f: RecurringFrequency) => void;
-  setInvestmentDay: (d: string) => void;
-  toggleRecurring: () => void;
-  handleNext: () => Promise<void>;
+  canContinue: boolean;
+  setSelectedSource: (source: ReferralChoice) => void;
+  setDetailQuery: (value: string) => void;
+  selectDetail: (value: string) => void;
+  handleContinue: () => Promise<void>;
+  handleSkip: () => Promise<void>;
   handleBack: () => void;
 }
 
-/* ─── Main Hook ─── */
+const getDetailOptions = (source: ReferralChoice | null) => {
+  const key = source ? String(source) : '';
+  if (key.includes('social')) return SOCIAL_MEDIA_OPTIONS;
+  if (key.includes('website_blog_article') || key.includes('publication') || key.includes('news')) {
+    return PUBLICATION_OPTIONS;
+  }
+  return [];
+};
+
 export const useStep1Logic = (): Step1Logic => {
   const navigate = useNavigate();
+  const isPreview = isCurrentLocalOnboardingPreview();
   const [userId, setUserId] = useState<string | null>(null);
+  const [selectedSource, setSelectedSourceState] = useState<ReferralChoice | null>(null);
+  const [detailValue, setDetailValue] = useState('');
+  const [detailQuery, setDetailQueryState] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const isFooterVisible = useFooterVisibility();
-  const [units, setUnits] = useState<Record<string, number>>({ class_a: 0, class_b: 0, class_c: 0 });
-  const [frequency, setFrequency] = useState<RecurringFrequency>('once_a_month');
-  const [investmentDay, setInvestmentDay] = useState('1st of the month');
-  const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
-  const [customAmount, setCustomAmount] = useState('');
-  const [customAmountError, setCustomAmountError] = useState<string | null>(null);
-  /* Recurring investment — default OFF, user can toggle ON */
-  const [recurringEnabled, setRecurringEnabled] = useState(false);
-  const toggleRecurring = () => setRecurringEnabled((prev) => !prev);
 
-  const totalInvestment = SHARE_CLASSES.reduce((t, sc) => t + units[sc.id] * sc.unitPrice, 0);
-  const hasSelection = Object.values(units).some((c) => c > 0);
+  useEffect(() => { window.scrollTo(0, 0); }, []);
 
-  /* Scroll & body class */
   useEffect(() => {
-    window.scrollTo(0, 0);
-    document.documentElement.classList.add('onboarding-page-scroll');
-    document.body.classList.add('onboarding-page-scroll');
-    return () => {
-      document.documentElement.classList.remove('onboarding-page-scroll');
-      document.body.classList.remove('onboarding-page-scroll');
-    };
-  }, []);
+    const load = async () => {
+      if (isPreview) {
+        setUserId('local-preview');
+        setSelectedSourceState(null);
+        setDetailValue('');
+        setDetailQueryState('');
+        return;
+      }
 
-  /* Load user + existing data */
-  useEffect(() => {
-    const getCurrentUser = async () => {
       if (!config.supabaseClient) return;
       const { data: { user } } = await config.supabaseClient.auth.getUser();
       if (!user) { navigate('/login'); return; }
       setUserId(user.id);
-
-      const onboardingProgress = await fetchOnboardingProgress(
-        config.supabaseClient,
-        user.id
-      );
-      const { data: financialData, error: finError } = await config.supabaseClient
-        .from('user_financial_data').select('status').eq('user_id', user.id).maybeSingle();
-      if (finError) console.warn('[Step1] Financial data query error:', finError.message);
-
-      const financialLinkStatus = resolveFinancialLinkStatus(
-        onboardingProgress?.financial_link_status,
-        financialData?.status
-      );
-      if (financialLinkStatus === 'pending') {
-        navigate(FINANCIAL_LINK_ROUTE, { replace: true }); return;
-      }
-
-      const { data: onboardingData } = await config.supabaseClient
+      const { data } = await config.supabaseClient
         .from('onboarding_data')
-        .select('class_a_units, class_b_units, class_c_units, recurring_frequency, recurring_day_of_month, recurring_amount')
-        .eq('user_id', user.id).maybeSingle();
-
-      if (onboardingData) {
-        setUnits({ class_a: onboardingData.class_a_units || 0, class_b: onboardingData.class_b_units || 0, class_c: onboardingData.class_c_units || 0 });
-        if (onboardingData.recurring_frequency) {
-          setRecurringEnabled(true);
-          const freqMap: Record<string, RecurringFrequency> = {
-            once_a_month: 'once_a_month', twice_a_month: 'twice_a_month',
-            weekly: 'weekly', every_other_week: 'every_other_week',
-            monthly: 'once_a_month', bimonthly: 'twice_a_month', biweekly: 'every_other_week',
-          };
-          setFrequency(freqMap[String(onboardingData.recurring_frequency)] || 'once_a_month');
-        }
-        if (onboardingData.recurring_day_of_month) {
-          const d = onboardingData.recurring_day_of_month;
-          setInvestmentDay(d === 31 ? 'Last day of the month' : d === 15 ? '15th of the month' : '1st of the month');
-        }
-        if (onboardingData.recurring_amount) {
-          const amt = onboardingData.recurring_amount;
-          if ([500000, 750000, 1000000, 1500000].includes(amt)) { setSelectedAmount(amt); setCustomAmount(''); }
-          else { setSelectedAmount(null); setCustomAmount(amt.toLocaleString()); }
-        }
-      }
+        .select('referral_source, referral_source_other')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      const normalizedSource = normalizeReferralChoice(data?.referral_source);
+      if (normalizedSource) setSelectedSourceState(normalizedSource);
+      if (data?.referral_source_other) setDetailValue(String(data.referral_source_other));
     };
-    getCurrentUser();
-  }, [navigate]);
+    load();
+  }, [isPreview, navigate]);
 
-  /* Handlers */
-  const handleUnitChange = (classId: string, delta: number) => {
-    setUnits((prev) => ({ ...prev, [classId]: Math.max(0, prev[classId] + delta) }));
+  const detailOptions = getDetailOptions(selectedSource);
+  const isDetailRequired = selectedSource === 'social_media_ad' ||
+    selectedSource === 'website_blog_article' ||
+    selectedSource === 'other';
+  const filteredDetailOptions = useMemo(() => {
+    const query = detailQuery.trim().toLowerCase();
+    if (!query) return detailOptions;
+    return detailOptions.filter((option) => option.toLowerCase().includes(query));
+  }, [detailOptions, detailQuery]);
+
+  const setSelectedSource = (source: ReferralChoice) => {
+    if (selectedSource === source) return;
+    setSelectedSourceState(source);
+    setDetailValue('');
+    setDetailQueryState('');
   };
 
-  const handleAmountClick = (amount: number) => {
-    setSelectedAmount(amount); setCustomAmount(''); setCustomAmountError(null); setError(null);
+  const setDetailQuery = (value: string) => {
+    setDetailQueryState(value);
   };
 
-  const validateRecurringAmount = (v: number, rawInput: string): string | null => {
-    /* If field is empty, no error (user hasn't typed anything) */
-    if (!rawInput || rawInput.trim() === '') return null;
-    /* If user typed something that parses to 0 or below minimum, reject */
-    if (v < MIN_RECURRING_AMOUNT) return `Minimum is $${MIN_RECURRING_AMOUNT.toLocaleString()}`;
-    if (v > MAX_RECURRING_AMOUNT) return `Maximum is $${(MAX_RECURRING_AMOUNT / 1000000).toFixed(0)}M`;
-    return null;
+  const selectDetail = (value: string) => {
+    setDetailValue(value);
+    setDetailQueryState(value);
   };
 
-  const handleCustomAmountChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setSelectedAmount(null); setError(null);
-    const raw = e.target.value.replace(/[^\d]/g, '');
-    if (raw.length > 12) return;
-    const formatted = formatNumberWithCommas(raw);
-    setCustomAmount(formatted);
-    setCustomAmountError(validateRecurringAmount(parseFormattedNumber(formatted), raw));
+  const effectiveDetailValue = detailValue.trim() || detailQuery.trim();
+  const canContinue = Boolean(selectedSource && (!isDetailRequired || effectiveDetailValue));
+
+  const savePreview = () => {
+    const saved = window.localStorage.getItem('hushh_onboarding_preview');
+    const parsed = saved ? JSON.parse(saved) : {};
+    window.localStorage.setItem('hushh_onboarding_preview', JSON.stringify({
+      ...parsed,
+      referral_source: selectedSource,
+      referral_source_other: effectiveDetailValue || null,
+    }));
   };
 
-  const handleNext = async () => {
-    if (!userId || !config.supabaseClient || !hasSelection) return;
-    /* Only block on custom amount error when recurring is active */
-    if (recurringEnabled && customAmountError) { setError(customAmountError); return; }
-
-    /* When recurring is ON, validate that user picked a valid amount */
-    if (recurringEnabled) {
-      const recurringAmt = selectedAmount || parseFormattedNumber(customAmount);
-      if (recurringAmt < MIN_RECURRING_AMOUNT) {
-        setError(`Please select a recurring amount (minimum $${MIN_RECURRING_AMOUNT.toLocaleString()})`);
-        return;
-      }
+  const handleContinue = async () => {
+    if (!canContinue) return;
+    if (isPreview) {
+      savePreview();
+      navigate(withLocalOnboardingPreview('/onboarding/step-2'));
+      return;
     }
-
-    setIsLoading(true); setError(null);
+    if (!userId || !config.supabaseClient || !selectedSource) return;
+    setIsLoading(true);
     try {
-      /* Only use recurring amount if toggle is ON */
-      const recurringAmount = recurringEnabled
-        ? (selectedAmount || parseFormattedNumber(customAmount))
-        : 0;
-      let dayInt = 1;
-      if (investmentDay.includes('15th')) dayInt = 15;
-      else if (investmentDay.includes('Last')) dayInt = 31;
-
-      const updateData: Record<string, unknown> = {
-        selected_fund: 'hushh_fund_a', class_a_units: units.class_a,
-        class_b_units: units.class_b, class_c_units: units.class_c,
-        initial_investment_amount: totalInvestment, current_step: 1,
-        updated_at: new Date().toISOString(),
-      };
-      if (recurringEnabled && recurringAmount > 0) {
-        updateData.recurring_frequency = frequency;
-        updateData.recurring_day_of_month = dayInt;
-        updateData.recurring_amount = recurringAmount;
-      } else {
-        updateData.recurring_frequency = null;
-        updateData.recurring_day_of_month = null;
-        updateData.recurring_amount = null;
-      }
-      const { error: saveError } = await upsertOnboardingData(userId, updateData);
-      if (saveError) { setError(saveError.message || 'Failed to save'); return; }
+      await upsertOnboardingData(userId, {
+        referral_source: selectedSource as ReferralSource,
+        referral_source_other: effectiveDetailValue || null,
+        current_step: 2,
+      });
       navigate('/onboarding/step-2');
-    } catch (err) { console.error('Error:', err); }
-    finally { setIsLoading(false); }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleBack = () => navigate(FINANCIAL_LINK_REVIEW_ROUTE);
+  const handleSkip = async () => {
+    if (isPreview) {
+      navigate(withLocalOnboardingPreview('/onboarding/step-2'));
+      return;
+    }
+    if (userId) {
+      await upsertOnboardingData(userId, { current_step: 2 });
+    }
+    navigate('/onboarding/step-2');
+  };
+
+  const handleBack = () => {
+    if (isPreview) {
+      navigate(withLocalOnboardingPreview(FINANCIAL_LINK_REVIEW_ROUTE));
+      return;
+    }
+    navigate(FINANCIAL_LINK_REVIEW_ROUTE);
+  };
 
   return {
-    units, frequency, investmentDay, selectedAmount, customAmount, customAmountError,
-    error, isLoading, isFooterVisible, totalInvestment, hasSelection,
-    recurringEnabled, toggleRecurring,
-    handleUnitChange, handleAmountClick, handleCustomAmountChange,
-    setFrequency, setInvestmentDay, handleNext, handleBack,
+    selectedSource,
+    detailValue,
+    detailQuery,
+    filteredDetailOptions,
+    isDetailRequired,
+    isLoading,
+    canContinue,
+    setSelectedSource,
+    setDetailQuery,
+    selectDetail,
+    handleContinue,
+    handleSkip,
+    handleBack,
   };
 };

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Home,
+  CalendarDays,
   LineChart,
   MapPin,
   Phone,
@@ -15,7 +15,11 @@ import OnboardingBankReviewChip from '../../../components/onboarding-bank-review
 import HushhTechCta, {
   HushhTechCtaVariant,
 } from '../../../components/hushh-tech-cta/HushhTechCta';
-import { getOnboardingDisplayMeta } from '../../../services/onboarding/flow';
+import {
+  getOnboardingDisplayMeta,
+  isCurrentLocalOnboardingPreview,
+  withLocalOnboardingPreview,
+} from '../../../services/onboarding/flow';
 import {
   AppleLineIcon,
   Display,
@@ -23,12 +27,18 @@ import {
   Lede,
   appleFont,
 } from '../../../components/hushh-tech-ui/HushhAppleUI';
+import {
+  OptionalMarker,
+  RequiredAsterisk,
+} from '../../../components/onboarding-field-marker/FieldMarkers';
 
 interface ReviewSummary {
   legal_first_name: string | null;
   legal_last_name: string | null;
+  date_of_birth: string | null;
   phone_number: string | null;
   phone_country_code: string | null;
+  phone_verified: boolean | null;
   citizenship_country: string | null;
   residence_country: string | null;
   address_line_1: string | null;
@@ -37,6 +47,8 @@ interface ReviewSummary {
   state: string | null;
   zip_code: string | null;
   address_country: string | null;
+  ssn_encrypted: string | null;
+  account_type: string | null;
   class_a_units: number | null;
   class_b_units: number | null;
   class_c_units: number | null;
@@ -74,25 +86,63 @@ const joinParts = (parts: Array<string | null | undefined>, fallback = 'Not prov
   return value || fallback;
 };
 
+const formatDate = (date: string | null | undefined) => {
+  if (!date) return 'Missing required detail';
+  const parsed = new Date(`${date}T00:00:00`);
+  if (Number.isNaN(parsed.getTime())) return date;
+  return parsed.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+};
+
+const isUnitedStates = (value: string | null | undefined) =>
+  ['united states', 'usa', 'us', 'united states of america'].includes(
+    (value || '').trim().toLowerCase()
+  );
+
 const SummaryRow = ({
   icon,
   label,
   value,
   editLabel,
   onEdit,
+  required = false,
+  optional = false,
+  missing = false,
 }: {
   icon: LucideIcon;
   label: string;
   value: string;
   editLabel: string;
   onEdit: () => void;
+  required?: boolean;
+  optional?: boolean;
+  missing?: boolean;
 }) => (
-  <div className="rounded-[20px] bg-white p-4 shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.10)] sm:rounded-[22px]">
+  <div
+    className={`rounded-[20px] bg-white p-4 sm:rounded-[22px] ${
+      missing
+        ? 'shadow-[inset_0_0_0_1px_rgba(255,59,48,0.28)]'
+        : 'shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.10)]'
+    }`}
+  >
     <div className="flex items-start gap-4">
       <AppleLineIcon icon={icon} size={42} />
       <div className="flex-1 min-w-0">
-        <span className="mb-1 block text-[14px] font-medium text-[#1D1D1F]">{label}</span>
-        <span className="text-[13px] font-normal leading-relaxed text-[#1D1D1F]/60">{value}</span>
+        <span className="mb-1 block text-[14px] font-medium text-[#1D1D1F]">
+          {label}
+          {required && <RequiredAsterisk />}
+          {optional && <OptionalMarker />}
+        </span>
+        <span
+          className={`text-[13px] font-normal leading-relaxed ${
+            missing ? 'text-[#B42318]' : 'text-[#1D1D1F]/60'
+          }`}
+        >
+          {value}
+        </span>
       </div>
       <button
         type="button"
@@ -107,6 +157,7 @@ const SummaryRow = ({
 
 export default function OnboardingReviewStep() {
   const navigate = useNavigate();
+  const isPreview = isCurrentLocalOnboardingPreview();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [summary, setSummary] = useState<ReviewSummary | null>(null);
@@ -124,6 +175,13 @@ export default function OnboardingReviewStep() {
 
   useEffect(() => {
     const loadSummary = async () => {
+      if (isPreview) {
+        const saved = window.localStorage.getItem('hushh_onboarding_preview');
+        setSummary((saved ? JSON.parse(saved) : null) as ReviewSummary | null);
+        setLoading(false);
+        return;
+      }
+
       if (!config.supabaseClient) {
         setError('Configuration error');
         setLoading(false);
@@ -139,8 +197,9 @@ export default function OnboardingReviewStep() {
       const { data, error: fetchError } = await config.supabaseClient
         .from('onboarding_data')
         .select(`
-          legal_first_name, legal_last_name,
-          phone_number, phone_country_code,
+          legal_first_name, legal_last_name, date_of_birth,
+          phone_number, phone_country_code, phone_verified,
+          ssn_encrypted, account_type,
           citizenship_country, residence_country,
           address_line_1, address_line_2, city, state, zip_code, address_country,
           class_a_units, class_b_units, class_c_units,
@@ -161,37 +220,66 @@ export default function OnboardingReviewStep() {
     };
 
     loadSummary();
-  }, [navigate]);
+  }, [isPreview, navigate]);
 
   const fullName = joinParts([
     summary?.legal_first_name,
     summary?.legal_last_name,
   ]);
+  const isFullNameMissing = !summary?.legal_first_name?.trim() || !summary?.legal_last_name?.trim();
+  const isDateOfBirthMissing = !summary?.date_of_birth;
 
   const phone = joinParts([
     summary?.phone_country_code,
     summary?.phone_number,
   ]);
+  const isPhoneMissing = !summary?.phone_number?.trim() || summary?.phone_verified === false;
 
   const residence = joinParts([
     summary?.residence_country,
     summary?.citizenship_country ? `Citizen of ${summary.citizenship_country}` : null,
   ]);
+  const isResidenceMissing = !summary?.residence_country?.trim() || !summary?.citizenship_country?.trim();
 
   const address = joinParts([
     summary?.address_line_1,
-    summary?.address_line_2,
     summary?.city,
     summary?.state,
     summary?.zip_code,
     summary?.address_country,
   ]);
+  const isAddressMissing =
+    !summary?.address_line_1?.trim() ||
+    !summary?.city?.trim() ||
+    !summary?.state?.trim() ||
+    !summary?.zip_code?.trim();
 
   const shareUnits = [
     summary?.class_a_units ? `${summary.class_a_units} Class A` : null,
     summary?.class_b_units ? `${summary.class_b_units} Class B` : null,
     summary?.class_c_units ? `${summary.class_c_units} Class C` : null,
   ].filter(Boolean).join(' • ') || 'No share units selected';
+
+  const isUsInvestor = isUnitedStates(summary?.residence_country);
+  const isSsnMissing = isUsInvestor && (!summary?.ssn_encrypted || summary.ssn_encrypted === '999-99-9999');
+  const ssnStatus = summary?.ssn_encrypted && summary.ssn_encrypted !== '999-99-9999'
+    ? 'Provided for tax reporting'
+    : isUsInvestor ? 'Missing required detail' : 'Optional for non-US investors';
+  const accountType = summary?.account_type
+    ? summary.account_type.replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase())
+    : 'Not selected';
+  const isAccountTypeMissing = !summary?.account_type;
+  const isInvestmentMissing = !summary?.initial_investment_amount || shareUnits === 'No share units selected';
+  const requiredMissing =
+    isAccountTypeMissing ||
+    isFullNameMissing ||
+    isDateOfBirthMissing ||
+    isPhoneMissing ||
+    isResidenceMissing ||
+    isAddressMissing ||
+    isSsnMissing ||
+    isInvestmentMissing;
+  const goTo = (route: string) => navigate(withLocalOnboardingPreview(route));
 
   return (
     <div
@@ -215,10 +303,10 @@ export default function OnboardingReviewStep() {
         <section className="pb-8 pt-8 text-center">
           <Eyebrow>Review</Eyebrow>
           <Display as="h1" size="xs" maxWidth="max-w-[500px]">
-            Confirm your details.
+            Review your application.
           </Display>
           <Lede className="max-w-[500px]">
-            We already filled what we could. Review the details once and continue to bank details.
+            Check the important investor details once. Edit anything that needs correction.
           </Lede>
         </section>
 
@@ -241,59 +329,140 @@ export default function OnboardingReviewStep() {
           <>
             <section className="mb-8 rounded-[24px] bg-[#F5F5F7] p-3 shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.08)] sm:p-4">
               <div className="py-4">
-                <h3 className="px-1 text-[11px] font-medium uppercase tracking-[1.6px] text-[#0066CC]/85">KYC Summary</h3>
+                <h3 className="px-1 text-[11px] font-medium uppercase tracking-[1.6px] text-[#0066CC]/85">
+                  Required Application Details
+                  <RequiredAsterisk />
+                </h3>
+                {requiredMissing && (
+                  <p className="mt-2 px-1 text-[12px] font-normal leading-[1.45] text-[#B42318]">
+                    Complete the missing required details before moving to payment.
+                  </p>
+                )}
               </div>
               <div className="grid gap-3">
-
+              <SummaryRow
+                icon={ShieldCheck}
+                label="Account Type"
+                value={isAccountTypeMissing ? 'Missing required detail' : accountType}
+                editLabel="Edit"
+                onEdit={() => goTo('/onboarding/step-2')}
+                required
+                missing={isAccountTypeMissing}
+              />
               <SummaryRow
                 icon={UserRound}
                 label="Legal Name"
-                value={fullName}
+                value={isFullNameMissing ? 'Missing required detail' : fullName}
                 editLabel="Edit"
-                onEdit={() => navigate('/onboarding/step-5')}
+                onEdit={() => goTo('/onboarding/step-3')}
+                required
+                missing={isFullNameMissing}
+              />
+              <SummaryRow
+                icon={CalendarDays}
+                label="Date of Birth"
+                value={formatDate(summary?.date_of_birth)}
+                editLabel="Edit"
+                onEdit={() => goTo('/onboarding/step-3')}
+                required
+                missing={isDateOfBirthMissing}
               />
               <SummaryRow
                 icon={Phone}
-                label="Phone Number"
-                value={phone}
+                label="Contact Number"
+                value={
+                  isPhoneMissing
+                    ? 'Missing required detail'
+                    : `${phone}${summary?.phone_verified ? ' • verified' : ''}`
+                }
                 editLabel="Edit"
-                onEdit={() => navigate('/onboarding/step-4')}
+                onEdit={() => goTo('/onboarding/step-3')}
+                required
+                missing={isPhoneMissing}
               />
               <SummaryRow
                 icon={MapPin}
-                label="Citizenship & Residence"
-                value={residence}
+                label="Residence"
+                value={isResidenceMissing ? 'Missing required detail' : residence}
                 editLabel="Edit"
-                onEdit={() => navigate('/onboarding/step-3')}
+                onEdit={() => goTo('/onboarding/step-3')}
+                required
+                missing={isResidenceMissing}
               />
               <SummaryRow
-                icon={Home}
+                icon={MapPin}
                 label="Address"
-                value={address}
+                value={isAddressMissing ? 'Missing required detail' : address}
                 editLabel="Edit"
-                onEdit={() => navigate('/onboarding/step-6')}
+                onEdit={() => goTo('/onboarding/step-3')}
+                required
+                missing={isAddressMissing}
+              />
+              <SummaryRow
+                icon={ShieldCheck}
+                label="Tax Reporting"
+                value={ssnStatus}
+                editLabel="Edit"
+                onEdit={() => goTo('/onboarding/step-3')}
+                required={isUsInvestor}
+                optional={!isUsInvestor}
+                missing={isSsnMissing}
               />
               <SummaryRow
                 icon={LineChart}
                 label="Investment"
-                value={`${formatCurrency(summary?.initial_investment_amount)} • ${shareUnits} • ${formatRecurringSummary(summary || {} as ReviewSummary)}`}
+                value={
+                  isInvestmentMissing
+                    ? 'Missing required detail'
+                    : `${formatCurrency(summary?.initial_investment_amount)} • ${shareUnits}`
+                }
                 editLabel="Edit"
-                onEdit={() => navigate('/onboarding/step-7')}
+                onEdit={() => goTo('/onboarding/step-7')}
+                required
+                missing={isInvestmentMissing}
               />
+              </div>
+            </section>
+
+            <section className="mb-8 rounded-[24px] bg-[#F5F5F7] p-3 shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.08)] sm:p-4">
+              <div className="py-4">
+                <h3 className="px-1 text-[11px] font-medium uppercase tracking-[1.6px] text-[#0066CC]/85">
+                  Skippable Details
+                  <OptionalMarker />
+                </h3>
+              </div>
+              <div className="grid gap-3">
+                <SummaryRow
+                  icon={MapPin}
+                  label="Apt / Suite"
+                  value={summary?.address_line_2?.trim() || 'Skipped'}
+                  editLabel="Edit"
+                  onEdit={() => goTo('/onboarding/step-3')}
+                  optional
+                />
+                <SummaryRow
+                  icon={LineChart}
+                  label="Recurring Investment"
+                  value={formatRecurringSummary(summary || {} as ReviewSummary)}
+                  editLabel="Edit"
+                  onEdit={() => goTo('/onboarding/step-7')}
+                  optional
+                />
               </div>
             </section>
 
             <section className="pb-12 space-y-3">
               <HushhTechCta
                 variant={HushhTechCtaVariant.BLACK}
-                onClick={() => navigate('/onboarding/step-9')}
+                onClick={() => goTo('/onboarding/step-9')}
+                disabled={requiredMissing}
                 className={primaryCtaClass}
               >
-                Continue to Bank Details
+                Continue to Payment
               </HushhTechCta>
               <HushhTechCta
                 variant={HushhTechCtaVariant.WHITE}
-                onClick={() => navigate('/onboarding/step-7')}
+                onClick={() => goTo('/onboarding/step-7')}
                 className={secondaryCtaClass}
               >
                 Back to Investment Summary

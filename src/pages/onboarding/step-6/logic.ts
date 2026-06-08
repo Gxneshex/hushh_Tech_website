@@ -3,12 +3,24 @@
  *
  * All state, effects, handlers, and constants for the SSN & DOB step.
  */
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useMemo, useState, type ChangeEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import config from '../../../resources/config/config';
-import { getOnboardingDisplayMeta } from '../../../services/onboarding/flow';
+import {
+  getOnboardingDisplayMeta,
+  isCurrentLocalOnboardingPreview,
+  withLocalOnboardingPreview,
+} from '../../../services/onboarding/flow';
 import { upsertOnboardingData } from '../../../services/onboarding/upsertOnboardingData';
 import { useFooterVisibility } from '../../../utils/useFooterVisibility';
+import { locationService } from '../../../services/location';
+import {
+  ACCOUNT_TYPE_OPTIONS,
+  PHONE_DIAL_CODES,
+  resolveStep4CachedDialCode,
+  type DialCodeOption,
+  type UIAccountType,
+} from '../step-4/logic';
 
 /* ═══════════════════════════════════════════════
    CONSTANTS
@@ -24,6 +36,8 @@ export const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December',
 ];
+
+export { ACCOUNT_TYPE_OPTIONS, PHONE_DIAL_CODES };
 
 export const MINIMUM_ONBOARDING_AGE = 18;
 export const MINIMUM_DOB_YEAR = 1930;
@@ -115,73 +129,120 @@ export const resolveDobEligibility = (
    HOOK
    ═══════════════════════════════════════════════ */
 
+const toAccountStructure = (accountType: UIAccountType): 'individual' | 'other' =>
+  accountType === 'individual' ? 'individual' : 'other';
+
+const isUnitedStatesInvestor = (country?: string | null) => {
+  const normalized = String(country || '').trim().toLowerCase();
+  return normalized === 'united states' || normalized === 'united states of america' || normalized === 'us' || normalized === 'usa';
+};
+
+const formatPhoneNumber = (value: string) => {
+  const digits = value.replace(/\D/g, '');
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+  if (digits.length <= 10) return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
+  return digits;
+};
+
 export function useStep9Logic() {
   const navigate = useNavigate();
+  const isPreview = isCurrentLocalOnboardingPreview();
   const isFooterVisible = useFooterVisibility();
+  const [userId, setUserId] = useState<string | null>(null);
   const [ssn, setSsn] = useState('');
-  const [dob, setDob] = useState('');
-  const [dobMonth, setDobMonth] = useState('');
-  const [dobDay, setDobDay] = useState('');
-  const [dobYear, setDobYear] = useState('');
+  const [selectedAccountType, setSelectedAccountType] = useState<UIAccountType | null>(null);
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [countryCode, setCountryCode] = useState('+1');
+  const [selectedDialCountryIso, setSelectedDialCountryIso] = useState('US');
+  const [isAutoDetectingDialCode, setIsAutoDetectingDialCode] = useState(false);
+  const [showDialPicker, setShowDialPicker] = useState(false);
+  const [isPreFilledFromBank, setIsPreFilledFromBank] = useState(false);
+  const [isUsInvestor, setIsUsInvestor] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
+  const [otpInput, setOtpInput] = useState('');
+  const [isPhoneVerified, setIsPhoneVerified] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showInfo, setShowInfo] = useState(false);
-  const dateInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
-
-  /* ─── Helpers ─── */
-  const formatIsoToDisplay = (iso?: string | null) => {
-    if (!iso) return '';
-    const parts = iso.split('-');
-    if (parts.length === 3) return `${parts[1]}/${parts[2]}/${parts[0]}`;
-    return iso;
-  };
-
-  const parseDobToIso = (value: string) => {
-    if (!value) return null;
-    const parts = value.split('/');
-    if (parts.length === 3) {
-      let [p1, p2, year] = parts.map((p) => p.trim());
-      let month = p1, day = p2;
-      if (parseInt(p1, 10) > 12) { day = p1; month = p2; }
-      const iso = `${year.padStart(4, '0')}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-      if (!Number.isNaN(Date.parse(iso))) return iso;
-    }
-    if (/^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(value))) return value;
-    return null;
-  };
 
   /* ─── Load saved data ─── */
   useEffect(() => {
     const loadData = async () => {
+      if (isPreview) {
+        setUserId('local-preview');
+        return;
+      }
       if (!config.supabaseClient) return;
       const { data: { user } } = await config.supabaseClient.auth.getUser();
-      if (!user) return;
+      if (!user) { navigate('/login'); return; }
+      setUserId(user.id);
 
       const { data } = await config.supabaseClient
         .from('onboarding_data')
-        .select('ssn_encrypted, date_of_birth')
+        .select('ssn_encrypted, account_type, account_structure, phone_number, phone_country_code, citizenship_country, residence_country')
         .eq('user_id', user.id)
         .maybeSingle();
 
-      if (data?.date_of_birth) {
-        const saved = formatIsoToDisplay(data.date_of_birth);
-        if (saved) setDob(saved);
-        // Also populate dropdowns from ISO date
-        const parts = data.date_of_birth.split('-');
-        if (parts.length === 3) {
-          setDobYear(parts[0]);
-          setDobMonth(parts[1]);
-          setDobDay(parts[2]);
+      const validTypes: UIAccountType[] = ['individual', 'joint', 'retirement', 'trust'];
+      if (data?.account_type && validTypes.includes(data.account_type as UIAccountType)) {
+        setSelectedAccountType(data.account_type as UIAccountType);
+      } else if (data?.account_structure === 'individual') {
+        setSelectedAccountType('individual');
+      }
+
+      if (data?.phone_number) {
+        setPhoneNumber(String(data.phone_number).replace(/\D/g, ''));
+        setIsPreFilledFromBank(true);
+      }
+
+      setIsUsInvestor(
+        isUnitedStatesInvestor(data?.residence_country) ||
+        isUnitedStatesInvestor(data?.citizenship_country)
+      );
+
+      const sharedLocationRecord = await locationService.readSharedLocationCache(user.id);
+      const cachedLocation = sharedLocationRecord?.data || await locationService.getCachedLocation(user.id);
+      const cachedDialState = resolveStep4CachedDialCode({
+        savedPhoneCode: data?.phone_country_code ? String(data.phone_country_code) : '',
+        cachedLocation,
+      });
+
+      if (cachedDialState.dialCode) {
+        setCountryCode(cachedDialState.dialCode);
+        const matchedIso = cachedDialState.countryIso
+          ? PHONE_DIAL_CODES.find((o) => o.iso === cachedDialState.countryIso)
+          : PHONE_DIAL_CODES.find((o) => o.code === cachedDialState.dialCode);
+        if (matchedIso) {
+          setSelectedDialCountryIso(matchedIso.iso);
+        }
+      } else {
+        setIsAutoDetectingDialCode(true);
+        try {
+          const resolvedLocation = cachedLocation || await locationService.getLocationByIp();
+          if (resolvedLocation?.phoneDialCode) {
+            setCountryCode(resolvedLocation.phoneDialCode);
+            const matched = PHONE_DIAL_CODES.find((o) => o.code === resolvedLocation.phoneDialCode);
+            if (matched) setSelectedDialCountryIso(matched.iso);
+          }
+          if (resolvedLocation?.countryCode) {
+            const iso = String(resolvedLocation.countryCode).toUpperCase();
+            if (PHONE_DIAL_CODES.some((o) => o.iso === iso)) setSelectedDialCountryIso(iso);
+          }
+        } finally {
+          setIsAutoDetectingDialCode(false);
         }
       }
+
       if (data?.ssn_encrypted && data.ssn_encrypted !== '999-99-9999') {
         setSsn(data.ssn_encrypted);
       }
     };
     loadData();
-  }, []);
+  }, [isPreview, navigate]);
 
   /* ─── Formatters ─── */
   const formatSSN = (v: string) => {
@@ -191,130 +252,129 @@ export function useStep9Logic() {
     return `${d.slice(0, 3)}-${d.slice(3, 5)}-${d.slice(5, 9)}`;
   };
 
-  const formatDate = (v: string) => {
-    const d = v.replace(/\D/g, '');
-    if (d.length <= 2) return d;
-    if (d.length <= 4) return `${d.slice(0, 2)}/${d.slice(2)}`;
-    return `${d.slice(0, 2)}/${d.slice(2, 4)}/${d.slice(4, 8)}`;
+  const handleSSNChange = (e: ChangeEvent<HTMLInputElement>) => setSsn(formatSSN(e.target.value));
+  const handlePhoneChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setPhoneNumber(e.target.value.replace(/\D/g, '').slice(0, 15));
+    setIsPhoneVerified(false);
+    setOtpSent(false);
+    setOtpInput('');
+    if (isPreFilledFromBank) setIsPreFilledFromBank(false);
   };
 
-  const handleSSNChange = (e: React.ChangeEvent<HTMLInputElement>) => setSsn(formatSSN(e.target.value));
-  const handleDobChange = (e: React.ChangeEvent<HTMLInputElement>) => setDob(formatDate(e.target.value));
+  const selectedDialOption = useMemo(() => {
+    return PHONE_DIAL_CODES.find((o) => o.code === countryCode && o.iso === selectedDialCountryIso)
+      || PHONE_DIAL_CODES.find((o) => o.code === countryCode)
+      || PHONE_DIAL_CODES[0];
+  }, [countryCode, selectedDialCountryIso]);
 
-  const handleNativeDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.value) setDob(formatIsoToDisplay(e.target.value));
-  };
-
-  const openDatePicker = () => {
-    if (dateInputRef.current) {
-      dateInputRef.current.showPicker?.();
-      dateInputRef.current.click();
-    }
-  };
-
-  // Sync dob string from dropdown selections
-  useEffect(() => {
-    if (dobMonth && dobDay && dobYear) {
-      setDob(`${dobMonth}/${dobDay}/${dobYear}`);
-    }
-  }, [dobMonth, dobDay, dobYear]);
-
-  const yearOptions = buildDobYearOptions();
-
-  // Days in selected month/year
-  const daysInMonth = dobMonth && dobYear
-    ? new Date(parseInt(dobYear), parseInt(dobMonth), 0).getDate()
-    : 31;
-  const dayOptions = Array.from({ length: daysInMonth }, (_, i) => String(i + 1).padStart(2, '0'));
-
-  // Correct day if month changed and day is now out of range
-  useEffect(() => {
-    if (dobDay && parseInt(dobDay) > daysInMonth) {
-      setDobDay(String(daysInMonth).padStart(2, '0'));
-    }
-  }, [dobMonth, dobYear, daysInMonth, dobDay]);
-
-  const dobEligibility = resolveDobEligibility(dobMonth, dobDay, dobYear);
-  const isUnder18 =
-    dobEligibility.isComplete && dobEligibility.isValidDate && !dobEligibility.isAdult;
-  const ageError = dobEligibility.ageError;
-  const isFormValid =
-    dobEligibility.isComplete && dobEligibility.isValidDate && dobEligibility.isAdult;
+  const isValidPhone = phoneNumber.length >= 8 && phoneNumber.length <= 15;
+  const isValidSsn = ssn.replace(/\D/g, '').length === 9;
+  const canSendOtp = isValidPhone && !isPhoneVerified;
+  const isTaxReady = !isUsInvestor || isValidSsn;
+  const canContinue = Boolean(selectedAccountType && isTaxReady && isValidPhone && isPhoneVerified);
 
   /* ─── Handlers ─── */
+  const handleSelectDialCode = (option: DialCodeOption) => {
+    setCountryCode(option.code);
+    setSelectedDialCountryIso(option.iso);
+    setShowDialPicker(false);
+    setIsPhoneVerified(false);
+    setOtpSent(false);
+  };
+
+  const handleSendOtp = () => {
+    if (!isValidPhone) {
+      setError('Please enter a valid contact number');
+      return;
+    }
+    const nextCode = '240924';
+    setOtpCode(nextCode);
+    setOtpSent(true);
+    setOtpInput('');
+    setIsPhoneVerified(false);
+    setError(null);
+  };
+
+  const handleVerifyOtp = () => {
+    if (!otpSent) {
+      setError('Send the verification code first');
+      return;
+    }
+    if (otpInput.trim() !== otpCode) {
+      setError('That code does not match');
+      return;
+    }
+    setIsPhoneVerified(true);
+    setError(null);
+  };
+
   const handleContinue = async () => {
-    if (!dobEligibility.isComplete) { setError('Please enter your date of birth'); return; }
-    if (!dobEligibility.isValidDate) { setError('Please enter a valid date of birth'); return; }
-    if (!dobEligibility.isAdult) { setError(ageError || 'You must be at least 18 years old to continue'); return; }
+    if (!selectedAccountType) { setError('Please choose an account type'); return; }
+    if (isUsInvestor && !isValidSsn) { setError('Please enter a valid SSN for US tax reporting'); return; }
+    if (!isValidPhone) { setError('Please enter a valid contact number'); return; }
+    if (!isPhoneVerified) { setError('Please verify your contact number'); return; }
+    if (isPreview) {
+      navigate(withLocalOnboardingPreview('/onboarding/step-7'));
+      return;
+    }
+    if (!userId || !config.supabaseClient) { setError('Not authenticated'); return; }
+
     setLoading(true); setError(null);
-
-    if (!config.supabaseClient) { setError('Configuration error'); setLoading(false); return; }
-    const { data: { user } } = await config.supabaseClient.auth.getUser();
-    if (!user) { setError('Not authenticated'); setLoading(false); return; }
-
-    const isoDob = parseDobToIso(dob);
-    if (!isoDob) { setError('Please enter a valid date (MM/DD/YYYY)'); setLoading(false); return; }
-
-    const { error: e } = await upsertOnboardingData(user.id, {
-      ssn_encrypted: ssn, date_of_birth: isoDob, current_step: 9,
+    const { error: e } = await upsertOnboardingData(userId, {
+      account_type: selectedAccountType,
+      account_structure: toAccountStructure(selectedAccountType),
+      phone_number: phoneNumber,
+      phone_country_code: countryCode,
+      ssn_encrypted: ssn || (isUsInvestor ? null : '999-99-9999'),
+      current_step: 10,
     });
     if (e) { setError('Failed to save data'); setLoading(false); return; }
     navigate('/onboarding/step-7');
   };
 
-  const handleSkip = async () => {
-    if (!dobEligibility.isComplete) { setError('Please enter your date of birth before skipping'); return; }
-    if (!dobEligibility.isValidDate) { setError('Please enter a valid date of birth'); return; }
-    if (!dobEligibility.isAdult) { setError(ageError || 'You must be at least 18 years old to continue'); return; }
-    setLoading(true); setError(null);
+  const handleSkip = () => navigate(withLocalOnboardingPreview('/onboarding/step-7'));
 
-    if (!config.supabaseClient) { setError('Configuration error'); setLoading(false); return; }
-    const { data: { user } } = await config.supabaseClient.auth.getUser();
-    if (!user) { setError('Not authenticated'); setLoading(false); return; }
-
-    const isoDob = parseDobToIso(dob);
-    if (!isoDob) { setError('Please enter a valid date (MM/DD/YYYY)'); setLoading(false); return; }
-
-    const { error: e } = await upsertOnboardingData(user.id, {
-      ssn_encrypted: '999-99-9999', date_of_birth: isoDob, current_step: 9,
-    });
-    if (e) { setError('Failed to save data'); setLoading(false); return; }
-    navigate('/onboarding/step-7');
-  };
-
-  const handleBack = () => navigate('/onboarding/step-5');
+  const handleBack = () => navigate(withLocalOnboardingPreview('/onboarding/step-3'));
 
   const handleShowInfoToggle = (open: boolean) => setShowInfo(open);
 
   return {
     // State
     ssn,
-    dob,
-    dobMonth,
-    setDobMonth,
-    dobDay,
-    setDobDay,
-    dobYear,
-    setDobYear,
+    selectedAccountType,
+    setSelectedAccountType,
+    phoneNumber,
+    countryCode,
+    selectedDialCountryIso,
+    isAutoDetectingDialCode,
+    showDialPicker,
+    setShowDialPicker,
+    isPreFilledFromBank,
+    isUsInvestor,
+    otpSent,
+    otpCode,
+    otpInput,
+    setOtpInput,
+    isPhoneVerified,
     loading,
     error,
     showInfo,
-    isFormValid,
+    canContinue,
     isFooterVisible,
-    dateInputRef,
 
     // Derived
-    yearOptions,
-    dayOptions,
-    daysInMonth,
-    isUnder18,
-    ageError,
+    selectedDialOption,
+    isValidPhone,
+    canSendOtp,
+    formatPhoneNumber,
+    isTaxReady,
 
     // Handlers
     handleSSNChange,
-    handleDobChange,
-    handleNativeDateChange,
-    openDatePicker,
+    handlePhoneChange,
+    handleSelectDialCode,
+    handleSendOtp,
+    handleVerifyOtp,
     handleContinue,
     handleSkip,
     handleBack,

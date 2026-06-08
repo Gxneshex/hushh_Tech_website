@@ -5,7 +5,11 @@
 import { useState, useEffect, type ChangeEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import config from '../../../resources/config/config';
-import { getOnboardingDisplayMeta } from '../../../services/onboarding/flow';
+import {
+  getOnboardingDisplayMeta,
+  isCurrentLocalOnboardingPreview,
+  withLocalOnboardingPreview,
+} from '../../../services/onboarding/flow';
 import { upsertOnboardingData } from '../../../services/onboarding/upsertOnboardingData';
 import { useFooterVisibility } from '../../../utils/useFooterVisibility';
 
@@ -134,6 +138,7 @@ export interface Step11Logic {
   getUnits: (classId: string) => number;
   getModalUnits: (classId: string) => number;
   getUnitsSummary: () => string;
+  handleSelectShareClass: (classId: string) => void;
   handleBack: () => void;
   handleSkip: () => void;
   handleContinue: () => Promise<void>;
@@ -152,6 +157,7 @@ export interface Step11Logic {
 /* ─── Main Hook ─── */
 export const useStep11Logic = (): Step11Logic => {
   const navigate = useNavigate();
+  const isPreview = isCurrentLocalOnboardingPreview();
   const isFooterVisible = useFooterVisibility();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -211,6 +217,20 @@ export const useStep11Logic = (): Step11Logic => {
 
   useEffect(() => {
     const loadData = async () => {
+      if (isPreview) {
+        const previewUnits = {
+          class_a_units: 0,
+          class_b_units: 0,
+          class_c_units: 0,
+        };
+        setShareUnits(previewUnits);
+        setLocalShareUnits(previewUnits);
+        setSelectedAmount(null);
+        setCustomAmount('');
+        setCustomAmountError(null);
+        setShowRecurringEditor(false);
+        return;
+      }
       if (!config.supabaseClient) return;
 
       const { data: { user } } = await config.supabaseClient.auth.getUser();
@@ -267,7 +287,7 @@ export const useStep11Logic = (): Step11Logic => {
     };
 
     loadData();
-  }, []);
+  }, [isPreview]);
 
   // Open modal and initialize local state
   const handleOpenModal = () => {
@@ -299,6 +319,12 @@ export const useStep11Logic = (): Step11Logic => {
   // Save modal changes to Supabase
   const handleSaveChanges = async () => {
     if (!hasModalChanges) return;
+
+    if (isPreview) {
+      setShareUnits({ ...localShareUnits });
+      setIsModalOpen(false);
+      return;
+    }
 
     setSavingModal(true);
 
@@ -363,6 +389,19 @@ export const useStep11Logic = (): Step11Logic => {
     return parseFormattedNumber(customAmount);
   };
 
+  const buildSingleUnitSelection = (classId: string) => ({
+    class_a_units: classId === 'class_a' ? 1 : 0,
+    class_b_units: classId === 'class_b' ? 1 : 0,
+    class_c_units: classId === 'class_c' ? 1 : 0,
+  });
+
+  const handleSelectShareClass = (classId: string) => {
+    const nextUnits = buildSingleUnitSelection(classId);
+    setShareUnits(nextUnits);
+    setLocalShareUnits(nextUnits);
+    setError(null);
+  };
+
   // Get units for modal display
   const getModalUnits = (classId: string): number => {
     if (classId === 'class_a') return localShareUnits.class_a_units;
@@ -385,6 +424,26 @@ export const useStep11Logic = (): Step11Logic => {
 
     setLoading(true);
     setError(null);
+
+    if (isPreview) {
+      const saved = window.localStorage.getItem('hushh_onboarding_preview');
+      const parsed = saved ? JSON.parse(saved) : {};
+      window.localStorage.setItem('hushh_onboarding_preview', JSON.stringify({
+        ...parsed,
+        class_a_units: shareUnits.class_a_units,
+        class_b_units: shareUnits.class_b_units,
+        class_c_units: shareUnits.class_c_units,
+        initial_investment_amount: totalInvestment,
+        recurring_amount: getFinalRecurringAmount() || null,
+        recurring_frequency: getFinalRecurringAmount() > 0 ? frequency : null,
+        recurring_day_of_month: getFinalRecurringAmount() > 0
+          ? (investmentDay === 'Last' ? 31 : parseInt(investmentDay.replace(/\D/g, ''), 10) || 1)
+          : null,
+      }));
+      setLoading(false);
+      navigate(withLocalOnboardingPreview('/onboarding/step-8'));
+      return;
+    }
 
     if (!config.supabaseClient) {
       setError('Configuration error');
@@ -457,11 +516,11 @@ export const useStep11Logic = (): Step11Logic => {
   const isFormValid = hasAnyUnits && totalInvestment >= 1000000 && hasValidRecurringAmount;
 
   const handleBack = () => {
-    navigate('/onboarding/step-6');
+    navigate(withLocalOnboardingPreview('/onboarding/step-3'));
   };
 
   const handleSkip = () => {
-    navigate('/onboarding/step-8');
+    navigate(withLocalOnboardingPreview('/onboarding/step-8'));
   };
 
   // Generate units summary text
@@ -507,6 +566,7 @@ export const useStep11Logic = (): Step11Logic => {
     getUnits,
     getModalUnits,
     getUnitsSummary,
+    handleSelectShareClass,
     handleBack,
     handleSkip,
     handleContinue,

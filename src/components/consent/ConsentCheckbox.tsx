@@ -4,6 +4,8 @@ interface ConsentCheckboxProps {
   checked: boolean;
   onChange: (checked: boolean) => void;
   children: ReactNode;
+  /** Required consent gates show the standard onboarding star. */
+  required?: boolean;
   /** When true, shows an error border + tint to flag a required, unchecked box. */
   error?: boolean;
   disabled?: boolean;
@@ -20,6 +22,7 @@ export default function ConsentCheckbox({
   checked,
   onChange,
   children,
+  required = true,
   error = false,
   disabled = false,
   id = "consent-checkbox",
@@ -42,6 +45,11 @@ export default function ConsentCheckbox({
         className="mt-0.5 h-[18px] w-[18px] shrink-0 cursor-pointer rounded-[5px] accent-[#0066CC]"
       />
       <span className="text-[13px] font-normal leading-[1.5] text-[#1D1D1F]/75">
+        {required && (
+          <span aria-hidden="true" className="mr-1 text-[#FF3B30]">
+            *
+          </span>
+        )}
         {children}
       </span>
     </label>

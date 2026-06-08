@@ -17,7 +17,11 @@ import {
 } from "../../../services/plaid/plaidService";
 import { upsertOnboardingData } from "../../../services/onboarding/upsertOnboardingData";
 import { CONSENT_VERSION } from "../../../services/consent/consentConfig";
-import { FINANCIAL_LINK_ROUTE } from "../../../services/onboarding/flow";
+import {
+  FINANCIAL_LINK_ROUTE,
+  isCurrentLocalOnboardingPreview,
+  withLocalOnboardingPreview,
+} from "../../../services/onboarding/flow";
 import {
   FUND_PAYMENT_PAID_STATUSES,
   FUND_PAYMENT_REVERSED_STATUSES,
@@ -142,6 +146,7 @@ export interface Step13Logic {
 
 export const useStep13Logic = (): Step13Logic => {
   const navigate = useNavigate();
+  const isPreview = isCurrentLocalOnboardingPreview();
   const isFooterVisible = useFooterVisibility();
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -244,6 +249,19 @@ export const useStep13Logic = (): Step13Logic => {
   }, []);
 
   const loadData = useCallback(async (options: { silent?: boolean } = {}) => {
+    if (isPreview) {
+      setUserId("local-preview");
+      setShareUnits({
+        class_a_units: 0,
+        class_b_units: 0,
+        class_c_units: 1,
+      });
+      setFinancialLinkStatus("completed");
+      setLatestReviewStatus("not_started");
+      setPageLoading(false);
+      return;
+    }
+
     if (!config.supabaseClient) {
       if (!options.silent) setPageLoading(false);
       return;
@@ -337,7 +355,7 @@ export const useStep13Logic = (): Step13Logic => {
     } finally {
       if (isMountedRef.current && !options.silent) setPageLoading(false);
     }
-  }, [navigate]);
+  }, [isPreview, navigate]);
 
   useEffect(() => {
     void loadData();
@@ -437,6 +455,13 @@ export const useStep13Logic = (): Step13Logic => {
       return;
     }
 
+    if (isPreview) {
+      setError(null);
+      setSuccessMessage("Preview only: no secure payment link was created.");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
     const acknowledgmentSaved = await persistCommitmentAck();
     if (!acknowledgmentSaved) {
       return;
@@ -475,7 +500,7 @@ export const useStep13Logic = (): Step13Logic => {
   };
 
   const handleBack = () => {
-    navigate("/onboarding/step-8");
+    navigate(withLocalOnboardingPreview("/onboarding/step-8"));
   };
 
   const openPaymentLink = () => {
@@ -484,7 +509,7 @@ export const useStep13Logic = (): Step13Logic => {
   };
 
   const handleContinueToMeetCeo = () => {
-    navigate("/onboarding/meet-ceo");
+    navigate(withLocalOnboardingPreview("/onboarding/meet-ceo"));
   };
 
   // PD-? (P2.1 — "Start over"): pre-payment users can request a clean
@@ -502,6 +527,11 @@ export const useStep13Logic = (): Step13Logic => {
   };
   const handleConfirmStartOver = async () => {
     if (!userId) return;
+    if (isPreview) {
+      setIsStartOverConfirmOpen(false);
+      navigate(withLocalOnboardingPreview("/onboarding/step-1"), { replace: true });
+      return;
+    }
     setIsStartingOver(true);
     setStartOverError(null);
     try {

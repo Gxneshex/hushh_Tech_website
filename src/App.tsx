@@ -53,8 +53,6 @@ import FinancialLinkPage from './pages/onboarding/financial-link/ui';
 import OnboardingStep1 from './pages/onboarding/step-1/ui';
 import OnboardingStep2 from './pages/onboarding/step-2/ui';
 import OnboardingStep3 from './pages/onboarding/step-3/ui';
-import OnboardingStep4 from './pages/onboarding/step-4/ui';
-import OnboardingStep5 from './pages/onboarding/step-5/ui';
 import OnboardingStep6 from './pages/onboarding/step-6/ui';
 import OnboardingStep7 from './pages/onboarding/step-7/ui';
 import OnboardingReviewStep from './pages/onboarding/step-8/ui';
@@ -278,12 +276,12 @@ function App() {
             } />
             <Route path="/onboarding/step-4" element={
               <ProtectedRoute>
-                <OnboardingStep4 />
+                <Navigate to="/onboarding/step-7" replace />
               </ProtectedRoute>
             } />
             <Route path="/onboarding/step-5" element={
               <ProtectedRoute>
-                <OnboardingStep5 />
+                <Navigate to="/onboarding/step-8" replace />
               </ProtectedRoute>
             } />
             <Route path="/onboarding/step-6" element={

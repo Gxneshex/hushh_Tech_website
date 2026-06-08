@@ -6,6 +6,7 @@ import {
   FINANCIAL_LINK_ROUTE,
   getCanonicalOnboardingRoute,
   getOnboardingDisplayMeta,
+  isLocalOnboardingPreview,
   normalizeFinancialLinkStatus,
   type CanonicalOnboardingRoute,
 } from '../services/onboarding/flow';
@@ -52,6 +53,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { session, status } = useAuthSession();
+  const isDevOnboardingPreview = isLocalOnboardingPreview(location.pathname, location.search);
   const userId = session?.user?.id;
   const authCheckKey = [
     status,
@@ -63,7 +65,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [authorizedCheckKey, setAuthorizedCheckKey] = useState<string | null>(null);
   const isAuthorized =
-    status === 'authenticated' && authorizedCheckKey === authCheckKey;
+    isDevOnboardingPreview ||
+    (status === 'authenticated' && authorizedCheckKey === authCheckKey);
   const bootTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Boot timeout safety net — if isLoading stays true for >8 seconds
@@ -71,7 +74,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   // of showing an infinite spinner. With the AuthSessionProvider fix
   // (instant boot from localStorage), this should rarely trigger.
   useEffect(() => {
-    if (isLoading) {
+    if (isLoading && !isDevOnboardingPreview) {
       bootTimeoutRef.current = setTimeout(() => {
         console.warn(
           '[ProtectedRoute] Boot timeout reached (8s). Redirecting to login.'
@@ -93,7 +96,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
         bootTimeoutRef.current = null;
       }
     };
-  }, [isLoading, location.hash, location.pathname, location.search, navigate]);
+  }, [isDevOnboardingPreview, isLoading, location.hash, location.pathname, location.search, navigate]);
 
   useEffect(() => {
     let isCurrentCheck = true;
@@ -111,6 +114,11 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
       setAuthorizedCheckKey(null);
 
       try {
+        if (isDevOnboardingPreview) {
+          setIsLoading(false);
+          return;
+        }
+
         if (status === 'booting') {
           shouldSettleLoading = false;
           return;
@@ -202,7 +210,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     return () => {
       isCurrentCheck = false;
     };
-  }, [authCheckKey, location.hash, location.pathname, location.search, navigate, status, userId]);
+  }, [authCheckKey, isDevOnboardingPreview, location.hash, location.pathname, location.search, navigate, status, userId]);
 
   if (isLoading) {
     return (

@@ -37,7 +37,7 @@ export const ACCOUNT_TYPE_OPTIONS: AccountTypeOption[] = [
   { value: 'individual', label: 'Individual' },
   { value: 'joint', label: 'Joint' },
   { value: 'retirement', label: 'Retirement' },
-  { value: 'trust', label: 'Trust' },
+  { value: 'trust', label: 'Trust / Entity' },
 ];
 
 // Matches onboarding_data.recurring_frequency DB constraint.

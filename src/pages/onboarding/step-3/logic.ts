@@ -6,12 +6,16 @@
  * Country/State/City are stored via GPS columns (gps_country, gps_state, gps_city)
  * — no manual dropdowns needed.
  *
- * Flow: step-2 → step-3 → step-4
+ * Flow: step-2 → step-3 → step-6
  */
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import config from '../../../resources/config/config';
-import { TOTAL_VISIBLE_ONBOARDING_STEPS } from '../../../services/onboarding/flow';
+import {
+  TOTAL_VISIBLE_ONBOARDING_STEPS,
+  isCurrentLocalOnboardingPreview,
+  withLocalOnboardingPreview,
+} from '../../../services/onboarding/flow';
 import { resolveOnboardingPrefill } from '../../../services/onboarding/prefill';
 import { upsertOnboardingData } from '../../../services/onboarding/upsertOnboardingData';
 import { useFooterVisibility } from '../../../utils/useFooterVisibility';
@@ -24,6 +28,16 @@ import {
   looksLikeAutoFilledCityStateLine2,
   normalizeDetectedAddress,
 } from '../../../services/location';
+import {
+  MONTH_NAMES,
+  buildDobYearOptions,
+  resolveDobEligibility,
+} from '../step-6/logic';
+import {
+  PHONE_DIAL_CODES,
+  resolveStep4CachedDialCode,
+  type DialCodeOption,
+} from '../step-4/logic';
 
 /* ═══════════════════════════════════════════════
    CONSTANTS
@@ -80,6 +94,8 @@ export interface Step3ManualOverrides {
   residenceCountry: boolean;
   addressLine1: boolean;
   addressLine2: boolean;
+  city: boolean;
+  state: boolean;
   zipCode: boolean;
 }
 
@@ -101,6 +117,14 @@ export const validateRequired = (v: string, label: string) =>
 export const validateZip = (v: string) => {
   if (!v.trim()) return 'ZIP / postal code is required';
   if (v.trim().length < 3 || v.trim().length > 10) return 'Enter a valid postal code';
+  return undefined;
+};
+
+export const validateLocationText = (v: string, label: string) => {
+  const value = v.trim();
+  if (!value) return `${label} is required`;
+  if (value.length > 80) return `${label} is too long`;
+  if (!/[a-zA-Z]/.test(value)) return `Please enter a valid ${label.toLowerCase()}`;
   return undefined;
 };
 
@@ -212,11 +236,11 @@ export const buildStep3AutofillPatch = ({
     patch.zipCode = normalizedAddress.zipCode;
   }
 
-  if (normalizedAddress.city && current.city !== normalizedAddress.city) {
+  if (!manual.city && normalizedAddress.city && current.city !== normalizedAddress.city) {
     patch.city = normalizedAddress.city;
   }
 
-  if (normalizedAddress.state && current.state !== normalizedAddress.state) {
+  if (!manual.state && normalizedAddress.state && current.state !== normalizedAddress.state) {
     patch.state = normalizedAddress.state;
   }
 
@@ -263,12 +287,29 @@ export const buildStep3SavePayload = ({
   return payload;
 };
 
+const isUnitedStatesInvestor = (country?: string | null) => {
+  const normalized = String(country || '').trim().toLowerCase();
+  return normalized === 'united states' ||
+    normalized === 'united states of america' ||
+    normalized === 'us' ||
+    normalized === 'usa';
+};
+
+const formatPhoneNumber = (value: string) => {
+  const digits = value.replace(/\D/g, '');
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+  if (digits.length <= 10) return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
+  return digits;
+};
+
 /* ═══════════════════════════════════════════════
    COMBINED HOOK
    ═══════════════════════════════════════════════ */
 
 export function useCombinedLocationLogic() {
   const navigate = useNavigate();
+  const isPreview = isCurrentLocalOnboardingPreview();
   const isFooterVisible = useFooterVisibility();
   const autoDetectionStartedRef = useRef(false);
   const citizenshipCountryRef = useRef('');
@@ -278,6 +319,8 @@ export function useCombinedLocationLogic() {
     residenceCountry: false,
     addressLine1: false,
     addressLine2: false,
+    city: false,
+    state: false,
     zipCode: false,
   });
   const formStateRef = useRef<Step3FormState>({
@@ -293,6 +336,21 @@ export function useCombinedLocationLogic() {
 
   // ─── Auth ───
   const [userId, setUserId] = useState<string | null>(null);
+
+  // ─── Identity fields ───
+  const [legalFirstName, setLegalFirstName] = useState('');
+  const [legalLastName, setLegalLastName] = useState('');
+  const [dobMonth, setDobMonth] = useState('');
+  const [dobDay, setDobDay] = useState('');
+  const [dobYear, setDobYear] = useState('');
+  const [ssn, setSsn] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [countryCode, setCountryCode] = useState('+1');
+  const [selectedDialCountryIso, setSelectedDialCountryIso] = useState('US');
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
+  const [otpInput, setOtpInput] = useState('');
+  const [isPhoneVerified, setIsPhoneVerified] = useState(false);
 
   // ─── Country/Residence fields ───
   const [citizenshipCountry, setCitizenshipCountry] = useState('');
@@ -325,7 +383,43 @@ export function useCombinedLocationLogic() {
   const [errors, setErrors] = useState<Record<string, string | undefined>>({});
 
   // ─── Derived state ───
-  const canContinue = Boolean(citizenshipCountry && residenceCountry);
+  const dobEligibility = resolveDobEligibility(dobMonth, dobDay, dobYear);
+  const isUnder18 =
+    dobEligibility.isComplete && dobEligibility.isValidDate && !dobEligibility.isAdult;
+  const ageError = dobEligibility.ageError;
+  const yearOptions = buildDobYearOptions();
+  const daysInMonth = dobMonth && dobYear
+    ? new Date(parseInt(dobYear, 10), parseInt(dobMonth, 10), 0).getDate()
+    : 31;
+  const dayOptions = Array.from({ length: daysInMonth }, (_, i) => String(i + 1).padStart(2, '0'));
+  const isDobValid =
+    dobEligibility.isComplete && dobEligibility.isValidDate && dobEligibility.isAdult;
+  const isUsInvestor =
+    isUnitedStatesInvestor(citizenshipCountry) ||
+    isUnitedStatesInvestor(residenceCountry);
+  const isValidSsn = ssn.replace(/\D/g, '').length === 9;
+  const isTaxReady = !isUsInvestor || isValidSsn;
+  const isValidPhone = phoneNumber.length >= 8 && phoneNumber.length <= 15;
+  const canSendOtp = isValidPhone && !isPhoneVerified;
+  const selectedDialOption = useMemo(() => {
+    return PHONE_DIAL_CODES.find((option) => option.code === countryCode && option.iso === selectedDialCountryIso)
+      || PHONE_DIAL_CODES.find((option) => option.code === countryCode)
+      || PHONE_DIAL_CODES[0];
+  }, [countryCode, selectedDialCountryIso]);
+  const canContinue = Boolean(
+    legalFirstName.trim() &&
+    legalLastName.trim() &&
+    isDobValid &&
+    citizenshipCountry &&
+    residenceCountry &&
+    addressLine1.trim() &&
+    addressCity.trim() &&
+    addressState.trim() &&
+    zipCode.trim() &&
+    isTaxReady &&
+    isValidPhone &&
+    isPhoneVerified
+  );
   const isErrorStatus = locationStatus === 'denied' || locationStatus === 'failed';
   const isSuccessStatus = locationStatus === 'success' || locationStatus === 'ip-success';
 
@@ -364,6 +458,12 @@ export function useCombinedLocationLogic() {
     addressState,
     addressCountry,
   ]);
+
+  useEffect(() => {
+    if (dobDay && parseInt(dobDay, 10) > daysInMonth) {
+      setDobDay(String(daysInMonth).padStart(2, '0'));
+    }
+  }, [dobMonth, dobYear, dobDay, daysInMonth]);
 
   /* ─── Apply GPS result to fields (country + address + zip) ─── */
   const applyDetectedLocation = (locationData: LocationData, status: LocationStatus) => {
@@ -460,6 +560,38 @@ export function useCombinedLocationLogic() {
   /* ─── Init: Load saved data, detect location ─── */
   useEffect(() => {
     const init = async () => {
+      if (isPreview) {
+        setUserId('local-preview');
+        const saved = window.localStorage.getItem('hushh_onboarding_preview');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed.legal_first_name) setLegalFirstName(String(parsed.legal_first_name));
+          if (parsed.legal_last_name) setLegalLastName(String(parsed.legal_last_name));
+          if (parsed.date_of_birth) {
+            const [savedYear, savedMonth, savedDay] = String(parsed.date_of_birth).split('-');
+            if (savedYear && savedMonth && savedDay) {
+              setDobYear(savedYear);
+              setDobMonth(savedMonth);
+              setDobDay(savedDay);
+            }
+          }
+          if (parsed.citizenship_country) setCitizenshipCountry(String(parsed.citizenship_country));
+          if (parsed.residence_country) setResidenceCountry(String(parsed.residence_country));
+          if (parsed.address_line_1) setAddressLine1(String(parsed.address_line_1));
+          if (parsed.address_line_2) setAddressLine2(String(parsed.address_line_2));
+          if (parsed.city) setAddressCity(String(parsed.city));
+          if (parsed.state) setAddressState(String(parsed.state));
+          if (parsed.zip_code) setZipCode(String(parsed.zip_code));
+          if (parsed.address_country) setAddressCountry(String(parsed.address_country));
+          if (parsed.ssn_encrypted) setSsn(String(parsed.ssn_encrypted));
+          if (parsed.phone_number) {
+            setPhoneNumber(String(parsed.phone_number).replace(/\D/g, ''));
+            setIsPhoneVerified(Boolean(parsed.phone_verified));
+          }
+          if (parsed.phone_country_code) setCountryCode(String(parsed.phone_country_code));
+        }
+        return;
+      }
       if (!config.supabaseClient) return;
       const { data: { user } } = await config.supabaseClient.auth.getUser();
       if (!user) { navigate('/login'); return; }
@@ -471,7 +603,9 @@ export function useCombinedLocationLogic() {
           .from('onboarding_data')
           .select(`
             citizenship_country, residence_country, current_step,
-            address_line_1, address_line_2, city, state, zip_code, address_country
+            legal_first_name, legal_last_name, date_of_birth,
+            address_line_1, address_line_2, city, state, zip_code, address_country,
+            ssn_encrypted, phone_number, phone_country_code
           `)
           .eq('user_id', user.id)
           .maybeSingle(),
@@ -490,6 +624,37 @@ export function useCombinedLocationLogic() {
 
       const cachedLocation = sharedCache?.data || await locationService.getCachedLocation(user.id);
       const onboardingData = onboardingResult.data || null;
+      if (onboardingData?.legal_first_name) {
+        setLegalFirstName(String(onboardingData.legal_first_name));
+      }
+      if (onboardingData?.legal_last_name) {
+        setLegalLastName(String(onboardingData.legal_last_name));
+      }
+      if (onboardingData?.date_of_birth) {
+        const [savedYear, savedMonth, savedDay] = String(onboardingData.date_of_birth).split('-');
+        if (savedYear && savedMonth && savedDay) {
+          setDobYear(savedYear);
+          setDobMonth(savedMonth);
+          setDobDay(savedDay);
+        }
+      }
+      if (onboardingData?.ssn_encrypted && onboardingData.ssn_encrypted !== '999-99-9999') {
+        setSsn(String(onboardingData.ssn_encrypted));
+      }
+      if (onboardingData?.phone_number) {
+        setPhoneNumber(String(onboardingData.phone_number).replace(/\D/g, ''));
+      }
+      const cachedDialState = resolveStep4CachedDialCode({
+        savedPhoneCode: onboardingData?.phone_country_code ? String(onboardingData.phone_country_code) : '',
+        cachedLocation,
+      });
+      if (cachedDialState.dialCode) {
+        setCountryCode(cachedDialState.dialCode);
+        const matchedIso = cachedDialState.countryIso
+          ? PHONE_DIAL_CODES.find((option) => option.iso === cachedDialState.countryIso)
+          : PHONE_DIAL_CODES.find((option) => option.code === cachedDialState.dialCode);
+        if (matchedIso) setSelectedDialCountryIso(matchedIso.iso);
+      }
       const initialFormState: Step3FormState = {
         citizenshipCountry: '',
         residenceCountry: '',
@@ -622,7 +787,7 @@ export function useCombinedLocationLogic() {
     };
     init();
     return () => { locationService.cancel(); };
-  }, [navigate]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isPreview, navigate]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ─── Country/Residence handlers ─── */
   const handleCitizenshipChange = (value: string) => {
@@ -693,6 +858,18 @@ export function useCombinedLocationLogic() {
     setAddressLine2(value);
   };
 
+  const handleAddressCityChange = (value: string) => {
+    manualOverridesRef.current.city = true;
+    setAddressCity(value);
+    if (touched.addressCity) setErrors((p) => ({ ...p, addressCity: validateLocationText(value, 'City') }));
+  };
+
+  const handleAddressStateChange = (value: string) => {
+    manualOverridesRef.current.state = true;
+    setAddressState(value);
+    if (touched.addressState) setErrors((p) => ({ ...p, addressState: validateLocationText(value, 'State / region') }));
+  };
+
   const handleZipCodeChange = (value: string) => {
     const next = value.slice(0, 10);
     manualOverridesRef.current.zipCode = true;
@@ -700,9 +877,62 @@ export function useCombinedLocationLogic() {
     if (touched.zipCode) setErrors((p) => ({ ...p, zipCode: validateZip(next) }));
   };
 
+  const formatSSN = (value: string) => {
+    const digits = value.replace(/\D/g, '');
+    if (digits.length <= 3) return digits;
+    if (digits.length <= 5) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+    return `${digits.slice(0, 3)}-${digits.slice(3, 5)}-${digits.slice(5, 9)}`;
+  };
+
+  const handleSSNChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setSsn(formatSSN(event.target.value));
+  };
+
+  const handlePhoneChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setPhoneNumber(event.target.value.replace(/\D/g, '').slice(0, 15));
+    setIsPhoneVerified(false);
+    setOtpSent(false);
+    setOtpInput('');
+  };
+
+  const handleSelectDialCode = (option: DialCodeOption) => {
+    setCountryCode(option.code);
+    setSelectedDialCountryIso(option.iso);
+    setIsPhoneVerified(false);
+    setOtpSent(false);
+    setOtpInput('');
+  };
+
+  const handleSendOtp = () => {
+    if (!isValidPhone) {
+      setError('Please enter a valid contact number');
+      return;
+    }
+    setOtpCode('240924');
+    setOtpSent(true);
+    setOtpInput('');
+    setIsPhoneVerified(false);
+    setError(null);
+  };
+
+  const handleVerifyOtp = () => {
+    if (!otpSent) {
+      setError('Send the verification code first');
+      return;
+    }
+    if (otpInput.trim() !== otpCode) {
+      setError('That code does not match');
+      return;
+    }
+    setIsPhoneVerified(true);
+    setError(null);
+  };
+
   const validate = (field: string, value: string) => {
     switch (field) {
       case 'addressLine1': return validateAddress(value);
+      case 'addressCity': return validateLocationText(value, 'City');
+      case 'addressState': return validateLocationText(value, 'State / region');
       case 'zipCode': return validateZip(value);
       default: return undefined;
     }
@@ -716,23 +946,87 @@ export function useCombinedLocationLogic() {
   const validateAll = () => {
     const next = {
       addressLine1: validateAddress(addressLine1),
+      addressCity: validateLocationText(addressCity, 'City'),
+      addressState: validateLocationText(addressState, 'State / region'),
       zipCode: validateZip(zipCode),
     };
     setErrors(next);
-    setTouched({ addressLine1: true, zipCode: true });
+    setTouched({ addressLine1: true, addressCity: true, addressState: true, zipCode: true });
     return !Object.values(next).some(Boolean);
   };
 
   /* ─── Navigation ─── */
   const handleContinue = async () => {
-    if (!userId || !config.supabaseClient || !canContinue) return;
+    if (!userId || (!isPreview && !config.supabaseClient)) return;
 
-    // Validate address fields if they're filled
-    if (addressLine1.trim() || zipCode.trim()) {
-      if (!validateAll()) {
-        setError('Please fix the errors above');
-        return;
-      }
+    if (!legalFirstName.trim() || !legalLastName.trim()) {
+      setError('Please enter your legal first and last name');
+      return;
+    }
+
+    if (!dobEligibility.isComplete) {
+      setError('Please enter your date of birth');
+      return;
+    }
+
+    if (!dobEligibility.isValidDate) {
+      setError('Please enter a valid date of birth');
+      return;
+    }
+
+    if (!dobEligibility.isAdult) {
+      setError(ageError || 'You must be at least 18 years old to continue');
+      return;
+    }
+
+    if (!citizenshipCountry || !residenceCountry) {
+      setError('Please confirm citizenship and residence');
+      return;
+    }
+
+    if (!validateAll()) {
+      setError('Please enter your complete residence address');
+      return;
+    }
+
+    if (isUsInvestor && !isValidSsn) {
+      setError('Please enter a valid SSN for US tax reporting');
+      return;
+    }
+
+    if (!isValidPhone) {
+      setError('Please enter a valid contact number');
+      return;
+    }
+
+    if (!isPhoneVerified) {
+      setError('Please verify your contact number');
+      return;
+    }
+
+    if (isPreview) {
+      const saved = window.localStorage.getItem('hushh_onboarding_preview');
+      const parsed = saved ? JSON.parse(saved) : {};
+      window.localStorage.setItem('hushh_onboarding_preview', JSON.stringify({
+        ...parsed,
+        legal_first_name: legalFirstName.trim(),
+        legal_last_name: legalLastName.trim(),
+        date_of_birth: `${dobYear}-${dobMonth}-${dobDay}`,
+        citizenship_country: citizenshipCountry,
+        residence_country: residenceCountry,
+        address_line_1: addressLine1.trim(),
+        address_line_2: addressLine2.trim() || null,
+        city: addressCity.trim() || null,
+        state: addressState.trim() || null,
+        zip_code: zipCode.trim(),
+        address_country: addressCountry.trim() || residenceCountry,
+        ssn_encrypted: ssn || (isUsInvestor ? null : '999-99-9999'),
+        phone_number: phoneNumber,
+        phone_country_code: countryCode,
+        phone_verified: true,
+      }));
+      navigate(withLocalOnboardingPreview('/onboarding/step-7'));
+      return;
     }
 
     setIsLoading(true);
@@ -747,14 +1041,20 @@ export function useCombinedLocationLogic() {
         city: addressCity,
         state: addressState,
         addressCountry,
-        currentStep: 4,
+        currentStep: 9,
       } as Step3FormState & { currentStep: number });
+      payload.legal_first_name = legalFirstName.trim();
+      payload.legal_last_name = legalLastName.trim();
+      payload.date_of_birth = `${dobYear}-${dobMonth}-${dobDay}`;
+      payload.ssn_encrypted = ssn || (isUsInvestor ? null : '999-99-9999');
+      payload.phone_number = phoneNumber;
+      payload.phone_country_code = countryCode;
 
       const { error: saveError } = await upsertOnboardingData(userId, payload);
       if (saveError) {
         throw new Error(saveError.message);
       }
-      navigate('/onboarding/step-4');
+      navigate('/onboarding/step-7');
     } catch (err) {
       console.error('[Step3-Combined] Save error:', err);
       setError('Failed to save. Please try again.');
@@ -763,19 +1063,23 @@ export function useCombinedLocationLogic() {
     }
   };
 
-  const handleBack = () => navigate('/onboarding/step-2');
+  const handleBack = () => navigate(withLocalOnboardingPreview('/onboarding/step-2'));
 
   const handleSkip = async () => {
     if (isLoading) return;
+    if (isPreview) {
+      navigate(withLocalOnboardingPreview('/onboarding/step-7'));
+      return;
+    }
     setIsLoading(true);
     try {
       if (userId && config.supabaseClient) {
-        const { error: saveError } = await upsertOnboardingData(userId, { current_step: 4 });
+        const { error: saveError } = await upsertOnboardingData(userId, { current_step: 9 });
         if (saveError) {
           throw new Error(saveError.message);
         }
       }
-      navigate('/onboarding/step-4');
+      navigate('/onboarding/step-7');
     } catch (err) {
       console.error('[Step3-Combined] Skip save error:', err);
       setError('Failed to save. Please try again.');
@@ -785,6 +1089,42 @@ export function useCombinedLocationLogic() {
   };
 
   return {
+    // Identity
+    legalFirstName,
+    legalLastName,
+    dobMonth,
+    dobDay,
+    dobYear,
+    setLegalFirstName,
+    setLegalLastName,
+    setDobMonth,
+    setDobDay,
+    setDobYear,
+    monthNames: MONTH_NAMES,
+    yearOptions,
+    dayOptions,
+    isUnder18,
+    ageError,
+    ssn,
+    phoneNumber,
+    countryCode,
+    selectedDialOption,
+    otpSent,
+    otpCode,
+    otpInput,
+    setOtpInput,
+    isPhoneVerified,
+    isUsInvestor,
+    isValidPhone,
+    canSendOtp,
+    formatPhoneNumber,
+    handleSSNChange,
+    handlePhoneChange,
+    handleSelectDialCode,
+    handleSendOtp,
+    handleVerifyOtp,
+    phoneDialCodes: PHONE_DIAL_CODES,
+
     // Country/Residence
     citizenshipCountry,
     residenceCountry,
@@ -795,6 +1135,10 @@ export function useCombinedLocationLogic() {
     addressLine1,
     addressLine2,
     handleAddressLine2Change,
+    addressCity,
+    addressState,
+    handleAddressCityChange,
+    handleAddressStateChange,
     zipCode,
     handleAddressLine1Change,
     handleZipCodeChange,
