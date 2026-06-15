@@ -241,6 +241,18 @@ export const useStep13Logic = (): Step13Logic => {
     return "awaiting_request";
   }, [paymentRequest, latestPaymentStatus, latestReviewStatus]);
 
+  // Once payment is confirmed (Stripe webhook poll) or the investor is verified,
+  // there's nothing left to do on this screen — forward straight to Meet the CEO
+  // instead of parking the user on a confirmation page. This also catches a
+  // returning, already-paid user who lands back on the payment step. (Coupon
+  // redemption navigates directly; this is the safety net for the payment path.)
+  useEffect(() => {
+    if (pageLoading || isPreview) return;
+    if (uxState === "payment_in_review" || uxState === "verified") {
+      navigate(withLocalOnboardingPreview("/onboarding/meet-ceo"), { replace: true });
+    }
+  }, [uxState, pageLoading, isPreview, navigate]);
+
   useEffect(() => {
     isMountedRef.current = true;
     return () => {
@@ -554,10 +566,10 @@ export const useStep13Logic = (): Step13Logic => {
     setSuccessMessage(null);
     try {
       await redeemFundCoupon({ userId, couponCode: trimmedCoupon });
-      setSuccessMessage("Coupon applied — payment waived. Your application is now in review.");
-      // Reload so uxState flips to payment_in_review (success banner + Continue CTA).
-      await loadData({ silent: true });
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      // Coupon waives the payment and puts the investor into review — forward
+      // straight to Meet the CEO instead of parking them on this confirmation
+      // screen.
+      navigate(withLocalOnboardingPreview("/onboarding/meet-ceo"), { replace: true });
     } catch (err) {
       setCouponError(err instanceof Error ? err.message : "Failed to redeem coupon");
     } finally {
