@@ -1152,6 +1152,9 @@ export function useCombinedLocationLogic() {
     fieldSources,
     markFieldEdited,
     hasBankPrefill: Object.values(fieldSources).some((v) => v === 'plaid'),
+    // A field whose value is bank-verified (Plaid) is locked read-only — the
+    // verification badge attests it, so it's changed by re-linking the bank.
+    isPlaidLocked: (key: string) => fieldSources[key] === 'plaid',
 
     // Country/Residence
     citizenshipCountry,

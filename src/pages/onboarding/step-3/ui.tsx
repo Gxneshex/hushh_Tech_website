@@ -25,7 +25,7 @@ import {
   appleFont,
 } from "../../../components/hushh-tech-ui/HushhAppleUI";
 import {
-  BankFilledMarker,
+  BankVerifiedMarker,
   OptionalMarker,
   RequiredAsterisk,
 } from "../../../components/onboarding-field-marker/FieldMarkers";
@@ -227,10 +227,11 @@ export default function OnboardingStep3Combined() {
               </div>
               <div>
                 <p className="text-[14px] font-medium text-[#1D1D1F]">
-                  Pre-filled from your linked bank
+                  Verified from your linked bank
                 </p>
                 <p className="text-[12px] font-normal text-[#1D1D1F]/55">
-                  Review and edit anything below before continuing.
+                  These details are locked to your bank record. To change them, use
+                  &ldquo;Review or change your linked bank&rdquo; above.
                 </p>
               </div>
             </div>
@@ -255,7 +256,7 @@ export default function OnboardingStep3Combined() {
                   <span className={compactLabelClass}>
                     First Name
                     <RequiredAsterisk />
-                    {s.fieldSources["legal_first_name"] === "plaid" && <BankFilledMarker />}
+                    {s.fieldSources["legal_first_name"] === "plaid" && <BankVerifiedMarker />}
                   </span>
                   <input
                     id="legalFirstName"
@@ -266,7 +267,8 @@ export default function OnboardingStep3Combined() {
                       s.markFieldEdited("legal_first_name");
                     }}
                     placeholder="First name"
-                    className={inputClass}
+                    readOnly={s.isPlaidLocked("legal_first_name")}
+                    className={`${inputClass}${s.isPlaidLocked("legal_first_name") ? " cursor-not-allowed text-[#1D1D1F]/55" : ""}`}
                     autoComplete="given-name"
                   />
                 </label>
@@ -274,7 +276,7 @@ export default function OnboardingStep3Combined() {
                   <span className={compactLabelClass}>
                     Last Name
                     <RequiredAsterisk />
-                    {s.fieldSources["legal_last_name"] === "plaid" && <BankFilledMarker />}
+                    {s.fieldSources["legal_last_name"] === "plaid" && <BankVerifiedMarker />}
                   </span>
                   <input
                     id="legalLastName"
@@ -285,7 +287,8 @@ export default function OnboardingStep3Combined() {
                       s.markFieldEdited("legal_last_name");
                     }}
                     placeholder="Last name"
-                    className={inputClass}
+                    readOnly={s.isPlaidLocked("legal_last_name")}
+                    className={`${inputClass}${s.isPlaidLocked("legal_last_name") ? " cursor-not-allowed text-[#1D1D1F]/55" : ""}`}
                     autoComplete="family-name"
                   />
                 </label>
@@ -432,14 +435,14 @@ export default function OnboardingStep3Combined() {
                     <span className={labelClass}>
                       Residence
                       <RequiredAsterisk />
-                      {s.fieldSources["residence_country"] === "plaid" && <BankFilledMarker />}
+                      {s.fieldSources["residence_country"] === "plaid" && <BankVerifiedMarker />}
                     </span>
                     <div className="relative">
                       <select
                         value={s.residenceCountry}
                         onChange={(e) => s.handleResidenceChange(e.target.value)}
-                        disabled={s.isDetectingLocation}
-                        className={selectClass}
+                        disabled={s.isDetectingLocation || s.isPlaidLocked("residence_country")}
+                        className={`${selectClass}${s.isPlaidLocked("residence_country") ? " cursor-not-allowed text-[#1D1D1F]/55" : ""}`}
                         aria-label="Select residence country"
                       >
                         <option disabled value="">
@@ -463,7 +466,9 @@ export default function OnboardingStep3Combined() {
                     location_on
                   </span>
                   <p className="text-[13px] font-normal leading-[1.45] text-[#1D1D1F]/50">
-                    Auto-fill can suggest your address, but you can edit every field.
+                    {s.hasBankPrefill
+                      ? "Bank-verified details are locked. Other fields you can edit, and Auto-fill can suggest them."
+                      : "Auto-fill can suggest your address, but you can edit every field."}
                   </p>
                 </div>
 
@@ -472,7 +477,7 @@ export default function OnboardingStep3Combined() {
                     <span className={labelClass}>
                       Street Address
                       <RequiredAsterisk />
-                      {s.fieldSources["address_line_1"] === "plaid" && <BankFilledMarker />}
+                      {s.fieldSources["address_line_1"] === "plaid" && <BankVerifiedMarker />}
                     </span>
                     <input
                       id="addressLine1"
@@ -481,7 +486,8 @@ export default function OnboardingStep3Combined() {
                       onChange={(e) => s.handleAddressLine1Change(e.target.value)}
                       onBlur={() => s.handleBlur("addressLine1", s.addressLine1)}
                       placeholder="Street address"
-                      className={inputClass}
+                      readOnly={s.isPlaidLocked("address_line_1")}
+                      className={`${inputClass}${s.isPlaidLocked("address_line_1") ? " cursor-not-allowed text-[#1D1D1F]/55" : ""}`}
                       autoComplete="address-line1"
                     />
                   </label>
@@ -495,7 +501,7 @@ export default function OnboardingStep3Combined() {
                     <span className={labelClass}>
                       Apt / Suite
                       <OptionalMarker />
-                      {s.fieldSources["address_line_2"] === "plaid" && <BankFilledMarker />}
+                      {s.fieldSources["address_line_2"] === "plaid" && <BankVerifiedMarker />}
                     </span>
                     <input
                       id="addressLine2"
@@ -503,7 +509,8 @@ export default function OnboardingStep3Combined() {
                       value={s.addressLine2}
                       onChange={(e) => s.handleAddressLine2Change(e.target.value)}
                       placeholder="Optional"
-                      className={inputClass}
+                      readOnly={s.isPlaidLocked("address_line_2")}
+                      className={`${inputClass}${s.isPlaidLocked("address_line_2") ? " cursor-not-allowed text-[#1D1D1F]/55" : ""}`}
                       autoComplete="address-line2"
                     />
                   </label>
@@ -513,7 +520,7 @@ export default function OnboardingStep3Combined() {
                       <span className={labelClass}>
                         City
                         <RequiredAsterisk />
-                        {s.fieldSources["city"] === "plaid" && <BankFilledMarker />}
+                        {s.fieldSources["city"] === "plaid" && <BankVerifiedMarker />}
                       </span>
                       <input
                         id="city"
@@ -522,7 +529,8 @@ export default function OnboardingStep3Combined() {
                         onChange={(e) => s.handleAddressCityChange(e.target.value)}
                         onBlur={() => s.handleBlur("addressCity", s.addressCity)}
                         placeholder="City"
-                        className={inputClass}
+                        readOnly={s.isPlaidLocked("city")}
+                        className={`${inputClass}${s.isPlaidLocked("city") ? " cursor-not-allowed text-[#1D1D1F]/55" : ""}`}
                         autoComplete="address-level2"
                       />
                     </label>
@@ -530,7 +538,7 @@ export default function OnboardingStep3Combined() {
                       <span className={labelClass}>
                         State / Region
                         <RequiredAsterisk />
-                        {s.fieldSources["state"] === "plaid" && <BankFilledMarker />}
+                        {s.fieldSources["state"] === "plaid" && <BankVerifiedMarker />}
                       </span>
                       <input
                         id="state"
@@ -539,7 +547,8 @@ export default function OnboardingStep3Combined() {
                         onChange={(e) => s.handleAddressStateChange(e.target.value)}
                         onBlur={() => s.handleBlur("addressState", s.addressState)}
                         placeholder="State"
-                        className={inputClass}
+                        readOnly={s.isPlaidLocked("state")}
+                        className={`${inputClass}${s.isPlaidLocked("state") ? " cursor-not-allowed text-[#1D1D1F]/55" : ""}`}
                         autoComplete="address-level1"
                       />
                     </label>
@@ -547,7 +556,7 @@ export default function OnboardingStep3Combined() {
                       <span className={labelClass}>
                         Postal Code
                         <RequiredAsterisk />
-                        {s.fieldSources["zip_code"] === "plaid" && <BankFilledMarker />}
+                        {s.fieldSources["zip_code"] === "plaid" && <BankVerifiedMarker />}
                       </span>
                       <input
                         id="zipCode"
@@ -557,7 +566,8 @@ export default function OnboardingStep3Combined() {
                         onChange={(e) => s.handleZipCodeChange(e.target.value)}
                         onBlur={() => s.handleBlur("zipCode", s.zipCode)}
                         placeholder="10001"
-                        className={inputClass}
+                        readOnly={s.isPlaidLocked("zip_code")}
+                        className={`${inputClass}${s.isPlaidLocked("zip_code") ? " cursor-not-allowed text-[#1D1D1F]/55" : ""}`}
                         autoComplete="postal-code"
                       />
                     </label>
@@ -677,7 +687,8 @@ export default function OnboardingStep3Combined() {
                         );
                         if (next) s.handleSelectDialCode(next);
                       }}
-                      className={selectClass}
+                      disabled={s.isPlaidLocked("phone_number")}
+                      className={`${selectClass}${s.isPlaidLocked("phone_number") ? " cursor-not-allowed text-[#1D1D1F]/55" : ""}`}
                       aria-label="Phone country code"
                     >
                       {s.phoneDialCodes.map((option) => (
@@ -694,7 +705,7 @@ export default function OnboardingStep3Combined() {
                     <span className={labelClass}>
                       Contact Number
                       <RequiredAsterisk />
-                      {s.fieldSources["phone_number"] === "plaid" && <BankFilledMarker />}
+                      {s.fieldSources["phone_number"] === "plaid" && <BankVerifiedMarker />}
                     </span>
                     <input
                       id="phoneNumber"
@@ -702,7 +713,8 @@ export default function OnboardingStep3Combined() {
                       value={s.formatPhoneNumber(s.phoneNumber)}
                       onChange={s.handlePhoneChange}
                       placeholder="(000) 000-0000"
-                      className={inputClass}
+                      readOnly={s.isPlaidLocked("phone_number")}
+                      className={`${inputClass}${s.isPlaidLocked("phone_number") ? " cursor-not-allowed text-[#1D1D1F]/55" : ""}`}
                       autoComplete="tel"
                     />
                   </label>

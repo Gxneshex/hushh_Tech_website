@@ -53,3 +53,29 @@ export function BankFilledMarker({ className }: MarkerProps) {
     </span>
   );
 }
+
+/**
+ * Locked, verified-source tag for a field whose value is bank-verified (Plaid
+ * identity). Unlike BankFilledMarker, this signals the field is READ-ONLY — the
+ * verification step attests this exact value, so the user changes it by
+ * re-linking/unlinking their bank, not by editing the field.
+ */
+export function BankVerifiedMarker({ className }: MarkerProps) {
+  return (
+    <span
+      className={joinClassNames(
+        "ml-2 inline-flex items-center gap-1 align-middle rounded-full bg-[#34C759]/12 px-2 py-[2px] text-[9px] font-medium normal-case tracking-normal text-[#1D7A3A]",
+        className
+      )}
+    >
+      <span
+        className="material-symbols-outlined text-[11px] leading-none"
+        style={{ fontVariationSettings: "'FILL' 1, 'wght' 600" }}
+        aria-hidden="true"
+      >
+        verified
+      </span>
+      Bank-verified
+    </span>
+  );
+}
