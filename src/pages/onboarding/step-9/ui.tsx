@@ -1,7 +1,7 @@
 /**
  * Step 9 - Hushh Fund payment request.
  */
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   SHARE_CLASSES,
@@ -165,6 +165,11 @@ export default function OnboardingStep9() {
     commitmentAcknowledged,
     commitmentAckError,
     handleCommitmentAckChange,
+    couponCode,
+    couponError,
+    couponLoading,
+    setCouponCode,
+    handleApplyCoupon,
     getUnits,
     setFirstPaymentAmount,
     handleBack,
@@ -172,6 +177,8 @@ export default function OnboardingStep9() {
     handleContinueToMeetCeo,
     openPaymentLink,
   } = useStep13Logic();
+
+  const [showCoupon, setShowCoupon] = useState(false);
 
   // P0.A — Universal "manage bank" affordance. Earlier this only surfaced
   // for users who explicitly skipped Plaid; now we show it for connected
@@ -477,6 +484,61 @@ export default function OnboardingStep9() {
                 >
                   {loading ? "Creating Payment Link..." : "Request new payment link"}
                 </HushhTechCta>
+              )}
+
+              {(uxState === "awaiting_request" || uxState === "payment_reversed") && (
+                <div className="pt-1">
+                  {!showCoupon ? (
+                    <button
+                      type="button"
+                      onClick={() => setShowCoupon(true)}
+                      className="w-full text-center text-[13px] font-medium text-[#0066CC] hover:underline"
+                    >
+                      Have a coupon code?
+                    </button>
+                  ) : (
+                    <div className="rounded-[18px] bg-[#F5F5F7] p-4 shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.08)]">
+                      <label
+                        htmlFor="fund-coupon"
+                        className="mb-2 block text-[11px] font-medium uppercase tracking-[1.6px] text-[#0066CC]/85"
+                      >
+                        Coupon code
+                      </label>
+                      <input
+                        id="fund-coupon"
+                        type="text"
+                        value={couponCode}
+                        onChange={(event) => setCouponCode(event.target.value)}
+                        placeholder="Enter coupon"
+                        autoCapitalize="none"
+                        autoCorrect="off"
+                        spellCheck={false}
+                        className="w-full rounded-[14px] border-none bg-white px-4 py-3 text-[15px] font-medium text-[#1D1D1F] shadow-[inset_0_0_0_1px_rgba(29,29,31,0.08)] outline-none placeholder:text-[#1D1D1F]/30 focus:ring-0"
+                      />
+                      {couponError && (
+                        <p className="mt-2 text-[12px] font-medium text-[#B42318]">{couponError}</p>
+                      )}
+                      <div className="mt-3">
+                        <HushhTechCta
+                          variant={HushhTechCtaVariant.WHITE}
+                          onClick={handleApplyCoupon}
+                          disabled={
+                            couponLoading ||
+                            !hasAnyUnits ||
+                            !commitmentAcknowledged ||
+                            !couponCode.trim()
+                          }
+                          className={secondaryCtaClass}
+                        >
+                          {couponLoading ? "Applying coupon…" : "Apply coupon"}
+                        </HushhTechCta>
+                      </div>
+                      <p className="mt-2 text-[11px] font-light leading-[1.4] text-[#1D1D1F]/45">
+                        A valid coupon waives the $1 and completes your application — same as paying.
+                      </p>
+                    </div>
+                  )}
+                </div>
               )}
 
               {uxState !== "payment_in_review" && uxState !== "verified" && (

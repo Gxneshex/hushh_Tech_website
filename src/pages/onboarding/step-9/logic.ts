@@ -8,6 +8,7 @@ import config from "../../../resources/config/config";
 import {
   createFundPaymentRequest,
   getFundPaymentStatus,
+  redeemFundCoupon,
   type FundPaymentRequestResponse,
   type FundPaymentStatusResponse,
 } from "../../../services/fundPayment/fundPaymentService";
@@ -136,6 +137,12 @@ export interface Step13Logic {
   commitmentAcknowledged: boolean;
   commitmentAckError: boolean;
   handleCommitmentAckChange: (checked: boolean) => void;
+  /** Coupon redemption (skip $1, same outcome). */
+  couponCode: string;
+  couponError: string | null;
+  couponLoading: boolean;
+  setCouponCode: (value: string) => void;
+  handleApplyCoupon: () => Promise<void>;
   getUnits: (classId: string) => number;
   setFirstPaymentAmount: (value: string) => void;
   handleBack: () => void;
@@ -177,6 +184,9 @@ export const useStep13Logic = (): Step13Logic => {
   const [commitmentAcknowledged, setCommitmentAcknowledged] = useState(false);
   const [commitmentAckPersisted, setCommitmentAckPersisted] = useState(false);
   const [commitmentAckError, setCommitmentAckError] = useState(false);
+  const [couponCodeState, setCouponCodeState] = useState("");
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [couponLoading, setCouponLoading] = useState(false);
   const isMountedRef = useRef(true);
 
   // Pull the one-time flash set by InvestorAccessRoute when it redirected
@@ -499,6 +509,62 @@ export const useStep13Logic = (): Step13Logic => {
     }
   };
 
+  const setCouponCode = (value: string) => {
+    setCouponError(null);
+    setCouponCodeState(value);
+  };
+
+  // Coupon path — same gates and outcome as the $1 payment, but the server
+  // waives the charge. Mirrors handleCreatePaymentLink's prerequisites
+  // (units + commitment acknowledgment) before calling the redeem function.
+  const handleApplyCoupon = async () => {
+    if (!userId) {
+      setCouponError("Not authenticated");
+      return;
+    }
+    if (!hasAnyUnits) {
+      setCouponError("Select at least one Hushh Fund unit before applying a coupon.");
+      return;
+    }
+    if (!commitmentAcknowledged) {
+      setCommitmentAckError(true);
+      setCouponError("Please confirm the acknowledgment below before continuing.");
+      return;
+    }
+    const trimmedCoupon = couponCodeState.trim();
+    if (!trimmedCoupon) {
+      setCouponError("Enter a coupon code.");
+      return;
+    }
+
+    if (isPreview) {
+      setCouponError(null);
+      setSuccessMessage("Preview only: coupon was not redeemed.");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
+    const acknowledgmentSaved = await persistCommitmentAck();
+    if (!acknowledgmentSaved) {
+      return;
+    }
+    setCouponLoading(true);
+    setCouponError(null);
+    setError(null);
+    setSuccessMessage(null);
+    try {
+      await redeemFundCoupon({ userId, couponCode: trimmedCoupon });
+      setSuccessMessage("Coupon applied — payment waived. Your application is now in review.");
+      // Reload so uxState flips to payment_in_review (success banner + Continue CTA).
+      await loadData({ silent: true });
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (err) {
+      setCouponError(err instanceof Error ? err.message : "Failed to redeem coupon");
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
   const handleBack = () => {
     navigate(withLocalOnboardingPreview("/onboarding/step-8"));
   };
@@ -600,6 +666,11 @@ export const useStep13Logic = (): Step13Logic => {
     commitmentAcknowledged,
     commitmentAckError,
     handleCommitmentAckChange,
+    couponCode: couponCodeState,
+    couponError,
+    couponLoading,
+    setCouponCode,
+    handleApplyCoupon,
     getUnits,
     setFirstPaymentAmount,
     handleBack,

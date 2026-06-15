@@ -17,6 +17,16 @@ export interface FundPaymentRequestResponse {
   email_delivery?: Record<string, unknown>;
 }
 
+export interface FundCouponRedeemResponse {
+  success: boolean;
+  already_redeemed?: boolean;
+  payment_request_id?: string;
+  request_reference?: string | null;
+  status?: string;
+  manual_verification_status?: string;
+  coins_awarded?: number;
+}
+
 export interface FundCheckoutResponse {
   success: boolean;
   checkout_url?: string;
@@ -122,6 +132,22 @@ export const createFundPaymentRequest = async (params: {
     throw new Error(data.error || "Failed to create Hushh Fund payment request");
   }
   return data as FundPaymentRequestResponse;
+};
+
+export const redeemFundCoupon = async (params: {
+  userId: string;
+  couponCode: string;
+}): Promise<FundCouponRedeemResponse> => {
+  const res = await fetch(`${getFunctionsUrl()}/fund-coupon-redeem`, {
+    method: "POST",
+    headers: await authedHeaders(),
+    body: JSON.stringify(params),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.error || "Failed to redeem coupon");
+  }
+  return data as FundCouponRedeemResponse;
 };
 
 export const getFundPaymentTokenStatus = async (
