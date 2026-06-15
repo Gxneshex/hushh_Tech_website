@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   CANONICAL_ONBOARDING_ROUTES,
+  getCanonicalOnboardingRoute,
   getOnboardingDisplayMeta,
 } from "../src/services/onboarding/flow";
 
@@ -30,6 +31,18 @@ describe("onboarding display sequence", () => {
     CANONICAL_ONBOARDING_ROUTES.forEach((route) => {
       expect(getOnboardingDisplayMeta(route).totalSteps).toBe(6);
     });
+  });
+
+  it("lets a post-investment user reach the payment step (review → payment is not skip-blocked)", () => {
+    // The investment step (step-4) writes current_step = 12 on Continue. After
+    // that the user is at the review step, so payment must be within the
+    // ProtectedRoute skip-guard allowance of currentStep + 1.
+    const postInvestmentRoute = getCanonicalOnboardingRoute(12);
+    const reachedStep = getOnboardingDisplayMeta(postInvestmentRoute).displayStep;
+    const paymentStep = getOnboardingDisplayMeta("/onboarding/step-6").displayStep;
+
+    expect(reachedStep).toBe(5);
+    expect(paymentStep).toBeLessThanOrEqual(reachedStep + 1);
   });
 
   it("uses the display step, not the raw saved step, on step 4", () => {

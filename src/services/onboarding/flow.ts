@@ -55,7 +55,11 @@ const RAW_STEP_TO_ROUTE: Record<number, CanonicalOnboardingRoute> = {
   9: '/onboarding/step-3',
   10: '/onboarding/step-4',
   11: '/onboarding/step-4',
-  12: '/onboarding/step-4',
+  // raw 12 is written by the investment step (step-4) on Continue → the user has
+  // *completed* investment and is now at the review step (step-5). Mapping it to
+  // step-5 (not step-4) keeps the skip-guard from bouncing review → payment back
+  // to investment: payment (display 6) is then within currentStep(5) + 1.
+  12: '/onboarding/step-5',
   13: '/onboarding/step-6',
 };
 
