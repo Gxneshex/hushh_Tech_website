@@ -53,11 +53,11 @@ describe("useInvestorJourneyCta CTA matrix", () => {
       isInvestor: false,
     },
     {
-      label: "needs_payment routes to step-9",
+      label: "needs_payment routes to step-6",
       state: "needs_payment",
       currentStep: 13,
       expectedText: "Complete your investment",
-      expectedRoute: "/onboarding/step-9",
+      expectedRoute: "/onboarding/step-6",
       isInvestor: false,
     },
     {
@@ -77,11 +77,11 @@ describe("useInvestorJourneyCta CTA matrix", () => {
       isInvestor: true,
     },
     {
-      label: "payment_reversed pushes user back to step-9 to retry",
+      label: "payment_reversed pushes user back to step-6 to retry",
       state: "payment_reversed",
       currentStep: 13,
       expectedText: "Resume your investment",
-      expectedRoute: "/onboarding/step-9",
+      expectedRoute: "/onboarding/step-6",
       isInvestor: false,
     },
     {

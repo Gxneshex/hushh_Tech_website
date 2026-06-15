@@ -57,7 +57,7 @@ interface ReviewSummary {
   recurring_day_of_month: number | null;
 }
 
-const DISPLAY_META = getOnboardingDisplayMeta('/onboarding/step-8');
+const DISPLAY_META = getOnboardingDisplayMeta('/onboarding/step-5');
 const PROGRESS_PCT = Math.round((DISPLAY_META.displayStep / DISPLAY_META.totalSteps) * 100);
 const primaryCtaClass =
   "!rounded-full !border-[#0066CC] !bg-[#0066CC] !text-white !font-medium !tracking-[-0.01em] !shadow-none";
@@ -285,7 +285,7 @@ export default function OnboardingReviewStep() {
       className="flex min-h-screen flex-col bg-[#FFFFFF] text-[#1D1D1F] antialiased selection:bg-[#0066CC] selection:text-[#F5F5F7]"
       style={{ fontFamily: appleFont }}
     >
-      <HushhTechBackHeader onBackClick={() => navigate('/onboarding/step-7')} rightLabel="FAQs" />
+      <HushhTechBackHeader onBackClick={() => navigate('/onboarding/step-4')} rightLabel="FAQs" />
       <OnboardingBankReviewChip />
 
       <main className="mx-auto w-full max-w-[680px] flex-grow px-4 pb-48 sm:px-5">
@@ -416,7 +416,7 @@ export default function OnboardingReviewStep() {
                     : `${formatCurrency(summary?.initial_investment_amount)} • ${shareUnits}`
                 }
                 editLabel="Edit"
-                onEdit={() => goTo('/onboarding/step-7')}
+                onEdit={() => goTo('/onboarding/step-4')}
                 required
                 missing={isInvestmentMissing}
               />
@@ -444,7 +444,7 @@ export default function OnboardingReviewStep() {
                   label="Recurring Investment"
                   value={formatRecurringSummary(summary || {} as ReviewSummary)}
                   editLabel="Edit"
-                  onEdit={() => goTo('/onboarding/step-7')}
+                  onEdit={() => goTo('/onboarding/step-4')}
                   optional
                 />
               </div>
@@ -453,7 +453,7 @@ export default function OnboardingReviewStep() {
             <section className="pb-12 space-y-3">
               <HushhTechCta
                 variant={HushhTechCtaVariant.BLACK}
-                onClick={() => goTo('/onboarding/step-9')}
+                onClick={() => goTo('/onboarding/step-6')}
                 disabled={requiredMissing}
                 className={primaryCtaClass}
               >
@@ -461,7 +461,7 @@ export default function OnboardingReviewStep() {
               </HushhTechCta>
               <HushhTechCta
                 variant={HushhTechCtaVariant.WHITE}
-                onClick={() => goTo('/onboarding/step-7')}
+                onClick={() => goTo('/onboarding/step-4')}
                 className={secondaryCtaClass}
               >
                 Back to Investment Summary

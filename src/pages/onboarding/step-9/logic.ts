@@ -566,7 +566,7 @@ export const useStep13Logic = (): Step13Logic => {
   };
 
   const handleBack = () => {
-    navigate(withLocalOnboardingPreview("/onboarding/step-8"));
+    navigate(withLocalOnboardingPreview("/onboarding/step-5"));
   };
 
   const openPaymentLink = () => {

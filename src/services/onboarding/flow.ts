@@ -10,9 +10,9 @@ const CANONICAL_STEP_ROUTE_BY_DISPLAY_STEP = {
   1: '/onboarding/step-1',
   2: '/onboarding/step-2',
   3: '/onboarding/step-3',
-  4: '/onboarding/step-7',
-  5: '/onboarding/step-8',
-  6: '/onboarding/step-9',
+  4: '/onboarding/step-4',
+  5: '/onboarding/step-5',
+  6: '/onboarding/step-6',
 } as const;
 
 export type CanonicalOnboardingRoute =
@@ -30,9 +30,9 @@ const DISPLAY_STEP_BY_ROUTE: Record<CanonicalOnboardingRoute, number> = {
   '/onboarding/step-1': 1,
   '/onboarding/step-2': 2,
   '/onboarding/step-3': 3,
-  '/onboarding/step-7': 4,
-  '/onboarding/step-8': 5,
-  '/onboarding/step-9': 6,
+  '/onboarding/step-4': 4,
+  '/onboarding/step-5': 5,
+  '/onboarding/step-6': 6,
 };
 
 /**
@@ -53,10 +53,10 @@ const RAW_STEP_TO_ROUTE: Record<number, CanonicalOnboardingRoute> = {
   7: '/onboarding/step-3',
   8: '/onboarding/step-3',  // old address step → now folded into combined step-3
   9: '/onboarding/step-3',
-  10: '/onboarding/step-7',
-  11: '/onboarding/step-7',
-  12: '/onboarding/step-7',
-  13: '/onboarding/step-9',
+  10: '/onboarding/step-4',
+  11: '/onboarding/step-4',
+  12: '/onboarding/step-4',
+  13: '/onboarding/step-6',
 };
 
 export const getCanonicalOnboardingRoute = (currentStep: number): CanonicalOnboardingRoute => {
@@ -154,10 +154,12 @@ export const normalizeLegacyOnboardingRedirectTarget = (target: string): string 
   }
 };
 
+// Legacy URL aliases — old raw-numbered paths still resolve to the new canonical
+// routes (URLs are now sequential step-1…step-6 matching the 6-step display).
 const COMPATIBLE_ROUTE_ALIAS: Record<string, CanonicalOnboardingRoute> = {
-  '/onboarding/step-4': '/onboarding/step-7',
-  '/onboarding/step-5': '/onboarding/step-8',
-  '/onboarding/step-6': '/onboarding/step-3',
+  '/onboarding/step-7': '/onboarding/step-4',
+  '/onboarding/step-8': '/onboarding/step-5',
+  '/onboarding/step-9': '/onboarding/step-6',
 };
 
 const normalizeCompatibleOnboardingRoute = (route: string): CanonicalOnboardingRoute => {

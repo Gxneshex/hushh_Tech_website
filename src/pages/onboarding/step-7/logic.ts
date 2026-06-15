@@ -54,7 +54,7 @@ export const SHARE_CLASSES: ShareClassInfo[] = [
 export const MIN_RECURRING_AMOUNT = 100;
 export const MAX_RECURRING_AMOUNT = 100000000;
 
-const DISPLAY_META = getOnboardingDisplayMeta('/onboarding/step-7');
+const DISPLAY_META = getOnboardingDisplayMeta('/onboarding/step-4');
 
 export const DISPLAY_STEP = DISPLAY_META.displayStep;
 export const PROG_TOTAL = DISPLAY_META.totalSteps;
@@ -124,29 +124,19 @@ export interface Step11Logic {
   customAmount: string;
   customAmountError: string | null;
   showRecurringEditor: boolean;
-  isModalOpen: boolean;
-  localShareUnits: { class_a_units: number; class_b_units: number; class_c_units: number };
-  savingModal: boolean;
   totalInvestment: number;
-  modalTotalInvestment: number;
-  hasModalChanges: boolean;
   hasAnyUnits: boolean;
   recurringAmount: number;
   isFormValid: boolean;
   recurringSummaryTitle: string;
   recurringSummarySubtitle: string;
   getUnits: (classId: string) => number;
-  getModalUnits: (classId: string) => number;
   getUnitsSummary: () => string;
-  handleSelectShareClass: (classId: string) => void;
   handleBack: () => void;
   handleSkip: () => void;
   handleContinue: () => Promise<void>;
-  handleOpenModal: () => void;
-  handleCloseModal: () => void;
   handleIncrement: (classId: string) => void;
   handleDecrement: (classId: string) => void;
-  handleSaveChanges: () => Promise<void>;
   handleAmountClick: (amount: number) => void;
   handleCustomAmountChange: (e: ChangeEvent<HTMLInputElement>) => void;
   setFrequency: (f: RecurringFrequency) => void;
@@ -177,15 +167,6 @@ export const useStep11Logic = (): Step11Logic => {
   const [customAmountError, setCustomAmountError] = useState<string | null>(null);
   const [showRecurringEditor, setShowRecurringEditor] = useState(false);
 
-  // Modal state
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [localShareUnits, setLocalShareUnits] = useState({
-    class_a_units: 0,
-    class_b_units: 0,
-    class_c_units: 0,
-  });
-  const [savingModal, setSavingModal] = useState(false);
-
   // Calculate total investment from share units
   const calculateTotal = (units = shareUnits) => {
     return (
@@ -196,13 +177,6 @@ export const useStep11Logic = (): Step11Logic => {
   };
 
   const totalInvestment = calculateTotal();
-  const modalTotalInvestment = calculateTotal(localShareUnits);
-
-  // Check if modal has changes
-  const hasModalChanges =
-    localShareUnits.class_a_units !== shareUnits.class_a_units ||
-    localShareUnits.class_b_units !== shareUnits.class_b_units ||
-    localShareUnits.class_c_units !== shareUnits.class_c_units;
 
   /* ─── Enable page-level scrolling ─── */
   useEffect(() => {
@@ -224,7 +198,6 @@ export const useStep11Logic = (): Step11Logic => {
           class_c_units: 0,
         };
         setShareUnits(previewUnits);
-        setLocalShareUnits(previewUnits);
         setSelectedAmount(null);
         setCustomAmount('');
         setCustomAmountError(null);
@@ -289,69 +262,21 @@ export const useStep11Logic = (): Step11Logic => {
     loadData();
   }, [isPreview]);
 
-  // Open modal and initialize local state
-  const handleOpenModal = () => {
-    setLocalShareUnits({ ...shareUnits });
-    setIsModalOpen(true);
-  };
-
-  // Close modal without saving
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-  };
-
-  // Increment units in modal
+  // Increment units inline (drives the committed shareUnits directly)
   const handleIncrement = (classId: string) => {
-    setLocalShareUnits(prev => ({
+    setError(null);
+    setShareUnits(prev => ({
       ...prev,
       [`${classId}_units`]: (prev[`${classId}_units` as keyof typeof prev] || 0) + 1,
     }));
   };
 
-  // Decrement units in modal
+  // Decrement units inline
   const handleDecrement = (classId: string) => {
-    setLocalShareUnits(prev => ({
+    setShareUnits(prev => ({
       ...prev,
       [`${classId}_units`]: Math.max(0, (prev[`${classId}_units` as keyof typeof prev] || 0) - 1),
     }));
-  };
-
-  // Save modal changes to Supabase
-  const handleSaveChanges = async () => {
-    if (!hasModalChanges) return;
-
-    if (isPreview) {
-      setShareUnits({ ...localShareUnits });
-      setIsModalOpen(false);
-      return;
-    }
-
-    setSavingModal(true);
-
-    if (!config.supabaseClient) {
-      setSavingModal(false);
-      return;
-    }
-
-    const { data: { user } } = await config.supabaseClient.auth.getUser();
-    if (!user) {
-      setSavingModal(false);
-      return;
-    }
-
-    const { error: upsertError } = await upsertOnboardingData(user.id, {
-      class_a_units: localShareUnits.class_a_units,
-      class_b_units: localShareUnits.class_b_units,
-      class_c_units: localShareUnits.class_c_units,
-      initial_investment_amount: modalTotalInvestment,
-    });
-
-    if (!upsertError) {
-      setShareUnits({ ...localShareUnits });
-      setIsModalOpen(false);
-    }
-
-    setSavingModal(false);
   };
 
   const handleAmountClick = (amount: number) => {
@@ -389,27 +314,6 @@ export const useStep11Logic = (): Step11Logic => {
     return parseFormattedNumber(customAmount);
   };
 
-  const buildSingleUnitSelection = (classId: string) => ({
-    class_a_units: classId === 'class_a' ? 1 : 0,
-    class_b_units: classId === 'class_b' ? 1 : 0,
-    class_c_units: classId === 'class_c' ? 1 : 0,
-  });
-
-  const handleSelectShareClass = (classId: string) => {
-    const nextUnits = buildSingleUnitSelection(classId);
-    setShareUnits(nextUnits);
-    setLocalShareUnits(nextUnits);
-    setError(null);
-  };
-
-  // Get units for modal display
-  const getModalUnits = (classId: string): number => {
-    if (classId === 'class_a') return localShareUnits.class_a_units;
-    if (classId === 'class_b') return localShareUnits.class_b_units;
-    if (classId === 'class_c') return localShareUnits.class_c_units;
-    return 0;
-  };
-
   const handleContinue = async () => {
     if (totalInvestment < 1000000) {
       setError('Minimum investment is $1 million');
@@ -441,7 +345,7 @@ export const useStep11Logic = (): Step11Logic => {
           : null,
       }));
       setLoading(false);
-      navigate(withLocalOnboardingPreview('/onboarding/step-8'));
+      navigate(withLocalOnboardingPreview('/onboarding/step-5'));
       return;
     }
 
@@ -471,6 +375,9 @@ export const useStep11Logic = (): Step11Logic => {
 
     const updateData: Record<string, unknown> = {
       user_id: user.id,
+      class_a_units: shareUnits.class_a_units,
+      class_b_units: shareUnits.class_b_units,
+      class_c_units: shareUnits.class_c_units,
       initial_investment_amount: totalInvestment,
       current_step: 12,
       updated_at: new Date().toISOString(),
@@ -494,7 +401,7 @@ export const useStep11Logic = (): Step11Logic => {
       return;
     }
 
-    navigate('/onboarding/step-8');
+    navigate('/onboarding/step-5');
   };
 
   // Get units for a class
@@ -520,7 +427,7 @@ export const useStep11Logic = (): Step11Logic => {
   };
 
   const handleSkip = () => {
-    navigate(withLocalOnboardingPreview('/onboarding/step-8'));
+    navigate(withLocalOnboardingPreview('/onboarding/step-5'));
   };
 
   // Generate units summary text
@@ -552,29 +459,19 @@ export const useStep11Logic = (): Step11Logic => {
     customAmount,
     customAmountError,
     showRecurringEditor,
-    isModalOpen,
-    localShareUnits,
-    savingModal,
     totalInvestment,
-    modalTotalInvestment,
-    hasModalChanges,
     hasAnyUnits,
     recurringAmount,
     isFormValid,
     recurringSummaryTitle,
     recurringSummarySubtitle,
     getUnits,
-    getModalUnits,
     getUnitsSummary,
-    handleSelectShareClass,
     handleBack,
     handleSkip,
     handleContinue,
-    handleOpenModal,
-    handleCloseModal,
     handleIncrement,
     handleDecrement,
-    handleSaveChanges,
     handleAmountClick,
     handleCustomAmountChange,
     setFrequency,

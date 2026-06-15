@@ -16,9 +16,9 @@ describe("onboarding display sequence", () => {
       "/onboarding/step-1",
       "/onboarding/step-2",
       "/onboarding/step-3",
-      "/onboarding/step-7",
-      "/onboarding/step-8",
-      "/onboarding/step-9",
+      "/onboarding/step-4",
+      "/onboarding/step-5",
+      "/onboarding/step-6",
     ]);
 
     const displaySteps = CANONICAL_ONBOARDING_ROUTES.map(

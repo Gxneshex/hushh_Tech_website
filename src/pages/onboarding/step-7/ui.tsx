@@ -4,8 +4,7 @@
  * Share class cards, edit modal, recurring investment config.
  * Logic stays in logic.ts — zero logic changes.
  */
-import { useRef } from 'react';
-import { CheckCircle2, Info, Pencil, ScrollText, ShieldCheck } from 'lucide-react';
+import { CheckCircle2, Info, ScrollText, ShieldCheck } from 'lucide-react';
 import {
   useStep11Logic,
   SHARE_CLASSES,
@@ -25,7 +24,6 @@ import OnboardingBankReviewChip from '../../../components/onboarding-bank-review
 import HushhTechCta, {
   HushhTechCtaVariant,
 } from '../../../components/hushh-tech-cta/HushhTechCta';
-import { useModalKeyboardNavigation } from '../../../hooks/useModalKeyboardNavigation';
 import {
   AppleLineIcon,
   Display,
@@ -80,44 +78,25 @@ export default function OnboardingStep11() {
     customAmount,
     customAmountError,
     showRecurringEditor,
-    isModalOpen,
-    localShareUnits,
-    savingModal,
     totalInvestment,
-    modalTotalInvestment,
-    hasModalChanges,
     hasAnyUnits,
     recurringAmount,
     isFormValid,
     recurringSummaryTitle,
     recurringSummarySubtitle,
     getUnits,
-    getModalUnits,
     getUnitsSummary,
-    handleSelectShareClass,
     handleBack,
     handleSkip,
     handleContinue,
-    handleOpenModal,
-    handleCloseModal,
     handleIncrement,
     handleDecrement,
-    handleSaveChanges,
     handleAmountClick,
     handleCustomAmountChange,
     setFrequency,
     setInvestmentDay,
     setShowRecurringEditor,
   } = useStep11Logic();
-  const allocationModalRef = useRef<HTMLDivElement>(null);
-  const cancelButtonRef = useRef<HTMLButtonElement>(null);
-
-  useModalKeyboardNavigation({
-    isOpen: isModalOpen,
-    containerRef: allocationModalRef,
-    initialFocusRef: cancelButtonRef,
-    onClose: handleCloseModal,
-  });
 
   return (
     <div
@@ -175,14 +154,12 @@ export default function OnboardingStep11() {
               const hasUnits = units > 0;
 
               return (
-                <button
+                <div
                   key={shareClass.id}
-                  type="button"
-                  onClick={() => handleSelectShareClass(shareClass.id)}
-                  className={`flex w-full items-center gap-4 rounded-[20px] p-4 text-left transition sm:rounded-[22px] ${
+                  className={`flex w-full items-center gap-4 rounded-[20px] p-4 transition sm:rounded-[22px] ${
                     hasUnits
                       ? 'bg-[#F5F5F7] shadow-[inset_0_0_0_1px_rgba(0,102,204,0.24)]'
-                      : 'bg-white shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.10)] hover:bg-[#F5F5F7]'
+                      : 'bg-white shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.10)]'
                   }`}
                 >
                   <ClassMark id={shareClass.id} active={hasUnits} />
@@ -195,30 +172,40 @@ export default function OnboardingStep11() {
                     </span>
                     {hasUnits && (
                       <span className="mt-0.5 block text-[12px] font-normal text-[#1D1D1F]/48">
-                        {units} {units === 1 ? 'unit' : 'units'} selected · {formatCurrency(subtotal)}
+                        {units} {units === 1 ? 'unit' : 'units'} · {formatCurrency(subtotal)}
                       </span>
                     )}
                   </span>
-                  {hasUnits && (
-                    <span className="material-symbols-outlined text-[18px] text-[#0066CC]">
-                      check
+                  <div className="flex shrink-0 items-center gap-2.5">
+                    <button
+                      type="button"
+                      onClick={() => handleDecrement(shareClass.id)}
+                      disabled={units === 0}
+                      className={`flex h-9 w-9 items-center justify-center rounded-full border transition-all ${
+                        units === 0
+                          ? 'border-[#1D1D1F]/10 text-[#1D1D1F]/25'
+                          : 'border-[#1D1D1F]/15 text-[#1D1D1F]/60 hover:bg-white active:scale-95'
+                      }`}
+                      aria-label={`Decrease ${shareClass.name} units`}
+                    >
+                      <span className="text-[18px] leading-none" aria-hidden="true">-</span>
+                    </button>
+                    <span className="min-w-[28px] text-center text-[18px] font-medium text-[#1D1D1F]">
+                      {units}
                     </span>
-                  )}
-                </button>
+                    <button
+                      type="button"
+                      onClick={() => handleIncrement(shareClass.id)}
+                      className="flex h-9 w-9 items-center justify-center rounded-full border border-[#1D1D1F]/20 text-[#1D1D1F] transition-all hover:bg-white active:scale-95"
+                      aria-label={`Increase ${shareClass.name} units`}
+                    >
+                      <span className="text-[18px] leading-none" aria-hidden="true">+</span>
+                    </button>
+                  </div>
+                </div>
               );
             })}
           </div>
-
-          {/* Edit link */}
-          {hasAnyUnits && (
-            <button
-              onClick={handleOpenModal}
-              className="mt-3 flex items-center gap-2 rounded-full px-1 py-3 text-[13px] font-medium text-[#1D1D1F] transition hover:text-[#0066CC]"
-            >
-              <Pencil size={15} strokeWidth={1.8} aria-hidden="true" />
-              <span>Customize units</span>
-            </button>
-          )}
         </section>
 
         {/* ── Total Investment Card ── */}
@@ -414,100 +401,6 @@ export default function OnboardingStep11() {
           </p>
         </section>
       </main>
-
-      {/* ═══ Edit Share Class Modal ═══ */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-[9999] flex items-end justify-center bg-black/45 backdrop-blur-sm">
-          <div
-            ref={allocationModalRef}
-            className="relative flex max-h-[90vh] w-full max-w-md flex-col overflow-hidden rounded-t-[28px] bg-white shadow-[0_-20px_60px_rgba(0,0,0,0.18)] animate-slide-up"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="allocation-modal-title"
-            tabIndex={-1}
-          >
-            {/* Modal Header */}
-            <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b border-[#1D1D1F]/10 bg-white px-6">
-              <button ref={cancelButtonRef} onClick={handleCloseModal} className="text-[14px] font-medium text-[#1D1D1F]/55">Cancel</button>
-              <h2 id="allocation-modal-title" className="text-[14px] font-medium text-[#1D1D1F]">Edit Allocation</h2>
-              <button
-                onClick={handleSaveChanges}
-                disabled={!hasModalChanges || savingModal}
-                className={`text-[14px] font-medium ${hasModalChanges ? 'text-[#0066CC]' : 'text-[#1D1D1F]/28'}`}
-              >
-                {savingModal ? '...' : 'Done'}
-              </button>
-            </header>
-
-            {/* Modal Content */}
-            <div className="flex-1 overflow-y-auto px-5 py-5 pb-48">
-              <div className="grid gap-3">
-                {SHARE_CLASSES.map((shareClass) => {
-                  const units = getModalUnits(shareClass.id);
-                  const subtotal = units * shareClass.unitPrice;
-
-                  return (
-                    <div key={shareClass.id} className="rounded-[18px] bg-[#F5F5F7] p-4 shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.08)]">
-                      <div className="mb-3 flex items-center justify-between">
-                        <div>
-                          <span className="block text-[14px] font-medium text-[#1D1D1F]">{shareClass.name}</span>
-                          <span className="text-[12px] font-normal text-[#1D1D1F]/55">{formatCurrency(shareClass.unitPrice)}/unit</span>
-                        </div>
-                        {shareClass.badge && (
-                          <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-medium text-[#1D1D1F]/55 shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.08)]">{shareClass.badge}</span>
-                        )}
-                      </div>
-
-                      {/* Unit controls */}
-                      <div className="flex items-center justify-between">
-                        <span className="text-[12px] font-normal text-[#1D1D1F]/55">
-                          {units > 0 ? formatCurrency(subtotal) : 'No units'}
-                        </span>
-                        <div className="flex items-center gap-3">
-                          <button
-                            onClick={() => handleDecrement(shareClass.id)}
-                            disabled={units === 0}
-                            className={`flex h-9 w-9 items-center justify-center rounded-full border transition-all ${
-                              units === 0 ? 'border-[#1D1D1F]/10 text-[#1D1D1F]/25' : 'border-[#1D1D1F]/15 text-[#1D1D1F]/60 hover:bg-white active:scale-95'
-                            }`}
-                            aria-label="Decrease units"
-                          >
-                            <span className="text-[18px] leading-none" aria-hidden="true">-</span>
-                          </button>
-                          <span className="min-w-[40px] text-center text-[20px] font-medium text-[#1D1D1F]">{units}</span>
-                          <button
-                            onClick={() => handleIncrement(shareClass.id)}
-                            className="flex h-9 w-9 items-center justify-center rounded-full border border-[#1D1D1F]/20 text-[#1D1D1F] transition-all hover:bg-white active:scale-95"
-                            aria-label="Increase units"
-                          >
-                            <span className="text-[18px] leading-none" aria-hidden="true">+</span>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Modal Total */}
-              <div className="mt-6 rounded-[22px] bg-[#000000] p-5 text-[#F5F5F7]">
-                <div className="flex flex-col items-center text-center gap-1">
-                  <span className="text-[11px] font-medium uppercase tracking-[1.6px] text-[#2997FF]/85">Total Investment</span>
-                  <span className="text-[24px] font-medium tracking-[-0.028em]">
-                    {formatFullCurrency(modalTotalInvestment)}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Animation */}
-      <style>{`
-        @keyframes slide-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        .animate-slide-up { animation: slide-up 0.3s ease-out; }
-      `}</style>
     </div>
   );
 }

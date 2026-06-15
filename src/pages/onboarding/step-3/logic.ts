@@ -1058,7 +1058,7 @@ export function useCombinedLocationLogic() {
         phone_number: phoneNumber,
         phone_country_code: countryCode,
       }));
-      navigate(withLocalOnboardingPreview('/onboarding/step-7'));
+      navigate(withLocalOnboardingPreview('/onboarding/step-4'));
       return;
     }
 
@@ -1087,7 +1087,7 @@ export function useCombinedLocationLogic() {
       if (saveError) {
         throw new Error(saveError.message);
       }
-      navigate('/onboarding/step-7');
+      navigate('/onboarding/step-4');
     } catch (err) {
       console.error('[Step3-Combined] Save error:', err);
       setError('Failed to save. Please try again.');
@@ -1101,7 +1101,7 @@ export function useCombinedLocationLogic() {
   const handleSkip = async () => {
     if (isLoading) return;
     if (isPreview) {
-      navigate(withLocalOnboardingPreview('/onboarding/step-7'));
+      navigate(withLocalOnboardingPreview('/onboarding/step-4'));
       return;
     }
     setIsLoading(true);
@@ -1112,7 +1112,7 @@ export function useCombinedLocationLogic() {
           throw new Error(saveError.message);
         }
       }
-      navigate('/onboarding/step-7');
+      navigate('/onboarding/step-4');
     } catch (err) {
       console.error('[Step3-Combined] Skip save error:', err);
       setError('Failed to save. Please try again.');

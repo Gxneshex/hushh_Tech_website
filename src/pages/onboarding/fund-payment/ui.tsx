@@ -14,7 +14,7 @@ import {
 } from "../../../services/fundPayment/fundPaymentService";
 
 const MEET_CEO_ROUTE = "/onboarding/meet-ceo";
-const STEP_9_ROUTE = "/onboarding/step-9";
+const STEP_9_ROUTE = "/onboarding/step-6";
 const POST_PAYMENT_AUTO_REDIRECT_MS = 8000;
 // Webhook-race tolerance: Stripe's browser redirect to ?payment=success can
 // land before the checkout.session.completed webhook updates our local
