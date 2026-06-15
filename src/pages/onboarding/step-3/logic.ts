@@ -378,6 +378,18 @@ export function useCombinedLocationLogic() {
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [errors, setErrors] = useState<Record<string, string | undefined>>({});
 
+  // Per-field provenance for the "From your bank" notation. Only fields whose
+  // value came from the linked bank (Plaid identity) are marked 'plaid'.
+  const [fieldSources, setFieldSources] = useState<Partial<Record<string, string>>>({});
+  const markFieldEdited = (key: string) => {
+    setFieldSources((prev) => {
+      if (!prev[key]) return prev;
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
+  };
+
   // ─── Derived state ───
   const dobEligibility = resolveDobEligibility(dobMonth, dobDay, dobYear);
   const isUnder18 =
@@ -744,6 +756,64 @@ export function useCombinedLocationLogic() {
       if (initialFormState.state) setAddressState(initialFormState.state);
       if (initialFormState.addressCountry) setAddressCountry(initialFormState.addressCountry);
 
+      // ─── Auto-fill name + phone from the linked bank (Plaid) when the user
+      //     hasn't already saved them, and record per-field provenance for the
+      //     "From your bank" notation. Plaid-sourced address fields are locked
+      //     (manualOverridesRef) so the GPS auto-detect below cannot overwrite
+      //     the bank's authoritative values.
+      if (!onboardingData?.legal_first_name && resolved.values.legal_first_name) {
+        setLegalFirstName(resolved.values.legal_first_name);
+      }
+      if (!onboardingData?.legal_last_name && resolved.values.legal_last_name) {
+        setLegalLastName(resolved.values.legal_last_name);
+      }
+      if (!onboardingData?.phone_number && resolved.values.phone_number) {
+        setPhoneNumber(String(resolved.values.phone_number).replace(/\D/g, '').slice(0, 15));
+      }
+      if (!onboardingData?.phone_country_code && resolved.values.phone_country_code) {
+        setCountryCode(resolved.values.phone_country_code);
+        const matchedBankDial = PHONE_DIAL_CODES.find((o) => o.code === resolved.values.phone_country_code);
+        if (matchedBankDial) setSelectedDialCountryIso(matchedBankDial.iso);
+      }
+
+      const bankSources: Record<string, string> = {};
+      if (resolved.sources.legal_first_name === 'plaid' && resolved.values.legal_first_name) {
+        bankSources.legal_first_name = 'plaid';
+      }
+      if (resolved.sources.legal_last_name === 'plaid' && resolved.values.legal_last_name) {
+        bankSources.legal_last_name = 'plaid';
+      }
+      if (resolved.sources.phone_number === 'plaid' && resolved.values.phone_number) {
+        bankSources.phone_number = 'plaid';
+      }
+      // Address fields: mark + lock only when the final form value still equals the bank value
+      // (the GPS/cached-location patch above may have replaced a truncated bank value).
+      if (resolved.sources.address_line_1 === 'plaid' && initialFormState.addressLine1 === resolved.values.address_line_1) {
+        bankSources.address_line_1 = 'plaid';
+        manualOverridesRef.current.addressLine1 = true;
+      }
+      if (resolved.sources.address_line_2 === 'plaid' && initialFormState.addressLine2 && initialFormState.addressLine2 === resolved.values.address_line_2) {
+        bankSources.address_line_2 = 'plaid';
+        manualOverridesRef.current.addressLine2 = true;
+      }
+      if (resolved.sources.city === 'plaid' && initialFormState.city === resolved.values.city) {
+        bankSources.city = 'plaid';
+        manualOverridesRef.current.city = true;
+      }
+      if (resolved.sources.state === 'plaid' && initialFormState.state === resolved.values.state) {
+        bankSources.state = 'plaid';
+        manualOverridesRef.current.state = true;
+      }
+      if (resolved.sources.zip_code === 'plaid' && initialFormState.zipCode === resolved.values.zip_code) {
+        bankSources.zip_code = 'plaid';
+        manualOverridesRef.current.zipCode = true;
+      }
+      if (resolved.sources.residence_country === 'plaid' && initialFormState.residenceCountry === resolved.values.residence_country) {
+        bankSources.residence_country = 'plaid';
+        manualOverridesRef.current.residenceCountry = true;
+      }
+      if (Object.keys(bankSources).length > 0) setFieldSources(bankSources);
+
       // Fallback: extract country from cached GPS for citizenship/residence
       if (cachedLocation) {
         const cachedCountryName = COUNTRY_CODE_TO_NAME[cachedLocation.countryCode] || cachedLocation.country;
@@ -792,6 +862,7 @@ export function useCombinedLocationLogic() {
 
   const handleResidenceChange = (value: string) => {
     manualOverridesRef.current.residenceCountry = true;
+    markFieldEdited('residence_country');
     residenceCountryRef.current = value;
     setResidenceCountry(value);
     setLocationStatus('manual');
@@ -842,23 +913,27 @@ export function useCombinedLocationLogic() {
   /* ─── Address field handlers ─── */
   const handleAddressLine1Change = (value: string) => {
     manualOverridesRef.current.addressLine1 = true;
+    markFieldEdited('address_line_1');
     setAddressLine1(value);
     if (touched.addressLine1) setErrors((p) => ({ ...p, addressLine1: validateAddress(value) }));
   };
 
   const handleAddressLine2Change = (value: string) => {
     manualOverridesRef.current.addressLine2 = true;
+    markFieldEdited('address_line_2');
     setAddressLine2(value);
   };
 
   const handleAddressCityChange = (value: string) => {
     manualOverridesRef.current.city = true;
+    markFieldEdited('city');
     setAddressCity(value);
     if (touched.addressCity) setErrors((p) => ({ ...p, addressCity: validateLocationText(value, 'City') }));
   };
 
   const handleAddressStateChange = (value: string) => {
     manualOverridesRef.current.state = true;
+    markFieldEdited('state');
     setAddressState(value);
     if (touched.addressState) setErrors((p) => ({ ...p, addressState: validateLocationText(value, 'State / region') }));
   };
@@ -866,6 +941,7 @@ export function useCombinedLocationLogic() {
   const handleZipCodeChange = (value: string) => {
     const next = value.slice(0, 10);
     manualOverridesRef.current.zipCode = true;
+    markFieldEdited('zip_code');
     setZipCode(next);
     if (touched.zipCode) setErrors((p) => ({ ...p, zipCode: validateZip(next) }));
   };
@@ -882,6 +958,7 @@ export function useCombinedLocationLogic() {
   };
 
   const handlePhoneChange = (event: ChangeEvent<HTMLInputElement>) => {
+    markFieldEdited('phone_number');
     setPhoneNumber(event.target.value.replace(/\D/g, '').slice(0, 15));
   };
 
@@ -1072,6 +1149,9 @@ export function useCombinedLocationLogic() {
     handlePhoneChange,
     handleSelectDialCode,
     phoneDialCodes: PHONE_DIAL_CODES,
+    fieldSources,
+    markFieldEdited,
+    hasBankPrefill: Object.values(fieldSources).some((v) => v === 'plaid'),
 
     // Country/Residence
     citizenshipCountry,

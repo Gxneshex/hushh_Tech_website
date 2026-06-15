@@ -25,6 +25,7 @@ import {
   appleFont,
 } from "../../../components/hushh-tech-ui/HushhAppleUI";
 import {
+  BankFilledMarker,
   OptionalMarker,
   RequiredAsterisk,
 } from "../../../components/onboarding-field-marker/FieldMarkers";
@@ -214,6 +215,27 @@ export default function OnboardingStep3Combined() {
             </div>
           )}
 
+          {s.hasBankPrefill && (
+            <div className="mb-6 flex items-center gap-4 rounded-[18px] bg-[#0066CC]/[0.07] px-4 py-4 shadow-[inset_0_0_0_1px_rgba(0,102,204,0.16)]">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-white">
+                <span
+                  className="material-symbols-outlined text-lg text-[#0066CC]"
+                  style={{ fontVariationSettings: "'FILL' 1, 'wght' 600" }}
+                >
+                  account_balance
+                </span>
+              </div>
+              <div>
+                <p className="text-[14px] font-medium text-[#1D1D1F]">
+                  Pre-filled from your linked bank
+                </p>
+                <p className="text-[12px] font-normal text-[#1D1D1F]/55">
+                  Review and edit anything below before continuing.
+                </p>
+              </div>
+            </div>
+          )}
+
           <div className="space-y-5">
             <section className={panelClass}>
               <div className="mb-5">
@@ -233,12 +255,16 @@ export default function OnboardingStep3Combined() {
                   <span className={compactLabelClass}>
                     First Name
                     <RequiredAsterisk />
+                    {s.fieldSources["legal_first_name"] === "plaid" && <BankFilledMarker />}
                   </span>
                   <input
                     id="legalFirstName"
                     type="text"
                     value={s.legalFirstName}
-                    onChange={(e) => s.setLegalFirstName(e.target.value)}
+                    onChange={(e) => {
+                      s.setLegalFirstName(e.target.value);
+                      s.markFieldEdited("legal_first_name");
+                    }}
                     placeholder="First name"
                     className={inputClass}
                     autoComplete="given-name"
@@ -248,12 +274,16 @@ export default function OnboardingStep3Combined() {
                   <span className={compactLabelClass}>
                     Last Name
                     <RequiredAsterisk />
+                    {s.fieldSources["legal_last_name"] === "plaid" && <BankFilledMarker />}
                   </span>
                   <input
                     id="legalLastName"
                     type="text"
                     value={s.legalLastName}
-                    onChange={(e) => s.setLegalLastName(e.target.value)}
+                    onChange={(e) => {
+                      s.setLegalLastName(e.target.value);
+                      s.markFieldEdited("legal_last_name");
+                    }}
                     placeholder="Last name"
                     className={inputClass}
                     autoComplete="family-name"
@@ -402,6 +432,7 @@ export default function OnboardingStep3Combined() {
                     <span className={labelClass}>
                       Residence
                       <RequiredAsterisk />
+                      {s.fieldSources["residence_country"] === "plaid" && <BankFilledMarker />}
                     </span>
                     <div className="relative">
                       <select
@@ -441,6 +472,7 @@ export default function OnboardingStep3Combined() {
                     <span className={labelClass}>
                       Street Address
                       <RequiredAsterisk />
+                      {s.fieldSources["address_line_1"] === "plaid" && <BankFilledMarker />}
                     </span>
                     <input
                       id="addressLine1"
@@ -463,6 +495,7 @@ export default function OnboardingStep3Combined() {
                     <span className={labelClass}>
                       Apt / Suite
                       <OptionalMarker />
+                      {s.fieldSources["address_line_2"] === "plaid" && <BankFilledMarker />}
                     </span>
                     <input
                       id="addressLine2"
@@ -480,6 +513,7 @@ export default function OnboardingStep3Combined() {
                       <span className={labelClass}>
                         City
                         <RequiredAsterisk />
+                        {s.fieldSources["city"] === "plaid" && <BankFilledMarker />}
                       </span>
                       <input
                         id="city"
@@ -496,6 +530,7 @@ export default function OnboardingStep3Combined() {
                       <span className={labelClass}>
                         State / Region
                         <RequiredAsterisk />
+                        {s.fieldSources["state"] === "plaid" && <BankFilledMarker />}
                       </span>
                       <input
                         id="state"
@@ -512,6 +547,7 @@ export default function OnboardingStep3Combined() {
                       <span className={labelClass}>
                         Postal Code
                         <RequiredAsterisk />
+                        {s.fieldSources["zip_code"] === "plaid" && <BankFilledMarker />}
                       </span>
                       <input
                         id="zipCode"
@@ -658,6 +694,7 @@ export default function OnboardingStep3Combined() {
                     <span className={labelClass}>
                       Contact Number
                       <RequiredAsterisk />
+                      {s.fieldSources["phone_number"] === "plaid" && <BankFilledMarker />}
                     </span>
                     <input
                       id="phoneNumber"
