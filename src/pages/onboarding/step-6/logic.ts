@@ -159,10 +159,6 @@ export function useStep9Logic() {
   const [showDialPicker, setShowDialPicker] = useState(false);
   const [isPreFilledFromBank, setIsPreFilledFromBank] = useState(false);
   const [isUsInvestor, setIsUsInvestor] = useState(false);
-  const [otpSent, setOtpSent] = useState(false);
-  const [otpCode, setOtpCode] = useState('');
-  const [otpInput, setOtpInput] = useState('');
-  const [isPhoneVerified, setIsPhoneVerified] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showInfo, setShowInfo] = useState(false);
@@ -255,9 +251,6 @@ export function useStep9Logic() {
   const handleSSNChange = (e: ChangeEvent<HTMLInputElement>) => setSsn(formatSSN(e.target.value));
   const handlePhoneChange = (e: ChangeEvent<HTMLInputElement>) => {
     setPhoneNumber(e.target.value.replace(/\D/g, '').slice(0, 15));
-    setIsPhoneVerified(false);
-    setOtpSent(false);
-    setOtpInput('');
     if (isPreFilledFromBank) setIsPreFilledFromBank(false);
   };
 
@@ -269,50 +262,20 @@ export function useStep9Logic() {
 
   const isValidPhone = phoneNumber.length >= 8 && phoneNumber.length <= 15;
   const isValidSsn = ssn.replace(/\D/g, '').length === 9;
-  const canSendOtp = isValidPhone && !isPhoneVerified;
   const isTaxReady = !isUsInvestor || isValidSsn;
-  const canContinue = Boolean(selectedAccountType && isTaxReady && isValidPhone && isPhoneVerified);
+  const canContinue = Boolean(selectedAccountType && isTaxReady && isValidPhone);
 
   /* ─── Handlers ─── */
   const handleSelectDialCode = (option: DialCodeOption) => {
     setCountryCode(option.code);
     setSelectedDialCountryIso(option.iso);
     setShowDialPicker(false);
-    setIsPhoneVerified(false);
-    setOtpSent(false);
-  };
-
-  const handleSendOtp = () => {
-    if (!isValidPhone) {
-      setError('Please enter a valid contact number');
-      return;
-    }
-    const nextCode = '240924';
-    setOtpCode(nextCode);
-    setOtpSent(true);
-    setOtpInput('');
-    setIsPhoneVerified(false);
-    setError(null);
-  };
-
-  const handleVerifyOtp = () => {
-    if (!otpSent) {
-      setError('Send the verification code first');
-      return;
-    }
-    if (otpInput.trim() !== otpCode) {
-      setError('That code does not match');
-      return;
-    }
-    setIsPhoneVerified(true);
-    setError(null);
   };
 
   const handleContinue = async () => {
     if (!selectedAccountType) { setError('Please choose an account type'); return; }
     if (isUsInvestor && !isValidSsn) { setError('Please enter a valid SSN for US tax reporting'); return; }
     if (!isValidPhone) { setError('Please enter a valid contact number'); return; }
-    if (!isPhoneVerified) { setError('Please verify your contact number'); return; }
     if (isPreview) {
       navigate(withLocalOnboardingPreview('/onboarding/step-7'));
       return;
@@ -351,11 +314,6 @@ export function useStep9Logic() {
     setShowDialPicker,
     isPreFilledFromBank,
     isUsInvestor,
-    otpSent,
-    otpCode,
-    otpInput,
-    setOtpInput,
-    isPhoneVerified,
     loading,
     error,
     showInfo,
@@ -365,7 +323,6 @@ export function useStep9Logic() {
     // Derived
     selectedDialOption,
     isValidPhone,
-    canSendOtp,
     formatPhoneNumber,
     isTaxReady,
 
@@ -373,8 +330,6 @@ export function useStep9Logic() {
     handleSSNChange,
     handlePhoneChange,
     handleSelectDialCode,
-    handleSendOtp,
-    handleVerifyOtp,
     handleContinue,
     handleSkip,
     handleBack,

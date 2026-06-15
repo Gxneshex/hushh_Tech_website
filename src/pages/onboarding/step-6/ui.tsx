@@ -55,24 +55,16 @@ export default function OnboardingStep9() {
     isAutoDetectingDialCode,
     isPreFilledFromBank,
     isUsInvestor,
-    otpSent,
-    otpCode,
-    otpInput,
-    setOtpInput,
-    isPhoneVerified,
     loading,
     error,
     showInfo,
     canContinue,
     selectedDialOption,
     isValidPhone,
-    canSendOtp,
     formatPhoneNumber,
     handleSSNChange,
     handlePhoneChange,
     handleSelectDialCode,
-    handleSendOtp,
-    handleVerifyOtp,
     handleContinue,
     handleSkip,
     handleBack,
@@ -285,47 +277,6 @@ export default function OnboardingStep9() {
             </div>
           )}
 
-          <div className="mt-5 grid gap-3 sm:grid-cols-[1fr_auto]">
-            <input
-              type="text"
-              value={otpInput}
-              onChange={(e) => setOtpInput(e.target.value.replace(/\D/g, '').slice(0, 6))}
-              placeholder={otpSent ? "Enter 6-digit code" : "Send a code to verify"}
-              disabled={!otpSent || isPhoneVerified}
-              className="w-full rounded-[16px] border-none bg-white px-4 py-3 text-[15px] font-medium tracking-[0.18em] text-[#1D1D1F] outline-none placeholder:tracking-normal placeholder:text-[#1D1D1F]/35 disabled:opacity-55 shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.10)]"
-              inputMode="numeric"
-            />
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-none sm:grid-flow-col">
-              <button
-                type="button"
-                onClick={handleSendOtp}
-                disabled={!canSendOtp}
-                className="rounded-full bg-white px-4 py-3 text-[13px] font-medium text-[#0066CC] shadow-[inset_0_0_0_0.5px_rgba(0,102,204,0.24)] disabled:cursor-not-allowed disabled:opacity-45"
-              >
-                Send code
-              </button>
-              <button
-                type="button"
-                onClick={handleVerifyOtp}
-                disabled={!otpSent || isPhoneVerified}
-                className="rounded-full bg-[#1D1D1F] px-4 py-3 text-[13px] font-medium text-white disabled:cursor-not-allowed disabled:opacity-45"
-              >
-                {isPhoneVerified ? "Verified" : "Verify"}
-              </button>
-            </div>
-          </div>
-
-          {otpSent && !isPhoneVerified && (
-            <p className="mt-3 text-[11px] font-normal text-[#1D1D1F]/45">
-              Local preview code: <span className="font-medium text-[#1D1D1F]/65">{otpCode}</span>
-            </p>
-          )}
-          {isPhoneVerified && (
-            <p className="mt-3 flex items-center gap-1.5 text-[11px] font-medium text-[#34C759]">
-              <Check size={13} strokeWidth={2} />
-              Contact number verified for this local run.
-            </p>
-          )}
           {!isValidPhone && phoneNumber && (
             <p className="mt-3 text-[11px] font-medium text-[#FF3B30]">
               Enter 8 to 15 digits before sending the code.
@@ -359,7 +310,7 @@ export default function OnboardingStep9() {
             </span>
           </div>
           <p className="max-w-xs text-[10px] font-light text-[#1D1D1F]/45">
-            OTP here is local-only for the compression experiment.
+            Your details are stored securely for investor review.
           </p>
         </section>
       </main>

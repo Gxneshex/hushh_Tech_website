@@ -347,10 +347,6 @@ export function useCombinedLocationLogic() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [countryCode, setCountryCode] = useState('+1');
   const [selectedDialCountryIso, setSelectedDialCountryIso] = useState('US');
-  const [otpSent, setOtpSent] = useState(false);
-  const [otpCode, setOtpCode] = useState('');
-  const [otpInput, setOtpInput] = useState('');
-  const [isPhoneVerified, setIsPhoneVerified] = useState(false);
 
   // ─── Country/Residence fields ───
   const [citizenshipCountry, setCitizenshipCountry] = useState('');
@@ -400,7 +396,6 @@ export function useCombinedLocationLogic() {
   const isValidSsn = ssn.replace(/\D/g, '').length === 9;
   const isTaxReady = !isUsInvestor || isValidSsn;
   const isValidPhone = phoneNumber.length >= 8 && phoneNumber.length <= 15;
-  const canSendOtp = isValidPhone && !isPhoneVerified;
   const selectedDialOption = useMemo(() => {
     return PHONE_DIAL_CODES.find((option) => option.code === countryCode && option.iso === selectedDialCountryIso)
       || PHONE_DIAL_CODES.find((option) => option.code === countryCode)
@@ -417,8 +412,7 @@ export function useCombinedLocationLogic() {
     addressState.trim() &&
     zipCode.trim() &&
     isTaxReady &&
-    isValidPhone &&
-    isPhoneVerified
+    isValidPhone
   );
   const isErrorStatus = locationStatus === 'denied' || locationStatus === 'failed';
   const isSuccessStatus = locationStatus === 'success' || locationStatus === 'ip-success';
@@ -586,7 +580,6 @@ export function useCombinedLocationLogic() {
           if (parsed.ssn_encrypted) setSsn(String(parsed.ssn_encrypted));
           if (parsed.phone_number) {
             setPhoneNumber(String(parsed.phone_number).replace(/\D/g, ''));
-            setIsPhoneVerified(Boolean(parsed.phone_verified));
           }
           if (parsed.phone_country_code) setCountryCode(String(parsed.phone_country_code));
         }
@@ -890,42 +883,11 @@ export function useCombinedLocationLogic() {
 
   const handlePhoneChange = (event: ChangeEvent<HTMLInputElement>) => {
     setPhoneNumber(event.target.value.replace(/\D/g, '').slice(0, 15));
-    setIsPhoneVerified(false);
-    setOtpSent(false);
-    setOtpInput('');
   };
 
   const handleSelectDialCode = (option: DialCodeOption) => {
     setCountryCode(option.code);
     setSelectedDialCountryIso(option.iso);
-    setIsPhoneVerified(false);
-    setOtpSent(false);
-    setOtpInput('');
-  };
-
-  const handleSendOtp = () => {
-    if (!isValidPhone) {
-      setError('Please enter a valid contact number');
-      return;
-    }
-    setOtpCode('240924');
-    setOtpSent(true);
-    setOtpInput('');
-    setIsPhoneVerified(false);
-    setError(null);
-  };
-
-  const handleVerifyOtp = () => {
-    if (!otpSent) {
-      setError('Send the verification code first');
-      return;
-    }
-    if (otpInput.trim() !== otpCode) {
-      setError('That code does not match');
-      return;
-    }
-    setIsPhoneVerified(true);
-    setError(null);
   };
 
   const validate = (field: string, value: string) => {
@@ -999,11 +961,6 @@ export function useCombinedLocationLogic() {
       return;
     }
 
-    if (!isPhoneVerified) {
-      setError('Please verify your contact number');
-      return;
-    }
-
     if (isPreview) {
       const saved = window.localStorage.getItem('hushh_onboarding_preview');
       const parsed = saved ? JSON.parse(saved) : {};
@@ -1023,7 +980,6 @@ export function useCombinedLocationLogic() {
         ssn_encrypted: ssn || (isUsInvestor ? null : '999-99-9999'),
         phone_number: phoneNumber,
         phone_country_code: countryCode,
-        phone_verified: true,
       }));
       navigate(withLocalOnboardingPreview('/onboarding/step-7'));
       return;
@@ -1109,20 +1065,12 @@ export function useCombinedLocationLogic() {
     phoneNumber,
     countryCode,
     selectedDialOption,
-    otpSent,
-    otpCode,
-    otpInput,
-    setOtpInput,
-    isPhoneVerified,
     isUsInvestor,
     isValidPhone,
-    canSendOtp,
     formatPhoneNumber,
     handleSSNChange,
     handlePhoneChange,
     handleSelectDialCode,
-    handleSendOtp,
-    handleVerifyOtp,
     phoneDialCodes: PHONE_DIAL_CODES,
 
     // Country/Residence

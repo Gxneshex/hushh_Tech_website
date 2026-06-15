@@ -38,7 +38,6 @@ interface ReviewSummary {
   date_of_birth: string | null;
   phone_number: string | null;
   phone_country_code: string | null;
-  phone_verified: boolean | null;
   citizenship_country: string | null;
   residence_country: string | null;
   address_line_1: string | null;
@@ -198,7 +197,7 @@ export default function OnboardingReviewStep() {
         .from('onboarding_data')
         .select(`
           legal_first_name, legal_last_name, date_of_birth,
-          phone_number, phone_country_code, phone_verified,
+          phone_number, phone_country_code,
           ssn_encrypted, account_type,
           citizenship_country, residence_country,
           address_line_1, address_line_2, city, state, zip_code, address_country,
@@ -233,7 +232,7 @@ export default function OnboardingReviewStep() {
     summary?.phone_country_code,
     summary?.phone_number,
   ]);
-  const isPhoneMissing = !summary?.phone_number?.trim() || summary?.phone_verified === false;
+  const isPhoneMissing = !summary?.phone_number?.trim();
 
   const residence = joinParts([
     summary?.residence_country,
@@ -373,7 +372,7 @@ export default function OnboardingReviewStep() {
                 value={
                   isPhoneMissing
                     ? 'Missing required detail'
-                    : `${phone}${summary?.phone_verified ? ' • verified' : ''}`
+                    : phone
                 }
                 editLabel="Edit"
                 onEdit={() => goTo('/onboarding/step-3')}

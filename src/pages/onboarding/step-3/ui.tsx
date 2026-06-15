@@ -620,7 +620,7 @@ export default function OnboardingStep3Combined() {
                   Contact
                 </h3>
                 <p className="mt-1 text-[13px] font-normal leading-[1.45] text-[#1D1D1F]/50">
-                  Phone verification keeps investor review updates secure.
+                  We'll use this to share investor-review updates.
                 </p>
               </div>
 
@@ -671,46 +671,6 @@ export default function OnboardingStep3Combined() {
                   </label>
                 </div>
 
-                <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
-                  <input
-                    type="text"
-                    value={s.otpInput}
-                    onChange={(event) => s.setOtpInput(event.target.value.replace(/\D/g, "").slice(0, 6))}
-                    placeholder={s.otpSent ? "Enter 6-digit code" : "Send a code to verify"}
-                    disabled={!s.otpSent || s.isPhoneVerified}
-                    className="h-12 w-full rounded-[16px] border-none bg-white px-4 text-[15px] font-medium tracking-[0.18em] text-[#1D1D1F] outline-none placeholder:tracking-normal placeholder:text-[#1D1D1F]/35 disabled:opacity-55 shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.10)]"
-                    inputMode="numeric"
-                  />
-                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-none sm:grid-flow-col">
-                    <button
-                      type="button"
-                      onClick={s.handleSendOtp}
-                      disabled={!s.canSendOtp}
-                      className="rounded-full bg-white px-4 py-3 text-[13px] font-medium text-[#0066CC] shadow-[inset_0_0_0_0.5px_rgba(0,102,204,0.24)] disabled:cursor-not-allowed disabled:opacity-45"
-                    >
-                      Send code
-                    </button>
-                    <button
-                      type="button"
-                      onClick={s.handleVerifyOtp}
-                      disabled={!s.otpSent || s.isPhoneVerified}
-                      className="rounded-full bg-[#1D1D1F] px-4 py-3 text-[13px] font-medium text-white disabled:cursor-not-allowed disabled:opacity-45"
-                    >
-                      {s.isPhoneVerified ? "Verified" : "Verify"}
-                    </button>
-                  </div>
-                </div>
-
-                {s.otpSent && !s.isPhoneVerified && (
-                  <p className="px-1 text-[11px] font-normal text-[#1D1D1F]/45">
-                    Local preview code: <span className="font-medium text-[#1D1D1F]/65">{s.otpCode}</span>
-                  </p>
-                )}
-                {s.isPhoneVerified && (
-                  <p className="px-1 text-[11px] font-medium text-[#34C759]">
-                    Contact number verified.
-                  </p>
-                )}
                 {!s.isValidPhone && s.phoneNumber && (
                   <p className="px-1 text-[11px] font-medium text-[#FF3B30]">
                     Enter 8 to 15 digits before sending the code.
