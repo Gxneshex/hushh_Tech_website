@@ -17,6 +17,7 @@ import HushhTechCta, {
   HushhTechCtaVariant,
 } from "../../../components/hushh-tech-cta/HushhTechCta";
 import PermissionHelpModal from "../../../components/PermissionHelpModal";
+import ConsentCheckbox from "../../../components/consent/ConsentCheckbox";
 import { useModalKeyboardNavigation } from "../../../hooks/useModalKeyboardNavigation";
 import {
   Display,
@@ -735,6 +736,19 @@ export default function OnboardingStep3Combined() {
               </div>
             </section>
           </div>
+
+          {/* ── Legal-residence attestation (required) ── */}
+          <section className="pt-2">
+            <ConsentCheckbox
+              id="residence-attest"
+              checked={s.residenceAttested}
+              onChange={s.handleResidenceAttestChange}
+              error={s.residenceAttestError}
+            >
+              I confirm the details above are my legal/permanent residence used for
+              investor verification — not a temporary or current travel location.
+            </ConsentCheckbox>
+          </section>
 
           {/* ── CTAs — Continue & Skip ── */}
           <section className="pb-12 space-y-3 mt-4">

@@ -19,6 +19,7 @@ import {
 } from '../../../services/onboarding/flow';
 import { resolveOnboardingPrefill } from '../../../services/onboarding/prefill';
 import { upsertOnboardingData } from '../../../services/onboarding/upsertOnboardingData';
+import { CONSENT_VERSION } from '../../../services/consent/consentConfig';
 import { useFooterVisibility } from '../../../utils/useFooterVisibility';
 import {
   locationService,
@@ -311,6 +312,40 @@ export const buildStep3SavePayload = ({
   return payload;
 };
 
+/**
+ * Per-field provenance / verification tier for the captured KYC fields, so review
+ * + audit can distinguish bank-verified data from self-declared data. A field is
+ * `bank_verified` only when its value still carries the Plaid 'plaid' source tag
+ * (i.e. the user did not edit away from the bank value); everything else is
+ * `self_declared`. The device's current GPS location is NEVER a legal source, so
+ * it never produces a tier here. (`document_verified` from Stripe Identity is
+ * layered in by a later phase.)
+ */
+export type FieldVerificationTier = 'bank_verified' | 'document_verified' | 'self_declared';
+
+export const STEP3_PROVENANCE_FIELDS = [
+  'legal_first_name',
+  'legal_last_name',
+  'phone_number',
+  'residence_country',
+  'address_line_1',
+  'address_line_2',
+  'city',
+  'state',
+  'zip_code',
+  'address_country',
+] as const;
+
+export const buildStep3FieldProvenance = (
+  fieldSources: Partial<Record<string, string>>,
+): Record<string, FieldVerificationTier> => {
+  const provenance: Record<string, FieldVerificationTier> = {};
+  for (const field of STEP3_PROVENANCE_FIELDS) {
+    provenance[field] = fieldSources[field] === 'plaid' ? 'bank_verified' : 'self_declared';
+  }
+  return provenance;
+};
+
 const isUnitedStatesInvestor = (country?: string | null) => {
   const normalized = String(country || '').trim().toLowerCase();
   return normalized === 'united states' ||
@@ -402,6 +437,17 @@ export function useCombinedLocationLogic() {
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [errors, setErrors] = useState<Record<string, string | undefined>>({});
 
+  // ─── Legal-residence attestation ───
+  // The investor must explicitly affirm the captured address is their LEGAL /
+  // permanent residence (not merely where they currently are). Required to
+  // continue; persisted as residence_attested_at + consent_version for audit.
+  const [residenceAttested, setResidenceAttested] = useState(false);
+  const [residenceAttestError, setResidenceAttestError] = useState(false);
+  const handleResidenceAttestChange = (checked: boolean) => {
+    setResidenceAttested(checked);
+    if (checked) setResidenceAttestError(false);
+  };
+
   // Per-field provenance for the "From your bank" notation. Only fields whose
   // value came from the linked bank (Plaid identity) are marked 'plaid'.
   const [fieldSources, setFieldSources] = useState<Partial<Record<string, string>>>({});
@@ -448,7 +494,8 @@ export function useCombinedLocationLogic() {
     addressState.trim() &&
     zipCode.trim() &&
     isTaxReady &&
-    isValidPhone
+    isValidPhone &&
+    residenceAttested
   );
   const isErrorStatus = locationStatus === 'denied' || locationStatus === 'failed';
   const isSuccessStatus = locationStatus === 'success' || locationStatus === 'ip-success';
@@ -777,6 +824,10 @@ export function useCombinedLocationLogic() {
       if (initialFormState.state) setAddressState(initialFormState.state);
       if (initialFormState.addressCountry) setAddressCountry(initialFormState.addressCountry);
 
+      // Returning investor who already attested their legal residence — pre-check
+      // so we do not force a re-attestation on every visit.
+      if (onboardingData?.residence_attested_at) setResidenceAttested(true);
+
       // ─── Auto-fill name + phone from the linked bank (Plaid) when the user
       //     hasn't already saved them, and record per-field provenance for the
       //     "From your bank" notation. Plaid-sourced address fields are locked
@@ -1063,6 +1114,12 @@ export function useCombinedLocationLogic() {
       return;
     }
 
+    if (!residenceAttested) {
+      setResidenceAttestError(true);
+      setError('Please confirm this is your legal/permanent residence');
+      return;
+    }
+
     if (isPreview) {
       const saved = window.localStorage.getItem('hushh_onboarding_preview');
       const parsed = saved ? JSON.parse(saved) : {};
@@ -1107,6 +1164,13 @@ export function useCombinedLocationLogic() {
       payload.ssn_encrypted = ssn || (isUsInvestor ? null : '999-99-9999');
       payload.phone_number = phoneNumber;
       payload.phone_country_code = countryCode;
+      // Per-field provenance (bank-verified vs self-declared) + explicit
+      // legal-residence attestation, for KYC review + audit. upsertOnboardingData
+      // drops these columns gracefully if the migration has not yet reached the
+      // environment, so this never blocks the save.
+      payload.field_provenance = buildStep3FieldProvenance(fieldSources);
+      payload.residence_attested_at = new Date().toISOString();
+      payload.consent_version = CONSENT_VERSION;
 
       const { error: saveError } = await upsertOnboardingData(userId, payload);
       if (saveError) {
@@ -1226,6 +1290,11 @@ export function useCombinedLocationLogic() {
     handleContinue,
     handleBack,
     handleSkip,
+
+    // Legal-residence attestation
+    residenceAttested,
+    residenceAttestError,
+    handleResidenceAttestChange,
 
     // UI state
     isLoading,
