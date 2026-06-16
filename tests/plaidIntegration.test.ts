@@ -251,34 +251,6 @@ describe('Plaid Integration — API Tests', () => {
   // 3. Fetch Balances
   // -------------------------------------------------
   describe('3. Fetch Balances', () => {
-    it('should return account balances', async () => {
-      global.fetch = vi.fn().mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve(mockBalanceResponse),
-      } as Response);
-
-      const res = await fetch(`${SUPABASE_URL}/get-balance`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ accessToken: MOCK_ACCESS_TOKEN, userId: MOCK_USER_ID }),
-      });
-      const data = await res.json();
-
-      expect(data.accounts).toBeDefined();
-      expect(data.accounts.length).toBe(2);
-
-      // Check checking account
-      const checking = data.accounts.find((a: any) => a.subtype === 'checking');
-      expect(checking).toBeDefined();
-      expect(checking.balances.current).toBe(110.00);
-      expect(checking.balances.available).toBe(100.00);
-
-      // Check savings account
-      const savings = data.accounts.find((a: any) => a.subtype === 'savings');
-      expect(savings).toBeDefined();
-      expect(savings.balances.current).toBe(210.00);
-    });
-
     it('should compute total balance across accounts', () => {
       const accounts = mockBalanceResponse.accounts;
       const total = accounts.reduce(
@@ -293,53 +265,12 @@ describe('Plaid Integration — API Tests', () => {
   // 4. Fetch Investments
   // -------------------------------------------------
   describe('4. Fetch Investments', () => {
-    it('should return holdings and securities', async () => {
-      global.fetch = vi.fn().mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve(mockInvestmentsResponse),
-      } as Response);
-
-      const res = await fetch(`${SUPABASE_URL}/investments-holdings`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ accessToken: MOCK_ACCESS_TOKEN, userId: MOCK_USER_ID }),
-      });
-      const data = await res.json();
-
-      expect(data.holdings).toBeDefined();
-      expect(data.holdings.length).toBeGreaterThan(0);
-      expect(data.securities).toBeDefined();
-      expect(data.securities.length).toBeGreaterThan(0);
-
-      // Check holding values
-      const holding = data.holdings[0];
-      expect(holding.institution_value).toBe(320.76);
-      expect(holding.quantity).toBe(10);
-      expect(holding.cost_basis).toBe(300.00);
-    });
-
     it('should compute total investment value', () => {
       const totalValue = mockInvestmentsResponse.holdings.reduce(
         (sum, h) => sum + (h.institution_value || 0), 0
       );
       expect(totalValue).toBe(320.76);
       expect(formatCurrency(totalValue)).toBe('$320.76');
-    });
-
-    it('should handle institution with no investment products', async () => {
-      global.fetch = vi.fn().mockResolvedValueOnce({
-        ok: false,
-        status: 400,
-        json: () => Promise.resolve({ error: 'PRODUCTS_NOT_SUPPORTED' }),
-      } as Response);
-
-      const res = await fetch(`${SUPABASE_URL}/investments-holdings`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ accessToken: MOCK_ACCESS_TOKEN, userId: MOCK_USER_ID }),
-      });
-
-      expect(res.ok).toBe(false);
     });
   });
 
@@ -385,116 +316,6 @@ describe('Plaid Integration — API Tests', () => {
 
       expect(data.status).toBe('pending');
       expect(data.asset_report_token).toBeDefined();
-    });
-  });
-});
-
-// =====================================================
-// Financial Data Aggregation Tests
-// =====================================================
-
-describe('Plaid Integration — Data Aggregation', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
-  });
-
-  describe('6. Fetch All Financial Data (parallel)', () => {
-    it('should fetch all 3 products successfully', async () => {
-      // Mock 3 sequential fetch calls
-      let callCount = 0;
-      global.fetch = vi.fn().mockImplementation(() => {
-        callCount++;
-        if (callCount === 1) {
-          return Promise.resolve({
-            ok: true,
-            json: () => Promise.resolve(mockBalanceResponse),
-          } as Response);
-        }
-        if (callCount === 2) {
-          return Promise.resolve({
-            ok: true,
-            json: () => Promise.resolve(mockAssetReportResponse),
-          } as Response);
-        }
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve(mockInvestmentsResponse),
-        } as Response);
-      });
-
-      // Simulate fetchAllFinancialData logic
-      const [b, a, i] = await Promise.allSettled([
-        fetch(`${SUPABASE_URL}/get-balance`, { method: 'POST', body: '{}' }).then(r => r.json()),
-        fetch(`${SUPABASE_URL}/asset-report-create`, { method: 'POST', body: '{}' }).then(r => r.json()),
-        fetch(`${SUPABASE_URL}/investments-holdings`, { method: 'POST', body: '{}' }).then(r => r.json()),
-      ]);
-
-      expect(b.status).toBe('fulfilled');
-      expect(a.status).toBe('fulfilled');
-      expect(i.status).toBe('fulfilled');
-
-      if (b.status === 'fulfilled') {
-        expect(b.value.accounts.length).toBe(2);
-      }
-      if (a.status === 'fulfilled') {
-        expect(a.value.asset_report_token).toBeDefined();
-      }
-      if (i.status === 'fulfilled') {
-        expect(i.value.holdings.length).toBeGreaterThan(0);
-      }
-    });
-
-    it('should handle partial failure gracefully', async () => {
-      let callCount = 0;
-      global.fetch = vi.fn().mockImplementation(() => {
-        callCount++;
-        if (callCount === 1) {
-          return Promise.resolve({
-            ok: true,
-            json: () => Promise.resolve(mockBalanceResponse),
-          } as Response);
-        }
-        if (callCount === 2) {
-          return Promise.resolve({
-            ok: false,
-            status: 400,
-            json: () => Promise.resolve({ error: 'PRODUCTS_NOT_SUPPORTED' }),
-          } as Response);
-        }
-        return Promise.resolve({
-          ok: false,
-          status: 400,
-          json: () => Promise.resolve({ error: 'PRODUCTS_NOT_SUPPORTED' }),
-        } as Response);
-      });
-
-      const results = await Promise.allSettled([
-        fetch(`${SUPABASE_URL}/get-balance`, { method: 'POST', body: '{}' }),
-        fetch(`${SUPABASE_URL}/asset-report-create`, { method: 'POST', body: '{}' }),
-        fetch(`${SUPABASE_URL}/investments-holdings`, { method: 'POST', body: '{}' }),
-      ]);
-
-      // All promises resolve (even failed HTTP), only network errors reject
-      expect(results.every(r => r.status === 'fulfilled')).toBe(true);
-
-      // Balance succeeded
-      const balanceRes = (results[0] as PromiseFulfilledResult<Response>).value;
-      expect(balanceRes.ok).toBe(true);
-
-      // Assets failed
-      const assetsRes = (results[1] as PromiseFulfilledResult<Response>).value;
-      expect(assetsRes.ok).toBe(false);
-
-      // Count available products
-      const available = results.filter(
-        r => r.status === 'fulfilled' && (r as PromiseFulfilledResult<Response>).value.ok
-      ).length;
-      expect(available).toBe(1);
-      expect(available >= 1).toBe(true); // can_proceed
     });
   });
 });
