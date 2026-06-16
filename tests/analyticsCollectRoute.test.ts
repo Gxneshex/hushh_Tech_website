@@ -283,6 +283,62 @@ describe("analytics collect route", () => {
     );
   });
 
+  it("accepts privacy-safe behavior tracking events", async () => {
+    const { default: handler } = await import("../api/analytics/collect.js");
+    const req = {
+      method: "POST",
+      headers: {},
+      body: {
+        anonymousId: "anon-123",
+        sessionId: "session-123",
+        events: [
+          {
+            eventId: "event-behavior-1",
+            eventName: "ui_interaction",
+            occurredAt: "2026-04-28T10:00:00.000Z",
+            routePath: "/profile/person@example.com?token=secret",
+            properties: {
+              action: "navigate",
+              category: "interaction",
+              element: "profile-link",
+              role: "link",
+              controlType: "",
+              targetRoute: "/profile/:id",
+              outbound: false,
+              label: "person@example.com secret text",
+            },
+          },
+        ],
+      },
+    };
+    const res = createResponse();
+
+    await handler(req, res);
+
+    expect(res.statusCode).toBe(202);
+    expect(eventUpsert).toHaveBeenCalledWith(
+      [
+        expect.objectContaining({
+          event_name: "ui_interaction",
+          route_path: "/profile/:id",
+          properties: {
+            action: "navigate",
+            category: "interaction",
+            element: "profile-link",
+            role: "link",
+            controlType: "",
+            targetRoute: "/profile/:id",
+            outbound: false,
+          },
+        }),
+      ],
+      { onConflict: "event_id", ignoreDuplicates: true }
+    );
+    expect(JSON.stringify(eventUpsert.mock.calls.at(-1))).not.toContain(
+      "person@example.com secret text"
+    );
+  });
+
   it("accepts without console-failing when analytics tables are not deployed yet", async () => {
     sessionSingle.mockResolvedValueOnce({
       data: null,

@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import config from '../../../resources/config/config';
 import { upsertOnboardingData } from '../../../services/onboarding/upsertOnboardingData';
+import { trackCta, trackStepCompleted, trackStepSkipped } from '../../../services/onboarding/onboardingAnalytics';
 import {
   FINANCIAL_LINK_REVIEW_ROUTE,
   TOTAL_VISIBLE_ONBOARDING_STEPS,
@@ -180,6 +181,7 @@ export const useStep1Logic = (): Step1Logic => {
   };
 
   const handleContinue = async () => {
+    trackCta('continue', 'step-1');
     if (!canContinue) return;
     if (isPreview) {
       savePreview();
@@ -194,6 +196,7 @@ export const useStep1Logic = (): Step1Logic => {
         referral_source_other: effectiveDetailValue || null,
         current_step: 2,
       });
+      trackStepCompleted('step-1', 1);
       navigate('/onboarding/step-2');
     } finally {
       setIsLoading(false);
@@ -201,6 +204,8 @@ export const useStep1Logic = (): Step1Logic => {
   };
 
   const handleSkip = async () => {
+    trackCta('skip', 'step-1');
+    trackStepSkipped('step-1');
     if (isPreview) {
       navigate(withLocalOnboardingPreview('/onboarding/step-2'));
       return;

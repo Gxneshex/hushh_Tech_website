@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import config from '../../../resources/config/config';
+import { trackCta } from '../../../services/onboarding/onboardingAnalytics';
 import { useFooterVisibility } from '../../../utils/useFooterVisibility';
 import { useAuthSession } from '../../../auth/AuthSessionProvider';
 import { buildLoginRedirectPath } from '../../../auth/routePolicy';
@@ -108,6 +109,7 @@ export function useMeetCeoLogic() {
   }, [session?.access_token]);
 
   const handleBookMeeting = async () => {
+    trackCta('book_meeting', 'meet-ceo');
     if (!selectedSlot) return;
     setBookingInProgress(true); setError(null);
     try {
@@ -139,7 +141,10 @@ export function useMeetCeoLogic() {
     }
   }, [fetchCalendarSlots, paymentState]);
 
-  const handleContinue = () => navigate('/hushh-user-profile');
+  const handleContinue = () => {
+    trackCta('meet_ceo_to_profile', 'meet-ceo');
+    navigate('/hushh-user-profile');
+  };
   const handleBack = () => navigate('/onboarding/step-6');
 
   return {

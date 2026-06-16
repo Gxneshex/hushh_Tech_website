@@ -6,6 +6,8 @@ import Leadership from './components/Leadership';
 import Philosophy from './components/Philosophy';
 import Footer from './components/Footer';
 import GoogleAnalyticsRouteTracker from './components/GoogleAnalyticsRouteTracker';
+import OnboardingSessionTracker from './components/OnboardingSessionTracker';
+import SiteBehaviorTracker from './components/SiteBehaviorTracker';
 import LoginPage from './pages/login/ui'
 import Contact from './pages/Contact';
 import ScrollToTop from './components/ScrollToTop';
@@ -459,6 +461,8 @@ function App() {
       <AuthSessionProvider>
         <Router>
           <GoogleAnalyticsRouteTracker />
+          <SiteBehaviorTracker />
+          <OnboardingSessionTracker />
           <ScrollToTop />
           <OnboardingShellAutoPadding />
           <GlobalNDAGate>

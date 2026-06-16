@@ -10,6 +10,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import config from '../../../resources/config/config';
+import { trackCta, trackStepCompleted } from '../../../services/onboarding/onboardingAnalytics';
 import HushhTechBackHeader from '../../../components/hushh-tech-back-header/HushhTechBackHeader';
 import OnboardingBankReviewChip from '../../../components/onboarding-bank-review-chip/OnboardingBankReviewChip';
 import HushhTechCta, {
@@ -453,7 +454,11 @@ export default function OnboardingReviewStep() {
             <section className="pb-12 space-y-3">
               <HushhTechCta
                 variant={HushhTechCtaVariant.BLACK}
-                onClick={() => goTo('/onboarding/step-6')}
+                onClick={() => {
+                  trackCta('continue', 'step-5');
+                  trackStepCompleted('step-5', 5);
+                  goTo('/onboarding/step-6');
+                }}
                 disabled={requiredMissing}
                 className={primaryCtaClass}
               >

@@ -6,6 +6,7 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import config from '../../../resources/config/config';
+import { trackFinancialLink } from '../../../services/onboarding/onboardingAnalytics';
 import { usePlaidLinkHook } from '../../../services/plaid/usePlaidLink';
 import {
   createSandboxTestItem,
@@ -736,6 +737,7 @@ export const useFinancialLinkLogic = () => {
       return;
     }
     if (plaid.isReady) {
+      trackFinancialLink('started');
       plaid.openPlaidLink();
     }
   }, [
@@ -775,6 +777,7 @@ export const useFinancialLinkLogic = () => {
         current_step: currentOnboardingStep,
         financial_link_status: 'skipped',
       });
+      trackFinancialLink('skipped');
       setIsSkipConfirmOpen(false);
       navigate(resumeRoute, { replace: true });
     } catch (err) {

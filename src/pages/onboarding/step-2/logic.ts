@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import config from '../../../resources/config/config';
 import { upsertOnboardingData } from '../../../services/onboarding/upsertOnboardingData';
+import { trackCta, trackStepCompleted } from '../../../services/onboarding/onboardingAnalytics';
 import {
   TOTAL_VISIBLE_ONBOARDING_STEPS,
   isCurrentLocalOnboardingPreview,
@@ -107,6 +108,7 @@ export const useStep2Logic = (): Step2Logic => {
   };
 
   const handleContinue = async () => {
+    trackCta('continue', 'step-2');
     if (!selectedAccountType) return;
     if (isPreview) {
       savePreview();
@@ -121,6 +123,7 @@ export const useStep2Logic = (): Step2Logic => {
         account_structure: accountStructureFor(selectedAccountType),
         current_step: 3,
       });
+      trackStepCompleted('step-2', 2);
       navigate('/onboarding/step-3');
     } finally {
       setIsLoading(false);

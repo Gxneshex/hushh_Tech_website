@@ -22,6 +22,7 @@ import {
   shouldUsePlaidRedirectUri,
 } from './redirect';
 import { endPlaidSession, logPlaidEvent } from './plaidDiagnostics';
+import { trackFinancialLink } from '../onboarding/onboardingAnalytics';
 
 // =====================================================
 // Types
@@ -565,6 +566,7 @@ export const usePlaidLinkHook = (
       console.log('[Plaid] Exchanging token...');
       const exchange = await exchangeToken(publicToken, userId, inst.name, inst.id, metadata.accounts);
       console.log('[Plaid] ✅ Exchange done:', { item_id: exchange.item_id });
+      trackFinancialLink('completed');
       logPlaidEvent('exchange_token_succeeded', {
         plaidStep: 'fetching',
         userId,
@@ -663,6 +665,7 @@ export const usePlaidLinkHook = (
         : {},
     });
     if (err) {
+      trackFinancialLink('failed', { errorCategory: err.error_code || err.error_type || 'exit_error' });
       clearOAuthResumeState(userId);
       setState(s => ({
         ...s, step: 'error',

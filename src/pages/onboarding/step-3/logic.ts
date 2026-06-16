@@ -11,6 +11,7 @@
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import config from '../../../resources/config/config';
+import { trackCta, trackStepCompleted, trackStepSkipped, trackStepError } from '../../../services/onboarding/onboardingAnalytics';
 import {
   TOTAL_VISIBLE_ONBOARDING_STEPS,
   isCurrentLocalOnboardingPreview,
@@ -884,6 +885,7 @@ export function useCombinedLocationLogic() {
   };
 
   const handleDetectClick = async () => {
+    trackCta('autofill_location', 'step-3');
     if (!userId) return;
     setIsDetectingLocation(true);
     setIsAutoFilling(true);
@@ -996,6 +998,7 @@ export function useCombinedLocationLogic() {
 
   /* ─── Navigation ─── */
   const handleContinue = async () => {
+    trackCta('continue', 'step-3');
     if (!userId || (!isPreview && !config.supabaseClient)) return;
 
     if (!legalFirstName.trim() || !legalLastName.trim()) {
@@ -1087,9 +1090,11 @@ export function useCombinedLocationLogic() {
       if (saveError) {
         throw new Error(saveError.message);
       }
+      trackStepCompleted('step-3', 3);
       navigate('/onboarding/step-4');
     } catch (err) {
       console.error('[Step3-Combined] Save error:', err);
+      trackStepError('step-3', 'save_failed');
       setError('Failed to save. Please try again.');
     } finally {
       setIsLoading(false);
@@ -1099,6 +1104,8 @@ export function useCombinedLocationLogic() {
   const handleBack = () => navigate(withLocalOnboardingPreview('/onboarding/step-2'));
 
   const handleSkip = async () => {
+    trackCta('skip', 'step-3');
+    trackStepSkipped('step-3');
     if (isLoading) return;
     if (isPreview) {
       navigate(withLocalOnboardingPreview('/onboarding/step-4'));

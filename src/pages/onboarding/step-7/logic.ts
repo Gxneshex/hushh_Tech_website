@@ -5,6 +5,7 @@
 import { useState, useEffect, type ChangeEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import config from '../../../resources/config/config';
+import { trackCta, trackStepCompleted, trackStepSkipped, trackStepError } from '../../../services/onboarding/onboardingAnalytics';
 import {
   getOnboardingDisplayMeta,
   isCurrentLocalOnboardingPreview,
@@ -315,12 +316,15 @@ export const useStep11Logic = (): Step11Logic => {
   };
 
   const handleContinue = async () => {
+    trackCta('continue', 'step-4');
     if (totalInvestment < 1000000) {
+      trackStepError('step-4', 'min_investment');
       setError('Minimum investment is $1 million');
       return;
     }
 
     if (customAmountError) {
+      trackStepError('step-4', 'recurring_amount');
       setShowRecurringEditor(true);
       setError(customAmountError);
       return;
@@ -396,11 +400,13 @@ export const useStep11Logic = (): Step11Logic => {
     const { error: upsertError } = await upsertOnboardingData(user.id, updateData);
 
     if (upsertError) {
+      trackStepError('step-4', 'save_failed');
       setError('Failed to save data');
       setLoading(false);
       return;
     }
 
+    trackStepCompleted('step-4', 4);
     navigate('/onboarding/step-5');
   };
 
@@ -427,6 +433,8 @@ export const useStep11Logic = (): Step11Logic => {
   };
 
   const handleSkip = () => {
+    trackCta('skip', 'step-4');
+    trackStepSkipped('step-4');
     navigate(withLocalOnboardingPreview('/onboarding/step-5'));
   };
 

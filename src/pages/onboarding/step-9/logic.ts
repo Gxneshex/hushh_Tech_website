@@ -17,6 +17,7 @@ import {
   type LinkedTransferAccount,
 } from "../../../services/plaid/plaidService";
 import { upsertOnboardingData } from "../../../services/onboarding/upsertOnboardingData";
+import { trackCta, trackStepCompleted } from "../../../services/onboarding/onboardingAnalytics";
 import { CONSENT_VERSION } from "../../../services/consent/consentConfig";
 import {
   FINANCIAL_LINK_ROUTE,
@@ -249,6 +250,7 @@ export const useStep13Logic = (): Step13Logic => {
   useEffect(() => {
     if (pageLoading || isPreview) return;
     if (uxState === "payment_in_review" || uxState === "verified") {
+      trackStepCompleted("step-6", 6, "paid");
       navigate(withLocalOnboardingPreview("/onboarding/meet-ceo"), { replace: true });
     }
   }, [uxState, pageLoading, isPreview, navigate]);
@@ -459,6 +461,7 @@ export const useStep13Logic = (): Step13Logic => {
   };
 
   const handleCreatePaymentLink = async () => {
+    trackCta("send_payment_link", "step-6");
     if (!userId) {
       setError("Not authenticated");
       return;
@@ -530,6 +533,7 @@ export const useStep13Logic = (): Step13Logic => {
   // waives the charge. Mirrors handleCreatePaymentLink's prerequisites
   // (units + commitment acknowledgment) before calling the redeem function.
   const handleApplyCoupon = async () => {
+    trackCta("apply_coupon", "step-6");
     if (!userId) {
       setCouponError("Not authenticated");
       return;
@@ -566,6 +570,7 @@ export const useStep13Logic = (): Step13Logic => {
     setSuccessMessage(null);
     try {
       await redeemFundCoupon({ userId, couponCode: trimmedCoupon });
+      trackStepCompleted("step-6", 6, "coupon");
       // Coupon waives the payment and puts the investor into review — forward
       // straight to Meet the CEO instead of parking them on this confirmation
       // screen.
@@ -587,6 +592,7 @@ export const useStep13Logic = (): Step13Logic => {
   };
 
   const handleContinueToMeetCeo = () => {
+    trackCta("meet_ceo_continue", "step-6");
     navigate(withLocalOnboardingPreview("/onboarding/meet-ceo"));
   };
 
