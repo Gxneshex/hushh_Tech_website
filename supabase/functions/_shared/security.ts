@@ -116,7 +116,14 @@ export async function authenticateEdgeRequest(
     expectedUserId?: string | null;
   },
 ): Promise<Response | null> {
-  const mode = getSecurityMode(modeEnv, "observe");
+  // Secure-by-default: when SECURITY_PLAID_EDGE_AUTH_MODE is unset we ENFORCE
+  // (reject missing/invalid bearer tokens and cross-user IDOR), rather than the
+  // old 'observe' (log-only pass-through). For a regulated fund the safe default
+  // must be enforcement; the live client always sends the user's JWT (see
+  // plaidService getHeaders), so this does not break authenticated flows — it
+  // only blocks unauthenticated or spoofed-userId calls. Set the env var to
+  // 'observe' or 'off' explicitly only for a deliberate rollout/debug window.
+  const mode = getSecurityMode(modeEnv, "enforce");
   if (mode === "off") {
     return null;
   }
