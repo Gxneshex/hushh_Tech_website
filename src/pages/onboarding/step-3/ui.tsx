@@ -425,6 +425,9 @@ export default function OnboardingStep3Combined() {
                       </span>
                     </div>
                   </label>
+                  {/* v1 (Plaid pivot): Residence is shown ONLY when bank-verified.
+                      No-bank investors are not shown a residence field at all. */}
+                  {s.hasBankResidence && (
                   <label className={fieldClass}>
                     <span className={labelClass}>
                       Residence
@@ -453,16 +456,18 @@ export default function OnboardingStep3Combined() {
                       </span>
                     </div>
                   </label>
+                  )}
                 </div>
 
+                {/* v1: the bank-verified legal residence note + the address block
+                    render only when Plaid provided a bank address. */}
+                {s.hasBankResidence && (<>
                 <div className="flex items-start gap-3 rounded-[18px] bg-[#F5F5F7]/70 px-4 py-3 shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.06)]">
                   <span className="material-symbols-outlined mt-0.5 text-[18px] text-[#1D1D1F]/35">
                     location_on
                   </span>
                   <p className="text-[13px] font-normal leading-[1.45] text-[#1D1D1F]/50">
-                    {s.hasBankPrefill
-                      ? "Bank-verified details are your legal residence and are locked. You can edit the other fields."
-                      : "Enter your legal/permanent residence below. Your current location (shown above) is for security only and is not used as your residence."}
+                    Bank-verified details are your legal residence and are locked. You can edit the other fields.
                   </p>
                 </div>
 
@@ -580,6 +585,7 @@ export default function OnboardingStep3Combined() {
                     </p>
                   )}
                 </div>
+                </>)}
               </div>
             </section>
 
@@ -723,7 +729,9 @@ export default function OnboardingStep3Combined() {
             </section>
           </div>
 
-          {/* ── Legal-residence attestation (required) ── */}
+          {/* ── Legal-residence attestation — only when there is a bank-verified
+               residence to attest (v1 Plaid pivot). ── */}
+          {s.hasBankResidence && (
           <section className="pt-2">
             <ConsentCheckbox
               id="residence-attest"
@@ -735,6 +743,7 @@ export default function OnboardingStep3Combined() {
               investor verification — not a temporary or current travel location.
             </ConsentCheckbox>
           </section>
+          )}
 
           {/* ── CTAs — Continue & Skip ── */}
           <section className="pb-12 space-y-3 mt-4">

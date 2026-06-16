@@ -39,9 +39,13 @@ describe('step-3 residence provenance + attestation (PR 2)', () => {
     expect(logic).toContain('payload.field_provenance = buildStep3FieldProvenance(fieldSources)');
     expect(logic).toContain('payload.residence_attested_at = new Date().toISOString()');
     expect(logic).toContain('payload.consent_version = CONSENT_VERSION');
-    expect(logic).toContain('if (!residenceAttested)');
-    // attestation gates canContinue
-    expect(logic).toContain('residenceAttested\n  );');
+    // v1.1: attestation is required + persisted ONLY when there is a bank-verified
+    // residence to attest (no-Plaid investors see no residence section).
+    expect(logic).toContain('if (hasBankResidence && !residenceAttested)');
+    expect(logic).toContain('if (hasBankResidence && residenceAttested) {');
+    // canContinue gates residence/address/attestation behind hasBankResidence
+    expect(logic).toContain('!hasBankResidence || (');
+    expect(logic).toContain('residenceAttested');
   });
 
   it('ships the additive migration for provenance + attestation columns', () => {

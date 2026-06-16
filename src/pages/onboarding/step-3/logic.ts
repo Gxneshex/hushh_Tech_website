@@ -409,19 +409,28 @@ export function useCombinedLocationLogic() {
       || PHONE_DIAL_CODES.find((option) => option.code === countryCode)
       || PHONE_DIAL_CODES[0];
   }, [countryCode, selectedDialCountryIso]);
+  // v1 (Plaid pivot): the legal residence section is rendered ONLY when Plaid
+  // returned a bank address. ~99% of investors link Plaid; the rest are not shown
+  // a residence section at all, so we do not require those (hidden) address
+  // fields or the residence attestation here. Citizenship is always required
+  // (it is the investor's own declaration, never bank-derived).
+  const hasBankResidence =
+    fieldSources['residence_country'] === 'plaid' || fieldSources['address_line_1'] === 'plaid';
   const canContinue = Boolean(
     legalFirstName.trim() &&
     legalLastName.trim() &&
     isDobValid &&
     citizenshipCountry &&
-    residenceCountry &&
-    addressLine1.trim() &&
-    addressCity.trim() &&
-    addressState.trim() &&
-    zipCode.trim() &&
     isTaxReady &&
     isValidPhone &&
-    residenceAttested
+    (!hasBankResidence || (
+      residenceCountry &&
+      addressLine1.trim() &&
+      addressCity.trim() &&
+      addressState.trim() &&
+      zipCode.trim() &&
+      residenceAttested
+    ))
   );
   const isErrorStatus = locationStatus === 'denied' || locationStatus === 'failed';
   const isSuccessStatus = locationStatus === 'success' || locationStatus === 'ip-success';
@@ -975,12 +984,19 @@ export function useCombinedLocationLogic() {
       return;
     }
 
-    if (!citizenshipCountry || !residenceCountry) {
-      setError('Please confirm citizenship and residence');
+    if (!citizenshipCountry) {
+      setError('Please select your citizenship');
       return;
     }
 
-    if (!validateAll()) {
+    // Legal residence/address is collected only when Plaid provided it (v1 pivot);
+    // no-bank investors see no residence section, so it is not required here.
+    if (hasBankResidence && !residenceCountry) {
+      setError('Please confirm your residence');
+      return;
+    }
+
+    if (hasBankResidence && !validateAll()) {
       setError('Please enter your complete residence address');
       return;
     }
@@ -995,7 +1011,7 @@ export function useCombinedLocationLogic() {
       return;
     }
 
-    if (!residenceAttested) {
+    if (hasBankResidence && !residenceAttested) {
       setResidenceAttestError(true);
       setError('Please confirm this is your legal/permanent residence');
       return;
@@ -1050,8 +1066,12 @@ export function useCombinedLocationLogic() {
       // drops these columns gracefully if the migration has not yet reached the
       // environment, so this never blocks the save.
       payload.field_provenance = buildStep3FieldProvenance(fieldSources);
-      payload.residence_attested_at = new Date().toISOString();
-      payload.consent_version = CONSENT_VERSION;
+      // Record the legal-residence attestation only when there IS a (bank-verified)
+      // residence to attest.
+      if (hasBankResidence && residenceAttested) {
+        payload.residence_attested_at = new Date().toISOString();
+        payload.consent_version = CONSENT_VERSION;
+      }
 
       const { error: saveError } = await upsertOnboardingData(userId, payload);
       if (saveError) {
@@ -1126,6 +1146,7 @@ export function useCombinedLocationLogic() {
     fieldSources,
     markFieldEdited,
     hasBankPrefill: Object.values(fieldSources).some((v) => v === 'plaid'),
+    hasBankResidence,
     // A field whose value is bank-verified (Plaid) is locked read-only — the
     // verification badge attests it, so it's changed by re-linking the bank.
     isPlaidLocked: (key: string) => fieldSources[key] === 'plaid',
