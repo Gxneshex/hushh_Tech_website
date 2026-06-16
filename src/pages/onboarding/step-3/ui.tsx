@@ -388,18 +388,25 @@ export default function OnboardingStep3Combined() {
                     Legal residence used for investor verification.
                   </p>
                 </div>
-                <button
-                  type="button"
-                  onClick={s.handleDetectClick}
-                  disabled={s.isDetectingLocation || s.isAutoFilling}
-                  className="inline-flex h-10 shrink-0 items-center gap-2 rounded-full bg-white px-4 text-[12px] font-medium text-[#0066CC] shadow-[inset_0_0_0_0.5px_rgba(0,102,204,0.18)] disabled:opacity-50"
-                  aria-label="Use my current location"
-                >
-                  <span className="material-symbols-outlined text-[16px]">
-                    my_location
-                  </span>
-                  Auto-fill
-                </button>
+                {/* Auto-fill (current GPS location) is a no-bank convenience only.
+                    When the residence/address is bank-verified, the bank address is
+                    the authoritative legal residence — suggesting the device's
+                    current (possibly travel) location would be misleading, so the
+                    button is hidden. */}
+                {!(s.isPlaidLocked("residence_country") || s.isPlaidLocked("address_line_1")) && (
+                  <button
+                    type="button"
+                    onClick={s.handleDetectClick}
+                    disabled={s.isDetectingLocation || s.isAutoFilling}
+                    className="inline-flex h-10 shrink-0 items-center gap-2 rounded-full bg-white px-4 text-[12px] font-medium text-[#0066CC] shadow-[inset_0_0_0_0.5px_rgba(0,102,204,0.18)] disabled:opacity-50"
+                    aria-label="Use my current location"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">
+                      my_location
+                    </span>
+                    Auto-fill
+                  </button>
+                )}
               </div>
 
               <div className="space-y-4">
@@ -467,8 +474,8 @@ export default function OnboardingStep3Combined() {
                   </span>
                   <p className="text-[13px] font-normal leading-[1.45] text-[#1D1D1F]/50">
                     {s.hasBankPrefill
-                      ? "Bank-verified details are locked. Other fields you can edit, and Auto-fill can suggest them."
-                      : "Auto-fill can suggest your address, but you can edit every field."}
+                      ? "Bank-verified details are your legal residence and are locked. You can edit the other fields."
+                      : "Auto-fill suggests your current location — please confirm it is your legal residence and edit any field as needed."}
                   </p>
                 </div>
 

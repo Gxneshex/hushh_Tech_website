@@ -201,11 +201,18 @@ export const buildStep3AutofillPatch = ({
   manual,
   locationData,
   availableCountries = countries,
+  locked = {},
 }: {
   current: Step3FormState;
   manual: Step3ManualOverrides;
   locationData: LocationData;
   availableCountries?: string[];
+  /**
+   * Bank-verified ('plaid') / document-verified fields. These are authoritative
+   * legal data and must NEVER be overwritten by the device's current GPS
+   * location — defense-in-depth on top of the manual-edit guard.
+   */
+  locked?: Partial<Record<keyof Step3FormState, boolean>>;
 }): Partial<Step3FormState> => {
   const { matchedCountry, normalizedAddress } = resolveDetectedLocationForStep3(
     locationData,
@@ -213,39 +220,55 @@ export const buildStep3AutofillPatch = ({
   );
   const patch: Partial<Step3FormState> = {};
 
-  if (!manual.citizenshipCountry && matchedCountry && current.citizenshipCountry !== matchedCountry) {
-    patch.citizenshipCountry = matchedCountry;
-  }
+  // Fund-grade rule: the device's CURRENT GPS location is an AML signal, not a
+  // legal input. Two fields are therefore NEVER GPS-derived:
+  //   • citizenship  — nationality is a legal declaration the investor selects.
+  //   • address_line_2 (APT/SUITE) — a unit number, not a locality. Packing
+  //     "City, State" into it produced contradictory records (e.g. a US
+  //     bank-verified address with "Pune, Maharashtra" in the apartment line).
+  // Everything else GPS may only *suggest* in the no-bank path, and only when
+  // the field is neither manually edited nor bank/document-verified ('locked').
 
-  if (!manual.residenceCountry && matchedCountry && current.residenceCountry !== matchedCountry) {
+  if (
+    !manual.residenceCountry && !locked.residenceCountry &&
+    matchedCountry && current.residenceCountry !== matchedCountry
+  ) {
     patch.residenceCountry = matchedCountry;
   }
 
   if (
-    !manual.addressLine1 &&
+    !manual.addressLine1 && !locked.addressLine1 &&
     normalizedAddress.addressLine1 &&
     current.addressLine1 !== normalizedAddress.addressLine1
   ) {
     patch.addressLine1 = normalizedAddress.addressLine1;
   }
 
-  if (!manual.addressLine2 && current.addressLine2 !== normalizedAddress.addressLine2) {
-    patch.addressLine2 = normalizedAddress.addressLine2;
-  }
-
-  if (!manual.zipCode && normalizedAddress.zipCode && current.zipCode !== normalizedAddress.zipCode) {
+  if (
+    !manual.zipCode && !locked.zipCode &&
+    normalizedAddress.zipCode && current.zipCode !== normalizedAddress.zipCode
+  ) {
     patch.zipCode = normalizedAddress.zipCode;
   }
 
-  if (!manual.city && normalizedAddress.city && current.city !== normalizedAddress.city) {
+  if (
+    !manual.city && !locked.city &&
+    normalizedAddress.city && current.city !== normalizedAddress.city
+  ) {
     patch.city = normalizedAddress.city;
   }
 
-  if (!manual.state && normalizedAddress.state && current.state !== normalizedAddress.state) {
+  if (
+    !manual.state && !locked.state &&
+    normalizedAddress.state && current.state !== normalizedAddress.state
+  ) {
     patch.state = normalizedAddress.state;
   }
 
-  if (normalizedAddress.addressCountry && current.addressCountry !== normalizedAddress.addressCountry) {
+  if (
+    !locked.addressCountry &&
+    normalizedAddress.addressCountry && current.addressCountry !== normalizedAddress.addressCountry
+  ) {
     patch.addressCountry = normalizedAddress.addressCountry;
   }
 
@@ -478,55 +501,52 @@ export function useCombinedLocationLogic() {
       locationData,
       countries
     );
+    // Bank/document-verified legal fields are authoritative — current GPS location
+    // must never overwrite them. addressCountry has no manual flag of its own, so
+    // it inherits the residence-country lock (same jurisdiction). This is
+    // defense-in-depth on top of the manual-edit guard already in the patch.
+    const m = manualOverridesRef.current;
+    const bankResidenceLocked =
+      fieldSources['residence_country'] === 'plaid' || m.residenceCountry;
+    const locked: Partial<Record<keyof Step3FormState, boolean>> = {
+      residenceCountry: bankResidenceLocked,
+      addressLine1: fieldSources['address_line_1'] === 'plaid' || m.addressLine1,
+      city: fieldSources['city'] === 'plaid' || m.city,
+      state: fieldSources['state'] === 'plaid' || m.state,
+      zipCode: fieldSources['zip_code'] === 'plaid' || m.zipCode,
+      addressCountry: fieldSources['address_country'] === 'plaid' || bankResidenceLocked,
+    };
+
     const patch = buildStep3AutofillPatch({
       current: formStateRef.current,
       manual: manualOverridesRef.current,
       locationData,
       availableCountries: countries,
+      locked,
     });
 
-    if (patch.citizenshipCountry !== undefined) {
-      citizenshipCountryRef.current = patch.citizenshipCountry;
-      setCitizenshipCountry(patch.citizenshipCountry);
-    }
-
+    // NOTE: citizenship and address_line_2 are intentionally NOT in the patch —
+    // citizenship is a legal declaration the user selects; APT/SUITE is a unit
+    // number, never the GPS locality.
     if (patch.residenceCountry !== undefined) {
       residenceCountryRef.current = patch.residenceCountry;
       setResidenceCountry(patch.residenceCountry);
     }
-
-    if (patch.addressLine1 !== undefined) {
-      setAddressLine1(patch.addressLine1);
-    }
-
-    if (patch.addressLine2 !== undefined) {
-      setAddressLine2(patch.addressLine2);
-    }
-
-    if (patch.zipCode !== undefined) {
-      setZipCode(patch.zipCode);
-    }
-
-    if (patch.city !== undefined) {
-      setAddressCity(patch.city);
-    }
-
-    if (patch.state !== undefined) {
-      setAddressState(patch.state);
-    }
-
-    if (patch.addressCountry !== undefined) {
-      setAddressCountry(patch.addressCountry);
-    }
+    if (patch.addressLine1 !== undefined) setAddressLine1(patch.addressLine1);
+    if (patch.zipCode !== undefined) setZipCode(patch.zipCode);
+    if (patch.city !== undefined) setAddressCity(patch.city);
+    if (patch.state !== undefined) setAddressState(patch.state);
+    if (patch.addressCountry !== undefined) setAddressCountry(patch.addressCountry);
 
     setDetectedLocation(nextDetectedLocation);
     setLocationDetected(true);
     setLocationStatus(status);
 
-    // Show auto-fill success
+    // Current location is only a SUGGESTION for the legal residence — never
+    // auto-verified. The user must confirm/edit it.
     setIsAutoFilling(false);
-    setDetectionStatus('Address auto-filled from GPS');
-    setTimeout(() => setDetectionStatus(null), 3000);
+    setDetectionStatus('Suggested from your current location — confirm your legal residence');
+    setTimeout(() => setDetectionStatus(null), 4000);
   };
 
   /* ─── GPS refresh ─── */
@@ -815,15 +835,17 @@ export function useCombinedLocationLogic() {
       }
       if (Object.keys(bankSources).length > 0) setFieldSources(bankSources);
 
-      // Fallback: extract country from cached GPS for citizenship/residence
+      // Fallback: suggest RESIDENCE country from cached GPS only when there is no
+      // bank residence yet (no-bank path). CITIZENSHIP is NEVER GPS-derived — it
+      // is a legal declaration the investor selects themselves.
       if (cachedLocation) {
         const cachedCountryName = COUNTRY_CODE_TO_NAME[cachedLocation.countryCode] || cachedLocation.country;
         const matchedCached = countries.includes(cachedCountryName) ? cachedCountryName : '';
-        if (!citizenshipCountryRef.current && matchedCached) {
-          citizenshipCountryRef.current = matchedCached;
-          setCitizenshipCountry(matchedCached);
-        }
-        if (!residenceCountryRef.current && matchedCached) {
+        if (
+          !residenceCountryRef.current &&
+          matchedCached &&
+          !manualOverridesRef.current.residenceCountry
+        ) {
           residenceCountryRef.current = matchedCached;
           setResidenceCountry(matchedCached);
         }

@@ -57,7 +57,7 @@ const seattleGpsAddress = {
 } satisfies LocationData;
 
 describe('step 3 address logic', () => {
-  it('auto-fills the full normalized address instead of collapsing line 1 to the first token', () => {
+  it('suggests the normalized residence address from GPS but NEVER citizenship or APT/SUITE', () => {
     const patch = buildStep3AutofillPatch({
       current: emptyFormState,
       manual: noManualOverrides,
@@ -65,18 +65,20 @@ describe('step 3 address logic', () => {
     });
 
     expect(patch).toMatchObject({
-      citizenshipCountry: 'India',
       residenceCountry: 'India',
       addressLine1: '1, Tower-3, Godrej Hillside, Mahalunge',
-      addressLine2: 'Pune, Maharashtra',
       zipCode: '411045',
       city: 'Pune',
       state: 'Maharashtra',
       addressCountry: 'India',
     });
+    // Citizenship is a legal declaration — never GPS-derived.
+    expect(patch.citizenshipCountry).toBeUndefined();
+    // APT/SUITE is a unit number — never the GPS "City, State" (the Pune-in-APT bug).
+    expect(patch.addressLine2).toBeUndefined();
   });
 
-  it('derives address line 2 from the detected GPS city/state for other locations too', () => {
+  it('does not set citizenship or APT/SUITE from GPS for other locations either', () => {
     const patch = buildStep3AutofillPatch({
       current: emptyFormState,
       manual: noManualOverrides,
@@ -84,15 +86,45 @@ describe('step 3 address logic', () => {
     });
 
     expect(patch).toMatchObject({
-      citizenshipCountry: 'United States',
       residenceCountry: 'United States',
       addressLine1: '500 Terry Ave N',
-      addressLine2: 'Seattle, Washington',
       zipCode: '98109',
       city: 'Seattle',
       state: 'Washington',
       addressCountry: 'United States',
     });
+    expect(patch.citizenshipCountry).toBeUndefined();
+    expect(patch.addressLine2).toBeUndefined();
+  });
+
+  it('never overwrites bank-verified (locked) fields with a foreign GPS location', () => {
+    // The reported case: US bank-verified residence, investor physically in Pune.
+    const bankUsForm: Step3FormState = {
+      citizenshipCountry: '',
+      residenceCountry: 'United States',
+      addressLine1: '1021 5TH ST W',
+      addressLine2: '',
+      zipCode: '98033-5330',
+      city: 'KIRKLAND',
+      state: 'WA',
+      addressCountry: 'United States',
+    };
+    const patch = buildStep3AutofillPatch({
+      current: bankUsForm,
+      manual: noManualOverrides,
+      locationData: gpsAddress, // Pune, India
+      locked: {
+        residenceCountry: true,
+        addressLine1: true,
+        city: true,
+        state: true,
+        zipCode: true,
+        addressCountry: true,
+      },
+    });
+    // Nothing from the Pune GPS leaks into the bank-verified legal residence,
+    // and citizenship / APT are never touched.
+    expect(patch).toEqual({});
   });
 
   it('preserves manual address edits while still updating structured GPS fields', () => {
