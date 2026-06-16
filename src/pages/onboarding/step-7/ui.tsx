@@ -71,6 +71,7 @@ export default function OnboardingStep11() {
   const {
     loading,
     error,
+    returnToReview,
     shareUnits,
     frequency,
     investmentDay,
@@ -379,7 +380,7 @@ export default function OnboardingStep11() {
             disabled={!isFormValid || loading}
             className={primaryCtaClass}
           >
-            {loading ? 'Saving...' : 'Continue'}
+            {loading ? 'Saving...' : returnToReview ? 'Save & return to Review' : 'Continue'}
           </HushhTechCta>
           <HushhTechCta
             variant={HushhTechCtaVariant.WHITE}

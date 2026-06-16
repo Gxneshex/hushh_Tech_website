@@ -3,12 +3,14 @@
  * Investment summary, share class editing modal, recurring investment config
  */
 import { useState, useEffect, type ChangeEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import config from '../../../resources/config/config';
 import { trackCta, trackStepCompleted, trackStepSkipped, trackStepError } from '../../../services/onboarding/onboardingAnalytics';
 import {
   getOnboardingDisplayMeta,
+  REVIEW_ROUTE,
   isCurrentLocalOnboardingPreview,
+  isReturnToReview,
   withLocalOnboardingPreview,
 } from '../../../services/onboarding/flow';
 import { upsertOnboardingData } from '../../../services/onboarding/upsertOnboardingData';
@@ -117,6 +119,7 @@ export const getFrequencyLabel = (value: RecurringFrequency): string => {
 export interface Step11Logic {
   loading: boolean;
   error: string | null;
+  returnToReview: boolean;
   isFooterVisible: boolean;
   shareUnits: { class_a_units: number; class_b_units: number; class_c_units: number };
   frequency: RecurringFrequency;
@@ -148,6 +151,11 @@ export interface Step11Logic {
 /* ─── Main Hook ─── */
 export const useStep11Logic = (): Step11Logic => {
   const navigate = useNavigate();
+  const location = useLocation();
+  // Opened from Review (`?from=review`): Back returns to Review instead of step-3.
+  // Continue already lands on Review (this step's natural next), so only Back needs
+  // to be edit-aware here.
+  const returnToReview = isReturnToReview(location.search);
   const isPreview = isCurrentLocalOnboardingPreview();
   const isFooterVisible = useFooterVisibility();
   const [loading, setLoading] = useState(false);
@@ -407,7 +415,7 @@ export const useStep11Logic = (): Step11Logic => {
     }
 
     trackStepCompleted('step-4', 4);
-    navigate('/onboarding/step-5');
+    navigate(withLocalOnboardingPreview('/onboarding/step-5'));
   };
 
   // Get units for a class
@@ -429,7 +437,7 @@ export const useStep11Logic = (): Step11Logic => {
   const isFormValid = hasAnyUnits && totalInvestment >= 1000000 && hasValidRecurringAmount;
 
   const handleBack = () => {
-    navigate(withLocalOnboardingPreview('/onboarding/step-3'));
+    navigate(withLocalOnboardingPreview(returnToReview ? REVIEW_ROUTE : '/onboarding/step-3'));
   };
 
   const handleSkip = () => {
@@ -459,6 +467,7 @@ export const useStep11Logic = (): Step11Logic => {
   return {
     loading,
     error,
+    returnToReview,
     isFooterVisible,
     shareUnits,
     frequency,

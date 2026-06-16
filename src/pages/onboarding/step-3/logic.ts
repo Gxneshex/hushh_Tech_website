@@ -8,12 +8,14 @@
  * Flow: step-2 → step-3 → step-6
  */
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import config from '../../../resources/config/config';
 import { trackCta, trackStepCompleted, trackStepSkipped, trackStepError } from '../../../services/onboarding/onboardingAnalytics';
 import {
   TOTAL_VISIBLE_ONBOARDING_STEPS,
+  REVIEW_ROUTE,
   isCurrentLocalOnboardingPreview,
+  isReturnToReview,
   withLocalOnboardingPreview,
 } from '../../../services/onboarding/flow';
 import {
@@ -314,6 +316,12 @@ const formatPhoneNumber = (value: string) => {
 
 export function useCombinedLocationLogic() {
   const navigate = useNavigate();
+  const location = useLocation();
+  // Opened from Review (`?from=review`): Save/Back return to Review instead of
+  // advancing, and the save must not downgrade `current_step` (else the
+  // ProtectedRoute skip-guard bounces the return).
+  const returnToReview = isReturnToReview(location.search);
+  const nextRoute = returnToReview ? REVIEW_ROUTE : '/onboarding/step-4';
   const isPreview = isCurrentLocalOnboardingPreview();
   const isFooterVisible = useFooterVisibility();
   const autoDetectionStartedRef = useRef(false);
@@ -998,7 +1006,7 @@ export function useCombinedLocationLogic() {
         phone_number: phoneNumber,
         phone_country_code: countryCode,
       }));
-      navigate(withLocalOnboardingPreview('/onboarding/step-4'));
+      navigate(withLocalOnboardingPreview(nextRoute));
       return;
     }
 
@@ -1036,13 +1044,18 @@ export function useCombinedLocationLogic() {
         payload.residence_attested_at = new Date().toISOString();
         payload.consent_version = CONSENT_VERSION;
       }
+      // Editing from Review: persist the field changes but keep current_step where
+      // it is so the return to Review isn't blocked by the skip-guard.
+      if (returnToReview) {
+        delete (payload as { current_step?: number }).current_step;
+      }
 
       const { error: saveError } = await upsertOnboardingData(userId, payload);
       if (saveError) {
         throw new Error(saveError.message);
       }
       trackStepCompleted('step-3', 3);
-      navigate('/onboarding/step-4');
+      navigate(withLocalOnboardingPreview(nextRoute));
     } catch (err) {
       console.error('[Step3-Combined] Save error:', err);
       trackStepError('step-3', 'save_failed');
@@ -1052,12 +1065,18 @@ export function useCombinedLocationLogic() {
     }
   };
 
-  const handleBack = () => navigate(withLocalOnboardingPreview('/onboarding/step-2'));
+  const handleBack = () =>
+    navigate(withLocalOnboardingPreview(returnToReview ? REVIEW_ROUTE : '/onboarding/step-2'));
 
   const handleSkip = async () => {
     trackCta('skip', 'step-3');
     trackStepSkipped('step-3');
     if (isLoading) return;
+    // Editing from Review: skipping is a cancel — return without touching data.
+    if (returnToReview) {
+      navigate(withLocalOnboardingPreview(REVIEW_ROUTE));
+      return;
+    }
     if (isPreview) {
       navigate(withLocalOnboardingPreview('/onboarding/step-4'));
       return;
@@ -1080,6 +1099,8 @@ export function useCombinedLocationLogic() {
   };
 
   return {
+    // Edit-from-Review flag (drives the CTA label + return navigation)
+    returnToReview,
     // Identity
     legalFirstName,
     legalLastName,

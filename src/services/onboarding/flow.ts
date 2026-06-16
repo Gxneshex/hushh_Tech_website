@@ -138,6 +138,24 @@ export const withLocalOnboardingPreview = (route: string): string => {
   return `${parsed.pathname}${parsed.search}${parsed.hash}`;
 };
 
+// Edit-and-return: the Review screen (step-5) opens an earlier step to edit a
+// single field by appending `?from=review`. The edited step reads this flag and,
+// instead of marching forward through the wizard on Save/Back, returns straight
+// to Review. Steps must ALSO avoid downgrading `current_step` while editing, or
+// the ProtectedRoute skip-guard would bounce the return-to-Review navigation.
+export const REVIEW_ROUTE = '/onboarding/step-5' as const;
+const EDIT_RETURN_PARAM = 'from';
+const EDIT_RETURN_VALUE = 'review';
+
+export const isReturnToReview = (search: string): boolean =>
+  new URLSearchParams(search).get(EDIT_RETURN_PARAM) === EDIT_RETURN_VALUE;
+
+export const withReviewEdit = (route: string): string => {
+  const parsed = new URL(route, 'https://hushh.local');
+  parsed.searchParams.set(EDIT_RETURN_PARAM, EDIT_RETURN_VALUE);
+  return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+};
+
 export const getFinancialLinkContinuationRoute = (
   currentStep: number
 ): CanonicalOnboardingRoute => {

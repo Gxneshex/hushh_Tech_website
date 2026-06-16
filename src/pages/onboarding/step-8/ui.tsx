@@ -349,7 +349,7 @@ export default function OnboardingReviewStep() {
                 label="Account Type"
                 value={isAccountTypeMissing ? 'Missing required detail' : accountType}
                 editLabel="Edit"
-                onEdit={() => goTo('/onboarding/step-2')}
+                onEdit={() => goTo('/onboarding/step-2?from=review')}
                 required
                 missing={isAccountTypeMissing}
               />
@@ -358,7 +358,7 @@ export default function OnboardingReviewStep() {
                 label="Legal Name"
                 value={isFullNameMissing ? 'Missing required detail' : fullName}
                 editLabel="Edit"
-                onEdit={() => goTo('/onboarding/step-3')}
+                onEdit={() => goTo('/onboarding/step-3?from=review')}
                 required
                 missing={isFullNameMissing}
               />
@@ -367,7 +367,7 @@ export default function OnboardingReviewStep() {
                 label="Date of Birth"
                 value={formatDate(summary?.date_of_birth)}
                 editLabel="Edit"
-                onEdit={() => goTo('/onboarding/step-3')}
+                onEdit={() => goTo('/onboarding/step-3?from=review')}
                 required
                 missing={isDateOfBirthMissing}
               />
@@ -380,7 +380,7 @@ export default function OnboardingReviewStep() {
                     : phone
                 }
                 editLabel="Edit"
-                onEdit={() => goTo('/onboarding/step-3')}
+                onEdit={() => goTo('/onboarding/step-3?from=review')}
                 required
                 missing={isPhoneMissing}
               />
@@ -389,7 +389,7 @@ export default function OnboardingReviewStep() {
                 label="Residence"
                 value={isResidenceMissing ? 'Missing required detail' : residence}
                 editLabel="Edit"
-                onEdit={() => goTo('/onboarding/step-3')}
+                onEdit={() => goTo('/onboarding/step-3?from=review')}
                 required
                 missing={isResidenceMissing}
               />
@@ -398,7 +398,7 @@ export default function OnboardingReviewStep() {
                 label="Address"
                 value={isAddressMissing ? 'Missing required detail' : address}
                 editLabel="Edit"
-                onEdit={() => goTo('/onboarding/step-3')}
+                onEdit={() => goTo('/onboarding/step-3?from=review')}
                 required
                 missing={isAddressMissing}
               />
@@ -407,7 +407,7 @@ export default function OnboardingReviewStep() {
                 label="Tax Reporting"
                 value={ssnStatus}
                 editLabel="Edit"
-                onEdit={() => goTo('/onboarding/step-3')}
+                onEdit={() => goTo('/onboarding/step-3?from=review')}
                 required={isUsInvestor}
                 optional={!isUsInvestor}
                 missing={isSsnMissing}
@@ -421,7 +421,7 @@ export default function OnboardingReviewStep() {
                     : `${formatCurrency(summary?.initial_investment_amount)} • ${shareUnits}`
                 }
                 editLabel="Edit"
-                onEdit={() => goTo('/onboarding/step-4')}
+                onEdit={() => goTo('/onboarding/step-4?from=review')}
                 required
                 missing={isInvestmentMissing}
               />
@@ -441,7 +441,7 @@ export default function OnboardingReviewStep() {
                   label="Apt / Suite"
                   value={summary?.address_line_2?.trim() || 'Skipped'}
                   editLabel="Edit"
-                  onEdit={() => goTo('/onboarding/step-3')}
+                  onEdit={() => goTo('/onboarding/step-3?from=review')}
                   optional
                 />
                 <SummaryRow
@@ -449,7 +449,7 @@ export default function OnboardingReviewStep() {
                   label="Recurring Investment"
                   value={formatRecurringSummary(summary || {} as ReviewSummary)}
                   editLabel="Edit"
-                  onEdit={() => goTo('/onboarding/step-4')}
+                  onEdit={() => goTo('/onboarding/step-4?from=review')}
                   optional
                 />
               </div>

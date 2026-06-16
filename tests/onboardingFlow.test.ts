@@ -7,10 +7,13 @@ import { buildLoginRedirectPath } from "../src/auth/routePolicy";
 import {
   FINANCIAL_LINK_ROUTE,
   FINANCIAL_LINK_REVIEW_ROUTE,
+  REVIEW_ROUTE,
   getFinancialLinkContinuationRoute,
   isFinancialLinkReviewMode,
+  isReturnToReview,
   normalizeLegacyOnboardingRedirectTarget,
   resolveFinancialLinkStatus,
+  withReviewEdit,
 } from "../src/services/onboarding/flow";
 
 const root = process.cwd();
@@ -64,5 +67,50 @@ describe("onboarding flow helpers", () => {
     expect(financialLinkLogic).toContain("isPlaidOAuthResume");
     expect(financialLinkLogic).toContain("oauth_state_id");
     expect(financialLinkLogic).toContain("handleBack");
+  });
+});
+
+describe("edit-from-review (Review screen Edit-and-return)", () => {
+  it("detects the ?from=review flag", () => {
+    expect(isReturnToReview("?from=review")).toBe(true);
+    expect(isReturnToReview("?foo=bar&from=review")).toBe(true);
+    expect(isReturnToReview("")).toBe(false);
+    expect(isReturnToReview("?from=elsewhere")).toBe(false);
+  });
+
+  it("appends the flag without clobbering existing query params", () => {
+    expect(withReviewEdit("/onboarding/step-3")).toBe("/onboarding/step-3?from=review");
+    expect(withReviewEdit("/onboarding/step-4?foo=bar")).toBe(
+      "/onboarding/step-4?foo=bar&from=review"
+    );
+    expect(REVIEW_ROUTE).toBe("/onboarding/step-5");
+  });
+
+  it("tags every Review Edit button with ?from=review (but not Continue/Back)", () => {
+    const reviewUi = readRepoFile("src/pages/onboarding/step-8/ui.tsx");
+    // All Edit targets carry the flag.
+    expect(reviewUi).toContain("goTo('/onboarding/step-2?from=review')");
+    expect(reviewUi).toContain("goTo('/onboarding/step-3?from=review')");
+    expect(reviewUi).toContain("goTo('/onboarding/step-4?from=review')");
+    // The Review's own forward (payment) and back (investment) nav stay plain.
+    expect(reviewUi).toContain("goTo('/onboarding/step-6')");
+    expect(reviewUi).toContain("goTo('/onboarding/step-4')");
+  });
+
+  it("returns edited steps to Review and preserves current_step in edit mode", () => {
+    const step2 = readRepoFile("src/pages/onboarding/step-2/logic.ts");
+    const step3 = readRepoFile("src/pages/onboarding/step-3/logic.ts");
+    const step7 = readRepoFile("src/pages/onboarding/step-7/logic.ts");
+
+    // Each editable step reads the flag and routes back to Review.
+    for (const src of [step2, step3, step7]) {
+      expect(src).toContain("isReturnToReview(location.search)");
+      expect(src).toContain("REVIEW_ROUTE");
+    }
+
+    // step-2 omits current_step when editing (so the skip-guard can't bounce
+    // the return to Review); step-3 drops it from the built payload.
+    expect(step2).toContain("returnToReview ? {} : { current_step: 3 }");
+    expect(step3).toContain("delete (payload as { current_step?: number }).current_step");
   });
 });

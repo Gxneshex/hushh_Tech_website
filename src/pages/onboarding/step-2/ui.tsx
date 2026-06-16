@@ -28,6 +28,7 @@ export default function OnboardingStep2() {
   const {
     selectedAccountType,
     isLoading,
+    returnToReview,
     setSelectedAccountType,
     handleContinue,
     handleBack,
@@ -119,7 +120,7 @@ export default function OnboardingStep2() {
             disabled={!selectedAccountType || isLoading}
             className={primaryCtaClass}
           >
-            {isLoading ? "Saving..." : "Continue"}
+            {isLoading ? "Saving..." : returnToReview ? "Save & return to Review" : "Continue"}
           </HushhTechCta>
         </section>
       </main>

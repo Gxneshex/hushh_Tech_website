@@ -2,13 +2,15 @@
  * Step 2 — Account Type
  */
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import config from '../../../resources/config/config';
 import { upsertOnboardingData } from '../../../services/onboarding/upsertOnboardingData';
 import { trackCta, trackStepCompleted } from '../../../services/onboarding/onboardingAnalytics';
 import {
   TOTAL_VISIBLE_ONBOARDING_STEPS,
+  REVIEW_ROUTE,
   isCurrentLocalOnboardingPreview,
+  isReturnToReview,
   withLocalOnboardingPreview,
 } from '../../../services/onboarding/flow';
 import type { UIAccountType } from '../../../types/onboarding';
@@ -54,6 +56,7 @@ export const ACCOUNT_TYPE_OPTIONS: AccountTypeOption[] = [
 export interface Step2Logic {
   selectedAccountType: UIAccountType | null;
   isLoading: boolean;
+  returnToReview: boolean;
   setSelectedAccountType: (value: UIAccountType) => void;
   handleContinue: () => Promise<void>;
   handleBack: () => void;
@@ -64,6 +67,10 @@ const accountStructureFor = (value: UIAccountType) =>
 
 export const useStep2Logic = (): Step2Logic => {
   const navigate = useNavigate();
+  const location = useLocation();
+  // When opened from Review (`?from=review`), Save/Back return to Review instead
+  // of marching forward, and the save must not downgrade `current_step`.
+  const returnToReview = isReturnToReview(location.search);
   const isPreview = isCurrentLocalOnboardingPreview();
   const [userId, setUserId] = useState<string | null>(null);
   const [selectedAccountType, setSelectedAccountType] = useState<UIAccountType | null>(null);
@@ -107,12 +114,14 @@ export const useStep2Logic = (): Step2Logic => {
     }));
   };
 
+  const nextRoute = returnToReview ? REVIEW_ROUTE : '/onboarding/step-3';
+
   const handleContinue = async () => {
     trackCta('continue', 'step-2');
     if (!selectedAccountType) return;
     if (isPreview) {
       savePreview();
-      navigate(withLocalOnboardingPreview('/onboarding/step-3'));
+      navigate(withLocalOnboardingPreview(nextRoute));
       return;
     }
     if (!userId || !config.supabaseClient) return;
@@ -121,20 +130,24 @@ export const useStep2Logic = (): Step2Logic => {
       await upsertOnboardingData(userId, {
         account_type: selectedAccountType,
         account_structure: accountStructureFor(selectedAccountType),
-        current_step: 3,
+        // Editing from Review: leave current_step untouched so the
+        // ProtectedRoute skip-guard doesn't bounce the return to Review.
+        ...(returnToReview ? {} : { current_step: 3 }),
       });
       trackStepCompleted('step-2', 2);
-      navigate('/onboarding/step-3');
+      navigate(withLocalOnboardingPreview(nextRoute));
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleBack = () => navigate(withLocalOnboardingPreview('/onboarding/step-1'));
+  const handleBack = () =>
+    navigate(withLocalOnboardingPreview(returnToReview ? REVIEW_ROUTE : '/onboarding/step-1'));
 
   return {
     selectedAccountType,
     isLoading,
+    returnToReview,
     setSelectedAccountType,
     handleContinue,
     handleBack,
