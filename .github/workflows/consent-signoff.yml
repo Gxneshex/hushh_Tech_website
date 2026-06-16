@@ -1,0 +1,26 @@
+name: Consent Sign-off Gate
+
+# GAP-07: investor consent / disclosure copy for the fund must be legally
+# reviewed before it ships. This gate runs ONLY when a pull request modifies the
+# consent config, so it never blocks unrelated PRs, the security fixes, prod
+# deploys, or the Plaid flow. It fails while the placeholder "pending legal
+# sign-off" marker is still present in consentConfig.ts.
+on:
+  pull_request:
+    paths:
+      - "src/services/consent/consentConfig.ts"
+
+permissions:
+  contents: read
+
+jobs:
+  consent-signoff:
+    name: Consent legal sign-off
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Verify consent copy is signed off
+        run: node scripts/ci/check-consent-signoff.mjs

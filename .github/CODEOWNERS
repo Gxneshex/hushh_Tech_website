@@ -22,3 +22,8 @@ scripts/ci/ @ankitkumarsingh1702
 scripts/security/ @ankitkumarsingh1702
 .env.local.example @ankitkumarsingh1702
 src/vite-env.d.ts @ankitkumarsingh1702
+
+# Compliance — investor consent / disclosure copy (legal sign-off required;
+# the Consent Sign-off Gate workflow blocks changes that still carry the
+# "pending legal sign-off" placeholder marker)
+src/services/consent/ @ankitkumarsingh1702
