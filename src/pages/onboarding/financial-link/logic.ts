@@ -259,21 +259,28 @@ export const useFinancialLinkLogic = () => {
       setUserId(user.id);
       setUserEmail(user.email || undefined);
 
-      /* Best-effort: if this user already consented to Plaid data sharing,
-         pre-check the box so we don't ask again. Swallow errors so a pending
-         migration (column not yet present) never blocks the page. */
+      /* Best-effort: if this user already consented to Plaid data sharing
+         UNDER THE CURRENT consent version, pre-check the box so we don't ask
+         again. If the consent copy changed (CONSENT_VERSION bumped) or the row
+         predates versioning, leave the box unchecked so the user must
+         re-acknowledge the new wording — a regulated-fund compliance need.
+         Swallow errors so a pending migration (column not yet present) never
+         blocks the page (a thrown select just leaves the box unchecked). */
       try {
         const { data: consentRow } = await config.supabaseClient
           .from('onboarding_data')
-          .select('plaid_consent_at')
+          .select('plaid_consent_at, consent_version')
           .eq('user_id', user.id)
           .maybeSingle();
-        if (consentRow?.plaid_consent_at) {
+        if (
+          consentRow?.plaid_consent_at &&
+          consentRow?.consent_version === CONSENT_VERSION
+        ) {
           setPlaidConsentChecked(true);
           setPlaidConsentPersisted(true);
         }
       } catch {
-        // Column may not exist yet (migration pending) — ignore.
+        // Columns may not exist yet (migration pending) — ignore (re-prompt).
       }
 
       try {
@@ -690,10 +697,21 @@ export const useFinancialLinkLogic = () => {
   /* ─── Main button handler — Plaid flow ─── */
   const handleButtonClick = useCallback(async () => {
     if (isDone && canProceed) {
-      await upsertOnboardingData(userId, {
+      const { error: completeError } = await upsertOnboardingData(userId, {
         current_step: currentOnboardingStep,
         financial_link_status: 'completed',
       });
+      if (completeError) {
+        // Non-blocking: financial_link_status self-heals downstream because
+        // resolveFinancialLinkStatus reads BOTH onboarding_data and the
+        // user_financial_data 'complete' status. The bank IS linked, so we
+        // proceed rather than trap a user who genuinely finished — but we log
+        // the write failure for observability instead of swallowing it.
+        console.warn(
+          '[FinancialLink] Failed to persist completed status (continuing, self-heals):',
+          completeError.message,
+        );
+      }
       navigate(resumeRoute, { replace: true });
       return;
     }
@@ -773,10 +791,19 @@ export const useFinancialLinkLogic = () => {
     setSkipError(null);
     try {
       console.log('[FinancialLink] User skipped financial verification');
-      await upsertOnboardingData(userId, {
+      // upsertOnboardingData never throws — it returns { error }. The skipped
+      // status has NO downstream self-heal (it can only come from
+      // onboarding_data.financial_link_status), so we MUST surface a write
+      // failure and keep the user on the page rather than silently navigating
+      // forward with the skip/manual-review decision unrecorded.
+      const { error } = await upsertOnboardingData(userId, {
         current_step: currentOnboardingStep,
         financial_link_status: 'skipped',
       });
+      if (error) {
+        setSkipError(error.message || 'Failed to skip financial verification. Please try again.');
+        return;
+      }
       trackFinancialLink('skipped');
       setIsSkipConfirmOpen(false);
       navigate(resumeRoute, { replace: true });

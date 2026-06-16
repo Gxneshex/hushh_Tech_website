@@ -671,6 +671,13 @@ export const usePlaidLinkHook = (
         ...s, step: 'error',
         error: `Connection interrupted: ${err.display_message || err.error_message || 'Unknown error'}`,
       }));
+    } else {
+      // User closed Plaid Link without an error (cancelled). openPlaidLink set
+      // step='linking' before opening, so without this reset the primary button
+      // stays stuck on "Connecting..." (isReady=false, since isReady requires
+      // step==='ready') and only a full page refresh recovers. Return to 'ready'
+      // so the existing link_token can be re-opened on the next click.
+      setState(s => (s.step === 'linking' ? { ...s, step: 'ready' } : s));
     }
   }, [userId]);
 
