@@ -30,6 +30,17 @@ export interface ResolvedOnboardingPrefill {
   completeness: number;
 }
 
+export type PlaidLegalResidence = Pick<
+  OnboardingPrefillValues,
+  | 'residence_country'
+  | 'address_line_1'
+  | 'address_line_2'
+  | 'city'
+  | 'state'
+  | 'zip_code'
+  | 'address_country'
+>;
+
 const PREFILL_FIELDS: Array<keyof OnboardingPrefillValues> = [
   'citizenship_country',
   'residence_country',
@@ -168,6 +179,32 @@ const extractPlaidPrefill = (identity: unknown): Partial<OnboardingPrefillValues
   }
 
   return result;
+};
+
+export const resolvePlaidLegalResidence = (
+  identity: unknown
+): PlaidLegalResidence | null => {
+  const prefill = extractPlaidPrefill(identity);
+  const addressLine1 = toCleanString(prefill.address_line_1);
+  const city = toCleanString(prefill.city);
+  const state = toCleanString(prefill.state);
+  const zipCode = toCleanString(prefill.zip_code);
+  const residenceCountry = toCleanString(prefill.residence_country);
+  const addressCountry = toCleanString(prefill.address_country) || residenceCountry;
+
+  if (!addressLine1 || !city || !state || !zipCode || !addressCountry) {
+    return null;
+  }
+
+  return {
+    residence_country: residenceCountry || addressCountry,
+    address_line_1: addressLine1,
+    address_line_2: toCleanString(prefill.address_line_2),
+    city,
+    state,
+    zip_code: zipCode,
+    address_country: addressCountry,
+  };
 };
 
 const extractOauthPrefill = (metadata: Record<string, unknown> | null | undefined): Partial<OnboardingPrefillValues> => {

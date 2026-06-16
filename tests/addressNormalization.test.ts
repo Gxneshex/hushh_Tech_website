@@ -81,7 +81,7 @@ describe('address normalization', () => {
     expect(normalized.state).toBe('Maharashtra');
   });
 
-  it('builds a repair patch for truncated line 1 and auto-filled city/state line 2', () => {
+  it('does not repair legal residence fields from GPS/current-location data', () => {
     const patch = buildOnboardingAddressRepairPatch({
       address_line_1: '1',
       address_line_2: '',
@@ -96,13 +96,6 @@ describe('address normalization', () => {
       gps_zip_code: '411045',
     });
 
-    expect(patch).toEqual({
-      address_line_1: '1, Tower-3, Godrej Hillside, Mahalunge',
-      address_line_2: 'Pune, Maharashtra',
-      city: 'Pune',
-      state: 'Maharashtra',
-      zip_code: '411045',
-      address_country: 'India',
-    });
+    expect(patch).toBeNull();
   });
 });

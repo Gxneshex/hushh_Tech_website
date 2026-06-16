@@ -16,6 +16,7 @@ describe('step-3 residence visibility — Plaid pivot (v1.1)', () => {
   const ui = read('src/pages/onboarding/step-3/ui.tsx');
 
   it('logic derives + exposes hasBankResidence from Plaid sources', () => {
+    expect(logic).toContain('resolvePlaidLegalResidence(financialResult.data?.identity_data)');
     expect(logic).toContain(
       "fieldSources['residence_country'] === 'plaid' || fieldSources['address_line_1'] === 'plaid'",
     );
@@ -36,10 +37,19 @@ describe('step-3 residence visibility — Plaid pivot (v1.1)', () => {
 
   it('ui gates the residence selector / address block / attestation behind hasBankResidence', () => {
     expect(ui).toContain('s.hasBankResidence && (');
+    expect(ui).toContain('s.hasPlaidAddressLine2 && (');
     // citizenship dropdown is rendered before (outside) the first residence gate
     expect(ui.indexOf('handleCitizenshipChange')).toBeGreaterThan(-1);
     expect(ui.indexOf('handleCitizenshipChange')).toBeLessThan(
       ui.indexOf('s.hasBankResidence && ('),
     );
+  });
+
+  it('does not hydrate legal residence from cached GPS/current location fallbacks', () => {
+    expect(logic).not.toContain('cachedLocationDetails.normalizedAddress.addressLine1');
+    expect(logic).not.toContain('cachedLocationDetails.normalizedAddress.addressLine2');
+    expect(logic).not.toContain('cachedLocationDetails.normalizedAddress.zipCode');
+    expect(logic).not.toContain('cachedLocationDetails.matchedCountry');
+    expect(logic).toContain('Object.assign(payload, buildStep3LegalResidenceClearPayload())');
   });
 });

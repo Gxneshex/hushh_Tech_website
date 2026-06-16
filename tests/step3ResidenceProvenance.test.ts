@@ -3,7 +3,10 @@ import { join } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
-import { buildStep3FieldProvenance } from '../src/pages/onboarding/step-3/logic';
+import {
+  buildStep3FieldProvenance,
+  buildStep3LegalResidenceClearPayload,
+} from '../src/pages/onboarding/step-3/logic';
 
 const read = (p: string) => readFileSync(join(process.cwd(), p), 'utf8');
 
@@ -34,9 +37,22 @@ describe('step-3 residence provenance + attestation (PR 2)', () => {
     expect(new Set(Object.values(prov))).toEqual(new Set(['self_declared']));
   });
 
+  it('builds an explicit null patch for stale legal-residence fields when Plaid has no address', () => {
+    expect(buildStep3LegalResidenceClearPayload()).toEqual({
+      residence_country: null,
+      address_line_1: null,
+      address_line_2: null,
+      city: null,
+      state: null,
+      zip_code: null,
+      address_country: null,
+    });
+  });
+
   it('persists provenance + legal-residence attestation on save, gated on the checkbox', () => {
     const logic = read('src/pages/onboarding/step-3/logic.ts');
     expect(logic).toContain('payload.field_provenance = buildStep3FieldProvenance(fieldSources)');
+    expect(logic).toContain('Object.assign(payload, buildStep3LegalResidenceClearPayload())');
     expect(logic).toContain('payload.residence_attested_at = new Date().toISOString()');
     expect(logic).toContain('payload.consent_version = CONSENT_VERSION');
     // v1.1: attestation is required + persisted ONLY when there is a bank-verified

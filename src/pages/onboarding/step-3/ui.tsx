@@ -2,7 +2,7 @@
  * Step 3 — Confirm Your Residence & Address (Combined)
  *
  * Single page merging country/residence detection + full address entry.
- * GPS fires ONCE → auto-fills citizenship, residence, address, city, state, zip.
+ * GPS/current location is shown separately and never fills legal residence.
  */
 import { useRef, useState } from "react";
 import {
@@ -467,7 +467,7 @@ export default function OnboardingStep3Combined() {
                     location_on
                   </span>
                   <p className="text-[13px] font-normal leading-[1.45] text-[#1D1D1F]/50">
-                    Bank-verified details are your legal residence and are locked. You can edit the other fields.
+                    Bank-verified legal residence is locked. Current location is tracked separately for security checks.
                   </p>
                 </div>
 
@@ -496,23 +496,23 @@ export default function OnboardingStep3Combined() {
                     </p>
                   )}
 
-                  <label className={fieldClass} htmlFor="addressLine2">
-                    <span className={labelClass}>
-                      Apt / Suite
-                      <OptionalMarker />
-                      {s.fieldSources["address_line_2"] === "plaid" && <BankVerifiedMarker />}
-                    </span>
-                    <input
-                      id="addressLine2"
-                      type="text"
-                      value={s.addressLine2}
-                      onChange={(e) => s.handleAddressLine2Change(e.target.value)}
-                      placeholder="Optional"
-                      readOnly={s.isPlaidLocked("address_line_2")}
-                      className={`${inputClass}${s.isPlaidLocked("address_line_2") ? " cursor-not-allowed text-[#1D1D1F]/55" : ""}`}
-                      autoComplete="address-line2"
-                    />
-                  </label>
+                  {s.hasPlaidAddressLine2 && (
+                    <label className={fieldClass} htmlFor="addressLine2">
+                      <span className={labelClass}>
+                        Apt / Suite
+                        {s.fieldSources["address_line_2"] === "plaid" && <BankVerifiedMarker />}
+                      </span>
+                      <input
+                        id="addressLine2"
+                        type="text"
+                        value={s.addressLine2}
+                        onChange={(e) => s.handleAddressLine2Change(e.target.value)}
+                        readOnly={s.isPlaidLocked("address_line_2")}
+                        className={`${inputClass}${s.isPlaidLocked("address_line_2") ? " cursor-not-allowed text-[#1D1D1F]/55" : ""}`}
+                        autoComplete="address-line2"
+                      />
+                    </label>
+                  )}
 
                   <div className="grid gap-3 sm:grid-cols-[1fr_0.8fr_0.65fr]">
                     <label className={fieldClass} htmlFor="city">

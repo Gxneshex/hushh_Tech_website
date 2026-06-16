@@ -49,6 +49,10 @@ export function isClearlyTruncatedAddressLine1(
   normalizedAddressLine1: string | null | undefined
 ): boolean;
 
+/**
+ * Deprecated for Fund KYC. GPS/current-location data must not repair legal
+ * residence fields; this returns null.
+ */
 export function buildOnboardingAddressRepairPatch(
   row: OnboardingAddressBackfillRow
 ): OnboardingAddressRepairPatch | null;

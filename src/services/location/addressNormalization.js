@@ -151,65 +151,8 @@ export function isClearlyTruncatedAddressLine1(currentLine1, normalizedAddressLi
 }
 
 export function buildOnboardingAddressRepairPatch(row) {
-  const gpsCountry = cleanString(row.gps_country);
-  const gpsState = cleanString(row.gps_state);
-  const gpsCity = cleanString(row.gps_city);
-  const gpsZipCode = cleanString(row.gps_zip_code);
-  const gpsFullAddress = cleanString(row.gps_full_address);
-
-  if (!gpsCountry && !gpsState && !gpsCity && !gpsZipCode && !gpsFullAddress) {
-    return null;
-  }
-
-  const normalized = normalizeDetectedAddress({
-    country: gpsCountry,
-    state: gpsState,
-    stateCode: '',
-    city: gpsCity,
-    postalCode: gpsZipCode,
-    phoneDialCode: '',
-    timezone: '',
-    formattedAddress: gpsFullAddress,
-    latitude: 0,
-    longitude: 0,
-    countryCode: '',
-  }, gpsCountry);
-
-  const patch = {};
-  const currentLine1 = cleanString(row.address_line_1);
-  const currentLine2 = cleanString(row.address_line_2);
-
-  if (
-    normalized.addressLine1 &&
-    (!currentLine1 || isClearlyTruncatedAddressLine1(currentLine1, normalized.addressLine1))
-  ) {
-    patch.address_line_1 = normalized.addressLine1;
-  }
-
-  if (!currentLine2 && normalized.addressLine2) {
-    patch.address_line_2 = normalized.addressLine2;
-  } else if (
-    looksLikeAutoFilledCityStateLine2(currentLine2, normalized.city, normalized.state) &&
-    normalizeComparable(currentLine2) !== normalizeComparable(normalized.addressLine2)
-  ) {
-    patch.address_line_2 = normalized.addressLine2 || null;
-  }
-
-  if (!cleanString(row.city) && normalized.city) {
-    patch.city = normalized.city;
-  }
-
-  if (!cleanString(row.state) && normalized.state) {
-    patch.state = normalized.state;
-  }
-
-  if (!cleanString(row.zip_code) && normalized.zipCode) {
-    patch.zip_code = normalized.zipCode;
-  }
-
-  if (!cleanString(row.address_country) && normalized.country) {
-    patch.address_country = normalized.country;
-  }
-
-  return Object.keys(patch).length > 0 ? patch : null;
+  void row;
+  // Fund KYC rule: gps_* data is current-location evidence only. It must never
+  // repair or populate legal-residence fields on onboarding_data.
+  return null;
 }

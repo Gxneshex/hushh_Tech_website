@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   deriveBankCountry,
   resolveOnboardingPrefill,
+  resolvePlaidLegalResidence,
 } from '../src/services/onboarding/prefill';
 
 const plaidIdentity = {
@@ -138,5 +139,43 @@ describe('onboarding prefill resolution', () => {
       residenceCountry: '',
       savedBankCountry: '',
     })).toBe('US');
+  });
+
+  it('returns a complete Plaid legal residence when the bank owner address is complete', () => {
+    expect(resolvePlaidLegalResidence(plaidIdentity)).toEqual({
+      residence_country: 'United States',
+      address_line_1: '1 Market St',
+      address_line_2: '',
+      city: 'San Francisco',
+      state: 'CA',
+      zip_code: '94105',
+      address_country: 'United States',
+    });
+  });
+
+  it('does not create a legal residence from incomplete Plaid owner addresses', () => {
+    const incompletePlaidIdentity = {
+      accounts: [
+        {
+          owners: [
+            {
+              names: ['Partial Person'],
+              addresses: [
+                {
+                  data: {
+                    street: '1 Missing Postal St',
+                    city: 'San Francisco',
+                    region: 'CA',
+                    country: 'US',
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+
+    expect(resolvePlaidLegalResidence(incompletePlaidIdentity)).toBeNull();
   });
 });
