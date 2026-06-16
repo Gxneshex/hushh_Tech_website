@@ -140,6 +140,16 @@ function missingPieces(params: {
     pieces.push("awaiting_manual_verification");
   }
   if (params.kycAvailable && !params.kyc) pieces.push("kyc_not_found");
+  // AML signal: the investor's CURRENT location (GPS captured at onboarding)
+  // differs from their declared LEGAL residence — e.g. a US-resident onboarding
+  // from abroad. Review flag for a human reviewer, never a block.
+  {
+    const gpsCountry = String(params.onboarding?.gps_country || "").trim().toLowerCase();
+    const residenceCountry = String(params.onboarding?.residence_country || "").trim().toLowerCase();
+    if (gpsCountry && residenceCountry && gpsCountry !== residenceCountry) {
+      pieces.push("current_location_differs_from_residence");
+    }
+  }
   return [...new Set(pieces)];
 }
 

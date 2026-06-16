@@ -260,7 +260,11 @@ export default function OnboardingReviewStep() {
     summary?.class_c_units ? `${summary.class_c_units} Class C` : null,
   ].filter(Boolean).join(' • ') || 'No share units selected';
 
-  const isUsInvestor = isUnitedStates(summary?.residence_country);
+  // US-person determination must consider citizenship OR residence (consistent
+  // with step-3/step-6) — a US citizen residing abroad is still a US person for
+  // SSN/tax. Using residence-only here let that case slip through review.
+  const isUsInvestor =
+    isUnitedStates(summary?.residence_country) || isUnitedStates(summary?.citizenship_country);
   const isSsnMissing = isUsInvestor && (!summary?.ssn_encrypted || summary.ssn_encrypted === '999-99-9999');
   const ssnStatus = summary?.ssn_encrypted && summary.ssn_encrypted !== '999-99-9999'
     ? 'Provided for tax reporting'
