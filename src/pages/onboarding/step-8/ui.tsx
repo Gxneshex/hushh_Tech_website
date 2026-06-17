@@ -11,6 +11,10 @@ import {
 } from 'lucide-react';
 import config from '../../../resources/config/config';
 import { trackCta, trackStepCompleted } from '../../../services/onboarding/onboardingAnalytics';
+import { submitApplication, getProofOfFunds } from '../../../services/onboarding/inviteService';
+import { REVIEW_GATE_REASON_LABELS } from '../../../services/onboarding/reviewGate';
+import { PROOF_OF_FUNDS_LABELS, type ProofOfFundsStatus } from '../../../services/onboarding/proofOfFunds';
+import { useReviewAccountTypeGate } from './accountTypeGate';
 import HushhTechBackHeader from '../../../components/hushh-tech-back-header/HushhTechBackHeader';
 import OnboardingBankReviewChip from '../../../components/onboarding-bank-review-chip/OnboardingBankReviewChip';
 import HushhTechCta, {
@@ -284,6 +288,37 @@ export default function OnboardingReviewStep() {
     isSsnMissing ||
     isInvestmentMissing;
   const goTo = (route: string) => navigate(withLocalOnboardingPreview(route));
+  const atGate = useReviewAccountTypeGate();
+  const [submitting, setSubmitting] = useState(false);
+  const [proofOfFunds, setProofOfFunds] = useState<ProofOfFundsStatus | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    getProofOfFunds()
+      .then((r) => { if (active) setProofOfFunds(r.status); })
+      .catch(() => {});
+    return () => { active = false; };
+  }, []);
+
+  const handleContinueToPayment = async () => {
+    trackCta('continue', 'step-5');
+    // Account-type accounts (Joint/Retirement/Trust) must clear the parties +
+    // signatory + account-type-fields gate, server-validated, before proceeding.
+    if (atGate.accountType && atGate.accountType !== 'individual') {
+      setSubmitting(true);
+      try {
+        await submitApplication();
+      } catch (e) {
+        await atGate.refresh();
+        setError(e instanceof Error ? e.message : 'Application is not ready to submit yet.');
+        setSubmitting(false);
+        return;
+      }
+      setSubmitting(false);
+    }
+    trackStepCompleted('step-5', 5);
+    goTo('/onboarding/step-6');
+  };
 
   return (
     <div
@@ -455,18 +490,48 @@ export default function OnboardingReviewStep() {
               </div>
             </section>
 
+            {proofOfFunds && (
+              <section className="mb-4 flex items-center justify-between rounded-[18px] bg-[#F5F5F7] px-4 py-3 shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.08)]">
+                <span className="text-[12px] font-medium uppercase tracking-[1.3px] text-[#1D1D1F]/55">
+                  Proof of funds
+                </span>
+                <span
+                  className={`rounded-full px-2.5 py-1 text-[11px] font-medium ${
+                    proofOfFunds === 'funds_sufficient'
+                      ? 'bg-[#34C759]/12 text-[#1E7A33]'
+                      : proofOfFunds === 'funds_insufficient'
+                      ? 'bg-[#FF9500]/12 text-[#B25E00]'
+                      : 'bg-[#1D1D1F]/8 text-[#1D1D1F]/60'
+                  }`}
+                >
+                  {PROOF_OF_FUNDS_LABELS[proofOfFunds]}
+                </span>
+              </section>
+            )}
+
+            {!atGate.ok && atGate.reasons.length > 0 && (
+              <section className="mb-4 rounded-[18px] bg-[#FF9500]/10 px-4 py-4 shadow-[inset_0_0_0_1px_rgba(255,149,0,0.22)]">
+                <p className="text-[12px] font-medium uppercase tracking-[1.4px] text-[#B25E00]">
+                  Finish before submitting
+                </p>
+                <ul className="mt-2 space-y-1">
+                  {atGate.reasons.map((reason) => (
+                    <li key={reason} className="text-[13px] font-normal text-[#1D1D1F]/70">
+                      • {REVIEW_GATE_REASON_LABELS[reason]}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+
             <section className="pb-12 space-y-3">
               <HushhTechCta
                 variant={HushhTechCtaVariant.BLACK}
-                onClick={() => {
-                  trackCta('continue', 'step-5');
-                  trackStepCompleted('step-5', 5);
-                  goTo('/onboarding/step-6');
-                }}
-                disabled={requiredMissing}
+                onClick={handleContinueToPayment}
+                disabled={requiredMissing || !atGate.ok || atGate.loading || submitting}
                 className={primaryCtaClass}
               >
-                Continue to Payment
+                {submitting ? 'Submitting…' : 'Continue to Payment'}
               </HushhTechCta>
               <HushhTechCta
                 variant={HushhTechCtaVariant.WHITE}

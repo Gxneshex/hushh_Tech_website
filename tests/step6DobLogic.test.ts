@@ -4,7 +4,7 @@ import {
   MINIMUM_ONBOARDING_AGE,
   buildDobYearOptions,
   resolveDobEligibility,
-} from '../src/pages/onboarding/step-6/logic';
+} from '../src/services/onboarding/dob';
 
 describe('step 6 DOB age gate', () => {
   const today = new Date('2026-04-09T12:00:00.000Z');

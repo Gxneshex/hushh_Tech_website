@@ -59,6 +59,7 @@ import OnboardingStep7 from './pages/onboarding/step-7/ui';
 import OnboardingReviewStep from './pages/onboarding/step-8/ui';
 import OnboardingBankDetailsStep from './pages/onboarding/step-9/ui';
 import FundPaymentLinkPage from './pages/onboarding/fund-payment/ui';
+import OnboardingInvitePage from './pages/onboarding/invite/ui';
 import VerifyIdentityPage from './pages/onboarding/verify-identity/ui';
 import VerifyCompletePage from './pages/onboarding/verify-complete/ui';
 import MeetCeoPage from './pages/onboarding/meet-ceo/ui';
@@ -260,6 +261,8 @@ function App() {
               </ProtectedRoute>
             } />
             <Route path="/onboarding/fund-payment/:token" element={<FundPaymentLinkPage />} />
+            {/* Public tokenized page for invited parties (NOT a wizard step). */}
+            <Route path="/onboarding/invite/:token" element={<OnboardingInvitePage />} />
             <Route path="/onboarding/step-1" element={
               <ProtectedRoute>
                 <OnboardingStep1 />

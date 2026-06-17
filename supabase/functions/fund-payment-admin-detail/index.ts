@@ -3,6 +3,7 @@
 // the separate review function.
 // PII-safe: SSN is NEVER returned (only `ssnProvided`); DOB is masked to year.
 import {
+  computeCommitmentCents,
   createAdminClient,
   formatUsdCents,
   getCorsHeaders,
@@ -12,6 +13,7 @@ import {
 } from "../_shared/fundStripe.ts";
 import { authenticateTeamMember } from "../_shared/security.ts";
 import { logAdminAccess } from "../_shared/fundAdminAudit.ts";
+import { computeProofOfFundsStatus, maxAccountBalanceCents } from "../_shared/proofOfFunds.ts";
 
 const toCents = (a: unknown) => Math.round(Number(a || 0) * 100);
 
@@ -97,6 +99,36 @@ function sourceList(params: {
   return Array.from(sources).sort();
 }
 
+const nonEmpty = (v: unknown) => String(v ?? "").trim() !== "";
+
+// PII-safe account-type detail block (custodian account number + EIN are reduced
+// to *Provided booleans, mirroring the SSN handling).
+function buildAccountTypeDetails(ob: any | null) {
+  if (!ob) return null;
+  if (ob.account_type === "retirement") {
+    return {
+      retirementAccountType: ob.retirement_account_type ?? null,
+      custodianName: ob.custodian_name ?? null,
+      custodianContactEmail: ob.custodian_contact_email ?? null,
+      custodianContactPhone: ob.custodian_contact_phone ?? null,
+      custodianAccountProvided: Boolean(ob.custodian_account_number),
+      custodianApprovalRequired: Boolean(ob.custodian_approval_required),
+    };
+  }
+  if (ob.account_type === "trust") {
+    return {
+      entityType: ob.entity_type ?? null,
+      entityLegalName: ob.entity_legal_name ?? null,
+      entityTaxIdProvided: Boolean(ob.entity_tax_id_ein),
+      formationState: ob.formation_state ?? null,
+      formationCountry: ob.formation_country ?? null,
+      registeredAddress: ob.registered_address ?? null,
+      principalAddress: ob.principal_address ?? null,
+    };
+  }
+  return null;
+}
+
 function missingPieces(params: {
   onboarding: any | null;
   latest: any | null;
@@ -105,6 +137,7 @@ function missingPieces(params: {
   ndaSigned: boolean;
   kycAvailable: boolean;
   kyc: any | null;
+  parties: any[];
 }) {
   const pieces: string[] = [];
   if (params.bankLinked && !params.onboarding) pieces.push("missing_onboarding_row");
@@ -127,6 +160,37 @@ function missingPieces(params: {
     const residenceCountry = String(params.onboarding?.residence_country || "").trim().toLowerCase();
     if (gpsCountry && residenceCountry && gpsCountry !== residenceCountry) {
       pieces.push("current_location_differs_from_residence");
+    }
+  }
+  // Account-type gating (mirrors accountTypeConfig + the submit edge fn).
+  {
+    const ob = params.onboarding;
+    const at = String(ob?.account_type || "individual");
+    const completedRoles = new Set(
+      (params.parties || []).filter((p) => p.status === "completed").map((p) => p.party_role),
+    );
+    if (at !== "individual" && !ob?.authorised_signatory_confirmed_at) {
+      pieces.push("signatory_not_confirmed");
+    }
+    if (at === "retirement" && !(nonEmpty(ob?.retirement_account_type) && nonEmpty(ob?.custodian_name))) {
+      pieces.push("account_type_fields_incomplete");
+    }
+    if (at === "trust" && !(nonEmpty(ob?.entity_type) && nonEmpty(ob?.entity_legal_name))) {
+      pieces.push("account_type_fields_incomplete");
+    }
+    if (at === "joint" && !completedRoles.has("joint_owner")) {
+      pieces.push("required_party_not_completed");
+    }
+    if (at === "trust" && !completedRoles.has("trustee")) {
+      pieces.push("required_party_not_completed");
+    }
+    if (
+      at !== "individual" &&
+      !["submitted", "compliance_review", "approved", "rejected"].includes(
+        String(ob?.application_status || ""),
+      )
+    ) {
+      pieces.push("application_not_submitted");
     }
   }
   return [...new Set(pieces)];
@@ -241,6 +305,19 @@ Deno.serve(async (req) => {
       accounts = rows("plaid_accounts", acctRes, sourceWarnings);
     }
 
+    // Additional onboarding parties (account-type invites) for compliance review.
+    const partiesRes = await supabase
+      .from("onboarding_parties")
+      .select("party_role, display_name, invite_email, status, completed_at, is_required")
+      .eq("primary_user_id", userId);
+    const partyRows = rows("onboarding_parties", partiesRes, sourceWarnings);
+
+    // Proof-of-funds (§3.3/§3.4, where available): available balance vs commitment.
+    const proofOfFundsStatus = computeProofOfFundsStatus({
+      balanceCents: maxAccountBalanceCents(accounts),
+      investmentCents: ob ? computeCommitmentCents(ob) : 0,
+    });
+
     // Reviewer emails: one batched read from public.users, with a bounded
     // getUserById fallback for any ids missing there (reviewer count is tiny).
     const reviewerIds = [...new Set(reviews.map((r) => r.reviewed_by).filter(Boolean))] as string[];
@@ -286,7 +363,9 @@ Deno.serve(async (req) => {
       ndaSigned,
       kycAvailable,
       kyc,
+      parties: partyRows,
     });
+    if (proofOfFundsStatus === "funds_insufficient") pieces.push("funds_insufficient");
 
     const displayName = ob || authUser
       ? getDisplayName(authUser, ob)
@@ -304,6 +383,20 @@ Deno.serve(async (req) => {
         dobMasked: maskDob(ob?.date_of_birth),
         ssnProvided: Boolean(ob?.ssn_encrypted),
         accountType: ob?.account_type ?? null,
+        applicationStatus: ob?.application_status ?? null,
+        accountTypeDetails: buildAccountTypeDetails(ob),
+        signatory: {
+          isPrimary: ob?.authorised_signatory_is_primary ?? null,
+          confirmedAt: ob?.authorised_signatory_confirmed_at ?? null,
+        },
+        parties: partyRows.map((p: any) => ({
+          role: p.party_role,
+          displayName: p.display_name ?? null,
+          email: p.invite_email ?? null,
+          status: p.status,
+          completedAt: p.completed_at ?? null,
+          required: Boolean(p.is_required),
+        })),
         currentStep: ob?.current_step ?? null,
         onboardingComplete: Boolean(ob?.is_completed),
         verificationStatus: ob?.fund_investor_verification_status ?? latest?.status ?? null,
@@ -323,6 +416,7 @@ Deno.serve(async (req) => {
             ? latest.status
             : "not_verified",
           kycStatus: kyc?.status ?? (kycAvailable ? "not_found" : "not_configured"),
+          proofOfFunds: proofOfFundsStatus,
           missingPieces: pieces,
           dataSources,
         },

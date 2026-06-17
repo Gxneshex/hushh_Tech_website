@@ -727,6 +727,12 @@ async function purgeUserData(adminClient, userId, context) {
   await deleteIn(adminClient, "investor_inquiries", "slug", context.profileSlugs);
   await deleteIn(adminClient, "public_chat_messages", "slug", context.profileSlugs);
 
+  // Additional-party onboarding rows are keyed by the PRIMARY investor's id
+  // (primary_user_id), not user_id. Purge invites before parties (invites FK
+  // parties), and both before onboarding_data.
+  await deleteEq(adminClient, "onboarding_invites", "primary_user_id", userId);
+  await deleteEq(adminClient, "onboarding_parties", "primary_user_id", userId);
+
   await deleteEq(adminClient, "onboarding_data", "user_id", userId);
   await deleteEq(adminClient, "investor_profiles", "user_id", userId);
   await deleteEq(adminClient, "ceo_meeting_payments", "user_id", userId);

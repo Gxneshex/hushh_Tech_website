@@ -11,6 +11,13 @@ import {
 const readRepoFile = (path: string) =>
   readFileSync(join(process.cwd(), path), "utf8");
 
+// The routed onboarding step pages. URLs are sequential step-1..6, but the
+// component folders keep legacy names: step-7 = investment, step-8 = review,
+// step-9 = payment. The unrouted step-4/5/6 dirs were removed as dead code.
+const ROUTED_STEP_UI_PATHS = [1, 2, 3, 7, 8, 9].map(
+  (n) => `src/pages/onboarding/step-${n}/ui.tsx`,
+);
+
 describe("onboarding display sequence", () => {
   it("renders the canonical onboarding routes as steps 1 through 6 without gaps", () => {
     expect(CANONICAL_ONBOARDING_ROUTES).toEqual([
@@ -45,19 +52,20 @@ describe("onboarding display sequence", () => {
     expect(paymentStep).toBeLessThanOrEqual(reachedStep + 1);
   });
 
-  it("uses the display step, not the raw saved step, on step 4", () => {
-    const step4Ui = readRepoFile("src/pages/onboarding/step-4/ui.tsx");
+  it("uses the display step, not the raw saved step, on the investment step (display step 4)", () => {
+    // Display step 4 is served by the legacy-named dir step-7 (investment).
+    const investmentUi = readRepoFile("src/pages/onboarding/step-7/ui.tsx");
 
-    expect(step4Ui).toContain("Step {DISPLAY_STEP}/{TOTAL_STEPS}");
-    expect(step4Ui).not.toContain("Step {CURRENT_STEP}/{TOTAL_STEPS}");
+    expect(investmentUi).toContain("Step {DISPLAY_STEP}/");
+    expect(investmentUi).not.toContain("Step {CURRENT_STEP}/");
   });
 
-  it("does not show decorative hero app logos on the nine onboarding steps", () => {
-    for (let step = 1; step <= 9; step += 1) {
-      const ui = readRepoFile(`src/pages/onboarding/step-${step}/ui.tsx`);
+  it("does not show decorative hero app logos on the onboarding steps", () => {
+    ROUTED_STEP_UI_PATHS.forEach((path) => {
+      const ui = readRepoFile(path);
 
       expect(ui).not.toMatch(/<AppIcon kind="(?:monoA|person|shield|chart|dollar)" size=\{58\} \/>/);
-    }
+    });
   });
 
   it("does not show decorative hero app logos on adjacent onboarding surfaces", () => {
@@ -88,12 +96,12 @@ describe("onboarding display sequence", () => {
       ".onboarding-shell > header:not([data-hushh-back-header])",
     );
 
-    for (let step = 1; step <= 9; step += 1) {
-      const ui = readRepoFile(`src/pages/onboarding/step-${step}/ui.tsx`);
+    ROUTED_STEP_UI_PATHS.forEach((path) => {
+      const ui = readRepoFile(path);
 
       expect(ui).toContain("<HushhTechBackHeader");
       expect(ui).toContain("rightLabel=\"FAQs\"");
-    }
+    });
 
     [
       "src/pages/onboarding/financial-link/ui.tsx",

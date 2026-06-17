@@ -36,6 +36,17 @@ export interface InvestorDetail {
   dobMasked: string | null;
   ssnProvided: boolean;
   accountType: string | null;
+  applicationStatus?: string | null;
+  accountTypeDetails?: Record<string, unknown> | null;
+  signatory?: { isPrimary: boolean | null; confirmedAt: string | null } | null;
+  parties?: Array<{
+    role: string;
+    displayName: string | null;
+    email: string | null;
+    status: string;
+    completedAt: string | null;
+    required: boolean;
+  }>;
   currentStep: number | null;
   onboardingComplete: boolean;
   verificationStatus: string | null;
@@ -49,6 +60,7 @@ export interface InvestorDetail {
     manualReviewStatus: string | null;
     manualInvestorStatus: string | null;
     kycStatus: string | null;
+    proofOfFunds?: string | null;
     missingPieces: string[];
     dataSources: string[];
   };

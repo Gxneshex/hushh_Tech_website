@@ -14,44 +14,21 @@ import {
   withLocalOnboardingPreview,
 } from '../../../services/onboarding/flow';
 import type { UIAccountType } from '../../../types/onboarding';
+import {
+  ACCOUNT_TYPE_OPTIONS,
+  accountStructureFor,
+  type AccountTypeOption,
+} from '../../../services/onboarding/accountTypeConfig';
 
 export const CURRENT_STEP = 2;
 export const TOTAL_STEPS = TOTAL_VISIBLE_ONBOARDING_STEPS;
 export const PROGRESS_PCT = Math.round((CURRENT_STEP / TOTAL_STEPS) * 100);
 
-export interface AccountTypeOption {
-  value: UIAccountType;
-  label: string;
-  description: string;
-  icon: string;
-}
-
-export const ACCOUNT_TYPE_OPTIONS: AccountTypeOption[] = [
-  {
-    value: 'individual',
-    label: 'Individual',
-    description: 'One person investing in their own name.',
-    icon: 'person',
-  },
-  {
-    value: 'joint',
-    label: 'Joint',
-    description: 'Two owners investing together. We collect the primary investor first.',
-    icon: 'group',
-  },
-  {
-    value: 'retirement',
-    label: 'Retirement',
-    description: 'Traditional or Roth retirement account. Custodian details may be requested during review.',
-    icon: 'account_balance',
-  },
-  {
-    value: 'trust',
-    label: 'Trust / Entity',
-    description: 'Trust, LLC, corporation, partnership, or managed ownership review.',
-    icon: 'shield',
-  },
-];
+// Account-type options + AccountTypeOption now come from the single source of
+// truth (accountTypeConfig). Re-exported so step-2/ui's `import { ... } from './logic'`
+// keeps working.
+export { ACCOUNT_TYPE_OPTIONS };
+export type { AccountTypeOption };
 
 export interface Step2Logic {
   selectedAccountType: UIAccountType | null;
@@ -61,9 +38,6 @@ export interface Step2Logic {
   handleContinue: () => Promise<void>;
   handleBack: () => void;
 }
-
-const accountStructureFor = (value: UIAccountType) =>
-  value === 'individual' ? 'individual' : 'other';
 
 export const useStep2Logic = (): Step2Logic => {
   const navigate = useNavigate();

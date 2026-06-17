@@ -1,0 +1,118 @@
+/**
+ * Client wrapper for the onboarding party-invite edge functions.
+ * Authed calls (create/resend/revoke) carry the primary investor's JWT; token-only
+ * calls (load/save/complete) are unauthenticated and authorize by token hash.
+ * Mirrors src/services/fundPayment/fundPaymentService.ts.
+ */
+import { getAuthenticatedSession } from '../../auth/session';
+import config from '../../resources/config/config';
+import type { PartyFieldDef } from './partyRequirements';
+import type { ProofOfFundsStatus } from './proofOfFunds';
+
+const getFunctionsUrl = (): string => {
+  if (!config.SUPABASE_URL) throw new Error('VITE_SUPABASE_URL is not configured');
+  return `${config.SUPABASE_URL}/functions/v1`;
+};
+
+const getAnonKey = (): string => {
+  try {
+    return import.meta.env?.VITE_SUPABASE_ANON_KEY || '';
+  } catch {
+    return '';
+  }
+};
+
+const getUserAccessToken = async (): Promise<string> => {
+  if (!config.supabaseClient) return getAnonKey();
+  const session = await getAuthenticatedSession(config.supabaseClient);
+  return session.access_token || getAnonKey();
+};
+
+const authedHeaders = async () => ({
+  'Content-Type': 'application/json',
+  Authorization: `Bearer ${await getUserAccessToken()}`,
+});
+
+const tokenHeaders = { 'Content-Type': 'application/json' };
+
+const postJson = async <T>(path: string, headers: HeadersInit, body: unknown): Promise<T> => {
+  const res = await fetch(`${getFunctionsUrl()}/${path}`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(body),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const err = new Error((data as { error?: string }).error || `Request to ${path} failed`);
+    (err as { details?: unknown }).details = data;
+    throw err;
+  }
+  return data as T;
+};
+
+export type InviteState = 'active' | 'expired' | 'revoked' | 'completed';
+
+export interface CreateInviteResult {
+  success: boolean;
+  party_id: string;
+  invite_id: string;
+  invite_reference: string;
+  invite_url: string;
+  expires_at: string;
+  state: InviteState;
+  email_sent: boolean;
+}
+
+export interface LoadInviteResult {
+  success: boolean;
+  state: InviteState;
+  role: string;
+  role_label: string;
+  primary_name: string;
+  fields: PartyFieldDef[];
+  profile: Record<string, string>;
+  expires_at: string;
+}
+
+export const createInvite = (params: { role: string; email: string; displayName?: string }) =>
+  authedHeaders().then((headers) =>
+    postJson<CreateInviteResult>('onboarding-invite-create', headers, params),
+  );
+
+export const loadInvite = (token: string) =>
+  postJson<LoadInviteResult>('onboarding-invite-load', tokenHeaders, { token });
+
+export const saveInviteSection = (token: string, profile: Record<string, string>) =>
+  postJson<{ success: boolean }>('onboarding-invite-save', tokenHeaders, { token, profile });
+
+export const completeInvite = (token: string, profile: Record<string, string>) =>
+  postJson<{ success: boolean }>('onboarding-invite-complete', tokenHeaders, { token, profile });
+
+export const resendInvite = async (inviteId: string) =>
+  postJson<{ success: boolean; invite_url: string; expires_at: string; email_sent: boolean }>(
+    'onboarding-invite-resend',
+    await authedHeaders(),
+    { invite_id: inviteId },
+  );
+
+export const revokeInvite = async (inviteId: string) =>
+  postJson<{ success: boolean }>('onboarding-invite-revoke', await authedHeaders(), {
+    invite_id: inviteId,
+  });
+
+/** Submit the application for compliance review (server re-validates the gate). */
+export const submitApplication = async () =>
+  postJson<{ success: boolean; application_status: string; submitted_at: string }>(
+    'onboarding-submit-application',
+    await authedHeaders(),
+    {},
+  );
+
+/** Funding-readiness (proof-of-funds) status, where bank balance is available. */
+export const getProofOfFunds = async () =>
+  postJson<{
+    success: boolean;
+    status: ProofOfFundsStatus;
+    balance_available: boolean;
+    investment_selected: boolean;
+  }>('onboarding-proof-of-funds', await authedHeaders(), {});

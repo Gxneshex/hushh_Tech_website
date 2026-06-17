@@ -60,6 +60,8 @@ export const DELETE_ACCOUNT_SCHEMA_COVERED_TABLES = [
   "nda_signatures",
   "notifications",
   "onboarding_data",
+  "onboarding_invites",
+  "onboarding_parties",
   "plaid_accounts",
   "plaid_data_events",
   "plaid_items",

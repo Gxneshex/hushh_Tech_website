@@ -26,19 +26,11 @@ export type AccountStructure = 'individual' | 'joint' | 'retirement' | 'trust' |
 // These map directly to the DB account_type column (constraint updated via migration).
 export type UIAccountType = 'individual' | 'joint' | 'retirement' | 'trust';
 
-// Account type option for rendering in the UI
-export interface AccountTypeOption {
-  value: UIAccountType;
-  label: string;
-}
-
-// Options displayed in Step 5 and the profile page
-export const ACCOUNT_TYPE_OPTIONS: AccountTypeOption[] = [
-  { value: 'individual', label: 'Individual' },
-  { value: 'joint', label: 'Joint' },
-  { value: 'retirement', label: 'Retirement' },
-  { value: 'trust', label: 'Trust / Entity' },
-];
+// The AccountTypeOption shape and the ACCOUNT_TYPE_OPTIONS list now live in the
+// single source of truth (services/onboarding/accountTypeConfig). Re-exported here
+// so existing `import { ACCOUNT_TYPE_OPTIONS } from '../types/onboarding'` callers
+// keep working without a second hardcoded copy drifting out of sync.
+export { ACCOUNT_TYPE_OPTIONS, type AccountTypeOption } from '../services/onboarding/accountTypeConfig';
 
 // Matches onboarding_data.recurring_frequency DB constraint.
 export type RecurringFrequency = 'once_a_month' | 'twice_a_month' | 'weekly' | 'every_other_week';

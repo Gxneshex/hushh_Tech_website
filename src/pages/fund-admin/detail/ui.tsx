@@ -23,6 +23,12 @@ const PIECE_LABELS: Record<string, string> = {
   first_payment_not_paid: 'First payment not paid',
   awaiting_manual_verification: 'Awaiting manual verification',
   kyc_not_found: 'KYC not found',
+  current_location_differs_from_residence: 'Current location differs from residence',
+  signatory_not_confirmed: 'Authorised signatory not confirmed',
+  account_type_fields_incomplete: 'Account-type details incomplete',
+  required_party_not_completed: 'Required party not completed',
+  application_not_submitted: 'Not yet submitted for review',
+  funds_insufficient: 'Funds insufficient',
 };
 
 function auditLabel(value: string): string {
@@ -391,6 +397,7 @@ export default function FundAdminInvestorDetail() {
                 <DetailItem label="First payment" value={investor.audit.firstPaymentPaid ? 'Paid' : 'Not paid'} />
                 <DetailItem label="Manual investor status" value={investor.audit.manualInvestorStatus} />
                 <DetailItem label="KYC status" value={investor.audit.kycStatus} />
+                <DetailItem label="Proof of funds" value={investor.audit.proofOfFunds} />
               </div>
 
               {investor.audit.missingPieces.length > 0 && (
@@ -421,6 +428,48 @@ export default function FundAdminInvestorDetail() {
                 </div>
               </div>
             </Card>
+
+            {/* Parties & signatory (account-type accounts) */}
+            {investor.accountType && investor.accountType !== 'individual' && (
+              <Card title="Parties & signatory">
+                <div className="grid grid-cols-2 gap-x-4 gap-y-4 sm:grid-cols-3">
+                  <DetailItem label="Application status" value={investor.applicationStatus ?? 'started'} />
+                  <DetailItem
+                    label="Signatory confirmed"
+                    value={
+                      investor.signatory?.confirmedAt
+                        ? formatDateTime(investor.signatory.confirmedAt)
+                        : 'No'
+                    }
+                  />
+                </div>
+                <div className="mt-5">
+                  <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#1D1D1F]/45">
+                    Additional parties
+                  </div>
+                  {investor.parties && investor.parties.length > 0 ? (
+                    <div className="space-y-2">
+                      {investor.parties.map((p, i) => (
+                        <div
+                          key={`${p.role}-${i}`}
+                          className="flex items-center justify-between gap-2 rounded-[12px] bg-[#F5F5F7] px-3 py-2"
+                        >
+                          <span className="min-w-0 truncate text-[13px] text-[#1D1D1F]">
+                            {(p.displayName || p.email || 'Invited party')} · {p.role.replace(/_/g, ' ')}
+                          </span>
+                          <Chip
+                            label={p.status.replace(/_/g, ' ')}
+                            tone={p.status === 'completed' ? 'green' : 'orange'}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <Chip label="No additional parties invited yet" />
+                  )}
+                </div>
+              </Card>
+            )}
 
             {/* Funnel timeline */}
             <Card title="Funnel timeline">

@@ -30,6 +30,8 @@ import {
   OptionalMarker,
   RequiredAsterisk,
 } from "../../../components/onboarding-field-marker/FieldMarkers";
+import AccountTypeSections from "./sections/AccountTypeSections";
+import { useStep3AccountTypeSections } from "./sections/logic";
 
 const DISPLAY_STEP = 3;
 const primaryCtaClass =
@@ -55,6 +57,7 @@ const compactSelectClass =
 
 export default function OnboardingStep3Combined() {
   const s = useCombinedLocationLogic();
+  const at = useStep3AccountTypeSections();
   const [isSsnHelpOpen, setIsSsnHelpOpen] = useState(false);
   const locationModalRef = useRef<HTMLDivElement>(null);
   const allowLocationButtonRef = useRef<HTMLButtonElement>(null);
@@ -727,6 +730,8 @@ export default function OnboardingStep3Combined() {
                 )}
               </div>
             </section>
+            {/* ── Account-type sections (Step 2 drives these) ── */}
+            <AccountTypeSections at={at} />
           </div>
 
           {/* ── Legal-residence attestation — only when there is a bank-verified
@@ -749,9 +754,15 @@ export default function OnboardingStep3Combined() {
           <section className="pb-12 space-y-3 mt-4">
             <HushhTechCta
               variant={HushhTechCtaVariant.BLACK}
-              onClick={s.handleContinue}
+              onClick={async () => {
+                // Persist the account-type sections first (signatory + retirement/
+                // entity fields), then run the existing step-3 save + navigation.
+                const res = await at.persist();
+                if (res.error) return;
+                await s.handleContinue();
+              }}
               disabled={
-                !s.canContinue || s.isLoading || s.isDetectingLocation || s.isAutoFilling
+                !s.canContinue || !at.isComplete || s.isLoading || s.isDetectingLocation || s.isAutoFilling
               }
               className={primaryCtaClass}
             >

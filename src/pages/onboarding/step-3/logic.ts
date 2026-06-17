@@ -36,12 +36,12 @@ import {
   MONTH_NAMES,
   buildDobYearOptions,
   resolveDobEligibility,
-} from '../step-6/logic';
+} from '../../../services/onboarding/dob';
 import {
   PHONE_DIAL_CODES,
   resolveStep4CachedDialCode,
   type DialCodeOption,
-} from '../step-4/logic';
+} from '../../../services/onboarding/phone';
 
 /* ═══════════════════════════════════════════════
    CONSTANTS

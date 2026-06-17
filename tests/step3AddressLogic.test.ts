@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import { buildStep3SavePayload } from '../src/pages/onboarding/step-3/logic';
-import { resolveStep4CachedDialCode } from '../src/pages/onboarding/step-4/logic';
+import { resolveStep4CachedDialCode } from '../src/services/onboarding/phone';
 
 const read = (p: string) => readFileSync(join(process.cwd(), p), 'utf8');
 

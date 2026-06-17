@@ -18,7 +18,10 @@ describe("Plaid skip + change-bank audit hardening", () => {
   });
 
   it("P0.B — every onboarding step renders OnboardingBankReviewChip below the back header", () => {
-    const steps = [1, 2, 3, 4, 5, 6, 7, 8];
+    // Routed step pages only. URLs are step-1..6 but folders keep legacy names
+    // (step-7 = investment, step-8 = review); the unrouted step-4/5/6 dirs were
+    // removed as dead code. step-9 (payment) intentionally has no review chip.
+    const steps = [1, 2, 3, 7, 8];
     for (const n of steps) {
       const ui = read(`src/pages/onboarding/step-${n}/ui.tsx`);
       expect(ui, `step-${n}/ui.tsx missing chip import`).toContain(
