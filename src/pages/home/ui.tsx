@@ -1,4 +1,11 @@
-import { useState, type ComponentProps, type PointerEvent, type ReactNode } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ComponentProps,
+  type PointerEvent,
+  type ReactNode,
+} from "react";
 import { useHomeLogic } from "./logic";
 import HushhTechHeader from "../../components/hushh-tech-header/HushhTechHeader";
 import SeoHead from "../../components/seo/SeoHead";
@@ -19,12 +26,94 @@ import {
 } from "../../components/hushh-tech-ui/HushhAppleUI";
 
 const FUND_A_APPLE_GREEN = "#30D158";
+const FUND_A_APPLE_BLUE = "#2997FF";
 type AppIconKind = ComponentProps<typeof AppIcon>["kind"];
 
-const PerformancePreview = () => {
-  const pct = "+21.4%";
-  const pctValue = pct.slice(1).replace("%", "");
+type CountUpNumberProps = {
+  end: number;
+  decimals?: number;
+  duration?: number;
+  prefix?: string;
+  suffix?: string;
+  className?: string;
+  style?: React.CSSProperties;
+};
 
+const CountUpNumber = ({
+  end,
+  decimals = 0,
+  duration = 1100,
+  prefix = "",
+  suffix = "",
+  className,
+  style,
+}: CountUpNumberProps) => {
+  const ref = useRef<HTMLSpanElement | null>(null);
+  const frameRef = useRef<number | null>(null);
+  const [value, setValue] = useState(0);
+  const [hasPlayed, setHasPlayed] = useState(false);
+
+  useEffect(() => {
+    const node = ref.current;
+    if (!node || hasPlayed) return;
+
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+
+    const start = () => {
+      setHasPlayed(true);
+
+      if (prefersReducedMotion) {
+        setValue(end);
+        return;
+      }
+
+      const startTime = performance.now();
+      const ease = (t: number) => 1 - Math.pow(1 - t, 3);
+
+      const tick = (now: number) => {
+        const elapsed = Math.min(1, (now - startTime) / duration);
+        setValue(end * ease(elapsed));
+
+        if (elapsed < 1) {
+          frameRef.current = window.requestAnimationFrame(tick);
+        }
+      };
+
+      frameRef.current = window.requestAnimationFrame(tick);
+    };
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          start();
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.35 },
+    );
+
+    observer.observe(node);
+
+    return () => {
+      observer.disconnect();
+      if (frameRef.current) {
+        window.cancelAnimationFrame(frameRef.current);
+      }
+    };
+  }, [duration, end, hasPlayed]);
+
+  return (
+    <span ref={ref} className={className} style={style}>
+      {prefix}
+      {value.toFixed(decimals)}
+      {suffix}
+    </span>
+  );
+};
+
+const PerformancePreview = () => {
   return (
     <div
       className="mx-auto grid w-full max-w-6xl gap-y-8 text-left sm:grid-cols-3"
@@ -33,16 +122,16 @@ const PerformancePreview = () => {
     >
       <div className="px-0 sm:pr-8 md:pr-11">
         <div className="flex items-baseline font-semibold leading-[0.95] tracking-[-0.03em] tabular-nums">
-          <span
+          <CountUpNumber
+            end={21.4}
+            decimals={1}
+            prefix="+"
             className="text-[52px] sm:text-[58px] md:text-[76px] lg:text-[90px]"
-            style={{ color: FUND_A_APPLE_GREEN }}
-          >
-            {pct[0]}
-            {pctValue}
-          </span>
+            style={{ color: FUND_A_APPLE_BLUE }}
+          />
           <span
             className="ml-1 text-[26px] font-semibold sm:text-[29px] md:text-[38px] lg:text-[45px]"
-            style={{ color: FUND_A_APPLE_GREEN }}
+            style={{ color: FUND_A_APPLE_BLUE }}
           >
             %
           </span>
@@ -56,8 +145,14 @@ const PerformancePreview = () => {
       </div>
 
       <div className="border-t border-white/15 pt-7 sm:border-l sm:border-t-0 sm:py-2 sm:pl-8 md:pl-11">
-        <div className="text-[52px] font-semibold leading-[0.95] tracking-[-0.03em] text-white tabular-nums sm:text-[58px] md:text-[76px] lg:text-[90px]">
-          18&ndash;23<span className="text-[0.5em]">%</span>
+        <div
+          className="text-[52px] font-semibold leading-[0.95] tracking-[-0.03em] tabular-nums sm:text-[58px] md:text-[76px] lg:text-[90px]"
+          style={{ color: FUND_A_APPLE_BLUE }}
+        >
+          <CountUpNumber end={18} />
+          &ndash;
+          <CountUpNumber end={23} />
+          <span className="text-[0.5em]">%</span>
         </div>
         <div className="mt-4 text-[15px] font-normal text-white/60 md:mt-[18px]">
           Target IRR
