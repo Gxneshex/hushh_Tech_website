@@ -417,11 +417,11 @@ export default function HomePage() {
               as="h1"
               size="md"
               maxWidth="max-w-[760px]"
-              className="text-[clamp(38px,6.2vw,68px)] leading-[1.08] tracking-[-0.025em]"
+              className="!text-[clamp(38px,6.2vw,68px)] !leading-[1.08] !tracking-[-0.025em]"
             >
               The world's first AI-powered Berkshire Hathaway.
             </Display>
-            <Lede className="mt-[26px] max-w-[36ch] text-[clamp(19px,2.1vw,25px)] leading-[1.4] text-black/50">
+            <Lede className="mt-[26px] max-w-[36ch] !text-[clamp(19px,2.1vw,25px)] !leading-[1.4] text-black/50">
               Merging rigorous data science with human wisdom.
             </Lede>
 
@@ -530,7 +530,7 @@ export default function HomePage() {
                   size="sm"
                   tone="dark"
                   maxWidth="max-w-[520px]"
-                  className="mx-0 px-0 text-left text-[clamp(32px,4.6vw,54px)] leading-[1.08] tracking-[-0.025em]"
+                  className="mx-0 px-0 text-left !text-[clamp(32px,4.6vw,54px)] !leading-[1.08] !tracking-[-0.025em]"
                 >
                   Fund A
                   <span
@@ -546,7 +546,7 @@ export default function HomePage() {
 
               <Lede
                 tone="dark"
-                className="mx-0 mt-[22px] max-w-[42ch] px-0 text-left text-[clamp(18px,1.6vw,24px)] leading-[1.4] text-white/55"
+                className="mx-0 mt-[22px] max-w-[42ch] px-0 text-left !text-[clamp(18px,1.6vw,24px)] !leading-[1.4] text-white/55"
               >
                 A high-growth strategy engineered to compound capital with discipline.
               </Lede>
@@ -567,35 +567,71 @@ export default function HomePage() {
         <AppleSection
           tone="light"
           pad="normal"
-          className="px-6 !py-[clamp(96px,11vw,150px)] md:px-10"
+          className="px-6 !py-[clamp(88px,10vw,136px)] md:px-10"
         >
-          <div className="mx-auto grid max-w-7xl items-center gap-[clamp(40px,6vw,80px)] lg:grid-cols-[minmax(0,0.9fr)_minmax(420px,1.1fr)]">
+          <div className="mx-auto grid max-w-[1280px] items-center gap-[clamp(40px,6vw,80px)] lg:grid-cols-[minmax(0,0.9fr)_minmax(460px,1.1fr)]">
             <div className="text-left">
-              <Eyebrow className="mx-0 text-left">Fund Technology</Eyebrow>
               <Display
                 size="md"
-                maxWidth="max-w-[540px]"
-                className="mx-0 px-0 text-left text-[clamp(32px,4.6vw,54px)] leading-[1.08] tracking-[-0.025em]"
+                maxWidth="max-w-[590px]"
+                className="mx-0 px-0 text-left !text-[clamp(38px,5.2vw,68px)] !font-semibold !leading-[1.05] !tracking-[-0.035em]"
               >
                 Designed like a technology product.
               </Display>
-              <Lede className="mx-0 mt-6 max-w-[44ch] px-0 text-left text-[clamp(18px,1.5vw,21px)] leading-[1.47]">
+              <Lede className="mx-0 mt-8 max-w-[44ch] px-0 text-left !text-[clamp(18px,1.65vw,23px)] !font-normal !leading-[1.42] text-[#6E6E73]">
                 Institutional analytics, human oversight, and modern fund
                 operations in one investment experience.
               </Lede>
+
+              <div className="mt-[clamp(48px,6vw,64px)]">
+                <p
+                  className="mb-[22px] text-[12px] font-semibold uppercase tracking-[0.12em] text-[#86868B]"
+                  style={{ fontFamily: appleFont }}
+                >
+                  Includes
+                </p>
+                <div className="grid max-w-[620px] gap-8 sm:grid-cols-2">
+                  <div className="flex flex-col items-start">
+                    <AppIcon kind="intelligence" size={56} />
+                    <h3
+                      className="mt-6 text-[22px] font-semibold leading-[1.12] tracking-[-0.02em] text-[#1D1D1F]"
+                      style={{ fontFamily: appleFont }}
+                    >
+                      AI-Powered
+                    </h3>
+                    <p
+                      className="mt-3 max-w-[28ch] text-[16px] leading-[1.45] text-[#6E6E73]"
+                      style={{ fontFamily: appleFont }}
+                    >
+                      Institutional analytics processing millions of signals.
+                    </p>
+                  </div>
+                  <div className="flex flex-col items-start">
+                    <AppIcon kind="person" size={56} />
+                    <h3
+                      className="mt-6 text-[22px] font-semibold leading-[1.12] tracking-[-0.02em] text-[#1D1D1F]"
+                      style={{ fontFamily: appleFont }}
+                    >
+                      Human-Led
+                    </h3>
+                    <p
+                      className="mt-3 max-w-[28ch] text-[16px] leading-[1.45] text-[#6E6E73]"
+                      style={{ fontFamily: appleFont }}
+                    >
+                      Seasoned oversight ensuring long-term, conviction-led decisions.
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <BigCard
-                tone="dark"
-                title="AI-Powered"
-                body="Institutional analytics processing millions of signals."
-                iconKind="intelligence"
-              />
-              <BigCard
-                title="Human-Led"
-                body="Seasoned oversight ensuring long-term, conviction-led decisions."
-                iconKind="person"
+            <div className="relative -mx-3 sm:mx-0">
+              <img
+                src="/assets/home/technology-product-ai-powered.png"
+                alt="Hushh AI-powered investing team"
+                className="block h-auto w-full"
+                loading="lazy"
+                decoding="async"
               />
             </div>
           </div>
@@ -611,7 +647,7 @@ export default function HomePage() {
             <Display
               size="sm"
               maxWidth="max-w-[540px]"
-              className="text-[clamp(32px,4.6vw,54px)] leading-[1.08] tracking-[-0.025em]"
+              className="!text-[clamp(32px,4.6vw,54px)] !leading-[1.08] !tracking-[-0.025em]"
             >
               Built on principles you can trust.
             </Display>
@@ -661,7 +697,7 @@ export default function HomePage() {
                 size="sm"
                 tone="dark"
                 maxWidth="max-w-[540px]"
-                className="text-[clamp(32px,4.6vw,54px)] leading-[1.08] tracking-[-0.025em]"
+                className="!text-[clamp(32px,4.6vw,54px)] !leading-[1.08] !tracking-[-0.025em]"
               >
                 Everything for serious investing.
               </Display>
