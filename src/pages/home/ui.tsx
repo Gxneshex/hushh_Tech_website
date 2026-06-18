@@ -1,11 +1,4 @@
-import {
-  useEffect,
-  useRef,
-  useState,
-  type ComponentProps,
-  type PointerEvent,
-  type ReactNode,
-} from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useHomeLogic } from "./logic";
 import HushhTechHeader from "../../components/hushh-tech-header/HushhTechHeader";
 import SeoHead from "../../components/seo/SeoHead";
@@ -13,404 +6,566 @@ import HushhTechFooter, {
   HushhFooterTab,
 } from "../../components/hushh-tech-footer/HushhTechFooter";
 import {
-  AppIcon,
-  AppleSection,
-  ChevLink,
-  Display,
-  Eyebrow,
   Icon,
-  Lede,
   PillButton,
   SYS,
   appleFont,
 } from "../../components/hushh-tech-ui/HushhAppleUI";
+import techTeamImage from "../../components/images/tech-team-final.png";
 
-const FUND_A_APPLE_GREEN = "#30D158";
-const FUND_A_APPLE_BLUE = "#2997FF";
-type AppIconKind = ComponentProps<typeof AppIcon>["kind"];
+const easeOutCubic = (value: number) => 1 - Math.pow(1 - value, 3);
 
-type CountUpNumberProps = {
-  end: number;
-  decimals?: number;
-  duration?: number;
-  prefix?: string;
-  suffix?: string;
-  className?: string;
-  style?: React.CSSProperties;
-};
-
-const CountUpNumber = ({
-  end,
-  decimals = 0,
-  duration = 1100,
-  prefix = "",
-  suffix = "",
-  className,
-  style,
-}: CountUpNumberProps) => {
-  const ref = useRef<HTMLSpanElement | null>(null);
-  const frameRef = useRef<number | null>(null);
-  const [value, setValue] = useState(0);
-  const [hasPlayed, setHasPlayed] = useState(false);
+function useInViewOnce<T extends HTMLElement>(threshold = 0.12) {
+  const ref = useRef<T | null>(null);
+  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const node = ref.current;
-    if (!node || hasPlayed) return;
+    const element = ref.current;
+    if (!element || visible) return;
 
-    const prefersReducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
-
-    const start = () => {
-      setHasPlayed(true);
-
-      if (prefersReducedMotion) {
-        setValue(end);
-        return;
-      }
-
-      const startTime = performance.now();
-      const ease = (t: number) => 1 - Math.pow(1 - t, 3);
-
-      const tick = (now: number) => {
-        const elapsed = Math.min(1, (now - startTime) / duration);
-        setValue(end * ease(elapsed));
-
-        if (elapsed < 1) {
-          frameRef.current = window.requestAnimationFrame(tick);
-        }
-      };
-
-      frameRef.current = window.requestAnimationFrame(tick);
-    };
+    if (!("IntersectionObserver" in window)) {
+      setVisible(true);
+      return;
+    }
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
-          start();
-          observer.disconnect();
-        }
+        if (!entry?.isIntersecting) return;
+        setVisible(true);
+        observer.disconnect();
       },
-      { threshold: 0.35 },
+      { threshold, rootMargin: "0px 0px -6% 0px" },
     );
 
-    observer.observe(node);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [threshold, visible]);
 
-    return () => {
-      observer.disconnect();
-      if (frameRef.current) {
-        window.cancelAnimationFrame(frameRef.current);
-      }
+  return { ref, visible };
+}
+
+function CountUp({
+  value,
+  decimals = 0,
+  active,
+}: {
+  value: number;
+  decimals?: number;
+  active: boolean;
+}) {
+  const [display, setDisplay] = useState(0);
+
+  useEffect(() => {
+    if (!active) return;
+    let frame = 0;
+    const duration = 1500;
+    const start = performance.now();
+
+    const tick = (now: number) => {
+      const progress = Math.min(1, (now - start) / duration);
+      setDisplay(value * easeOutCubic(progress));
+      if (progress < 1) frame = requestAnimationFrame(tick);
     };
-  }, [duration, end, hasPlayed]);
 
-  return (
-    <span ref={ref} className={className} style={style}>
-      {prefix}
-      {value.toFixed(decimals)}
-      {suffix}
-    </span>
-  );
-};
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [active, value]);
 
-const PerformancePreview = () => {
-  return (
-    <div
-      className="mx-auto grid w-full max-w-6xl gap-y-8 text-left sm:grid-cols-3"
-      aria-label="Fund A performance preview"
-      style={{ fontFamily: appleFont }}
-    >
-      <div className="px-0 sm:pr-8 md:pr-11">
-        <div className="flex items-baseline font-semibold leading-[0.95] tracking-[-0.03em] tabular-nums">
-          <CountUpNumber
-            end={21.4}
-            decimals={1}
-            prefix="+"
-            className="text-[52px] sm:text-[58px] md:text-[76px] lg:text-[90px]"
-            style={{ color: FUND_A_APPLE_BLUE }}
-          />
-          <span
-            className="ml-1 text-[26px] font-semibold sm:text-[29px] md:text-[38px] lg:text-[45px]"
-            style={{ color: FUND_A_APPLE_BLUE }}
-          >
-            %
-          </span>
-        </div>
-        <div className="mt-4 text-[15px] font-normal text-white/60 md:mt-[18px]">
-          Net of fees
-        </div>
-        <div className="mt-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">
-          FY 2025
-        </div>
-      </div>
+  return <>{display.toFixed(decimals)}</>;
+}
 
-      <div className="border-t border-white/15 pt-7 sm:border-l sm:border-t-0 sm:py-2 sm:pl-8 md:pl-11">
-        <div
-          className="text-[52px] font-semibold leading-[0.95] tracking-[-0.03em] tabular-nums sm:text-[58px] md:text-[76px] lg:text-[90px]"
-          style={{ color: FUND_A_APPLE_BLUE }}
-        >
-          <CountUpNumber end={18} />
-          &ndash;
-          <CountUpNumber end={23} />
-          <span className="text-[0.5em]">%</span>
-        </div>
-        <div className="mt-4 text-[15px] font-normal text-white/60 md:mt-[18px]">
-          Target IRR
-        </div>
-      </div>
-
-      <div className="border-t border-white/15 pt-7 sm:border-l sm:border-t-0 sm:py-2 sm:pl-8 md:pl-11">
-        <div className="text-[40px] font-semibold leading-[1.1] tracking-[-0.03em] text-white sm:text-[46px] md:text-[58px] lg:text-[66px]">
-          Quarterly
-        </div>
-        <div className="mt-4 text-[15px] font-normal text-white/60 md:mt-[18px]">
-          Liquidity
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const FundACard = () => {
-  const restTilt = { rx: 6, ry: -10 };
-  const [tilt, setTilt] = useState(restTilt);
-  const shineX = 50 + tilt.ry * 1.4;
-  const shineY = 50 - tilt.rx * 1.4;
-
-  const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
-    const rect = event.currentTarget.getBoundingClientRect();
-    const dx = (event.clientX - (rect.left + rect.width / 2)) / (rect.width / 2);
-    const dy = (event.clientY - (rect.top + rect.height / 2)) / (rect.height / 2);
-    setTilt({ rx: -dy * 14, ry: dx * 18 });
-  };
-
-  const handlePointerLeave = () => setTilt(restTilt);
-
-  return (
-    <div
-      className="relative -m-5 p-5 [perspective-origin:50%_50%] [perspective:900px] md:-m-[30px] md:p-[30px]"
-      onPointerMove={handlePointerMove}
-      onPointerLeave={handlePointerLeave}
-      onPointerCancel={handlePointerLeave}
-      style={{
-        touchAction: "pan-y",
-        WebkitTapHighlightColor: "transparent",
-      }}
-      aria-label="Hushh Fund A card visual"
-    >
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-2.5 rounded-full blur-2xl"
-        style={{
-          background:
-            "radial-gradient(ellipse, rgba(94,92,230,0.35) 0%, rgba(0,122,255,0.2) 30%, rgba(0,0,0,0) 65%)",
-        }}
-      />
-      <div
-        className="relative h-[118px] w-[192px] overflow-hidden rounded-[16px] min-[390px]:h-[126px] min-[390px]:w-[204px] md:h-[160px] md:w-[260px] md:rounded-[18px]"
-        style={{
-          background:
-            "linear-gradient(135deg, #1a1a24 0%, #0e0e14 50%, #1a1620 100%)",
-          boxShadow:
-            "0 30px 60px rgba(0,0,0,0.5), 0 12px 32px rgba(94,92,230,0.18), inset 0 1px 0 rgba(255,255,255,0.08)",
-          transform: `rotateX(${tilt.rx}deg) rotateY(${tilt.ry}deg)`,
-          transformStyle: "preserve-3d",
-          transition: "transform 0.35s cubic-bezier(0.2,0.7,0.2,1)",
-          willChange: "transform",
-        }}
-      >
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 rounded-[18px] mix-blend-screen"
-          style={{
-            background: `radial-gradient(circle at ${shineX}% ${shineY}%, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 45%)`,
-            transition: "background 0.15s linear",
-          }}
-        />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 rounded-[18px] p-px"
-          style={{
-            background:
-              "linear-gradient(135deg, rgba(94,92,230,0.6) 0%, rgba(255,255,255,0.06) 30%, rgba(255,255,255,0.06) 70%, rgba(0,122,255,0.5) 100%)",
-            WebkitMask:
-              "linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)",
-            WebkitMaskComposite: "xor",
-            maskComposite: "exclude",
-          }}
-        />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 rounded-[18px]"
-          style={{
-            background:
-              "linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.06) 50%, transparent 70%)",
-          }}
-        />
-        <div
-          aria-hidden="true"
-          className="absolute -left-[30px] -top-[30px] h-40 w-40"
-          style={{
-            background:
-              "radial-gradient(circle, rgba(94,92,230,0.35) 0%, rgba(94,92,230,0) 70%)",
-          }}
-        />
-
-        <div
-          className="absolute inset-0 flex flex-col justify-between p-3.5 md:p-[18px]"
-          style={{ fontFamily: appleFont }}
-        >
-          <div className="flex items-start justify-between">
-            <span className="text-[9px] font-semibold uppercase tracking-[2.4px] text-white/65">
-              Hushh Capital
-            </span>
-            <div className="h-4 w-[22px] rounded-[3px] bg-gradient-to-br from-[#5e5ce6] to-[#007aff] shadow-[0_0_8px_rgba(94,92,230,0.4)]" />
-          </div>
-          <div
-            className="text-[48px] font-bold leading-[0.9] tracking-[-2px] md:text-[56px]"
-            style={{
-              background:
-                "linear-gradient(135deg, #ffffff 0%, #d0d0d8 60%, #a0a0b0 100%)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-              color: "transparent",
-              fontFamily: appleFont,
-            }}
-          >
-            A.
-          </div>
-          <div className="flex items-end justify-between gap-3 font-mono text-[8.5px] tracking-[1.8px] text-white/50">
-            <span>FLAGSHIP / FUND A</span>
-            <span>MMXXIV</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const PremiumCTA = ({
+function Reveal({
   children,
-  onClick,
+  className = "",
+  delay = 0,
+  immediate = false,
 }: {
   children: ReactNode;
-  onClick?: () => void;
-}) => {
-  const [pressed, setPressed] = useState(false);
+  className?: string;
+  delay?: number;
+  immediate?: boolean;
+}) {
+  const { ref, visible } = useInViewOnce<HTMLDivElement>();
+  const shown = immediate || visible;
 
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      onPointerDown={() => setPressed(true)}
-      onPointerUp={() => setPressed(false)}
-      onPointerLeave={() => setPressed(false)}
-      onPointerCancel={() => setPressed(false)}
-      className="h-12 rounded-full border-0 px-[26px] text-[17px] font-medium tracking-[-0.01em] text-[#0A0A0E] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2997FF]/45 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0A0E]"
+    <div
+      ref={ref}
+      className={className}
       style={{
-        WebkitAppearance: "none",
-        cursor: "pointer",
-        background: "linear-gradient(180deg, #ffffff 0%, #e8e8ee 100%)",
-        WebkitBackdropFilter: "blur(16px)",
-        backdropFilter: "blur(16px)",
-        boxShadow:
-          "0 6px 18px rgba(0,0,0,0.35), 0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.5)",
-        transform: pressed ? "scale(0.96)" : "scale(1)",
-        opacity: pressed ? 0.92 : 1,
+        opacity: shown ? 1 : 0,
+        transform: shown ? "translateY(0)" : "translateY(28px)",
         transition:
-          "transform 0.12s cubic-bezier(0.2,0.7,0.2,1), opacity 0.12s linear",
-        touchAction: "manipulation",
-        WebkitTapHighlightColor: "transparent",
-        userSelect: "none",
-        WebkitUserSelect: "none",
-        fontFamily: appleFont,
+          "opacity .8s cubic-bezier(.22,.61,.36,1), transform .8s cubic-bezier(.22,.61,.36,1)",
+        transitionDelay: `${delay}ms`,
       }}
     >
       {children}
-    </button>
-  );
-};
-
-const SpecCard = ({
-  title,
-  body,
-  dark = false,
-  iconKind,
-}: {
-  title: string;
-  body: string;
-  dark?: boolean;
-  iconKind?: AppIconKind;
-}) => (
-  <div
-    className={`group relative flex min-h-[200px] flex-col overflow-hidden rounded-[22px] p-[clamp(22px,2.6vw,30px)] transition duration-300 ${
-      dark
-        ? "border border-white/[0.08] bg-[#0E0E10] shadow-[inset_0_1px_0_rgba(255,255,255,0.045)] hover:-translate-y-1 hover:border-[#2997FF]/45"
-        : "border border-black/[0.04] bg-[#FFFFFF] shadow-[0_18px_42px_rgba(29,29,31,0.045),inset_0_1px_0_rgba(255,255,255,0.80)] hover:-translate-y-1 hover:shadow-[0_24px_52px_rgba(29,29,31,0.075),inset_0_1px_0_rgba(255,255,255,0.90)]"
-    }`}
-  >
-    {iconKind && <AppIcon kind={iconKind} size={dark ? 46 : 44} />}
-    <h3
-      className={`mb-2 ${iconKind ? "mt-[22px]" : ""} text-[20px] font-semibold leading-[1.08] tracking-[-0.018em] ${dark ? "text-[#F5F5F7]" : "text-[#1D1D1F]"}`}
-      style={{ fontFamily: appleFont }}
-    >
-      {title}
-    </h3>
-    <p
-      className={`max-w-[28ch] text-[15px] leading-[1.5] tracking-normal ${dark ? "text-[#F5F5F7]/56" : "text-[#1D1D1F]/62"}`}
-      style={{ fontFamily: appleFont }}
-    >
-      {body}
-    </p>
-  </div>
-);
-
-const BigCard = ({
-  tone = "light",
-  eyebrow,
-  title,
-  body,
-  iconKind,
-}: {
-  tone?: "light" | "dark";
-  eyebrow?: string;
-  title: string;
-  body: string;
-  iconKind: AppIconKind;
-}) => {
-  const dark = tone === "dark";
-
-  return (
-    <div
-      className={`relative overflow-hidden rounded-[24px] px-6 py-8 transition duration-300 hover:-translate-y-1 ${dark ? "bg-[#161617] text-[#F5F5F7] shadow-[inset_0_0_0_0.5px_rgba(245,245,247,0.08),0_22px_54px_rgba(0,0,0,0.18)]" : "bg-[#F5F5F7] text-[#1D1D1F] shadow-[inset_0_1px_0_rgba(255,255,255,0.76),0_18px_44px_rgba(29,29,31,0.05)]"}`}
-    >
-      <div className="mb-6">
-        <AppIcon kind={iconKind} size={56} />
-      </div>
-      {eyebrow && (
-        <p
-          className={`mb-2 text-[11px] font-medium uppercase tracking-[1.6px] ${dark ? "text-[#2997FF]/85" : "text-[#0066CC]/85"}`}
-          style={{ fontFamily: appleFont }}
-        >
-          {eyebrow}
-        </p>
-      )}
-      <h3
-        className="mb-2 text-[28px] font-medium leading-[1.06] tracking-[-0.028em]"
-        style={{ fontFamily: appleFont }}
-      >
-        {title}
-      </h3>
-      <p
-        className={`max-w-[320px] text-[15px] leading-[1.4] tracking-normal ${dark ? "text-[#F5F5F7]/70" : "text-[#1D1D1F]/70"}`}
-        style={{ fontFamily: appleFont }}
-      >
-        {body}
-      </p>
     </div>
   );
-};
+}
+
+function HomeStyles() {
+  return (
+    <style>{`
+      @keyframes hh-home-glowdrift {
+        0%, 100% { transform: translateX(-50%) translateY(0) scale(1); }
+        50% { transform: translateX(-50%) translateY(-16px) scale(1.06); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        [data-home-motion] {
+          animation: none !important;
+          transition: none !important;
+          transform: none !important;
+          opacity: 1 !important;
+        }
+      }
+    `}</style>
+  );
+}
+
+function Section({
+  children,
+  tone = "light",
+  className = "",
+}: {
+  children: ReactNode;
+  tone?: "light" | "gray" | "dark";
+  className?: string;
+}) {
+  const toneClass =
+    tone === "dark"
+      ? "bg-black text-white"
+      : tone === "gray"
+        ? "bg-[#F5F5F7] text-[#1D1D1F]"
+        : "bg-white text-[#1D1D1F]";
+
+  return (
+    <section
+      className={`relative overflow-hidden px-5 py-[96px] sm:px-10 lg:py-[150px] ${toneClass} ${className}`}
+      style={{ fontFamily: appleFont }}
+    >
+      {children}
+    </section>
+  );
+}
+
+function Eyebrow({
+  children,
+  dark = false,
+  className = "",
+}: {
+  children: ReactNode;
+  dark?: boolean;
+  className?: string;
+}) {
+  return (
+    <div
+      className={`text-[13px] font-bold uppercase tracking-[0.14em] ${dark ? "text-[#2997FF]" : "text-[#0071E3]"} ${className}`}
+      style={{ fontFamily: appleFont }}
+    >
+      {children}
+    </div>
+  );
+}
+
+function Heading({
+  children,
+  className = "",
+  as: Tag = "h2",
+}: {
+  children: ReactNode;
+  className?: string;
+  as?: "h1" | "h2";
+}) {
+  return (
+    <Tag
+      className={`m-0 text-balance text-[clamp(32px,4.6vw,54px)] font-semibold leading-[1.08] tracking-[-0.025em] ${className}`}
+      style={{ fontFamily: appleFont }}
+    >
+      {children}
+    </Tag>
+  );
+}
+
+function Lead({
+  children,
+  className = "",
+  dark = false,
+}: {
+  children: ReactNode;
+  className?: string;
+  dark?: boolean;
+}) {
+  return (
+    <p
+      className={`m-0 text-pretty text-[clamp(17px,1.6vw,20px)] font-light leading-[1.5] ${dark ? "text-white/55" : "text-black/50"} ${className}`}
+      style={{ fontFamily: appleFont }}
+    >
+      {children}
+    </p>
+  );
+}
+
+function IconTile({ children, large = false }: { children: ReactNode; large?: boolean }) {
+  return (
+    <span
+      className={`inline-flex shrink-0 items-center justify-center bg-[#0071E3] ${large ? "h-[46px] w-[46px] rounded-[13px]" : "h-11 w-11 rounded-xl"}`}
+    >
+      {children}
+    </span>
+  );
+}
+
+const technologyFeatures = [
+  {
+    title: "AI-Powered",
+    body: "Institutional analytics processing millions of signals.",
+    icon: (
+      <svg width="23" height="23" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <rect x="7" y="7" width="10" height="10" rx="2" stroke="#fff" strokeWidth="1.7" />
+        <rect x="10" y="10" width="4" height="4" rx="1" fill="#fff" />
+        <path
+          d="M9.5 3v2.5M14.5 3v2.5M9.5 18.5V21M14.5 18.5V21M3 9.5h2.5M3 14.5h2.5M18.5 9.5H21M18.5 14.5H21"
+          stroke="#fff"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+        />
+      </svg>
+    ),
+  },
+  {
+    title: "Human-Led",
+    body: "Seasoned oversight ensuring long-term, conviction-led decisions.",
+    icon: (
+      <svg width="23" height="23" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <circle cx="12" cy="9" r="3.2" stroke="#fff" strokeWidth="1.7" />
+        <path
+          d="M5.5 20c0-3.4 2.9-5.4 6.5-5.4s6.5 2 6.5 5.4"
+          stroke="#fff"
+          strokeWidth="1.7"
+          strokeLinecap="round"
+        />
+      </svg>
+    ),
+  },
+];
+
+const principleCards = [
+  {
+    title: "Data Driven",
+    body: "Decisions based on facts, not emotions.",
+    icon: <path d="M5 20V11M12 20V5M19 20v-7" stroke="#fff" strokeWidth="1.9" strokeLinecap="round" />,
+  },
+  {
+    title: "Low Fees",
+    body: "More of your returns stay in your pocket.",
+    icon: (
+      <>
+        <circle cx="8" cy="8" r="2.4" stroke="#fff" strokeWidth="1.6" />
+        <circle cx="16" cy="16" r="2.4" stroke="#fff" strokeWidth="1.6" />
+        <path d="M17 7L7 17" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" />
+      </>
+    ),
+  },
+  {
+    title: "Expert Vetted",
+    body: "Top-tier financial minds at work.",
+    icon: (
+      <>
+        <path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6l7-3z" stroke="#fff" strokeWidth="1.7" strokeLinejoin="round" />
+        <path d="M9 12l2 2 4-4" stroke="#fff" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+      </>
+    ),
+  },
+  {
+    title: "Automated",
+    body: "Set it and forget it peace of mind.",
+    icon: <path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" stroke="#fff" strokeWidth="1.7" strokeLinejoin="round" />,
+  },
+];
+
+const whatYouGetCards = [
+  {
+    title: "High Growth",
+    body: "Accelerated returns strategy.",
+    icon: (
+      <>
+        <path d="M4 17l6-6 4 3 6-8" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M15 6h5v5" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      </>
+    ),
+  },
+  {
+    title: "Diversified",
+    body: "Multi-sector allocation.",
+    icon: (
+      <>
+        <rect x="4" y="4" width="6.5" height="6.5" rx="1.4" stroke="#fff" strokeWidth="1.7" />
+        <rect x="13.5" y="4" width="6.5" height="6.5" rx="1.4" stroke="#fff" strokeWidth="1.7" />
+        <rect x="4" y="13.5" width="6.5" height="6.5" rx="1.4" stroke="#fff" strokeWidth="1.7" />
+        <rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.4" stroke="#fff" strokeWidth="1.7" />
+      </>
+    ),
+  },
+  {
+    title: "Liquid",
+    body: "Quarterly redemption windows.",
+    icon: (
+      <>
+        <path d="M3 9h14M13.5 5L18 9l-4.5 4" stroke="#fff" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M21 15H7m3.5-4L6 15l4.5 4" stroke="#fff" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+      </>
+    ),
+  },
+  {
+    title: "Secure",
+    body: "Regulated custodian assets.",
+    icon: (
+      <>
+        <path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6l7-3z" stroke="#fff" strokeWidth="1.7" strokeLinejoin="round" />
+        <path d="M9 12l2 2 4-4" stroke="#fff" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+      </>
+    ),
+  },
+];
+
+function FundStatsSection({
+  onInvest,
+}: {
+  onInvest: () => void;
+}) {
+  const { ref, visible } = useInViewOnce<HTMLDivElement>(0.35);
+
+  return (
+    <Section tone="dark" className="!py-[96px] lg:!py-[150px]">
+      <div className="mx-auto max-w-[1280px]">
+        <Reveal>
+          <div className="max-w-[760px]">
+            <div className="mb-6 inline-flex items-center gap-[9px] rounded-full border border-white/20 px-4 py-2">
+              <span className="h-[7px] w-[7px] rounded-full bg-[#2997FF]" />
+              <span className="text-[12px] font-semibold tracking-[0.06em] text-white/80">
+                High Growth
+              </span>
+            </div>
+            <Heading className="text-white">Fund A.</Heading>
+            <p className="mt-[22px] max-w-[42ch] text-[clamp(18px,1.6vw,24px)] font-light leading-[1.4] text-white/55">
+              A high-growth strategy engineered to compound capital with discipline.
+            </p>
+          </div>
+        </Reveal>
+
+        <div
+          ref={ref}
+          className="mt-[clamp(56px,7vw,88px)] grid grid-cols-1 md:grid-cols-3"
+        >
+          <div className="border-white/15 px-0 py-8 md:border-r md:px-[clamp(20px,3vw,44px)] md:py-2">
+            <div className="text-[clamp(52px,7vw,90px)] font-semibold leading-[0.95] tracking-[-0.03em] text-[#2997FF]">
+              +<CountUp value={21.4} decimals={1} active={visible} />
+              <small className="text-[0.5em]">%</small>
+            </div>
+            <div className="mt-[18px] text-[15px] leading-[1.45] text-white/60">
+              Net of fees
+            </div>
+            <div className="mt-1.5 text-[11px] uppercase tracking-[0.14em] text-white/40">
+              FY 2025
+            </div>
+          </div>
+
+          <div className="border-t border-white/15 px-0 py-8 md:border-r md:border-t-0 md:px-[clamp(20px,3vw,44px)] md:py-2">
+            <div className="text-[clamp(52px,7vw,90px)] font-semibold leading-[0.95] tracking-[-0.03em] text-white">
+              <CountUp value={18} active={visible} />&ndash;
+              <CountUp value={23} active={visible} />
+              <small className="text-[0.5em]">%</small>
+            </div>
+            <div className="mt-[18px] text-[15px] leading-[1.45] text-white/60">
+              Target internal rate of return
+            </div>
+          </div>
+
+          <div className="border-t border-white/15 px-0 py-8 md:border-t-0 md:px-[clamp(20px,3vw,44px)] md:py-2">
+            <div className="text-[clamp(40px,5vw,66px)] font-semibold leading-[1.1] tracking-[-0.03em] text-white">
+              Quarterly
+            </div>
+            <div className="mt-[18px] text-[15px] leading-[1.45] text-white/60">
+              Redemption liquidity windows
+            </div>
+          </div>
+        </div>
+
+        <Reveal className="mt-[clamp(48px,6vw,72px)]">
+          <button
+            type="button"
+            onClick={onInvest}
+            className="inline-flex min-h-[52px] items-center justify-center rounded-full bg-white px-[30px] text-[17px] font-semibold text-[#1D1D1F] transition hover:-translate-y-px hover:bg-[#F0F0F2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2997FF]/50"
+          >
+            Invest in Fund A
+          </button>
+        </Reveal>
+      </div>
+    </Section>
+  );
+}
+
+function TechnologySection() {
+  return (
+    <Section>
+      <div className="mx-auto max-w-[1280px]">
+        <div className="grid items-center gap-[clamp(40px,6vw,80px)] lg:grid-cols-2">
+          <Reveal>
+            <Eyebrow>Fund Technology</Eyebrow>
+            <Heading className="mt-[18px] max-w-[560px]">
+              Designed like a technology product.
+            </Heading>
+            <p className="mt-6 max-w-[44ch] text-[clamp(18px,1.5vw,21px)] leading-[1.47] text-[#6E6E73]">
+              Institutional analytics, human oversight, and modern fund operations
+              &mdash; in one investment experience.
+            </p>
+
+            <div className="mb-[22px] mt-[clamp(40px,5vw,56px)] text-[12px] font-semibold uppercase tracking-[0.08em] text-[#86868B]">
+              Includes
+            </div>
+            <div className="grid gap-7 sm:grid-cols-2">
+              {technologyFeatures.map((feature) => (
+                <div key={feature.title} className="flex flex-col gap-4">
+                  <IconTile>{feature.icon}</IconTile>
+                  <div>
+                    <h3 className="text-[19px] font-semibold text-[#1D1D1F]">
+                      {feature.title}
+                    </h3>
+                    <p className="mt-[7px] max-w-[280px] text-[15px] leading-[1.45] text-[#6E6E73]">
+                      {feature.body}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              className="mt-[clamp(40px,5vw,56px)] inline-flex items-center gap-1 text-[17px] font-medium text-[#0066CC] transition hover:underline"
+            >
+              Explore the technology
+              <span className="text-[19px] leading-none">&rsaquo;</span>
+            </button>
+          </Reveal>
+
+          <Reveal delay={120} className="flex justify-center">
+            <img
+              src={techTeamImage}
+              alt="Hushh product team - AI-powered, +21.4% net"
+              className="block w-full max-w-[720px] object-contain"
+            />
+          </Reveal>
+        </div>
+      </div>
+    </Section>
+  );
+}
+
+function PrinciplesSection() {
+  return (
+    <Section tone="gray">
+      <div className="mx-auto max-w-[1280px]">
+        <Reveal className="mx-auto mb-[clamp(48px,6vw,64px)] max-w-[680px] text-center">
+          <Eyebrow className="mb-4">Why Hushh</Eyebrow>
+          <Heading>Built on principles you can trust.</Heading>
+        </Reveal>
+
+        <div className="grid gap-[18px] sm:grid-cols-2 lg:grid-cols-4">
+          {principleCards.map((card, index) => (
+            <Reveal key={card.title} delay={index * 70}>
+              <div className="flex min-h-[200px] flex-col rounded-[22px] bg-white p-[30px] transition duration-300 hover:-translate-y-1.5 hover:shadow-[0_18px_40px_rgba(0,0,0,0.08)]">
+                <IconTile>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    {card.icon}
+                  </svg>
+                </IconTile>
+                <h3 className="mt-5 text-[20px] font-semibold tracking-[-0.01em] text-[#1D1D1F]">
+                  {card.title}
+                </h3>
+                <p className="mt-2 text-[15px] leading-[1.5] text-[#6E6E73]">
+                  {card.body}
+                </p>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+      </div>
+    </Section>
+  );
+}
+
+function WhatYouGetSection({
+  onInvest,
+  onProspectus,
+}: {
+  onInvest: () => void;
+  onProspectus: () => void;
+}) {
+  return (
+    <Section tone="dark" className="!pb-[150px] lg:!pb-[200px]">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute left-1/2 top-0 h-[58%] w-[min(92vw,1040px)] -translate-x-1/2"
+        style={{
+          background:
+            "radial-gradient(ellipse at 50% 0%, rgba(0,113,227,0.18), rgba(0,113,227,0) 70%)",
+        }}
+      />
+      <div className="relative z-[1] mx-auto max-w-[1100px]">
+        <Reveal className="mx-auto mb-[clamp(48px,6vw,64px)] max-w-[680px] text-center">
+          <Eyebrow dark className="mb-[18px]">
+            What you get
+          </Eyebrow>
+          <Heading className="text-white">Everything for serious investing.</Heading>
+          <Lead dark className="mx-auto mt-5 max-w-[46ch]">
+            Start with Fund A, or read the full prospectus to understand the
+            strategy, terms, and risk framework.
+          </Lead>
+        </Reveal>
+
+        <div className="grid gap-[18px] sm:grid-cols-2 lg:grid-cols-4">
+          {whatYouGetCards.map((card, index) => (
+            <Reveal key={card.title} delay={index * 70}>
+              <div className="flex min-h-[204px] flex-col rounded-[22px] border border-white/[0.08] bg-[#0E0E10] p-[30px] transition duration-300 hover:-translate-y-1.5 hover:border-[#2997FF]/45">
+                <IconTile large>
+                  <svg width="23" height="23" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    {card.icon}
+                  </svg>
+                </IconTile>
+                <h3 className="mt-5 text-[20px] font-semibold tracking-[-0.01em] text-white">
+                  {card.title}
+                </h3>
+                <p className="mt-2 text-[15px] leading-[1.5] text-white/55">
+                  {card.body}
+                </p>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+
+        <Reveal className="mt-[clamp(44px,6vw,62px)] flex flex-wrap justify-center gap-4">
+          <button
+            type="button"
+            onClick={onInvest}
+            className="inline-flex min-h-[52px] items-center justify-center rounded-full bg-white px-[30px] text-[17px] font-semibold text-[#1D1D1F] transition hover:-translate-y-px hover:bg-[#F0F0F2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2997FF]/50"
+          >
+            Invest in Fund A
+          </button>
+          <button
+            type="button"
+            onClick={onProspectus}
+            className="inline-flex min-h-[52px] items-center justify-center gap-1 rounded-full border border-white/40 bg-transparent px-[30px] text-[17px] font-medium text-white transition hover:bg-white/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2997FF]/50"
+          >
+            Read the prospectus
+            <span className="text-[18px] leading-none">&rsaquo;</span>
+          </button>
+        </Reveal>
+      </div>
+    </Section>
+  );
+}
 
 const footerLinks = [
   { label: "Disclosures", href: "/risk-disclosures" },
@@ -419,51 +574,50 @@ const footerLinks = [
   { label: "Support", href: "/support" },
 ] as const;
 
-const PageFooter = () => (
-  <footer className="border-t border-[#1D1D1F]/[0.08] bg-[#F5F5F7] px-6 pb-36 pt-9 text-center">
-    <p
-      className="mx-auto max-w-[520px] text-[12px] leading-[1.5] tracking-normal text-[#1D1D1F]/60"
-      style={{ fontFamily: appleFont }}
-    >
-      Investing involves risk, including loss of principal. Past performance does
-      not guarantee future results. Hushh Technologies, Inc. is an
-      SEC-registered investment adviser.
-    </p>
-    <div className="mt-5 flex flex-wrap justify-center gap-4">
-      {footerLinks.map(({ label, href }) => (
-        <a
-          key={label}
-          href={href}
-          className="text-[12px] text-[#0066CC] transition hover:opacity-80"
-          style={{ fontFamily: appleFont }}
-        >
-          {label}
-        </a>
-      ))}
-    </div>
-    <p
-      className="mt-5 text-[11px] leading-[1.5] tracking-normal text-[#1D1D1F]/45"
-      style={{ fontFamily: appleFont }}
-    >
-      © 2026 Hushh All Rights Reserved.
-    </p>
-  </footer>
-);
+function PageFooter() {
+  return (
+    <footer className="border-t border-[#1D1D1F]/[0.08] bg-[#F5F5F7] px-10 pb-36 pt-[clamp(48px,6vw,72px)] text-center">
+      <p
+        className="mx-auto max-w-[74ch] text-[13px] leading-[1.6] text-black/45"
+        style={{ fontFamily: appleFont }}
+      >
+        Investing involves risk, including loss of principal. Past performance does
+        not guarantee future results. Hushh Technologies, Inc. is an SEC-registered
+        investment adviser.
+      </p>
+      <div className="my-6 flex flex-wrap justify-center gap-x-[30px] gap-y-2.5">
+        {footerLinks.map(({ label, href }) => (
+          <a
+            key={label}
+            href={href}
+            className="text-[14px] font-medium text-[#0066CC] transition hover:underline"
+            style={{ fontFamily: appleFont }}
+          >
+            {label}
+          </a>
+        ))}
+      </div>
+      <p
+        className="text-[12px] text-black/40"
+        style={{ fontFamily: appleFont }}
+      >
+        © 2026 Hushh. All Rights Reserved.
+      </p>
+    </footer>
+  );
+}
 
 export default function HomePage() {
   const { primaryCTA, onNavigate } = useHomeLogic();
-  // PD-6 (honest labels): show whatever the journey CTA hook decided —
-  // never override here. Past bugs (cleared FL → "Invest with Hushh"
-  // taking the user to step-1 mid-flow) came from overriding the label
-  // while keeping the action.
   const primaryLabel = primaryCTA.text;
 
   return (
     <div
       data-page="hushh-home"
-      className="min-h-screen overflow-x-hidden bg-[#FFFFFF] text-[#1D1D1F] antialiased selection:bg-[#0066CC] selection:text-[#F5F5F7]"
+      className="min-h-screen overflow-x-hidden bg-white text-[#1D1D1F] antialiased selection:bg-[#0066CC] selection:text-[#F5F5F7]"
       style={{ fontFamily: appleFont }}
     >
+      <HomeStyles />
       <SeoHead
         path="/"
         description="Invest alongside HushhTech — an AI-driven, long-term value strategy modeled on Berkshire Hathaway. We combine AI and human expertise to back exceptional businesses."
@@ -471,23 +625,23 @@ export default function HomePage() {
       <HushhTechHeader showSearch={false} />
 
       <main id="main-content">
-        <AppleSection
-          tone="light"
-          pad="tight"
-          fill
-          className="min-h-[100svh] justify-center px-6 !py-[clamp(118px,15vh,168px)] text-center"
+        <section
+          className="relative flex min-h-[100svh] flex-col items-center justify-center overflow-hidden bg-white px-6 pb-[clamp(100px,13vh,140px)] pt-[clamp(118px,15vh,168px)] text-center text-[#1D1D1F]"
+          style={{ fontFamily: appleFont }}
         >
           <div
+            data-home-motion
             aria-hidden="true"
-            className="pointer-events-none absolute left-1/2 top-[6%] z-0 h-[min(70vw,760px)] w-[min(78vw,920px)] -translate-x-1/2 rounded-full"
+            className="pointer-events-none absolute left-1/2 top-[6%] z-0 h-[min(70vw,760px)] w-[min(78vw,920px)] rounded-full"
             style={{
               background:
-                "radial-gradient(ellipse at 50% 40%, rgba(0,113,227,0.10), rgba(0,113,227,0) 62%)",
+                "radial-gradient(ellipse at 50% 40%, rgba(0,113,227,0.1), rgba(0,113,227,0) 62%)",
+              animation: "hh-home-glowdrift 11s ease-in-out infinite",
             }}
           />
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute inset-0 z-0 opacity-[0.55]"
+            className="pointer-events-none absolute inset-0 z-0 opacity-55"
             style={{
               backgroundImage:
                 "radial-gradient(rgba(0,0,0,0.035) 1px, transparent 1px)",
@@ -498,345 +652,81 @@ export default function HomePage() {
                 "radial-gradient(ellipse 56% 42% at 50% 28%, #000 0%, transparent 76%)",
             }}
           />
-          <div className="relative z-[1] mx-auto flex max-w-[980px] flex-col items-center">
-            <div className="mb-[26px] inline-flex items-center gap-2 rounded-full bg-[#0071E3]/[0.08] py-[7px] pl-[11px] pr-[15px]">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#0071E3]" />
-              <span
-                className="text-[13px] font-bold uppercase tracking-[0.14em] text-[#0071E3]"
-                style={{ fontFamily: appleFont }}
-              >
-                AI-powered investing
-              </span>
-            </div>
-            <Display
-              as="h1"
-              size="md"
-              maxWidth="max-w-[760px]"
-              className="!text-[clamp(38px,6.2vw,68px)] !leading-[1.08] !tracking-[-0.025em]"
-            >
-              The world's first AI-powered Berkshire Hathaway.
-            </Display>
-            <Lede className="mt-[26px] max-w-[36ch] !text-[clamp(19px,2.1vw,25px)] !leading-[1.4] text-black/50">
-              Merging rigorous data science with human wisdom.
-            </Lede>
 
-            <div className="mt-9 flex flex-wrap justify-center gap-3 px-6 sm:gap-[22px]">
-              <PillButton
-                onClick={primaryCTA.action}
-                disabled={primaryCTA.loading}
-                className="h-[52px] px-[30px]"
+          <div className="relative z-[2] mx-auto flex max-w-[980px] flex-col items-center">
+            <Reveal immediate>
+              <div className="mb-[26px] inline-flex items-center gap-2 rounded-full bg-[#0071E3]/[0.08] py-[7px] pl-[11px] pr-[15px]">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#0071E3]" />
+                <span className="text-[13px] font-bold uppercase tracking-[0.14em] text-[#0071E3]">
+                  AI-Powered Investing
+                </span>
+              </div>
+            </Reveal>
+
+            <Reveal immediate delay={70}>
+              <Heading
+                as="h1"
+                className="max-w-[980px] text-[clamp(38px,6.2vw,68px)]"
               >
-                {primaryCTA.loading ? (
-                  <span className="inline-flex items-center gap-2">
-                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-                    {primaryLabel}
-                  </span>
-                ) : (
-                  primaryLabel
-                )}
-              </PillButton>
-              <PillButton
-                kind="ghost"
-                onClick={() => onNavigate("/discover-fund-a")}
-                className="h-[52px] px-[30px]"
-              >
-                Discover Fund A
-                {Icon.chevronRight(SYS.blue, 14)}
-              </PillButton>
-            </div>
+                The world's first AI-powered Berkshire Hathaway.
+              </Heading>
+            </Reveal>
+
+            <Reveal immediate delay={140}>
+              <p className="mt-[26px] max-w-[36ch] text-[clamp(19px,2.1vw,25px)] font-light leading-[1.4] tracking-[-0.01em] text-black/50">
+                Merging rigorous data science with human wisdom.
+              </p>
+            </Reveal>
+
+            <Reveal immediate delay={210}>
+              <div className="mt-9 flex flex-wrap items-center justify-center gap-[22px]">
+                <PillButton
+                  onClick={primaryCTA.action}
+                  disabled={primaryCTA.loading}
+                >
+                  {primaryCTA.loading ? (
+                    <span className="inline-flex items-center gap-2">
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                      {primaryLabel}
+                    </span>
+                  ) : (
+                    primaryLabel
+                  )}
+                </PillButton>
+                <button
+                  type="button"
+                  onClick={() => onNavigate("/discover-fund-a")}
+                  className="inline-flex min-h-[52px] items-center gap-1 text-[17px] font-medium text-[#0066CC] transition hover:underline"
+                >
+                  Discover Fund A
+                  {Icon.chevronRight(SYS.blue, 14)}
+                </button>
+              </div>
+            </Reveal>
 
             {primaryCTA.progressLabel && (
-              <p
-                className="mt-3 text-center text-[11px] font-medium uppercase tracking-[1.6px] text-[#0066CC]/75"
-                style={{ fontFamily: appleFont }}
-              >
+              <p className="mt-3 text-center text-[11px] font-medium uppercase tracking-[1.6px] text-[#0066CC]/75">
                 {primaryCTA.progressLabel}
               </p>
             )}
 
-            <div
-              className="mt-[22px] flex flex-wrap items-center justify-center gap-x-4 gap-y-2 px-6 text-center text-[13px] text-black/40"
-              style={{ fontFamily: appleFont }}
-            >
-              <span>SEC Registered</span>
-              <span className="h-1 w-1 rounded-full bg-[#1D1D1F]/30" />
-              <span>Bank-Level Security</span>
-            </div>
-          </div>
-
-        </AppleSection>
-
-        <AppleSection tone="dark" pad="loose" className="bg-black px-6 md:px-10">
-          <div
-            aria-hidden="true"
-            className="absolute inset-0 z-0 overflow-hidden bg-[#0A0A0E]"
-          >
-            <div
-              className="absolute -left-[10%] -top-[10%] h-[500px] w-[500px] blur-[40px] md:h-[900px] md:w-[900px]"
-              style={{
-                background:
-                  "radial-gradient(circle, rgba(94,92,230,0.20) 0%, rgba(94,92,230,0) 60%)",
-              }}
-            />
-            <div
-              className="absolute -right-[15%] top-[15%] h-[480px] w-[480px] blur-[50px] md:h-[800px] md:w-[800px]"
-              style={{
-                background:
-                  "radial-gradient(circle, rgba(255,159,90,0.10) 0%, rgba(255,159,90,0) 60%)",
-              }}
-            />
-            <div
-              className="absolute left-1/2 top-[40%] h-[360px] w-[600px] -translate-x-1/2 blur-[40px] md:h-[500px] md:w-[1000px]"
-              style={{
-                background:
-                  "radial-gradient(ellipse, rgba(0,122,255,0.14) 0%, rgba(0,122,255,0) 65%)",
-              }}
-            />
-            <div
-              className="absolute inset-x-0 top-0 h-px"
-              style={{
-                background:
-                  "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.10) 20%, rgba(94,92,230,0.4) 50%, rgba(255,255,255,0.10) 80%, transparent 100%)",
-              }}
-            />
-            <div
-              className="absolute inset-0 opacity-[0.03]"
-              style={{
-                backgroundImage:
-                  'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27200%27 height=%27200%27%3E%3Cfilter id=%27n%27%3E%3CfeTurbulence type=%27fractalNoise%27 baseFrequency=%270.9%27 numOctaves=%273%27 /%3E%3C/filter%3E%3Crect width=%27200%27 height=%27200%27 filter=%27url(%23n)%27 opacity=%270.6%27/%3E%3C/svg%3E")',
-              }}
-            />
-          </div>
-
-          <div className="relative z-[1] mx-auto max-w-7xl">
-            <div className="max-w-[760px]">
-              <div className="mb-6 inline-flex items-center gap-[9px] rounded-full border border-white/20 px-4 py-2">
-                <span className="h-[7px] w-[7px] rounded-full bg-[#2997FF]" />
-                <span
-                  className="text-[12px] font-semibold uppercase tracking-[0.06em] text-white/80"
-                  style={{ fontFamily: appleFont }}
-                >
-                  High Growth
-                </span>
+            <Reveal immediate delay={280}>
+              <div className="mt-[22px] text-[13px] text-black/40">
+                SEC Registered &nbsp;&middot;&nbsp; Bank-Level Security
               </div>
-
-              <div className="relative">
-                <Display
-                  size="sm"
-                  tone="dark"
-                  maxWidth="max-w-[520px]"
-                  className="mx-0 px-0 text-left !text-[clamp(32px,4.6vw,54px)] !leading-[1.08] !tracking-[-0.025em]"
-                >
-                  Fund A
-                  <span
-                    style={{
-                      color: FUND_A_APPLE_GREEN,
-                      filter: "drop-shadow(0 0 12px rgba(48,209,88,0.34))",
-                    }}
-                  >
-                    .
-                  </span>
-                </Display>
-              </div>
-
-              <Lede
-                tone="dark"
-                className="mx-0 mt-[22px] max-w-[42ch] px-0 text-left !text-[clamp(18px,1.6vw,24px)] !leading-[1.4] text-white/55"
-              >
-                A high-growth strategy engineered to compound capital with discipline.
-              </Lede>
-            </div>
-
-            <div className="mt-[clamp(56px,7vw,88px)] w-full">
-              <PerformancePreview />
-            </div>
-
-            <div className="mt-[clamp(48px,6vw,72px)] flex justify-start">
-              <PremiumCTA onClick={() => onNavigate("/discover-fund-a")}>
-                Invest in Fund A
-              </PremiumCTA>
-            </div>
+            </Reveal>
           </div>
-        </AppleSection>
+        </section>
 
-        <AppleSection
-          tone="light"
-          pad="normal"
-          className="px-6 !py-[clamp(88px,10vw,136px)] md:px-10"
-        >
-          <div className="mx-auto grid max-w-[1280px] items-center gap-[clamp(40px,6vw,80px)] lg:grid-cols-[minmax(0,0.9fr)_minmax(460px,1.1fr)]">
-            <div className="text-left">
-              <Display
-                size="md"
-                maxWidth="max-w-[590px]"
-                className="mx-0 px-0 text-left !text-[clamp(38px,5.2vw,68px)] !font-semibold !leading-[1.05] !tracking-[-0.035em]"
-              >
-                Designed like a technology product.
-              </Display>
-              <Lede className="mx-0 mt-8 max-w-[44ch] px-0 text-left !text-[clamp(18px,1.65vw,23px)] !font-normal !leading-[1.42] text-[#6E6E73]">
-                Institutional analytics, human oversight, and modern fund
-                operations in one investment experience.
-              </Lede>
-
-              <div className="mt-[clamp(48px,6vw,64px)]">
-                <p
-                  className="mb-[22px] text-[12px] font-semibold uppercase tracking-[0.12em] text-[#86868B]"
-                  style={{ fontFamily: appleFont }}
-                >
-                  Includes
-                </p>
-                <div className="grid max-w-[620px] gap-8 sm:grid-cols-2">
-                  <div className="flex flex-col items-start">
-                    <AppIcon kind="intelligence" size={56} />
-                    <h3
-                      className="mt-6 text-[22px] font-semibold leading-[1.12] tracking-[-0.02em] text-[#1D1D1F]"
-                      style={{ fontFamily: appleFont }}
-                    >
-                      AI-Powered
-                    </h3>
-                    <p
-                      className="mt-3 max-w-[28ch] text-[16px] leading-[1.45] text-[#6E6E73]"
-                      style={{ fontFamily: appleFont }}
-                    >
-                      Institutional analytics processing millions of signals.
-                    </p>
-                  </div>
-                  <div className="flex flex-col items-start">
-                    <AppIcon kind="person" size={56} />
-                    <h3
-                      className="mt-6 text-[22px] font-semibold leading-[1.12] tracking-[-0.02em] text-[#1D1D1F]"
-                      style={{ fontFamily: appleFont }}
-                    >
-                      Human-Led
-                    </h3>
-                    <p
-                      className="mt-3 max-w-[28ch] text-[16px] leading-[1.45] text-[#6E6E73]"
-                      style={{ fontFamily: appleFont }}
-                    >
-                      Seasoned oversight ensuring long-term, conviction-led decisions.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="relative -mx-3 sm:mx-0">
-              <img
-                src="/assets/home/technology-product-ai-powered.png"
-                alt="Hushh AI-powered investing team"
-                className="block h-auto w-full"
-                loading="lazy"
-                decoding="async"
-              />
-            </div>
-          </div>
-        </AppleSection>
-
-        <AppleSection
-          tone="gray"
-          pad="normal"
-          className="px-6 !py-[clamp(96px,11vw,150px)] md:px-10"
-        >
-          <div className="mx-auto mb-[clamp(48px,6vw,64px)] max-w-[720px] text-center">
-            <Eyebrow>Why Hushh</Eyebrow>
-            <Display
-              size="sm"
-              maxWidth="max-w-[540px]"
-              className="!text-[clamp(32px,4.6vw,54px)] !leading-[1.08] !tracking-[-0.025em]"
-            >
-              Built on principles you can trust.
-            </Display>
-          </div>
-
-          <div className="mx-auto grid max-w-7xl gap-[18px] px-0 sm:grid-cols-2 lg:grid-cols-4">
-            <SpecCard
-              title="Data Driven"
-              body="Decisions based on facts, not emotions."
-              iconKind="chart"
-            />
-            <SpecCard
-              title="Low Fees"
-              body="More of your returns stay in your pocket."
-              iconKind="dollar"
-            />
-            <SpecCard
-              title="Expert Vetted"
-              body="Top-tier financial minds at work."
-              iconKind="shield"
-            />
-            <SpecCard
-              title="Automated"
-              body="Set it and forget it peace of mind."
-              iconKind="bolt"
-            />
-          </div>
-        </AppleSection>
-
-        <AppleSection
-          tone="dark"
-          pad="normal"
-          className="overflow-hidden bg-black px-6 !py-[clamp(96px,11vw,150px)] md:px-10"
-        >
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute left-1/2 top-0 h-[58%] w-[min(92vw,1040px)] -translate-x-1/2"
-            style={{
-              background:
-                "radial-gradient(ellipse at 50% 0%, rgba(0,113,227,0.18), rgba(0,113,227,0) 70%)",
-            }}
-          />
-          <div className="relative z-[1] mx-auto max-w-[1100px]">
-            <div className="mx-auto mb-[clamp(48px,6vw,64px)] max-w-[680px] text-center">
-              <Eyebrow tone="dark">What you get</Eyebrow>
-              <Display
-                size="sm"
-                tone="dark"
-                maxWidth="max-w-[540px]"
-                className="!text-[clamp(32px,4.6vw,54px)] !leading-[1.08] !tracking-[-0.025em]"
-              >
-                Everything for serious investing.
-              </Display>
-            </div>
-
-            <div className="grid gap-[18px] sm:grid-cols-2 lg:grid-cols-4">
-              <SpecCard
-                dark
-                title="High Growth"
-                body="Accelerated returns strategy."
-                iconKind="chart"
-              />
-              <SpecCard
-                dark
-                title="Diversified"
-                body="Multi-sector allocation."
-                iconKind="layers"
-              />
-              <SpecCard
-                dark
-                title="Liquid"
-                body="Quarterly redemption windows."
-                iconKind="liquidity"
-              />
-              <SpecCard
-                dark
-                title="Secure"
-                body="Regulated custodian assets."
-                iconKind="shield"
-              />
-            </div>
-          </div>
-
-          <div className="relative z-[1] mt-[clamp(44px,6vw,62px)] text-center">
-            <ChevLink
-              tone="dark"
-              onClick={() =>
-                onNavigate("/community/fund-documents/investment-prospectus")
-              }
-            >
-              Read the fund prospectus
-            </ChevLink>
-          </div>
-        </AppleSection>
+        <FundStatsSection onInvest={() => onNavigate("/discover-fund-a")} />
+        <TechnologySection />
+        <PrinciplesSection />
+        <WhatYouGetSection
+          onInvest={() => onNavigate("/discover-fund-a")}
+          onProspectus={() =>
+            onNavigate("/community/fund-documents/investment-prospectus")
+          }
+        />
       </main>
 
       <PageFooter />
