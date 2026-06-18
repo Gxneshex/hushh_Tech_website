@@ -1,4 +1,4 @@
-import { useState, type PointerEvent, type ReactNode } from "react";
+import { useState, type ComponentProps, type PointerEvent, type ReactNode } from "react";
 import { useHomeLogic } from "./logic";
 import HushhTechHeader from "../../components/hushh-tech-header/HushhTechHeader";
 import SeoHead from "../../components/seo/SeoHead";
@@ -19,107 +19,57 @@ import {
 } from "../../components/hushh-tech-ui/HushhAppleUI";
 
 const FUND_A_APPLE_GREEN = "#30D158";
+type AppIconKind = ComponentProps<typeof AppIcon>["kind"];
 
 const PerformancePreview = () => {
   const pct = "+21.4%";
-  const progress = 0.86;
-  const size = 220;
-  const stroke = 12;
-  const radius = (size - stroke) / 2 - 6;
-  const center = size / 2;
-  const circumference = 2 * Math.PI * radius;
-  const dash = circumference * progress;
   const pctValue = pct.slice(1).replace("%", "");
 
   return (
     <div
-      className="relative mx-auto max-w-[360px] text-center md:max-w-[420px]"
+      className="mx-auto grid w-full max-w-6xl gap-y-8 text-left sm:grid-cols-3"
       aria-label="Fund A performance preview"
       style={{ fontFamily: appleFont }}
     >
-      <div className="relative mx-auto h-[168px] w-[168px] min-[390px]:h-[176px] min-[390px]:w-[176px] md:h-[234px] md:w-[234px]">
-        <svg
-          width={size}
-          height={size}
-          viewBox={`0 0 ${size} ${size}`}
-          className="block h-full w-full -rotate-90"
-        >
-          <defs>
-            <linearGradient id="homeFundARingGrad" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor={FUND_A_APPLE_GREEN} />
-              <stop offset="100%" stopColor={FUND_A_APPLE_GREEN} />
-            </linearGradient>
-            <filter id="homeFundARingGlow" x="-30%" y="-30%" width="160%" height="160%">
-              <feGaussianBlur stdDeviation="1.6" result="blur" />
-              <feMerge>
-                <feMergeNode in="blur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
-          </defs>
-          <circle
-            cx={center}
-            cy={center}
-            r={radius}
-            fill="none"
-            stroke="rgba(235,235,245,0.065)"
-            strokeWidth={stroke}
-          />
-          <circle
-            cx={center}
-            cy={center}
-            r={radius}
-            fill="none"
-            stroke="url(#homeFundARingGrad)"
-            strokeLinecap="round"
-            strokeWidth={stroke}
-            strokeDasharray={`${dash} ${circumference}`}
-            strokeDashoffset={0}
-            filter="url(#homeFundARingGlow)"
-            style={{
-              transition:
-                "stroke-dashoffset 1.3s cubic-bezier(0.34,0.85,0.3,1)",
-            }}
-          />
-        </svg>
-
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <div className="flex items-baseline font-semibold leading-none tracking-[-1.2px] text-white tabular-nums md:tracking-[-1.7px]">
-            <span className="mr-1 text-[23px] md:text-[30px]" style={{ color: FUND_A_APPLE_GREEN }}>
-              {pct[0]}
-            </span>
-            <span className="text-[42px] md:text-[58px]">{pctValue}</span>
-            <span className="ml-px text-[17px] font-medium text-[rgba(235,235,245,0.50)] md:text-[22px]">
-              %
-            </span>
-          </div>
-          <div className="mt-1.5 text-[12px] font-normal tracking-[-0.08px] text-[rgba(235,235,245,0.5)] md:mt-2 md:text-[13px]">
-            Net of fees
-          </div>
+      <div className="px-0 sm:pr-8 md:pr-11">
+        <div className="flex items-baseline font-semibold leading-[0.95] tracking-[-0.03em] tabular-nums">
+          <span
+            className="text-[52px] sm:text-[58px] md:text-[76px] lg:text-[90px]"
+            style={{ color: FUND_A_APPLE_GREEN }}
+          >
+            {pct[0]}
+            {pctValue}
+          </span>
+          <span
+            className="ml-1 text-[26px] font-semibold sm:text-[29px] md:text-[38px] lg:text-[45px]"
+            style={{ color: FUND_A_APPLE_GREEN }}
+          >
+            %
+          </span>
+        </div>
+        <div className="mt-4 text-[15px] font-normal text-white/60 md:mt-[18px]">
+          Net of fees
+        </div>
+        <div className="mt-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">
+          FY 2025
         </div>
       </div>
 
-      <div className="mt-3.5 text-[11px] font-semibold uppercase tracking-[1.2px] text-[rgba(235,235,245,0.48)] md:mt-6 md:text-[12px] md:tracking-[1.4px]">
-        FY 2025
+      <div className="border-t border-white/15 pt-7 sm:border-l sm:border-t-0 sm:py-2 sm:pl-8 md:pl-11">
+        <div className="text-[52px] font-semibold leading-[0.95] tracking-[-0.03em] text-white tabular-nums sm:text-[58px] md:text-[76px] lg:text-[90px]">
+          18&ndash;23<span className="text-[0.5em]">%</span>
+        </div>
+        <div className="mt-4 text-[15px] font-normal text-white/60 md:mt-[18px]">
+          Target IRR
+        </div>
       </div>
 
-      <div className="mx-auto mt-4 grid max-w-[310px] grid-cols-[1fr_1px_1fr] items-start border-t border-[rgba(235,235,245,0.13)] pt-4 md:mt-8 md:max-w-[400px] md:pt-7">
-        <div>
-          <div className="text-[19px] font-semibold leading-none tracking-[-0.35px] text-white tabular-nums md:text-[22px] md:tracking-[-0.5px]">
-            18&ndash;23%
-          </div>
-          <div className="mt-2.5 text-[10px] font-semibold uppercase tracking-[0.5px] text-[rgba(235,235,245,0.43)] md:mt-3 md:text-[11px] md:tracking-[0.6px]">
-            Target IRR
-          </div>
+      <div className="border-t border-white/15 pt-7 sm:border-l sm:border-t-0 sm:py-2 sm:pl-8 md:pl-11">
+        <div className="text-[40px] font-semibold leading-[1.1] tracking-[-0.03em] text-white sm:text-[46px] md:text-[58px] lg:text-[66px]">
+          Quarterly
         </div>
-        <div className="h-[38px] bg-[rgba(235,235,245,0.13)] md:h-[44px]" />
-        <div>
-          <div className="text-[19px] font-semibold leading-none tracking-[-0.35px] text-white tabular-nums md:text-[22px] md:tracking-[-0.5px]">
-            Quarterly
-          </div>
-          <div className="mt-2.5 text-[10px] font-semibold uppercase tracking-[0.5px] text-[rgba(235,235,245,0.43)] md:mt-3 md:text-[11px] md:tracking-[0.6px]">
-            Liquidity
-          </div>
+        <div className="mt-4 text-[15px] font-normal text-white/60 md:mt-[18px]">
+          Liquidity
         </div>
       </div>
     </div>
@@ -291,22 +241,29 @@ const SpecCard = ({
   title,
   body,
   dark = false,
+  iconKind,
 }: {
   title: string;
   body: string;
   dark?: boolean;
+  iconKind?: AppIconKind;
 }) => (
   <div
-    className={`rounded-[18px] p-5 ${dark ? "bg-[#161617] shadow-[inset_0_0_0_0.5px_rgba(245,245,247,0.08)]" : "bg-[#FFFFFF]"}`}
+    className={`group relative flex min-h-[200px] flex-col overflow-hidden rounded-[22px] p-[clamp(22px,2.6vw,30px)] transition duration-300 ${
+      dark
+        ? "border border-white/[0.08] bg-[#0E0E10] shadow-[inset_0_1px_0_rgba(255,255,255,0.045)] hover:-translate-y-1 hover:border-[#2997FF]/45"
+        : "border border-black/[0.04] bg-[#FFFFFF] shadow-[0_18px_42px_rgba(29,29,31,0.045),inset_0_1px_0_rgba(255,255,255,0.80)] hover:-translate-y-1 hover:shadow-[0_24px_52px_rgba(29,29,31,0.075),inset_0_1px_0_rgba(255,255,255,0.90)]"
+    }`}
   >
+    {iconKind && <AppIcon kind={iconKind} size={dark ? 46 : 44} />}
     <h3
-      className={`mb-1.5 text-[18px] font-medium leading-[1.06] tracking-[-0.028em] ${dark ? "text-[#F5F5F7]" : "text-[#1D1D1F]"}`}
+      className={`mb-2 ${iconKind ? "mt-[22px]" : ""} text-[20px] font-semibold leading-[1.08] tracking-[-0.018em] ${dark ? "text-[#F5F5F7]" : "text-[#1D1D1F]"}`}
       style={{ fontFamily: appleFont }}
     >
       {title}
     </h3>
     <p
-      className={`text-[13px] leading-[1.35] tracking-normal ${dark ? "text-[#F5F5F7]/60" : "text-[#1D1D1F]/60"}`}
+      className={`max-w-[28ch] text-[15px] leading-[1.5] tracking-normal ${dark ? "text-[#F5F5F7]/56" : "text-[#1D1D1F]/62"}`}
       style={{ fontFamily: appleFont }}
     >
       {body}
@@ -325,13 +282,13 @@ const BigCard = ({
   eyebrow?: string;
   title: string;
   body: string;
-  iconKind: "api" | "intelligence" | "person";
+  iconKind: AppIconKind;
 }) => {
   const dark = tone === "dark";
 
   return (
     <div
-      className={`relative overflow-hidden rounded-[24px] px-6 py-8 ${dark ? "bg-[#161617] text-[#F5F5F7]" : "bg-[#F5F5F7] text-[#1D1D1F]"}`}
+      className={`relative overflow-hidden rounded-[24px] px-6 py-8 transition duration-300 hover:-translate-y-1 ${dark ? "bg-[#161617] text-[#F5F5F7] shadow-[inset_0_0_0_0.5px_rgba(245,245,247,0.08),0_22px_54px_rgba(0,0,0,0.18)]" : "bg-[#F5F5F7] text-[#1D1D1F] shadow-[inset_0_1px_0_rgba(255,255,255,0.76),0_18px_44px_rgba(29,29,31,0.05)]"}`}
     >
       <div className="mb-6">
         <AppIcon kind={iconKind} size={56} />
@@ -419,18 +376,60 @@ export default function HomePage() {
       <HushhTechHeader showSearch={false} />
 
       <main id="main-content">
-        <AppleSection tone="light" pad="tight" fill>
-          <div className="relative z-[1]">
-            <Eyebrow>AI-powered investing</Eyebrow>
-            <Display as="h1" size="md" maxWidth="max-w-[620px]">
+        <AppleSection
+          tone="light"
+          pad="tight"
+          fill
+          className="min-h-[100svh] justify-center px-6 !py-[clamp(118px,15vh,168px)] text-center"
+        >
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute left-1/2 top-[6%] z-0 h-[min(70vw,760px)] w-[min(78vw,920px)] -translate-x-1/2 rounded-full"
+            style={{
+              background:
+                "radial-gradient(ellipse at 50% 40%, rgba(0,113,227,0.10), rgba(0,113,227,0) 62%)",
+            }}
+          />
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 z-0 opacity-[0.55]"
+            style={{
+              backgroundImage:
+                "radial-gradient(rgba(0,0,0,0.035) 1px, transparent 1px)",
+              backgroundSize: "40px 40px",
+              WebkitMaskImage:
+                "radial-gradient(ellipse 56% 42% at 50% 28%, #000 0%, transparent 76%)",
+              maskImage:
+                "radial-gradient(ellipse 56% 42% at 50% 28%, #000 0%, transparent 76%)",
+            }}
+          />
+          <div className="relative z-[1] mx-auto flex max-w-[980px] flex-col items-center">
+            <div className="mb-[26px] inline-flex items-center gap-2 rounded-full bg-[#0071E3]/[0.08] py-[7px] pl-[11px] pr-[15px]">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#0071E3]" />
+              <span
+                className="text-[13px] font-bold uppercase tracking-[0.14em] text-[#0071E3]"
+                style={{ fontFamily: appleFont }}
+              >
+                AI-powered investing
+              </span>
+            </div>
+            <Display
+              as="h1"
+              size="md"
+              maxWidth="max-w-[760px]"
+              className="text-[clamp(38px,6.2vw,68px)] leading-[1.08] tracking-[-0.025em]"
+            >
               The world's first AI-powered Berkshire Hathaway.
             </Display>
-            <Lede>Merging rigorous data science with human wisdom.</Lede>
+            <Lede className="mt-[26px] max-w-[36ch] text-[clamp(19px,2.1vw,25px)] leading-[1.4] text-black/50">
+              Merging rigorous data science with human wisdom.
+            </Lede>
 
-            <div className="mt-7 flex flex-wrap justify-center gap-3 px-6">
+            <div className="mt-9 flex flex-wrap justify-center gap-3 px-6 sm:gap-[22px]">
               <PillButton
                 onClick={primaryCTA.action}
                 disabled={primaryCTA.loading}
+                className="h-[52px] px-[30px]"
               >
                 {primaryCTA.loading ? (
                   <span className="inline-flex items-center gap-2">
@@ -444,6 +443,7 @@ export default function HomePage() {
               <PillButton
                 kind="ghost"
                 onClick={() => onNavigate("/discover-fund-a")}
+                className="h-[52px] px-[30px]"
               >
                 Discover Fund A
                 {Icon.chevronRight(SYS.blue, 14)}
@@ -460,7 +460,7 @@ export default function HomePage() {
             )}
 
             <div
-              className="mt-6 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 px-6 text-center text-[12px] text-[#1D1D1F]/55"
+              className="mt-[22px] flex flex-wrap items-center justify-center gap-x-4 gap-y-2 px-6 text-center text-[13px] text-black/40"
               style={{ fontFamily: appleFont }}
             >
               <span>SEC Registered</span>
@@ -471,11 +471,7 @@ export default function HomePage() {
 
         </AppleSection>
 
-        <AppleSection
-          tone="dark"
-          pad="normal"
-          className="bg-[#0A0A0E] !pt-20 !pb-[10rem] md:!pt-24 md:!pb-[6rem]"
-        >
+        <AppleSection tone="dark" pad="loose" className="bg-black px-6 md:px-10">
           <div
             aria-hidden="true"
             className="absolute inset-0 z-0 overflow-hidden bg-[#0A0A0E]"
@@ -517,22 +513,25 @@ export default function HomePage() {
             />
           </div>
 
-          <div className="relative z-[1]">
-            <div className="mb-5 flex justify-center md:mb-7">
-              <FundACard />
-            </div>
+          <div className="relative z-[1] mx-auto max-w-7xl">
+            <div className="max-w-[760px]">
+              <div className="mb-6 inline-flex items-center gap-[9px] rounded-full border border-white/20 px-4 py-2">
+                <span className="h-[7px] w-[7px] rounded-full bg-[#2997FF]" />
+                <span
+                  className="text-[12px] font-semibold uppercase tracking-[0.06em] text-white/80"
+                  style={{ fontFamily: appleFont }}
+                >
+                  High Growth
+                </span>
+              </div>
 
-            <div className="relative">
-              <div
-                aria-hidden="true"
-                className="pointer-events-none absolute left-1/2 top-[15%] z-0 h-[140px] w-[380px] -translate-x-1/2 blur-[20px] md:h-[200px] md:w-[600px]"
-                style={{
-                  background:
-                    "radial-gradient(ellipse at center, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0) 65%)",
-                }}
-              />
-              <div className="relative z-[1]">
-                <Display size="sm" tone="dark" maxWidth="max-w-[520px]">
+              <div className="relative">
+                <Display
+                  size="sm"
+                  tone="dark"
+                  maxWidth="max-w-[520px]"
+                  className="mx-0 px-0 text-left text-[clamp(32px,4.6vw,54px)] leading-[1.08] tracking-[-0.025em]"
+                >
                   Fund A
                   <span
                     style={{
@@ -544,35 +543,20 @@ export default function HomePage() {
                   </span>
                 </Display>
               </div>
+
+              <Lede
+                tone="dark"
+                className="mx-0 mt-[22px] max-w-[42ch] px-0 text-left text-[clamp(18px,1.6vw,24px)] leading-[1.4] text-white/55"
+              >
+                A high-growth strategy engineered to compound capital with discipline.
+              </Lede>
             </div>
 
-            <Lede tone="dark">
-              A high-growth strategy engineered to compound capital with discipline.
-            </Lede>
-
-            <div className="mt-4 flex justify-center md:mt-[18px]">
-              <div className="inline-flex items-center gap-2.5 rounded-full bg-white/[0.04] py-2 pl-3.5 pr-4 shadow-[0_4px_16px_rgba(0,0,0,0.3),inset_0_0_0_0.5px_rgba(255,255,255,0.12),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-xl">
-                <span
-                  className="h-1.5 w-1.5 rounded-full bg-white/55"
-                  style={{
-                    boxShadow:
-                      "0 0 0 3px rgba(255,255,255,0.08)",
-                  }}
-                />
-                <span
-                  className="text-[11px] font-semibold uppercase tracking-[2px] text-white"
-                  style={{ fontFamily: appleFont }}
-                >
-                  High Growth
-                </span>
-              </div>
-            </div>
-
-            <div className="mx-auto mt-3 w-full max-w-[420px] px-5 md:mt-[52px] md:px-12">
+            <div className="mt-[clamp(56px,7vw,88px)] w-full">
               <PerformancePreview />
             </div>
 
-            <div className="mt-14 flex justify-center px-6 md:mt-8">
+            <div className="mt-[clamp(48px,6vw,72px)] flex justify-start">
               <PremiumCTA onClick={() => onNavigate("/discover-fund-a")}>
                 Invest in Fund A
               </PremiumCTA>
@@ -580,59 +564,138 @@ export default function HomePage() {
           </div>
         </AppleSection>
 
-        <AppleSection tone="light" pad="normal">
-          <Eyebrow>Fund Technology</Eyebrow>
-          <Display size="md" maxWidth="max-w-[500px]">
-            Designed like a technology product.
-          </Display>
-          <Lede>
-            Institutional analytics, human oversight, and modern fund
-            operations in one investment experience.
-          </Lede>
+        <AppleSection
+          tone="light"
+          pad="normal"
+          className="px-6 !py-[clamp(96px,11vw,150px)] md:px-10"
+        >
+          <div className="mx-auto grid max-w-7xl items-center gap-[clamp(40px,6vw,80px)] lg:grid-cols-[minmax(0,0.9fr)_minmax(420px,1.1fr)]">
+            <div className="text-left">
+              <Eyebrow className="mx-0 text-left">Fund Technology</Eyebrow>
+              <Display
+                size="md"
+                maxWidth="max-w-[540px]"
+                className="mx-0 px-0 text-left text-[clamp(32px,4.6vw,54px)] leading-[1.08] tracking-[-0.025em]"
+              >
+                Designed like a technology product.
+              </Display>
+              <Lede className="mx-0 mt-6 max-w-[44ch] px-0 text-left text-[clamp(18px,1.5vw,21px)] leading-[1.47]">
+                Institutional analytics, human oversight, and modern fund
+                operations in one investment experience.
+              </Lede>
+            </div>
 
-          <div className="mx-auto mt-9 grid max-w-5xl gap-3 px-5 md:grid-cols-2">
-            <BigCard
-              tone="dark"
-              title="AI-Powered"
-              body="Institutional analytics processing millions of signals."
-              iconKind="intelligence"
+            <div className="grid gap-4 sm:grid-cols-2">
+              <BigCard
+                tone="dark"
+                title="AI-Powered"
+                body="Institutional analytics processing millions of signals."
+                iconKind="intelligence"
+              />
+              <BigCard
+                title="Human-Led"
+                body="Seasoned oversight ensuring long-term, conviction-led decisions."
+                iconKind="person"
+              />
+            </div>
+          </div>
+        </AppleSection>
+
+        <AppleSection
+          tone="gray"
+          pad="normal"
+          className="px-6 !py-[clamp(96px,11vw,150px)] md:px-10"
+        >
+          <div className="mx-auto mb-[clamp(48px,6vw,64px)] max-w-[720px] text-center">
+            <Eyebrow>Why Hushh</Eyebrow>
+            <Display
+              size="sm"
+              maxWidth="max-w-[540px]"
+              className="text-[clamp(32px,4.6vw,54px)] leading-[1.08] tracking-[-0.025em]"
+            >
+              Built on principles you can trust.
+            </Display>
+          </div>
+
+          <div className="mx-auto grid max-w-7xl gap-[18px] px-0 sm:grid-cols-2 lg:grid-cols-4">
+            <SpecCard
+              title="Data Driven"
+              body="Decisions based on facts, not emotions."
+              iconKind="chart"
             />
-            <BigCard
-              title="Human-Led"
-              body="Seasoned oversight ensuring long-term, conviction-led decisions."
-              iconKind="person"
+            <SpecCard
+              title="Low Fees"
+              body="More of your returns stay in your pocket."
+              iconKind="dollar"
+            />
+            <SpecCard
+              title="Expert Vetted"
+              body="Top-tier financial minds at work."
+              iconKind="shield"
+            />
+            <SpecCard
+              title="Automated"
+              body="Set it and forget it peace of mind."
+              iconKind="bolt"
             />
           </div>
         </AppleSection>
 
-        <AppleSection tone="gray" pad="normal">
-          <Eyebrow>Why Hushh</Eyebrow>
-          <Display size="sm" maxWidth="max-w-[460px]">
-            Built on principles you can trust.
-          </Display>
+        <AppleSection
+          tone="dark"
+          pad="normal"
+          className="overflow-hidden bg-black px-6 !py-[clamp(96px,11vw,150px)] md:px-10"
+        >
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute left-1/2 top-0 h-[58%] w-[min(92vw,1040px)] -translate-x-1/2"
+            style={{
+              background:
+                "radial-gradient(ellipse at 50% 0%, rgba(0,113,227,0.18), rgba(0,113,227,0) 70%)",
+            }}
+          />
+          <div className="relative z-[1] mx-auto max-w-[1100px]">
+            <div className="mx-auto mb-[clamp(48px,6vw,64px)] max-w-[680px] text-center">
+              <Eyebrow tone="dark">What you get</Eyebrow>
+              <Display
+                size="sm"
+                tone="dark"
+                maxWidth="max-w-[540px]"
+                className="text-[clamp(32px,4.6vw,54px)] leading-[1.08] tracking-[-0.025em]"
+              >
+                Everything for serious investing.
+              </Display>
+            </div>
 
-          <div className="mx-auto mt-9 grid max-w-5xl grid-cols-2 gap-3 px-5 md:grid-cols-4">
-            <SpecCard title="Data Driven" body="Decisions based on facts, not emotions." />
-            <SpecCard title="Low Fees" body="More of your returns stay in your pocket." />
-            <SpecCard title="Expert Vetted" body="Top-tier financial minds at work." />
-            <SpecCard title="Automated" body="Set it and forget it peace of mind." />
+            <div className="grid gap-[18px] sm:grid-cols-2 lg:grid-cols-4">
+              <SpecCard
+                dark
+                title="High Growth"
+                body="Accelerated returns strategy."
+                iconKind="chart"
+              />
+              <SpecCard
+                dark
+                title="Diversified"
+                body="Multi-sector allocation."
+                iconKind="layers"
+              />
+              <SpecCard
+                dark
+                title="Liquid"
+                body="Quarterly redemption windows."
+                iconKind="liquidity"
+              />
+              <SpecCard
+                dark
+                title="Secure"
+                body="Regulated custodian assets."
+                iconKind="shield"
+              />
+            </div>
           </div>
-        </AppleSection>
 
-        <AppleSection tone="dark" pad="normal">
-          <Eyebrow tone="dark">What you get</Eyebrow>
-          <Display size="sm" tone="dark" maxWidth="max-w-[480px]">
-            Everything for serious investing.
-          </Display>
-
-          <div className="mx-auto mt-9 grid max-w-5xl grid-cols-2 gap-3 px-5 md:grid-cols-4">
-            <SpecCard dark title="High Growth" body="Accelerated returns strategy." />
-            <SpecCard dark title="Diversified" body="Multi-sector allocation." />
-            <SpecCard dark title="Liquid" body="Quarterly redemption windows." />
-            <SpecCard dark title="Secure" body="Regulated custodian assets." />
-          </div>
-
-          <div className="mt-9 text-center">
+          <div className="relative z-[1] mt-[clamp(44px,6vw,62px)] text-center">
             <ChevLink
               tone="dark"
               onClick={() =>
