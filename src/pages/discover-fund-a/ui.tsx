@@ -92,6 +92,25 @@ function FundAStyles() {
       .fa-r3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
       .fa-r2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
       .fa-card { display: flex; flex-direction: column; border-radius: 24px; }
+      .fa-keyterm-row {
+        display: grid;
+        grid-template-columns: minmax(180px, 280px) minmax(0, 1fr);
+        column-gap: clamp(28px,6vw,96px);
+        align-items: start;
+      }
+      .fa-keyterm-title {
+        font-weight: 600;
+        font-size: 16px;
+        color: #1d1d1f;
+      }
+      .fa-keyterm-content {
+        max-width: 68ch;
+        justify-self: start;
+        font-size: 15px;
+        line-height: 1.5;
+        color: rgba(0,0,0,.55);
+        text-align: left;
+      }
       .fa-glow {
         transition:
           transform .4s cubic-bezier(.22,.61,.36,1),
@@ -151,11 +170,10 @@ function FundAStyles() {
           padding: 20px 0 !important;
         }
         .fa-keyterm-title {
-          width: auto !important;
           font-size: 15px !important;
         }
         .fa-keyterm-content {
-          text-align: left !important;
+          max-width: none !important;
           font-size: 14.5px !important;
           line-height: 1.58 !important;
         }
@@ -863,24 +881,14 @@ const FundA = () => {
                     key={term.title}
                     className="fa-keyterm-row"
                     style={{
-                      display: "flex",
-                      gap: 16,
-                      justifyContent: "space-between",
-                      alignItems: "flex-start",
                       padding: "22px 0",
                       borderBottom: index < keyTerms.length - 1 ? "1px solid rgba(0,0,0,.07)" : undefined,
                     }}
                   >
-                    <span
-                      className="fa-keyterm-title"
-                      style={{ flex: "none", width: 200, fontWeight: 600, fontSize: 16, color: "#1d1d1f" }}
-                    >
+                    <span className="fa-keyterm-title">
                       {term.title}
                     </span>
-                    <span
-                      className="fa-keyterm-content"
-                      style={{ fontSize: 15, lineHeight: 1.5, color: "rgba(0,0,0,.55)", textAlign: "right" }}
-                    >
+                    <span className="fa-keyterm-content">
                       {term.content}
                     </span>
                   </div>
