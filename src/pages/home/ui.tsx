@@ -450,13 +450,59 @@ function HomeStyles() {
           padding-left: 20px;
           padding-right: 20px;
         }
+        .hh-section {
+          padding-top: 78px;
+          padding-bottom: 82px;
+        }
+        .hh-hero {
+          min-height: 92svh;
+        }
+        .hh-hero h1 {
+          font-size: clamp(38px, 11.2vw, 52px);
+        }
+        .hh-hero__sub {
+          font-size: clamp(18px, 5vw, 21px);
+          max-width: 31ch;
+        }
+        .hh-hero__cta {
+          width: 100%;
+          gap: 14px;
+        }
+        .hh-hero__cta .hh-btn--primary {
+          width: min(100%, 260px);
+        }
         .hh-includes {
           grid-template-columns: 1fr;
           gap: 26px;
         }
+        .hh-perf__head {
+          max-width: 100%;
+        }
+        .hh-perf__sub {
+          max-width: 31ch;
+          font-size: clamp(17px, 4.7vw, 20px);
+        }
+        .hh-stats {
+          margin-top: 42px;
+        }
+        .hh-stat {
+          padding: 26px 0;
+        }
         .hh-stat + .hh-stat {
           border-left: 0;
           border-top: 1px solid rgba(255,255,255,.14);
+        }
+        .hh-stat__num {
+          font-size: clamp(46px, 15.5vw, 62px);
+        }
+        .hh-stat__label {
+          margin-top: 12px;
+        }
+        .hh-tech__grid {
+          gap: 34px;
+        }
+        .hh-tech__p {
+          font-size: clamp(17px, 4.6vw, 20px);
         }
       }
     `}</style>

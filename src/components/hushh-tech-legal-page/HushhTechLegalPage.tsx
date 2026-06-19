@@ -55,7 +55,7 @@ const ActionLink = ({
   variant: "primary" | "secondary";
 }) => {
   const className = [
-      "inline-flex h-11 items-center justify-center gap-2 rounded-full px-5 text-[15px] font-medium tracking-[-0.01em] transition active:scale-[0.98]",
+      "inline-flex h-11 w-full items-center justify-center gap-2 rounded-full px-5 text-[15px] font-medium tracking-[-0.01em] transition active:scale-[0.98] sm:w-auto",
       variant === "primary"
         ? "bg-[#1D1D1F] text-white"
         : "bg-white text-[#0066CC] shadow-[inset_0_0_0_1px_rgba(0,102,204,0.24)]",
@@ -97,7 +97,10 @@ export default function HushhTechLegalPage({
     >
       <HushhTechBackHeader rightLabel="FAQs" />
 
-      <main id="main-content" className="px-5 pb-24 pt-10 sm:px-6">
+      <main
+        id="main-content"
+        className="px-5 pb-[calc(7rem+env(safe-area-inset-bottom))] pt-10 sm:px-6 sm:pb-24"
+      >
         <section className="mx-auto max-w-[760px] text-center">
           <p className="mb-3 text-[11px] font-medium uppercase leading-tight tracking-[1.6px] text-[#0066CC]/85">
             {eyebrow}
@@ -110,7 +113,7 @@ export default function HushhTechLegalPage({
           </h1>
 
           {primaryAction || secondaryAction ? (
-            <div className="mt-7 flex flex-wrap justify-center gap-3">
+            <div className="mx-auto mt-7 flex max-w-[360px] flex-wrap justify-center gap-3 sm:max-w-none">
               {primaryAction ? (
                 <ActionLink action={primaryAction} variant="primary" />
               ) : null}
@@ -127,7 +130,7 @@ export default function HushhTechLegalPage({
           {sections.map((section, sectionIndex) => (
             <article
               key={`${section.title}-${sectionIndex}`}
-              className="relative overflow-hidden rounded-[24px] border border-[#1D1D1F]/[0.06] bg-white/75 p-6 shadow-[0_18px_50px_rgba(29,29,31,0.06)] backdrop-blur-xl md:p-8"
+              className="relative overflow-hidden rounded-[22px] border border-[#1D1D1F]/[0.06] bg-white/75 p-5 shadow-[0_18px_50px_rgba(29,29,31,0.06)] backdrop-blur-xl sm:rounded-[24px] sm:p-6 md:p-8"
             >
               <div
                 aria-hidden="true"

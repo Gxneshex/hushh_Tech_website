@@ -120,9 +120,36 @@ function FundAStyles() {
       }
       @media (max-width: 640px) {
         .fa-r2 { grid-template-columns: 1fr; }
-        .fa-sec { padding-left: 20px; padding-right: 20px; }
+        .fa-sec { padding: 72px 20px; }
         .fa-framework-row { gap: 16px; }
         .fa-framework-num { min-width: 38px; }
+        .fa-card { border-radius: 22px; }
+        .fa-share-card { padding: 24px !important; }
+        .fa-share-card__head {
+          align-items: flex-start !important;
+          flex-direction: column !important;
+          gap: 10px !important;
+          margin-bottom: 18px !important;
+        }
+        .fa-keyterms-card {
+          border-radius: 22px !important;
+          padding: 2px 20px !important;
+        }
+        .fa-keyterm-row {
+          display: grid !important;
+          grid-template-columns: 1fr !important;
+          gap: 8px !important;
+          padding: 20px 0 !important;
+        }
+        .fa-keyterm-title {
+          width: auto !important;
+          font-size: 15px !important;
+        }
+        .fa-keyterm-content {
+          text-align: left !important;
+          font-size: 14.5px !important;
+          line-height: 1.58 !important;
+        }
       }
       @media (prefers-reduced-motion: reduce) {
         [data-page="fund-a"] * { animation: none !important; transition: none !important; }
@@ -766,10 +793,13 @@ const FundA = () => {
               {shareClasses.map((shareClass) => (
                 <div
                   key={shareClass.shareClass}
-                  className="fa-card fa-lift"
+                  className="fa-card fa-lift fa-share-card"
                   style={{ padding: 30, background: "#fff", boxShadow: "0 1px 3px rgba(0,0,0,.05)" }}
                 >
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, marginBottom: 22 }}>
+                  <div
+                    className="fa-share-card__head"
+                    style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, marginBottom: 22 }}
+                  >
                     <span style={{ fontWeight: 600, fontSize: 24, letterSpacing: "-.02em", color: "#1d1d1f" }}>
                       {shareClass.shareClass}
                     </span>
@@ -810,6 +840,7 @@ const FundA = () => {
             </Reveal>
             <Reveal>
               <div
+                className="fa-keyterms-card"
                 style={{
                   marginTop: 20,
                   background: "#fff",
@@ -821,6 +852,7 @@ const FundA = () => {
                 {keyTerms.map((term, index) => (
                   <div
                     key={term.title}
+                    className="fa-keyterm-row"
                     style={{
                       display: "flex",
                       gap: 16,
@@ -830,10 +862,16 @@ const FundA = () => {
                       borderBottom: index < keyTerms.length - 1 ? "1px solid rgba(0,0,0,.07)" : undefined,
                     }}
                   >
-                    <span style={{ flex: "none", width: 200, fontWeight: 600, fontSize: 16, color: "#1d1d1f" }}>
+                    <span
+                      className="fa-keyterm-title"
+                      style={{ flex: "none", width: 200, fontWeight: 600, fontSize: 16, color: "#1d1d1f" }}
+                    >
                       {term.title}
                     </span>
-                    <span style={{ fontSize: 15, lineHeight: 1.5, color: "rgba(0,0,0,.55)", textAlign: "right" }}>
+                    <span
+                      className="fa-keyterm-content"
+                      style={{ fontSize: 15, lineHeight: 1.5, color: "rgba(0,0,0,.55)", textAlign: "right" }}
+                    >
                       {term.content}
                     </span>
                   </div>
