@@ -41,14 +41,13 @@ const ProfilePage: React.FC = () => {
               0%, 100% { transform: translateY(0); }
               50% { transform: translateY(-7px); }
             }
-            @keyframes hh-profile-ripple {
-              0% { transform: translate(-50%, -50%) scale(.45); opacity: 0; }
-              16% { opacity: .5; }
-              100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
+            @keyframes hh-breathe {
+              0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: .85; }
+              50% { transform: translate(-50%, -50%) scale(1.07); opacity: 1; }
             }
             @media (prefers-reduced-motion: reduce) {
               .hh-profile-float,
-              .hh-profile-ripple { animation: none !important; }
+              .hh-profile-halo { animation: none !important; }
             }
           `}
         </style>
@@ -62,23 +61,21 @@ const ProfilePage: React.FC = () => {
           }}
         />
 
-        <div className="relative z-[1] mx-auto flex w-full max-w-[860px] flex-col items-center">
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute left-1/2 top-[34%] z-[-1] h-[min(70vw,520px)] w-[min(70vw,520px)] -translate-x-1/2 -translate-y-1/2"
-          >
-            {[0, 2.5, 5].map((delay) => (
-              <span
-                key={delay}
-                className="hh-profile-ripple absolute left-1/2 top-1/2 h-full w-full rounded-full border border-[rgba(0,113,227,.14)]"
-                style={{
-                  animation: 'hh-profile-ripple 7.5s ease-out infinite',
-                  animationDelay: `${delay}s`,
-                }}
-              />
-            ))}
-          </div>
+        <div
+          aria-hidden="true"
+          className="hh-profile-halo pointer-events-none absolute left-1/2 top-[34%] z-0 h-[min(108vw,1120px)] w-[min(108vw,1120px)] -translate-x-1/2 -translate-y-1/2 rounded-full"
+          style={{
+            background:
+              'repeating-radial-gradient(circle at 50% 50%, rgba(0,113,227,0.07) 0, rgba(0,113,227,0.07) 1px, transparent 1px, transparent 92px)',
+            WebkitMaskImage:
+              'radial-gradient(circle at 50% 50%, #000 0%, rgba(0,0,0,0.5) 42%, transparent 66%)',
+            maskImage:
+              'radial-gradient(circle at 50% 50%, #000 0%, rgba(0,0,0,0.5) 42%, transparent 66%)',
+            animation: 'hh-breathe 9s ease-in-out infinite',
+          }}
+        />
 
+        <div className="relative z-[1] mx-auto flex w-full max-w-[860px] flex-col items-center">
           <span
             className="hh-profile-float mb-[26px] inline-flex h-[62px] w-[62px] items-center justify-center rounded-[20px]"
             style={{

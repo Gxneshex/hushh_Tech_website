@@ -93,13 +93,10 @@ function FundAStyles() {
       .fa-r2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
       .fa-card { display: flex; flex-direction: column; border-radius: 24px; }
       .fa-glow {
-        transition: transform .4s cubic-bezier(.22,.61,.36,1), border-color .4s, background-color .4s, box-shadow .4s;
+        transition: border-color .25s ease;
       }
       .fa-glow:hover {
-        transform: translateY(-6px);
-        background: #0c2350 !important;
-        border-color: rgba(41,151,255,.55) !important;
-        box-shadow: 0 26px 60px rgba(0,70,180,.32);
+        border-color: rgba(255,255,255,.11) !important;
       }
       .fa-lift { transition: transform .4s cubic-bezier(.22,.61,.36,1), box-shadow .4s; }
       .fa-lift:hover { transform: translateY(-6px); box-shadow: 0 22px 50px rgba(0,0,0,.09); }
