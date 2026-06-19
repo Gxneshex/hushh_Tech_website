@@ -2,46 +2,33 @@
  * Step 3 — Combined Country/Residence + Address Entry
  *
  * Merges old step-3 (country detection) and old step-6 (address entry).
- * GPS/current location is stored only in gps_* columns as an AML/security signal.
- * Legal residence is rendered only from a complete Plaid owner address.
+ * GPS fires ONCE and auto-fills: citizenship, residence, address line, zip.
+ * Country/State/City are stored via GPS columns (gps_country, gps_state, gps_city)
+ * — no manual dropdowns needed.
  *
- * Flow: step-2 → step-3 → step-6
+ * Flow: step-2 → step-3 → step-4
  */
-import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import config from '../../../resources/config/config';
-import { trackCta, trackStepCompleted, trackStepSkipped, trackStepError } from '../../../services/onboarding/onboardingAnalytics';
 import {
-  TOTAL_VISIBLE_ONBOARDING_STEPS,
   REVIEW_ROUTE,
-  isCurrentLocalOnboardingPreview,
+  TOTAL_VISIBLE_ONBOARDING_STEPS,
   isReturnToReview,
   withLocalOnboardingPreview,
 } from '../../../services/onboarding/flow';
-import {
-  resolveOnboardingPrefill,
-  resolvePlaidLegalResidence,
-} from '../../../services/onboarding/prefill';
+import { resolveOnboardingPrefill } from '../../../services/onboarding/prefill';
 import { upsertOnboardingData } from '../../../services/onboarding/upsertOnboardingData';
-import { CONSENT_VERSION } from '../../../services/consent/consentConfig';
 import { useFooterVisibility } from '../../../utils/useFooterVisibility';
 import {
   locationService,
   type LocationCacheRecord,
   type LocationData,
   COUNTRY_CODE_TO_NAME,
+  isClearlyTruncatedAddressLine1,
+  looksLikeAutoFilledCityStateLine2,
   normalizeDetectedAddress,
 } from '../../../services/location';
-import {
-  MONTH_NAMES,
-  buildDobYearOptions,
-  resolveDobEligibility,
-} from '../../../services/onboarding/dob';
-import {
-  PHONE_DIAL_CODES,
-  resolveStep4CachedDialCode,
-  type DialCodeOption,
-} from '../../../services/onboarding/phone';
 
 /* ═══════════════════════════════════════════════
    CONSTANTS
@@ -98,8 +85,6 @@ export interface Step3ManualOverrides {
   residenceCountry: boolean;
   addressLine1: boolean;
   addressLine2: boolean;
-  city: boolean;
-  state: boolean;
   zipCode: boolean;
 }
 
@@ -121,14 +106,6 @@ export const validateRequired = (v: string, label: string) =>
 export const validateZip = (v: string) => {
   if (!v.trim()) return 'ZIP / postal code is required';
   if (v.trim().length < 3 || v.trim().length > 10) return 'Enter a valid postal code';
-  return undefined;
-};
-
-export const validateLocationText = (v: string, label: string) => {
-  const value = v.trim();
-  if (!value) return `${label} is required`;
-  if (value.length > 80) return `${label} is too long`;
-  if (!/[a-zA-Z]/.test(value)) return `Please enter a valid ${label.toLowerCase()}`;
   return undefined;
 };
 
@@ -199,10 +176,61 @@ export const resolveDetectedLocationForStep3 = (
   };
 };
 
-// NOTE: GPS auto-fill of legal fields has been removed entirely. In the v1 model
-// the device's current location only feeds the read-only "Current location"
-// banner + the gps_* columns (AML signal); the legal residence/citizenship/
-// address are bank-verified (Plaid) or user-entered, never GPS-derived.
+export const buildStep3AutofillPatch = ({
+  current,
+  manual,
+  locationData,
+  availableCountries = countries,
+}: {
+  current: Step3FormState;
+  manual: Step3ManualOverrides;
+  locationData: LocationData;
+  availableCountries?: string[];
+}): Partial<Step3FormState> => {
+  const { matchedCountry, normalizedAddress } = resolveDetectedLocationForStep3(
+    locationData,
+    availableCountries
+  );
+  const patch: Partial<Step3FormState> = {};
+
+  if (!manual.citizenshipCountry && matchedCountry && current.citizenshipCountry !== matchedCountry) {
+    patch.citizenshipCountry = matchedCountry;
+  }
+
+  if (!manual.residenceCountry && matchedCountry && current.residenceCountry !== matchedCountry) {
+    patch.residenceCountry = matchedCountry;
+  }
+
+  if (
+    !manual.addressLine1 &&
+    normalizedAddress.addressLine1 &&
+    current.addressLine1 !== normalizedAddress.addressLine1
+  ) {
+    patch.addressLine1 = normalizedAddress.addressLine1;
+  }
+
+  if (!manual.addressLine2 && current.addressLine2 !== normalizedAddress.addressLine2) {
+    patch.addressLine2 = normalizedAddress.addressLine2;
+  }
+
+  if (!manual.zipCode && normalizedAddress.zipCode && current.zipCode !== normalizedAddress.zipCode) {
+    patch.zipCode = normalizedAddress.zipCode;
+  }
+
+  if (normalizedAddress.city && current.city !== normalizedAddress.city) {
+    patch.city = normalizedAddress.city;
+  }
+
+  if (normalizedAddress.state && current.state !== normalizedAddress.state) {
+    patch.state = normalizedAddress.state;
+  }
+
+  if (normalizedAddress.addressCountry && current.addressCountry !== normalizedAddress.addressCountry) {
+    patch.addressCountry = normalizedAddress.addressCountry;
+  }
+
+  return patch;
+};
 
 export const buildStep3SavePayload = ({
   citizenshipCountry,
@@ -240,76 +268,6 @@ export const buildStep3SavePayload = ({
   return payload;
 };
 
-/**
- * Per-field provenance / verification tier for the captured KYC fields, so review
- * + audit can distinguish bank-verified data from self-declared data. A field is
- * `bank_verified` only when its value still carries the Plaid 'plaid' source tag
- * (i.e. the user did not edit away from the bank value); everything else is
- * `self_declared`. The device's current GPS location is NEVER a legal source, so
- * it never produces a tier here. (`document_verified` from Stripe Identity is
- * layered in by a later phase.)
- */
-export type FieldVerificationTier = 'bank_verified' | 'document_verified' | 'self_declared';
-
-export const STEP3_PROVENANCE_FIELDS = [
-  'legal_first_name',
-  'legal_last_name',
-  'phone_number',
-  'residence_country',
-  'address_line_1',
-  'address_line_2',
-  'city',
-  'state',
-  'zip_code',
-  'address_country',
-] as const;
-
-export const buildStep3FieldProvenance = (
-  fieldSources: Partial<Record<string, string>>,
-): Record<string, FieldVerificationTier> => {
-  const provenance: Record<string, FieldVerificationTier> = {};
-  for (const field of STEP3_PROVENANCE_FIELDS) {
-    provenance[field] = fieldSources[field] === 'plaid' ? 'bank_verified' : 'self_declared';
-  }
-  return provenance;
-};
-
-export const STEP3_LEGAL_RESIDENCE_FIELDS = [
-  'residence_country',
-  'address_line_1',
-  'address_line_2',
-  'city',
-  'state',
-  'zip_code',
-  'address_country',
-] as const;
-
-export const buildStep3LegalResidenceClearPayload = (): Record<
-  (typeof STEP3_LEGAL_RESIDENCE_FIELDS)[number],
-  null
-> => {
-  return STEP3_LEGAL_RESIDENCE_FIELDS.reduce((payload, field) => {
-    payload[field] = null;
-    return payload;
-  }, {} as Record<(typeof STEP3_LEGAL_RESIDENCE_FIELDS)[number], null>);
-};
-
-const isUnitedStatesInvestor = (country?: string | null) => {
-  const normalized = String(country || '').trim().toLowerCase();
-  return normalized === 'united states' ||
-    normalized === 'united states of america' ||
-    normalized === 'us' ||
-    normalized === 'usa';
-};
-
-const formatPhoneNumber = (value: string) => {
-  const digits = value.replace(/\D/g, '');
-  if (digits.length <= 3) return digits;
-  if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
-  if (digits.length <= 10) return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
-  return digits;
-};
-
 /* ═══════════════════════════════════════════════
    COMBINED HOOK
    ═══════════════════════════════════════════════ */
@@ -317,12 +275,7 @@ const formatPhoneNumber = (value: string) => {
 export function useCombinedLocationLogic() {
   const navigate = useNavigate();
   const location = useLocation();
-  // Opened from Review (`?from=review`): Save/Back return to Review instead of
-  // advancing, and the save must not downgrade `current_step` (else the
-  // ProtectedRoute skip-guard bounces the return).
   const returnToReview = isReturnToReview(location.search);
-  const nextRoute = returnToReview ? REVIEW_ROUTE : '/onboarding/step-4';
-  const isPreview = isCurrentLocalOnboardingPreview();
   const isFooterVisible = useFooterVisibility();
   const autoDetectionStartedRef = useRef(false);
   const citizenshipCountryRef = useRef('');
@@ -332,8 +285,6 @@ export function useCombinedLocationLogic() {
     residenceCountry: false,
     addressLine1: false,
     addressLine2: false,
-    city: false,
-    state: false,
     zipCode: false,
   });
   const formStateRef = useRef<Step3FormState>({
@@ -349,17 +300,6 @@ export function useCombinedLocationLogic() {
 
   // ─── Auth ───
   const [userId, setUserId] = useState<string | null>(null);
-
-  // ─── Identity fields ───
-  const [legalFirstName, setLegalFirstName] = useState('');
-  const [legalLastName, setLegalLastName] = useState('');
-  const [dobMonth, setDobMonth] = useState('');
-  const [dobDay, setDobDay] = useState('');
-  const [dobYear, setDobYear] = useState('');
-  const [ssn, setSsn] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [countryCode, setCountryCode] = useState('+1');
-  const [selectedDialCountryIso, setSelectedDialCountryIso] = useState('US');
 
   // ─── Country/Residence fields ───
   const [citizenshipCountry, setCitizenshipCountry] = useState('');
@@ -391,75 +331,8 @@ export function useCombinedLocationLogic() {
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [errors, setErrors] = useState<Record<string, string | undefined>>({});
 
-  // ─── Legal-residence attestation ───
-  // The investor must explicitly affirm the captured address is their LEGAL /
-  // permanent residence (not merely where they currently are). Required to
-  // continue; persisted as residence_attested_at + consent_version for audit.
-  const [residenceAttested, setResidenceAttested] = useState(false);
-  const [residenceAttestError, setResidenceAttestError] = useState(false);
-  const handleResidenceAttestChange = (checked: boolean) => {
-    setResidenceAttested(checked);
-    if (checked) setResidenceAttestError(false);
-  };
-
-  // Per-field provenance for the "From your bank" notation. Only fields whose
-  // value came from the linked bank (Plaid identity) are marked 'plaid'.
-  const [fieldSources, setFieldSources] = useState<Partial<Record<string, string>>>({});
-  const markFieldEdited = (key: string) => {
-    setFieldSources((prev) => {
-      if (!prev[key]) return prev;
-      const next = { ...prev };
-      delete next[key];
-      return next;
-    });
-  };
-
   // ─── Derived state ───
-  const dobEligibility = resolveDobEligibility(dobMonth, dobDay, dobYear);
-  const isUnder18 =
-    dobEligibility.isComplete && dobEligibility.isValidDate && !dobEligibility.isAdult;
-  const ageError = dobEligibility.ageError;
-  const yearOptions = buildDobYearOptions();
-  const daysInMonth = dobMonth && dobYear
-    ? new Date(parseInt(dobYear, 10), parseInt(dobMonth, 10), 0).getDate()
-    : 31;
-  const dayOptions = Array.from({ length: daysInMonth }, (_, i) => String(i + 1).padStart(2, '0'));
-  const isDobValid =
-    dobEligibility.isComplete && dobEligibility.isValidDate && dobEligibility.isAdult;
-  const isUsInvestor =
-    isUnitedStatesInvestor(citizenshipCountry) ||
-    isUnitedStatesInvestor(residenceCountry);
-  const isValidSsn = ssn.replace(/\D/g, '').length === 9;
-  const isTaxReady = !isUsInvestor || isValidSsn;
-  const isValidPhone = phoneNumber.length >= 8 && phoneNumber.length <= 15;
-  const selectedDialOption = useMemo(() => {
-    return PHONE_DIAL_CODES.find((option) => option.code === countryCode && option.iso === selectedDialCountryIso)
-      || PHONE_DIAL_CODES.find((option) => option.code === countryCode)
-      || PHONE_DIAL_CODES[0];
-  }, [countryCode, selectedDialCountryIso]);
-  // Fund KYC model: the legal residence section exists only when Plaid returned
-  // a complete owner address. Current GPS location is a separate AML signal and
-  // never fills these legal-residence fields.
-  const hasBankResidence =
-    fieldSources['residence_country'] === 'plaid' || fieldSources['address_line_1'] === 'plaid';
-  const hasPlaidAddressLine2 =
-    fieldSources['address_line_2'] === 'plaid' && Boolean(addressLine2.trim());
-  const canContinue = Boolean(
-    legalFirstName.trim() &&
-    legalLastName.trim() &&
-    isDobValid &&
-    citizenshipCountry &&
-    isTaxReady &&
-    isValidPhone &&
-    (!hasBankResidence || (
-      residenceCountry &&
-      addressLine1.trim() &&
-      addressCity.trim() &&
-      addressState.trim() &&
-      zipCode.trim() &&
-      residenceAttested
-    ))
-  );
+  const canContinue = Boolean(citizenshipCountry && residenceCountry);
   const isErrorStatus = locationStatus === 'denied' || locationStatus === 'failed';
   const isSuccessStatus = locationStatus === 'success' || locationStatus === 'ip-success';
 
@@ -499,29 +372,61 @@ export function useCombinedLocationLogic() {
     addressCountry,
   ]);
 
-  useEffect(() => {
-    if (dobDay && parseInt(dobDay, 10) > daysInMonth) {
-      setDobDay(String(daysInMonth).padStart(2, '0'));
-    }
-  }, [dobMonth, dobYear, dobDay, daysInMonth]);
-
   /* ─── Apply GPS result to fields (country + address + zip) ─── */
   const applyDetectedLocation = (locationData: LocationData, status: LocationStatus) => {
     const { detectedLocation: nextDetectedLocation } = resolveDetectedLocationForStep3(
       locationData,
       countries
     );
-    // v1 model: the device's CURRENT location is shown in its own read-only
-    // "Current location" banner and saved separately (gps_* via
-    // saveLocationToOnboarding). It is an AML / security signal, NEVER the legal
-    // residence — so it does NOT write the citizenship / residence / address
-    // inputs at all. Legal residence comes from Plaid (bank-verified) or is
-    // typed by the user; citizenship is always user-declared.
+    const patch = buildStep3AutofillPatch({
+      current: formStateRef.current,
+      manual: manualOverridesRef.current,
+      locationData,
+      availableCountries: countries,
+    });
+
+    if (patch.citizenshipCountry !== undefined) {
+      citizenshipCountryRef.current = patch.citizenshipCountry;
+      setCitizenshipCountry(patch.citizenshipCountry);
+    }
+
+    if (patch.residenceCountry !== undefined) {
+      residenceCountryRef.current = patch.residenceCountry;
+      setResidenceCountry(patch.residenceCountry);
+    }
+
+    if (patch.addressLine1 !== undefined) {
+      setAddressLine1(patch.addressLine1);
+    }
+
+    if (patch.addressLine2 !== undefined) {
+      setAddressLine2(patch.addressLine2);
+    }
+
+    if (patch.zipCode !== undefined) {
+      setZipCode(patch.zipCode);
+    }
+
+    if (patch.city !== undefined) {
+      setAddressCity(patch.city);
+    }
+
+    if (patch.state !== undefined) {
+      setAddressState(patch.state);
+    }
+
+    if (patch.addressCountry !== undefined) {
+      setAddressCountry(patch.addressCountry);
+    }
+
     setDetectedLocation(nextDetectedLocation);
     setLocationDetected(true);
     setLocationStatus(status);
+
+    // Show auto-fill success
     setIsAutoFilling(false);
-    setDetectionStatus(null);
+    setDetectionStatus('Address auto-filled from GPS');
+    setTimeout(() => setDetectionStatus(null), 3000);
   };
 
   /* ─── GPS refresh ─── */
@@ -562,52 +467,18 @@ export function useCombinedLocationLogic() {
   /* ─── Init: Load saved data, detect location ─── */
   useEffect(() => {
     const init = async () => {
-      if (isPreview) {
-        setUserId('local-preview');
-        const saved = window.localStorage.getItem('hushh_onboarding_preview');
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (parsed.legal_first_name) setLegalFirstName(String(parsed.legal_first_name));
-          if (parsed.legal_last_name) setLegalLastName(String(parsed.legal_last_name));
-          if (parsed.date_of_birth) {
-            const [savedYear, savedMonth, savedDay] = String(parsed.date_of_birth).split('-');
-            if (savedYear && savedMonth && savedDay) {
-              setDobYear(savedYear);
-              setDobMonth(savedMonth);
-              setDobDay(savedDay);
-            }
-          }
-          if (parsed.citizenship_country) setCitizenshipCountry(String(parsed.citizenship_country));
-          if (parsed.residence_country) setResidenceCountry(String(parsed.residence_country));
-          if (parsed.address_line_1) setAddressLine1(String(parsed.address_line_1));
-          if (parsed.address_line_2) setAddressLine2(String(parsed.address_line_2));
-          if (parsed.city) setAddressCity(String(parsed.city));
-          if (parsed.state) setAddressState(String(parsed.state));
-          if (parsed.zip_code) setZipCode(String(parsed.zip_code));
-          if (parsed.address_country) setAddressCountry(String(parsed.address_country));
-          if (parsed.ssn_encrypted) setSsn(String(parsed.ssn_encrypted));
-          if (parsed.phone_number) {
-            setPhoneNumber(String(parsed.phone_number).replace(/\D/g, ''));
-          }
-          if (parsed.phone_country_code) setCountryCode(String(parsed.phone_country_code));
-        }
-        return;
-      }
       if (!config.supabaseClient) return;
       const { data: { user } } = await config.supabaseClient.auth.getUser();
       if (!user) { navigate('/login'); return; }
       setUserId(user.id);
 
-      // Fetch all relevant data in parallel. Enriched/GPS data is intentionally
-      // not used as legal-residence fallback; only Plaid can populate that card.
-      const [onboardingResult, financialResult, sharedCache] = await Promise.all([
+      // Fetch all relevant data in parallel
+      const [onboardingResult, financialResult, enrichedResult, sharedCache] = await Promise.all([
         config.supabaseClient
           .from('onboarding_data')
           .select(`
             citizenship_country, residence_country, current_step,
-            legal_first_name, legal_last_name, date_of_birth,
-            address_line_1, address_line_2, city, state, zip_code, address_country,
-            ssn_encrypted, phone_number, phone_country_code
+            address_line_1, address_line_2, city, state, zip_code, address_country
           `)
           .eq('user_id', user.id)
           .maybeSingle(),
@@ -616,42 +487,16 @@ export function useCombinedLocationLogic() {
           .select('identity_data')
           .eq('user_id', user.id)
           .maybeSingle(),
+        config.supabaseClient
+          .from('user_enriched_profiles')
+          .select('enriched_address_line1, enriched_address_zip')
+          .eq('user_id', user.id)
+          .maybeSingle(),
         locationService.readSharedLocationCache(user.id),
       ]);
 
       const cachedLocation = sharedCache?.data || await locationService.getCachedLocation(user.id);
       const onboardingData = onboardingResult.data || null;
-      if (onboardingData?.legal_first_name) {
-        setLegalFirstName(String(onboardingData.legal_first_name));
-      }
-      if (onboardingData?.legal_last_name) {
-        setLegalLastName(String(onboardingData.legal_last_name));
-      }
-      if (onboardingData?.date_of_birth) {
-        const [savedYear, savedMonth, savedDay] = String(onboardingData.date_of_birth).split('-');
-        if (savedYear && savedMonth && savedDay) {
-          setDobYear(savedYear);
-          setDobMonth(savedMonth);
-          setDobDay(savedDay);
-        }
-      }
-      if (onboardingData?.ssn_encrypted && onboardingData.ssn_encrypted !== '999-99-9999') {
-        setSsn(String(onboardingData.ssn_encrypted));
-      }
-      if (onboardingData?.phone_number) {
-        setPhoneNumber(String(onboardingData.phone_number).replace(/\D/g, ''));
-      }
-      const cachedDialState = resolveStep4CachedDialCode({
-        savedPhoneCode: onboardingData?.phone_country_code ? String(onboardingData.phone_country_code) : '',
-        cachedLocation,
-      });
-      if (cachedDialState.dialCode) {
-        setCountryCode(cachedDialState.dialCode);
-        const matchedIso = cachedDialState.countryIso
-          ? PHONE_DIAL_CODES.find((option) => option.iso === cachedDialState.countryIso)
-          : PHONE_DIAL_CODES.find((option) => option.code === cachedDialState.dialCode);
-        if (matchedIso) setSelectedDialCountryIso(matchedIso.iso);
-      }
       const initialFormState: Step3FormState = {
         citizenshipCountry: '',
         residenceCountry: '',
@@ -663,29 +508,76 @@ export function useCombinedLocationLogic() {
         addressCountry: '',
       };
 
-      // ─── Prefill user-owned fields + Plaid-only legal residence ───
-      const savedUserFields = {
-        citizenship_country: onboardingData?.citizenship_country || '',
-        legal_first_name: onboardingData?.legal_first_name || '',
-        legal_last_name: onboardingData?.legal_last_name || '',
-        phone_number: onboardingData?.phone_number || '',
-        phone_country_code: onboardingData?.phone_country_code || '',
-      };
+      // ─── Prefill citizenship/residence countries ───
+      const trustedCountries = getTrustedStep4Countries(onboardingData);
       const resolved = resolveOnboardingPrefill({
-        onboardingData: savedUserFields,
+        onboardingData: { ...trustedCountries, ...(onboardingData || {}) },
         plaidIdentity: financialResult.data?.identity_data,
+        enrichedProfile: enrichedResult.data
+          ? {
+              address_line_1: enrichedResult.data.enriched_address_line1 || '',
+              zip_code: enrichedResult.data.enriched_address_zip || '',
+            }
+          : undefined,
+        locationData: cachedLocation || undefined,
       });
-      const plaidResidence = resolvePlaidLegalResidence(financialResult.data?.identity_data);
 
       initialFormState.citizenshipCountry = resolved.values.citizenship_country || '';
-      if (plaidResidence) {
-        initialFormState.residenceCountry = plaidResidence.residence_country;
-        initialFormState.addressLine1 = plaidResidence.address_line_1;
-        initialFormState.addressLine2 = plaidResidence.address_line_2;
-        initialFormState.zipCode = plaidResidence.zip_code;
-        initialFormState.city = plaidResidence.city;
-        initialFormState.state = plaidResidence.state;
-        initialFormState.addressCountry = plaidResidence.address_country;
+      initialFormState.residenceCountry = resolved.values.residence_country || '';
+      initialFormState.addressLine1 = resolved.values.address_line_1 || '';
+      initialFormState.addressLine2 = resolved.values.address_line_2 || '';
+      initialFormState.zipCode = resolved.values.zip_code || '';
+      initialFormState.city = resolved.values.city || '';
+      initialFormState.state = resolved.values.state || '';
+      initialFormState.addressCountry = resolved.values.address_country || '';
+
+      if (cachedLocation) {
+        const cachedLocationDetails = resolveDetectedLocationForStep3(cachedLocation, countries);
+
+        if (
+          !initialFormState.addressLine1 ||
+          isClearlyTruncatedAddressLine1(
+            initialFormState.addressLine1,
+            cachedLocationDetails.normalizedAddress.addressLine1
+          )
+        ) {
+          initialFormState.addressLine1 = cachedLocationDetails.normalizedAddress.addressLine1;
+        }
+
+        if (
+          !initialFormState.addressLine2 ||
+          looksLikeAutoFilledCityStateLine2(
+            initialFormState.addressLine2,
+            cachedLocationDetails.normalizedAddress.city,
+            cachedLocationDetails.normalizedAddress.state
+          )
+        ) {
+          initialFormState.addressLine2 = cachedLocationDetails.normalizedAddress.addressLine2;
+        }
+
+        if (!initialFormState.zipCode && cachedLocationDetails.normalizedAddress.zipCode) {
+          initialFormState.zipCode = cachedLocationDetails.normalizedAddress.zipCode;
+        }
+
+        if (!initialFormState.city && cachedLocationDetails.normalizedAddress.city) {
+          initialFormState.city = cachedLocationDetails.normalizedAddress.city;
+        }
+
+        if (!initialFormState.state && cachedLocationDetails.normalizedAddress.state) {
+          initialFormState.state = cachedLocationDetails.normalizedAddress.state;
+        }
+
+        if (!initialFormState.addressCountry && cachedLocationDetails.normalizedAddress.addressCountry) {
+          initialFormState.addressCountry = cachedLocationDetails.normalizedAddress.addressCountry;
+        }
+
+        if (!initialFormState.citizenshipCountry && cachedLocationDetails.matchedCountry) {
+          initialFormState.citizenshipCountry = cachedLocationDetails.matchedCountry;
+        }
+
+        if (!initialFormState.residenceCountry && cachedLocationDetails.matchedCountry) {
+          initialFormState.residenceCountry = cachedLocationDetails.matchedCountry;
+        }
       }
 
       citizenshipCountryRef.current = initialFormState.citizenshipCountry;
@@ -701,58 +593,18 @@ export function useCombinedLocationLogic() {
       if (initialFormState.state) setAddressState(initialFormState.state);
       if (initialFormState.addressCountry) setAddressCountry(initialFormState.addressCountry);
 
-      // Returning investor who already attested their bank-confirmed legal residence — pre-check
-      // so we do not force a re-attestation on every visit.
-      if (plaidResidence && onboardingData?.residence_attested_at) setResidenceAttested(true);
-
-      // ─── Auto-fill name + phone from the linked bank (Plaid) when the user
-      //     hasn't already saved them, and record per-field provenance for the
-      //     "From your bank" notation.
-      if (!onboardingData?.legal_first_name && resolved.values.legal_first_name) {
-        setLegalFirstName(resolved.values.legal_first_name);
-      }
-      if (!onboardingData?.legal_last_name && resolved.values.legal_last_name) {
-        setLegalLastName(resolved.values.legal_last_name);
-      }
-      if (!onboardingData?.phone_number && resolved.values.phone_number) {
-        setPhoneNumber(String(resolved.values.phone_number).replace(/\D/g, '').slice(0, 15));
-      }
-      if (!onboardingData?.phone_country_code && resolved.values.phone_country_code) {
-        setCountryCode(resolved.values.phone_country_code);
-        const matchedBankDial = PHONE_DIAL_CODES.find((o) => o.code === resolved.values.phone_country_code);
-        if (matchedBankDial) setSelectedDialCountryIso(matchedBankDial.iso);
-      }
-
-      const bankSources: Record<string, string> = {};
-      if (resolved.sources.legal_first_name === 'plaid' && resolved.values.legal_first_name) {
-        bankSources.legal_first_name = 'plaid';
-      }
-      if (resolved.sources.legal_last_name === 'plaid' && resolved.values.legal_last_name) {
-        bankSources.legal_last_name = 'plaid';
-      }
-      if (resolved.sources.phone_number === 'plaid' && resolved.values.phone_number) {
-        bankSources.phone_number = 'plaid';
-      }
-      if (plaidResidence) {
-        bankSources.residence_country = 'plaid';
-        bankSources.address_line_1 = 'plaid';
-        bankSources.city = 'plaid';
-        bankSources.state = 'plaid';
-        bankSources.zip_code = 'plaid';
-        bankSources.address_country = 'plaid';
-        if (plaidResidence.address_line_2) bankSources.address_line_2 = 'plaid';
-        manualOverridesRef.current.residenceCountry = true;
-        manualOverridesRef.current.addressLine1 = true;
-        manualOverridesRef.current.addressLine2 = true;
-        manualOverridesRef.current.city = true;
-        manualOverridesRef.current.state = true;
-        manualOverridesRef.current.zipCode = true;
-      }
-      if (Object.keys(bankSources).length > 0) setFieldSources(bankSources);
-
-      // Cached GPS only populates the read-only "Current location" banner. It
-      // never sets citizenship, residence, or legal address fields.
+      // Fallback: extract country from cached GPS for citizenship/residence
       if (cachedLocation) {
+        const cachedCountryName = COUNTRY_CODE_TO_NAME[cachedLocation.countryCode] || cachedLocation.country;
+        const matchedCached = countries.includes(cachedCountryName) ? cachedCountryName : '';
+        if (!citizenshipCountryRef.current && matchedCached) {
+          citizenshipCountryRef.current = matchedCached;
+          setCitizenshipCountry(matchedCached);
+        }
+        if (!residenceCountryRef.current && matchedCached) {
+          residenceCountryRef.current = matchedCached;
+          setResidenceCountry(matchedCached);
+        }
         setDetectedLocation(
           cachedLocation.formattedAddress || cachedLocation.city || cachedLocation.state || cachedLocation.country
         );
@@ -777,7 +629,7 @@ export function useCombinedLocationLogic() {
     };
     init();
     return () => { locationService.cancel(); };
-  }, [isPreview, navigate]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [navigate]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ─── Country/Residence handlers ─── */
   const handleCitizenshipChange = (value: string) => {
@@ -788,9 +640,7 @@ export function useCombinedLocationLogic() {
   };
 
   const handleResidenceChange = (value: string) => {
-    if (fieldSources['residence_country'] === 'plaid') return;
     manualOverridesRef.current.residenceCountry = true;
-    markFieldEdited('residence_country');
     residenceCountryRef.current = value;
     setResidenceCountry(value);
     setLocationStatus('manual');
@@ -812,7 +662,6 @@ export function useCombinedLocationLogic() {
   };
 
   const handleDetectClick = async () => {
-    trackCta('autofill_location', 'step-3');
     if (!userId) return;
     setIsDetectingLocation(true);
     setIsAutoFilling(true);
@@ -841,71 +690,26 @@ export function useCombinedLocationLogic() {
 
   /* ─── Address field handlers ─── */
   const handleAddressLine1Change = (value: string) => {
-    if (fieldSources['address_line_1'] === 'plaid') return;
     manualOverridesRef.current.addressLine1 = true;
-    markFieldEdited('address_line_1');
     setAddressLine1(value);
     if (touched.addressLine1) setErrors((p) => ({ ...p, addressLine1: validateAddress(value) }));
   };
 
   const handleAddressLine2Change = (value: string) => {
-    if (fieldSources['address_line_2'] === 'plaid') return;
     manualOverridesRef.current.addressLine2 = true;
-    markFieldEdited('address_line_2');
     setAddressLine2(value);
   };
 
-  const handleAddressCityChange = (value: string) => {
-    if (fieldSources.city === 'plaid') return;
-    manualOverridesRef.current.city = true;
-    markFieldEdited('city');
-    setAddressCity(value);
-    if (touched.addressCity) setErrors((p) => ({ ...p, addressCity: validateLocationText(value, 'City') }));
-  };
-
-  const handleAddressStateChange = (value: string) => {
-    if (fieldSources.state === 'plaid') return;
-    manualOverridesRef.current.state = true;
-    markFieldEdited('state');
-    setAddressState(value);
-    if (touched.addressState) setErrors((p) => ({ ...p, addressState: validateLocationText(value, 'State / region') }));
-  };
-
   const handleZipCodeChange = (value: string) => {
-    if (fieldSources.zip_code === 'plaid') return;
     const next = value.slice(0, 10);
     manualOverridesRef.current.zipCode = true;
-    markFieldEdited('zip_code');
     setZipCode(next);
     if (touched.zipCode) setErrors((p) => ({ ...p, zipCode: validateZip(next) }));
-  };
-
-  const formatSSN = (value: string) => {
-    const digits = value.replace(/\D/g, '');
-    if (digits.length <= 3) return digits;
-    if (digits.length <= 5) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
-    return `${digits.slice(0, 3)}-${digits.slice(3, 5)}-${digits.slice(5, 9)}`;
-  };
-
-  const handleSSNChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setSsn(formatSSN(event.target.value));
-  };
-
-  const handlePhoneChange = (event: ChangeEvent<HTMLInputElement>) => {
-    markFieldEdited('phone_number');
-    setPhoneNumber(event.target.value.replace(/\D/g, '').slice(0, 15));
-  };
-
-  const handleSelectDialCode = (option: DialCodeOption) => {
-    setCountryCode(option.code);
-    setSelectedDialCountryIso(option.iso);
   };
 
   const validate = (field: string, value: string) => {
     switch (field) {
       case 'addressLine1': return validateAddress(value);
-      case 'addressCity': return validateLocationText(value, 'City');
-      case 'addressState': return validateLocationText(value, 'State / region');
       case 'zipCode': return validateZip(value);
       default: return undefined;
     }
@@ -919,95 +723,23 @@ export function useCombinedLocationLogic() {
   const validateAll = () => {
     const next = {
       addressLine1: validateAddress(addressLine1),
-      addressCity: validateLocationText(addressCity, 'City'),
-      addressState: validateLocationText(addressState, 'State / region'),
       zipCode: validateZip(zipCode),
     };
     setErrors(next);
-    setTouched({ addressLine1: true, addressCity: true, addressState: true, zipCode: true });
+    setTouched({ addressLine1: true, zipCode: true });
     return !Object.values(next).some(Boolean);
   };
 
   /* ─── Navigation ─── */
   const handleContinue = async () => {
-    trackCta('continue', 'step-3');
-    if (!userId || (!isPreview && !config.supabaseClient)) return;
+    if (!userId || !config.supabaseClient || !canContinue) return;
 
-    if (!legalFirstName.trim() || !legalLastName.trim()) {
-      setError('Please enter your legal first and last name');
-      return;
-    }
-
-    if (!dobEligibility.isComplete) {
-      setError('Please enter your date of birth');
-      return;
-    }
-
-    if (!dobEligibility.isValidDate) {
-      setError('Please enter a valid date of birth');
-      return;
-    }
-
-    if (!dobEligibility.isAdult) {
-      setError(ageError || 'You must be at least 18 years old to continue');
-      return;
-    }
-
-    if (!citizenshipCountry) {
-      setError('Please select your citizenship');
-      return;
-    }
-
-    // Legal residence/address is collected only when Plaid provided it (v1 pivot);
-    // no-bank investors see no residence section, so it is not required here.
-    if (hasBankResidence && !residenceCountry) {
-      setError('Please confirm your residence');
-      return;
-    }
-
-    if (hasBankResidence && !validateAll()) {
-      setError('Please enter your complete residence address');
-      return;
-    }
-
-    if (isUsInvestor && !isValidSsn) {
-      setError('Please enter a valid SSN for US tax reporting');
-      return;
-    }
-
-    if (!isValidPhone) {
-      setError('Please enter a valid contact number');
-      return;
-    }
-
-    if (hasBankResidence && !residenceAttested) {
-      setResidenceAttestError(true);
-      setError('Please confirm this is your legal/permanent residence');
-      return;
-    }
-
-    if (isPreview) {
-      const saved = window.localStorage.getItem('hushh_onboarding_preview');
-      const parsed = saved ? JSON.parse(saved) : {};
-      window.localStorage.setItem('hushh_onboarding_preview', JSON.stringify({
-        ...parsed,
-        legal_first_name: legalFirstName.trim(),
-        legal_last_name: legalLastName.trim(),
-        date_of_birth: `${dobYear}-${dobMonth}-${dobDay}`,
-        citizenship_country: citizenshipCountry,
-        residence_country: hasBankResidence ? residenceCountry : null,
-        address_line_1: hasBankResidence ? addressLine1.trim() : null,
-        address_line_2: hasBankResidence ? addressLine2.trim() || null : null,
-        city: hasBankResidence ? addressCity.trim() || null : null,
-        state: hasBankResidence ? addressState.trim() || null : null,
-        zip_code: hasBankResidence ? zipCode.trim() : null,
-        address_country: hasBankResidence ? addressCountry.trim() || residenceCountry : null,
-        ssn_encrypted: ssn || (isUsInvestor ? null : '999-99-9999'),
-        phone_number: phoneNumber,
-        phone_country_code: countryCode,
-      }));
-      navigate(withLocalOnboardingPreview(nextRoute));
-      return;
+    // Validate address fields if they're filled
+    if (addressLine1.trim() || zipCode.trim()) {
+      if (!validateAll()) {
+        setError('Please fix the errors above');
+        return;
+      }
     }
 
     setIsLoading(true);
@@ -1015,37 +747,15 @@ export function useCombinedLocationLogic() {
     try {
       const payload = buildStep3SavePayload({
         citizenshipCountry,
-        residenceCountry: hasBankResidence ? residenceCountry : '',
-        addressLine1: hasBankResidence ? addressLine1 : '',
-        addressLine2: hasBankResidence ? addressLine2 : '',
-        zipCode: hasBankResidence ? zipCode : '',
-        city: hasBankResidence ? addressCity : '',
-        state: hasBankResidence ? addressState : '',
-        addressCountry: hasBankResidence ? addressCountry : '',
-        currentStep: 9,
+        residenceCountry,
+        addressLine1,
+        addressLine2,
+        zipCode,
+        city: addressCity,
+        state: addressState,
+        addressCountry,
+        currentStep: 4,
       } as Step3FormState & { currentStep: number });
-      if (!hasBankResidence) {
-        Object.assign(payload, buildStep3LegalResidenceClearPayload());
-      }
-      payload.legal_first_name = legalFirstName.trim();
-      payload.legal_last_name = legalLastName.trim();
-      payload.date_of_birth = `${dobYear}-${dobMonth}-${dobDay}`;
-      payload.ssn_encrypted = ssn || (isUsInvestor ? null : '999-99-9999');
-      payload.phone_number = phoneNumber;
-      payload.phone_country_code = countryCode;
-      // Per-field provenance (bank-verified vs self-declared) + explicit
-      // legal-residence attestation, for KYC review + audit. upsertOnboardingData
-      // drops these columns gracefully if the migration has not yet reached the
-      // environment, so this never blocks the save.
-      payload.field_provenance = buildStep3FieldProvenance(fieldSources);
-      // Record the legal-residence attestation only when there IS a (bank-verified)
-      // residence to attest.
-      if (hasBankResidence && residenceAttested) {
-        payload.residence_attested_at = new Date().toISOString();
-        payload.consent_version = CONSENT_VERSION;
-      }
-      // Editing from Review: persist the field changes but keep current_step where
-      // it is so the return to Review isn't blocked by the skip-guard.
       if (returnToReview) {
         delete (payload as { current_step?: number }).current_step;
       }
@@ -1054,42 +764,32 @@ export function useCombinedLocationLogic() {
       if (saveError) {
         throw new Error(saveError.message);
       }
-      trackStepCompleted('step-3', 3);
-      navigate(withLocalOnboardingPreview(nextRoute));
+      navigate(withLocalOnboardingPreview(returnToReview ? REVIEW_ROUTE : '/onboarding/step-4'));
     } catch (err) {
       console.error('[Step3-Combined] Save error:', err);
-      trackStepError('step-3', 'save_failed');
       setError('Failed to save. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleBack = () =>
+  const handleBack = () => {
     navigate(withLocalOnboardingPreview(returnToReview ? REVIEW_ROUTE : '/onboarding/step-2'));
+  };
 
   const handleSkip = async () => {
-    trackCta('skip', 'step-3');
-    trackStepSkipped('step-3');
     if (isLoading) return;
-    // Editing from Review: skipping is a cancel — return without touching data.
-    if (returnToReview) {
-      navigate(withLocalOnboardingPreview(REVIEW_ROUTE));
-      return;
-    }
-    if (isPreview) {
-      navigate(withLocalOnboardingPreview('/onboarding/step-4'));
-      return;
-    }
     setIsLoading(true);
     try {
       if (userId && config.supabaseClient) {
-        const { error: saveError } = await upsertOnboardingData(userId, { current_step: 9 });
+        const { error: saveError } = returnToReview
+          ? { error: null }
+          : await upsertOnboardingData(userId, { current_step: 4 });
         if (saveError) {
           throw new Error(saveError.message);
         }
       }
-      navigate('/onboarding/step-4');
+      navigate(withLocalOnboardingPreview(returnToReview ? REVIEW_ROUTE : '/onboarding/step-4'));
     } catch (err) {
       console.error('[Step3-Combined] Skip save error:', err);
       setError('Failed to save. Please try again.');
@@ -1099,44 +799,6 @@ export function useCombinedLocationLogic() {
   };
 
   return {
-    // Edit-from-Review flag (drives the CTA label + return navigation)
-    returnToReview,
-    // Identity
-    legalFirstName,
-    legalLastName,
-    dobMonth,
-    dobDay,
-    dobYear,
-    setLegalFirstName,
-    setLegalLastName,
-    setDobMonth,
-    setDobDay,
-    setDobYear,
-    monthNames: MONTH_NAMES,
-    yearOptions,
-    dayOptions,
-    isUnder18,
-    ageError,
-    ssn,
-    phoneNumber,
-    countryCode,
-    selectedDialOption,
-    isUsInvestor,
-    isValidPhone,
-    formatPhoneNumber,
-    handleSSNChange,
-    handlePhoneChange,
-    handleSelectDialCode,
-    phoneDialCodes: PHONE_DIAL_CODES,
-    fieldSources,
-    markFieldEdited,
-    hasBankPrefill: Object.values(fieldSources).some((v) => v === 'plaid'),
-    hasBankResidence,
-    hasPlaidAddressLine2,
-    // A field whose value is bank-verified (Plaid) is locked read-only — the
-    // verification badge attests it, so it's changed by re-linking the bank.
-    isPlaidLocked: (key: string) => fieldSources[key] === 'plaid',
-
     // Country/Residence
     citizenshipCountry,
     residenceCountry,
@@ -1147,10 +809,6 @@ export function useCombinedLocationLogic() {
     addressLine1,
     addressLine2,
     handleAddressLine2Change,
-    addressCity,
-    addressState,
-    handleAddressCityChange,
-    handleAddressStateChange,
     zipCode,
     handleAddressLine1Change,
     handleZipCodeChange,
@@ -1178,11 +836,6 @@ export function useCombinedLocationLogic() {
     handleContinue,
     handleBack,
     handleSkip,
-
-    // Legal-residence attestation
-    residenceAttested,
-    residenceAttestError,
-    handleResidenceAttestChange,
 
     // UI state
     isLoading,

@@ -3,11 +3,12 @@ import { describe, expect, it } from "vitest";
 import { resolveOnboardingStep } from "../src/services/onboarding/onboardingAnalytics";
 
 describe("resolveOnboardingStep", () => {
-  it("maps the six numbered steps to a slug + display index", () => {
+  it("maps the nine numbered steps to a slug + display index", () => {
     expect(resolveOnboardingStep("/onboarding/step-1")).toEqual({ step: "step-1", stepIndex: 1 });
     expect(resolveOnboardingStep("/onboarding/step-3")).toEqual({ step: "step-3", stepIndex: 3 });
     expect(resolveOnboardingStep("/onboarding/step-4")).toEqual({ step: "step-4", stepIndex: 4 });
     expect(resolveOnboardingStep("/onboarding/step-6")).toEqual({ step: "step-6", stepIndex: 6 });
+    expect(resolveOnboardingStep("/onboarding/step-9")).toEqual({ step: "step-9", stepIndex: 9 });
   });
 
   it("maps named onboarding surfaces without an index", () => {

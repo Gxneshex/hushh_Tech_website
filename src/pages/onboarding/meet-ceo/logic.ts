@@ -145,7 +145,7 @@ export function useMeetCeoLogic() {
     trackCta('meet_ceo_to_profile', 'meet-ceo');
     navigate('/hushh-user-profile');
   };
-  const handleBack = () => navigate('/onboarding/step-6');
+  const handleBack = () => navigate('/onboarding/step-9');
 
   return {
     paymentState,

@@ -604,7 +604,7 @@ function DocSetNav({ currentOrder }: { currentOrder: number }) {
       <p className="mb-2.5 text-[11px] font-semibold uppercase tracking-[1.6px] text-[#0066CC]/85">
         More in this set
       </p>
-      <div className="grid gap-2 sm:grid-cols-2">
+      <div className={`grid gap-2 ${prev && next ? "sm:grid-cols-2" : ""}`}>
         {prev ? (
           <Link
             to={`/community/${prev.slug}`}
@@ -620,13 +620,11 @@ function DocSetNav({ currentOrder }: { currentOrder: number }) {
               </span>
             </span>
           </Link>
-        ) : (
-          <span className="hidden sm:block" />
-        )}
+        ) : null}
         {next ? (
           <Link
             to={`/community/${next.slug}`}
-            className="flex items-center justify-end gap-3 rounded-[14px] bg-[#F5F5F7] px-4 py-3 text-right transition hover:bg-[#ECECEF]"
+            className="flex items-center justify-between gap-3 rounded-[14px] bg-[#F5F5F7] px-4 py-3 text-left transition hover:bg-[#ECECEF]"
           >
             <span className="min-w-0">
               <span className="block text-[10px] font-semibold uppercase tracking-[1px] text-[#1D1D1F]/40">
@@ -724,7 +722,7 @@ function FundADocumentPost({ document }: { document: FundDocument }) {
 
   return (
     <article
-      className="mx-auto w-full max-w-[860px] text-[#1D1D1F]"
+      className="mx-auto w-full max-w-[860px] pb-[calc(8.5rem+env(safe-area-inset-bottom,0px))] text-[#1D1D1F] md:pb-0"
       style={{ fontFamily: appleFont }}
     >
       <DocIndex currentOrder={document.order} />

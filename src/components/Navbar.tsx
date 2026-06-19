@@ -179,7 +179,7 @@ export default function Navbar() {
   // let unpaid fund users skip FL + KYC + Stripe payment. We now consult
   // the journey hook: paid investors keep the original Meet CEO route,
   // unpaid users are routed to whatever step the journey says is next
-  // (typically /onboarding/step-6 with a banner).
+  // (typically /onboarding/step-9 with a banner).
   const { primaryCTA: journeyCta } = useInvestorJourneyCta();
   const handleMeetCeoClick = () => {
     setIsOpen(false);

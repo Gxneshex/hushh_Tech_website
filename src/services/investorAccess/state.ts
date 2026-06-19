@@ -96,9 +96,8 @@ export function isInvestorAccessGranted(state: InvestorAccessState): boolean {
   return state === "payment_in_review" || state === "verified_investor";
 }
 
-// Fund payment step. URL renumbered to step-6 to match the 6-step display
-// (constant name kept as-is to avoid churn across consumers).
-export const STEP_9_ROUTE = "/onboarding/step-6";
+// Fund payment step. Constant name kept as-is to avoid churn across consumers.
+export const STEP_9_ROUTE = "/onboarding/step-9";
 export const MEET_CEO_ROUTE = "/onboarding/meet-ceo";
 export const ACCESS_DENIED_ROUTE = "/onboarding/access-denied";
 export const PROFILE_ROUTE = "/hushh-user-profile";
