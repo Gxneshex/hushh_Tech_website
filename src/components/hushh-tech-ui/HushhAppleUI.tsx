@@ -301,7 +301,7 @@ export function Eyebrow({
 }) {
   return (
     <div
-      className={`mb-3 text-center text-[11px] font-medium uppercase leading-tight tracking-[1.6px] ${className}`}
+      className={`mb-[18px] text-center text-[13px] font-bold uppercase leading-tight tracking-[0.14em] ${className}`}
       style={{
         color: tone === "dark" ? "rgba(41,151,255,0.85)" : "rgba(0,102,204,0.85)",
         fontFamily: appleFont,
@@ -329,16 +329,16 @@ export function Display({
 }) {
   const Tag = as;
   const sizeClass = {
-    xs: "text-[28px] sm:text-[32px] md:text-[40px]",
-    sm: "text-[32px] md:text-[44px]",
-    md: "text-[36px] md:text-[56px]",
-    lg: "text-[44px] md:text-[72px]",
-    xl: "text-[56px] md:text-[88px]",
+    xs: "text-[clamp(32px,4.2vw,48px)]",
+    sm: "text-[clamp(32px,4.6vw,54px)]",
+    md: "text-[clamp(36px,5.2vw,62px)]",
+    lg: "text-[clamp(40px,5.8vw,68px)]",
+    xl: "text-[clamp(44px,6.4vw,76px)]",
   }[size];
 
   return (
     <Tag
-      className={`mx-auto px-6 text-center font-medium leading-[1.06] tracking-[-0.028em] ${sizeClass} ${maxWidth} ${className}`}
+      className={`mx-auto px-6 text-center font-semibold leading-[1.08] tracking-[-0.025em] ${sizeClass} ${maxWidth} ${className}`}
       style={{
         color: tone === "dark" ? SYS.textOnDark : SYS.text,
         fontFamily: appleDisplayFont,
@@ -361,9 +361,9 @@ export function Lede({
 }) {
   return (
     <p
-      className={`mx-auto mt-[18px] max-w-[420px] px-5 text-center text-[16px] font-light leading-[1.45] tracking-normal sm:text-[17px] md:text-[20px] ${className}`}
+      className={`mx-auto mt-5 max-w-[46ch] px-5 text-center text-[clamp(17px,1.6vw,20px)] font-normal leading-[1.5] tracking-[-0.01em] ${className}`}
       style={{
-        color: tone === "dark" ? "rgba(245,245,247,0.60)" : "rgba(29,29,31,0.60)",
+        color: tone === "dark" ? "rgba(245,245,247,0.62)" : "rgba(0,0,0,0.62)",
         fontFamily: appleFont,
         textWrap: "pretty",
       }}

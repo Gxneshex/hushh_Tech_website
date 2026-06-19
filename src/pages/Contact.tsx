@@ -206,11 +206,11 @@ export default function Contact() {
         <Box textAlign="center" mb={{ base: 9, md: 12 }}>
           <Heading
             as="h1"
-            fontSize={{ base: "36px", sm: "44px", md: "56px" }}
+            fontSize="clamp(32px, 4.6vw, 54px)"
             mb={5}
-            letterSpacing="-0.028em"
-            lineHeight="1.06"
-            fontWeight="500"
+            letterSpacing="-0.025em"
+            lineHeight="1.08"
+            fontWeight="600"
             color={textPrimary}
             style={{ fontFamily: appleDisplayFont, textWrap: "balance" }}
           >
@@ -218,12 +218,13 @@ export default function Contact() {
           </Heading>
 
           <Text
-            fontSize={{ base: "16px", sm: "17px", md: "20px" }}
-            maxW="520px"
+            fontSize="clamp(17px, 1.6vw, 20px)"
+            maxW="46ch"
             mx="auto"
-            color={textSecondary}
-            fontWeight="300"
-            lineHeight="1.45"
+            color="rgba(0,0,0,0.62)"
+            fontWeight="400"
+            lineHeight="1.5"
+            letterSpacing="-0.01em"
           >
             Ready to transform your investment strategy? We'd love to hear from you.
           </Text>

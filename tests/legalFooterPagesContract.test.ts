@@ -41,8 +41,9 @@ describe("legal and support footer pages", () => {
     const shell = read("src/components/hushh-tech-legal-page/HushhTechLegalPage.tsx");
 
     expect(shell).toContain("appleDisplayFont");
-    expect(shell).toContain("text-[36px] font-medium leading-[1.06] tracking-[-0.028em] text-[#1D1D1F] sm:text-[44px] md:text-[56px]");
-    expect(shell).not.toContain("text-[17px] font-light leading-[1.5] tracking-normal text-[#1D1D1F]/60 md:text-[20px]");
+    expect(shell).toContain("text-[clamp(32px,4.6vw,54px)] font-semibold leading-[1.08] tracking-[-0.025em] text-[#1D1D1F]");
+    expect(shell).toContain("mb-[18px] text-[13px] font-bold uppercase leading-tight tracking-[0.14em]");
+    expect(shell).not.toContain("text-[36px] font-medium leading-[1.06]");
 
     for (const path of [
       "src/pages/terms-of-service/index.tsx",

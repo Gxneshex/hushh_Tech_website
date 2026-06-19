@@ -93,23 +93,24 @@ const FaqPage: React.FC = () => {
           <Heading
             as="h1"
             fontFamily={appleDisplayFont}
-            fontWeight="500"
-            fontSize={{ base: "36px", md: "56px" }}
-            lineHeight="1.06"
-            letterSpacing="-0.028em"
+            fontWeight="600"
+            fontSize="clamp(32px, 4.6vw, 54px)"
+            lineHeight="1.08"
+            letterSpacing="-0.025em"
             color="#1D1D1F"
           >
             Frequently Asked Questions.
           </Heading>
 
           <Text
-            fontSize={{ base: "16px", sm: "17px", md: "20px" }}
-            fontWeight="300"
-            maxW="lg"
+            fontSize="clamp(17px, 1.6vw, 20px)"
+            fontWeight="400"
+            maxW="46ch"
             mx="auto"
-            color="#1D1D1F99"
-            mt="18px"
-            lineHeight="1.45"
+            color="rgba(0,0,0,0.62)"
+            mt="20px"
+            lineHeight="1.5"
+            letterSpacing="-0.01em"
           >
             Find answers to common questions about our investment strategies, processes, and
             services.

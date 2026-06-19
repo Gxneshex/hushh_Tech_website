@@ -112,34 +112,36 @@ const CareerList = () => {
           <Box textAlign="center" mb={{ base: 10, md: 14 }}>
             <Text
               as="p"
-              mb={4}
+              mb="18px"
               fontSize="13px"
-              fontWeight="600"
-              letterSpacing="0.18em"
+              fontWeight="700"
+              letterSpacing="0.14em"
               textTransform="uppercase"
               color={brandBlue}
+              lineHeight="1.1"
             >
               Careers
             </Text>
             <Heading
               as="h1"
-              fontSize={{ base: "36px", sm: "44px", md: "56px" }}
+              fontSize="clamp(32px, 4.6vw, 54px)"
               mb={5}
-              letterSpacing="-0.028em"
-              lineHeight="1.06"
-              fontWeight="500"
+              letterSpacing="-0.025em"
+              lineHeight="1.08"
+              fontWeight="600"
               color={textPrimary}
               style={{ fontFamily: appleDisplayFont, textWrap: "balance" }}
             >
               Hushh Jobs.
             </Heading>
             <Text
-              fontSize={{ base: "16px", sm: "17px", md: "20px" }}
-              maxW="520px"
+              fontSize="clamp(17px, 1.6vw, 20px)"
+              maxW="46ch"
               mx="auto"
-              color={textSecondary}
-              fontWeight="300"
-              lineHeight="1.45"
+              color="rgba(0,0,0,0.62)"
+              fontWeight="400"
+              lineHeight="1.5"
+              letterSpacing="-0.01em"
             >
               Help us build the AI-powered investment company where rigorous research, product craft,
               and long-term ownership meet.

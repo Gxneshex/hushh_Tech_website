@@ -103,10 +103,10 @@ const JobDetails = () => {
           <Box textAlign="center" p={{ base: 6, md: 8 }} {...glassCardChrome}>
             <Heading
               as="h1"
-              fontSize={{ base: "40px", md: "48px" }}
-              lineHeight="1.06"
-              letterSpacing="-0.028em"
-              fontWeight="500"
+              fontSize="clamp(32px, 4.6vw, 54px)"
+              lineHeight="1.08"
+              letterSpacing="-0.025em"
+              fontWeight="600"
               color={textPrimary}
               style={{ fontFamily: appleDisplayFont }}
             >
@@ -144,21 +144,22 @@ const JobDetails = () => {
         <VStack spacing={{ base: 5, md: 6 }} align="stretch">
           <Box p={{ base: 6, md: 8 }} {...glassCardChrome}>
             <Text
-              mb={4}
+              mb="18px"
               fontSize="13px"
-              fontWeight="600"
-              letterSpacing="0.18em"
+              fontWeight="700"
+              letterSpacing="0.14em"
               textTransform="uppercase"
               color={brandBlue}
+              lineHeight="1.1"
             >
               Open role
             </Text>
             <Heading
               as="h1"
-              fontSize={{ base: "42px", md: "56px" }}
-              lineHeight="1.06"
-              letterSpacing="-0.028em"
-              fontWeight="500"
+              fontSize="clamp(32px, 4.6vw, 54px)"
+              lineHeight="1.08"
+              letterSpacing="-0.025em"
+              fontWeight="600"
               color={textPrimary}
               style={{ fontFamily: appleDisplayFont, textWrap: "balance" }}
             >

@@ -102,11 +102,11 @@ export default function HushhTechLegalPage({
         className="px-5 pb-[calc(7rem+env(safe-area-inset-bottom))] pt-10 sm:px-6 sm:pb-24"
       >
         <section className="mx-auto max-w-[760px] text-center">
-          <p className="mb-3 text-[11px] font-medium uppercase leading-tight tracking-[1.6px] text-[#0066CC]/85">
+          <p className="mb-[18px] text-[13px] font-bold uppercase leading-tight tracking-[0.14em] text-[#0066CC]/85">
             {eyebrow}
           </p>
           <h1
-            className="mx-auto max-w-[680px] text-[36px] font-medium leading-[1.06] tracking-[-0.028em] text-[#1D1D1F] sm:text-[44px] md:text-[56px]"
+            className="mx-auto max-w-[680px] text-[clamp(32px,4.6vw,54px)] font-semibold leading-[1.08] tracking-[-0.025em] text-[#1D1D1F]"
             style={{ fontFamily: appleDisplayFont, textWrap: "balance" }}
           >
             {title}

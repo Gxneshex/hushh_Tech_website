@@ -14,9 +14,9 @@ describe("Career page public styling", () => {
     expect(career).not.toContain("HushhTechHeader");
     expect(career).toContain("appleDisplayFont");
     expect(career).toContain("appleFont");
-    expect(career).toContain('fontSize={{ base: "36px", sm: "44px", md: "56px" }}');
-    expect(career).toContain('fontWeight="500"');
-    expect(career).toContain('letterSpacing="-0.028em"');
+    expect(career).toContain('fontSize="clamp(32px, 4.6vw, 54px)"');
+    expect(career).toContain('fontWeight="600"');
+    expect(career).toContain('letterSpacing="-0.025em"');
     expect(career).toContain("glassCardChrome");
     expect(career).not.toMatch(/gradient-text|bgGradient|colorScheme="cyan"|font-serif|Playfair/);
     expect(css).not.toMatch(/gradient-text|benefits-button|job-card|data-career-heading/);
@@ -31,7 +31,9 @@ describe("Career page public styling", () => {
     expect(details).not.toContain("HushhTechHeader");
     expect(details).toContain("appleDisplayFont");
     expect(details).toContain("glassCardChrome");
-    expect(details).toContain('fontSize={{ base: "42px", md: "56px" }}');
+    expect(details).toContain('fontSize="clamp(32px, 4.6vw, 54px)"');
+    expect(details).toContain('fontWeight="600"');
+    expect(details).toContain('letterSpacing="-0.025em"');
     expect(details).not.toMatch(/colorScheme="cyan"|bg="white"\\s+borderRadius="lg"|font-serif|Playfair/);
 
     expect(form).toContain("appleDisplayFont");

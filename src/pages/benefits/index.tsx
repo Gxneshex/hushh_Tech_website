@@ -44,16 +44,16 @@ const BenefitsPage: React.FC = () => {
       >
         {/* Hero — compact; same copy as before */}
         <header className="mx-auto max-w-3xl py-6 text-center sm:py-8 md:py-10">
-          <p className="mb-4 text-[12px] font-semibold uppercase tracking-[0.24em] text-[#0071E3]">
+          <p className="mb-[18px] text-[13px] font-bold uppercase leading-tight tracking-[0.14em] text-[#0071E3]">
             Benefits
           </p>
           <h1
-            className="mx-auto mb-4 max-w-[720px] text-[36px] font-medium leading-[1.06] tracking-[-0.028em] text-[#1D1D1F] sm:text-[44px] md:text-[56px]"
+            className="mx-auto mb-5 max-w-[720px] text-[clamp(32px,4.6vw,54px)] font-semibold leading-[1.08] tracking-[-0.025em] text-[#1D1D1F]"
             style={{ fontFamily: appleDisplayFont, textWrap: "balance" }}
           >
             World-Class Benefits for World-Class Talent.
           </h1>
-          <p className="mx-auto max-w-[520px] text-[16px] font-light leading-[1.45] tracking-normal text-[#1D1D1F]/60 sm:text-[17px] md:text-[20px]">
+          <p className="mx-auto max-w-[46ch] text-[clamp(17px,1.6vw,20px)] font-normal leading-[1.5] tracking-[-0.01em] text-[rgba(0,0,0,0.62)]">
             We believe that exceptional people deserve exceptional benefits. Our comprehensive package is
             designed to support your professional growth, personal wellbeing, and financial future.
           </p>

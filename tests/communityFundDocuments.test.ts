@@ -61,8 +61,9 @@ describe("Community Fund A document presentation", () => {
       'import { appleDisplayFont, appleFont } from "../components/hushh-tech-ui/HushhAppleUI";',
     );
     expect(contact).toContain("Get in touch.");
-    expect(contact).toContain('fontSize={{ base: "36px", sm: "44px", md: "56px" }}');
-    expect(contact).toContain('fontWeight="500"');
+    expect(contact).toContain('fontSize="clamp(32px, 4.6vw, 54px)"');
+    expect(contact).toContain('fontWeight="600"');
+    expect(contact).toContain('fontSize="clamp(17px, 1.6vw, 20px)"');
     expect(contact).toContain("style={{ fontFamily: appleDisplayFont");
     expect(contact).toContain('color={textPrimary}');
     expect(contact).not.toMatch(/Playfair Display|font-serif|fontStyle="italic"/);
