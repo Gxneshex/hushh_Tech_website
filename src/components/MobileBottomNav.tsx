@@ -111,7 +111,7 @@ const MobileBottomNav: React.FC = () => {
   );
 
   // Check if we're on a full-screen community post
-  const isFullScreenPost = location.pathname.startsWith('/community/') && 
+  const isFullScreenPost = location.pathname.startsWith('/community/') &&
     location.pathname !== '/community';
 
   if (shouldHideNav || isFullScreenPost) {
@@ -128,117 +128,125 @@ const MobileBottomNav: React.FC = () => {
   };
 
   return (
-    <MotionBox
-      as="nav"
-      role="navigation"
-      aria-label="Mobile bottom navigation"
-      display={{ base: 'block', md: 'none' }}
-      position="fixed"
-      bottom="0"
-      left="0"
-      right="0"
-      zIndex="1000"
-      bg="#F8F9FA"
-      borderTop="1px solid"
-      borderColor="#E5E7EB"
-      // Safe area inset for iOS devices with home indicator
-      sx={{
-        pb: 'env(safe-area-inset-bottom, 0px)',
-      }}
-      // Ensure nav doesn't block content - use pointer-events properly
-      css={{
-        // Prevent the nav background from extending beyond its bounds
-        clipPath: 'inset(0 0 0 0)',
-      }}
-      // Entrance animation variants
-      variants={navVariants}
-      initial="hidden"
-      animate="visible"
-      // Re-animate on route change for smooth transitions
-      key={location.pathname}
-    >
-      <Flex
-        justify="space-around"
-        align="center"
-        h={{ base: '70px', sm: '85px' }}
-        maxW="448px"
-        mx="auto"
-        px="2"
-        // Ensure consistent height on all viewports
-        css={{
-          minHeight: '70px',
+    <>
+      <Box
+        aria-hidden="true"
+        display={{ base: 'block', md: 'none' }}
+        h={{ base: 'calc(92px + env(safe-area-inset-bottom, 0px))', sm: 'calc(108px + env(safe-area-inset-bottom, 0px))' }}
+        flexShrink={0}
+      />
+      <MotionBox
+        as="nav"
+        role="navigation"
+        aria-label="Mobile bottom navigation"
+        display={{ base: 'block', md: 'none' }}
+        position="fixed"
+        bottom="0"
+        left="0"
+        right="0"
+        zIndex="1000"
+        bg="#F8F9FA"
+        borderTop="1px solid"
+        borderColor="#E5E7EB"
+        // Safe area inset for iOS devices with home indicator
+        sx={{
+          pb: 'env(safe-area-inset-bottom, 0px)',
         }}
+        // Ensure nav doesn't block content - use pointer-events properly
+        css={{
+          // Prevent the nav background from extending beyond its bounds
+          clipPath: 'inset(0 0 0 0)',
+        }}
+        // Entrance animation variants
+        variants={navVariants}
+        initial="hidden"
+        animate="visible"
+        // Re-animate on route change for smooth transitions
+        key={location.pathname}
       >
-        {navItems.map((item) => {
-          const active = checkIsActive(item);
-          const isProfileTab = item.id === 'profile';
-          const shouldInterceptProfile =
-            isProfileTab && !journeyCta.loading && !journeyCta.isInvestor;
-          const handleProfileIntercept = (event: React.MouseEvent) => {
-            if (!shouldInterceptProfile) return;
-            event.preventDefault();
-            journeyCta.action();
-          };
-          return (
-            <Flex
-              as={MotionLink}
-              to={item.path}
-              onClick={isProfileTab ? handleProfileIntercept : undefined}
-              key={item.id}
-              direction="column"
-              align="center"
-              justify="center"
-              gap="1"
-              p="2"
-              flex="1"
-              h="100%"
-              transition="all 0.2s ease"
-              role="link"
-              aria-current={active ? 'page' : undefined}
-              _active={{ transform: 'scale(0.95)' }}
-              _focusVisible={{
-                outline: 'none',
-                bg: 'rgba(47, 128, 237, 0.05)',
-                borderRadius: 'lg',
-              }}
-              // Framer Motion item variants for staggered entrance
-              variants={itemVariants}
-            >
-              {/* Icon Container - Blue circle when active */}
+        <Flex
+          justify="space-around"
+          align="center"
+          h={{ base: '70px', sm: '85px' }}
+          maxW="448px"
+          mx="auto"
+          px="2"
+          // Ensure consistent height on all viewports
+          css={{
+            minHeight: '70px',
+          }}
+        >
+          {navItems.map((item) => {
+            const active = checkIsActive(item);
+            const isProfileTab = item.id === 'profile';
+            const shouldInterceptProfile =
+              isProfileTab && !journeyCta.loading && !journeyCta.isInvestor;
+            const handleProfileIntercept = (event: React.MouseEvent) => {
+              if (!shouldInterceptProfile) return;
+              event.preventDefault();
+              journeyCta.action();
+            };
+            return (
               <Flex
+                as={MotionLink}
+                to={item.path}
+                onClick={isProfileTab ? handleProfileIntercept : undefined}
+                key={item.id}
+                direction="column"
                 align="center"
                 justify="center"
-                w="48px"
-                h="48px"
-                borderRadius="full"
-                bg={active ? '#E8F0FE' : 'transparent'}
+                gap="1"
+                p="2"
+                flex="1"
+                h="100%"
                 transition="all 0.2s ease"
+                role="link"
+                aria-current={active ? 'page' : undefined}
+                _active={{ transform: 'scale(0.95)' }}
+                _focusVisible={{
+                  outline: 'none',
+                  bg: 'rgba(47, 128, 237, 0.05)',
+                  borderRadius: 'lg',
+                }}
+                // Framer Motion item variants for staggered entrance
+                variants={itemVariants}
               >
-                <Icon
-                  as={item.icon}
-                  boxSize={6}
-                  color={active ? '#2F80ED' : '#9CA3AF'}
-                  strokeWidth={active ? 2.5 : 2}
+                {/* Icon Container - Blue circle when active */}
+                <Flex
+                  align="center"
+                  justify="center"
+                  w="48px"
+                  h="48px"
+                  borderRadius="full"
+                  bg={active ? '#E8F0FE' : 'transparent'}
                   transition="all 0.2s ease"
-                />
+                >
+                  <Icon
+                    as={item.icon}
+                    boxSize={6}
+                    color={active ? '#2F80ED' : '#9CA3AF'}
+                    strokeWidth={active ? 2.5 : 2}
+                    transition="all 0.2s ease"
+                  />
+                </Flex>
+
+                {/* Label */}
+                <Text
+                  fontSize="11px"
+                  fontWeight={active ? '600' : '500'}
+                  color={active ? '#2F80ED' : '#9CA3AF'}
+                  letterSpacing="0.01em"
+                  transition="all 0.2s ease"
+                  mt="-2px"
+                >
+                  {item.label}
+                </Text>
               </Flex>
-              
-              {/* Label */}
-              <Text
-                fontSize="11px"
-                fontWeight={active ? '600' : '500'}
-                color={active ? '#2F80ED' : '#9CA3AF'}
-                letterSpacing="0.01em"
-                transition="all 0.2s ease"
-                mt="-2px"
-              >
-                {item.label}
-              </Text>
-            </Flex>
-          );
-        })}
-      </Flex>
-    </MotionBox>
+            );
+          })}
+        </Flex>
+      </MotionBox>
+    </>
   );
 };
 
