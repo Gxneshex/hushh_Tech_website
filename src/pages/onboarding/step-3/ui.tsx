@@ -2,9 +2,9 @@
  * Step 3 — Confirm Your Residence & Address (Combined)
  *
  * Single page merging country/residence detection + full address entry.
- * GPS/current location is shown separately and never fills legal residence.
+ * GPS fires ONCE → auto-fills citizenship, residence, address, city, state, zip.
  */
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import {
   useCombinedLocationLogic,
   countries,
@@ -17,7 +17,6 @@ import HushhTechCta, {
   HushhTechCtaVariant,
 } from "../../../components/hushh-tech-cta/HushhTechCta";
 import PermissionHelpModal from "../../../components/PermissionHelpModal";
-import ConsentCheckbox from "../../../components/consent/ConsentCheckbox";
 import { useModalKeyboardNavigation } from "../../../hooks/useModalKeyboardNavigation";
 import {
   Display,
@@ -25,40 +24,15 @@ import {
   Lede,
   appleFont,
 } from "../../../components/hushh-tech-ui/HushhAppleUI";
-import {
-  BankVerifiedMarker,
-  OptionalMarker,
-  RequiredAsterisk,
-} from "../../../components/onboarding-field-marker/FieldMarkers";
-import AccountTypeSections from "./sections/AccountTypeSections";
-import { useStep3AccountTypeSections } from "./sections/logic";
 
 const DISPLAY_STEP = 3;
 const primaryCtaClass =
   "!rounded-full !border-[#0066CC] !bg-[#0066CC] !text-white !font-medium !tracking-[-0.01em] !shadow-none";
 const secondaryCtaClass =
   "!rounded-full !border-[#1D1D1F]/15 !bg-white !text-[#1D1D1F] !font-medium !tracking-[-0.01em] !shadow-none";
-const panelClass =
-  "rounded-[28px] bg-white p-5 shadow-[0_18px_48px_rgba(29,29,31,0.06),inset_0_0_0_0.5px_rgba(29,29,31,0.08)] sm:p-6";
-const fieldClass =
-  "min-h-[74px] rounded-[18px] bg-[#F5F5F7] px-4 py-3.5 shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.08)]";
-const compactFieldClass =
-  "min-h-[60px] rounded-[16px] bg-white px-4 py-3 shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.12)]";
-const labelClass =
-  "mb-1 block text-[11px] font-medium uppercase tracking-[1.3px] text-[#1D1D1F]/55";
-const compactLabelClass =
-  "mb-1 block text-[10px] font-medium uppercase tracking-[1.2px] text-[#1D1D1F]/48";
-const inputClass =
-  "w-full border-none bg-transparent p-0 text-[16px] font-medium text-[#1D1D1F] outline-none placeholder:text-[#1D1D1F]/42 focus:ring-0";
-const selectClass =
-  "w-full cursor-pointer appearance-none border-none bg-transparent p-0 pr-7 text-[16px] font-medium text-[#1D1D1F] outline-none";
-const compactSelectClass =
-  "w-full cursor-pointer appearance-none border-none bg-transparent p-0 pr-7 text-[15px] font-medium text-[#1D1D1F] outline-none";
 
 export default function OnboardingStep3Combined() {
   const s = useCombinedLocationLogic();
-  const at = useStep3AccountTypeSections();
-  const [isSsnHelpOpen, setIsSsnHelpOpen] = useState(false);
   const locationModalRef = useRef<HTMLDivElement>(null);
   const allowLocationButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -86,9 +60,9 @@ export default function OnboardingStep3Combined() {
         <HushhTechBackHeader onBackClick={s.handleBack} rightLabel="FAQs" />
         <OnboardingBankReviewChip />
 
-        <main className="mx-auto w-full max-w-[700px] flex-grow px-4 pb-48 sm:px-5">
+        <main className="mx-auto w-full max-w-[640px] flex-grow px-4 pb-48 sm:px-5">
           {/* ── Progress Bar ── */}
-          <div className="pb-5 pt-4">
+          <div className="pb-6 pt-5">
             <div className="mb-3 flex justify-between text-[11px] font-medium uppercase tracking-[1.6px] text-[#0066CC]/85">
               <span>
                 Step {DISPLAY_STEP}/{TOTAL_STEPS}
@@ -104,14 +78,14 @@ export default function OnboardingStep3Combined() {
           </div>
 
           {/* ── Title Section ── */}
-          <section className="pb-6 pt-5 text-center">
-            <Eyebrow>Personal Details</Eyebrow>
+          <section className="pb-8 pt-8 text-center">
+            <Eyebrow>Verification</Eyebrow>
             <Display as="h1" size="xs" maxWidth="max-w-[500px]">
-              Confirm your details.
+              Confirm your residence.
             </Display>
-            <Lede className="max-w-[460px]">
-              Add your legal name, date of birth, and residence so we can
-              prepare the secure investor review.
+            <Lede className="max-w-[500px]">
+              We need to know where you live and pay taxes to open your
+              investment account. Your location auto-fills the details below.
             </Lede>
           </section>
 
@@ -139,10 +113,10 @@ export default function OnboardingStep3Combined() {
               </div>
               <div>
                 <p className="text-[14px] font-medium text-[#1D1D1F]">
-                  Current location
+                  Location Detected
                 </p>
                 <p className="text-[12px] font-normal text-[#1D1D1F]/55">
-                  {s.detectedLocation} · used for security checks, not your legal residence
+                  {s.detectedLocation}
                 </p>
               </div>
             </div>
@@ -219,550 +193,252 @@ export default function OnboardingStep3Combined() {
             </div>
           )}
 
-          {s.hasBankPrefill && (
-            <div className="mb-6 flex items-center gap-4 rounded-[18px] bg-[#0066CC]/[0.07] px-4 py-4 shadow-[inset_0_0_0_1px_rgba(0,102,204,0.16)]">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-white">
-                <span
-                  className="material-symbols-outlined text-lg text-[#0066CC]"
-                  style={{ fontVariationSettings: "'FILL' 1, 'wght' 600" }}
-                >
-                  account_balance
-                </span>
-              </div>
-              <div>
-                <p className="text-[14px] font-medium text-[#1D1D1F]">
-                  Verified from your linked bank
-                </p>
-                <p className="text-[12px] font-normal text-[#1D1D1F]/55">
-                  These details are locked to your bank record. To change them, use
-                  &ldquo;Review or change your linked bank&rdquo; above.
-                </p>
+          {/* ═══ SECTION 1: Country Selection ═══ */}
+          <section className="mb-6 overflow-hidden rounded-[22px] bg-[#F5F5F7] p-4 shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.08)]">
+            <h3 className="mb-2 text-[11px] font-medium uppercase tracking-[1.6px] text-[#0066CC]/85">
+              Citizenship & Residence
+            </h3>
+
+            {/* Citizenship Country */}
+            <div className="border-b border-[#1D1D1F]/[0.08] py-5">
+              <div className="flex items-center gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-white">
+                  <span
+                    className="material-symbols-outlined text-lg text-[#1D1D1F]/70"
+                    style={{ fontVariationSettings: "'wght' 400" }}
+                  >
+                    flag
+                  </span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="mb-0.5 text-[14px] font-medium text-[#1D1D1F]">
+                    Country of Citizenship
+                  </p>
+                  <div className="relative">
+                    <select
+                      value={s.citizenshipCountry}
+                      onChange={(e) =>
+                        s.handleCitizenshipChange(e.target.value)
+                      }
+                      disabled={s.isDetectingLocation}
+                      className="w-full cursor-pointer appearance-none border-none bg-transparent p-0 pr-6 text-[13px] font-normal text-[#1D1D1F]/55 outline-none"
+                      aria-label="Select citizenship country"
+                    >
+                      <option disabled value="">
+                        Select Country
+                      </option>
+                      {countries.map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
+                    </select>
+                    <span className="material-symbols-outlined pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-base text-[#1D1D1F]/35">
+                      expand_more
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
-          )}
 
-          <div className="space-y-5">
-            <section className={panelClass}>
-              <div className="mb-5">
-                <h3 className="text-[11px] font-medium uppercase tracking-[1.6px] text-[#0066CC]/85">
-                  Personal Details
-                </h3>
-                <p className="mt-1 text-[13px] font-normal leading-[1.45] text-[#1D1D1F]/50">
-                  Enter your full legal name.
-                </p>
-                <p className="mt-2 text-[11px] font-normal leading-[1.45] text-[#1D1D1F]/40">
-                  <RequiredAsterisk className="ml-0" /> Required fields
-                </p>
-              </div>
-
-              <div className="grid gap-3 sm:grid-cols-2">
-                <label className={compactFieldClass} htmlFor="legalFirstName">
-                  <span className={compactLabelClass}>
-                    First Name
-                    <RequiredAsterisk />
-                    {s.fieldSources["legal_first_name"] === "plaid" && <BankVerifiedMarker />}
+            {/* Residence Country */}
+            <div className="py-5">
+              <div className="flex items-center gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-white">
+                  <span
+                    className="material-symbols-outlined text-lg text-[#1D1D1F]/70"
+                    style={{ fontVariationSettings: "'wght' 400" }}
+                  >
+                    home
                   </span>
-                  <input
-                    id="legalFirstName"
-                    type="text"
-                    value={s.legalFirstName}
-                    onChange={(e) => {
-                      s.setLegalFirstName(e.target.value);
-                      s.markFieldEdited("legal_first_name");
-                    }}
-                    placeholder="First name"
-                    readOnly={s.isPlaidLocked("legal_first_name")}
-                    className={`${inputClass}${s.isPlaidLocked("legal_first_name") ? " cursor-not-allowed text-[#1D1D1F]/55" : ""}`}
-                    autoComplete="given-name"
-                  />
-                </label>
-                <label className={compactFieldClass} htmlFor="legalLastName">
-                  <span className={compactLabelClass}>
-                    Last Name
-                    <RequiredAsterisk />
-                    {s.fieldSources["legal_last_name"] === "plaid" && <BankVerifiedMarker />}
-                  </span>
-                  <input
-                    id="legalLastName"
-                    type="text"
-                    value={s.legalLastName}
-                    onChange={(e) => {
-                      s.setLegalLastName(e.target.value);
-                      s.markFieldEdited("legal_last_name");
-                    }}
-                    placeholder="Last name"
-                    readOnly={s.isPlaidLocked("legal_last_name")}
-                    className={`${inputClass}${s.isPlaidLocked("legal_last_name") ? " cursor-not-allowed text-[#1D1D1F]/55" : ""}`}
-                    autoComplete="family-name"
-                  />
-                </label>
-              </div>
-
-              <div className="mt-4">
-                <span className={compactLabelClass}>
-                  Date of Birth
-                  <RequiredAsterisk />
-                </span>
-                <div className="mt-2 grid gap-2 sm:grid-cols-[1.35fr_0.75fr_0.9fr]">
-                  <div className={compactFieldClass}>
-                    <div className="relative">
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="mb-0.5 text-[14px] font-medium text-[#1D1D1F]">
+                    Country of Residence
+                  </p>
+                  <div className="relative">
                     <select
-                      value={s.dobMonth}
-                      onChange={(e) => s.setDobMonth(e.target.value)}
-                      className={compactSelectClass}
-                      aria-label="Birth month"
+                      value={s.residenceCountry}
+                      onChange={(e) =>
+                        s.handleResidenceChange(e.target.value)
+                      }
+                      disabled={s.isDetectingLocation}
+                      className="w-full cursor-pointer appearance-none border-none bg-transparent p-0 pr-6 text-[13px] font-normal text-[#1D1D1F]/55 outline-none"
+                      aria-label="Select residence country"
                     >
-                      <option value="" disabled>
-                        Month
+                      <option disabled value="">
+                        Select Country
                       </option>
-                      {s.monthNames.map((name, index) => (
-                        <option
-                          key={name}
-                          value={String(index + 1).padStart(2, "0")}
-                        >
-                          {name}
+                      {countries.map((c) => (
+                        <option key={c} value={c}>
+                          {c}
                         </option>
                       ))}
                     </select>
-                    <span className="material-symbols-outlined pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-base text-[#1D1D1F]/30">
+                    <span className="material-symbols-outlined pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-base text-[#1D1D1F]/35">
                       expand_more
                     </span>
-                    </div>
-                  </div>
-                  <div className={compactFieldClass}>
-                    <div className="relative">
-                    <select
-                      value={s.dobDay}
-                      onChange={(e) => s.setDobDay(e.target.value)}
-                      className={compactSelectClass}
-                      aria-label="Birth day"
-                    >
-                      <option value="" disabled>
-                        Day
-                      </option>
-                      {s.dayOptions.map((day) => (
-                        <option key={day} value={day}>
-                          {parseInt(day, 10)}
-                        </option>
-                      ))}
-                    </select>
-                    <span className="material-symbols-outlined pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-base text-[#1D1D1F]/30">
-                      expand_more
-                    </span>
-                    </div>
-                  </div>
-                  <div className={compactFieldClass}>
-                    <div className="relative">
-                    <select
-                      value={s.dobYear}
-                      onChange={(e) => s.setDobYear(e.target.value)}
-                      className={compactSelectClass}
-                      aria-label="Birth year"
-                    >
-                      <option value="" disabled>
-                        Year
-                      </option>
-                      {s.yearOptions.map((year) => (
-                        <option key={year} value={year}>
-                          {year}
-                        </option>
-                      ))}
-                    </select>
-                    <span className="material-symbols-outlined pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-base text-[#1D1D1F]/30">
-                      expand_more
-                    </span>
-                    </div>
                   </div>
                 </div>
-                {s.isUnder18 && s.ageError && (
-                  <p className="mt-3 text-[12px] text-[#FF3B30]">
-                    {s.ageError}
-                  </p>
-                )}
               </div>
-            </section>
+            </div>
+          </section>
 
-            <section className={panelClass}>
-              <div className="mb-5 flex items-center justify-between gap-4">
+          {/* ═══ SECTION 2: Full Address ═══ */}
+          <section className="mb-6 overflow-hidden rounded-[22px] bg-[#F5F5F7] p-4 shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.08)]">
+            <h3 className="mb-2 text-[11px] font-medium uppercase tracking-[1.6px] text-[#0066CC]/85">
+              Your Address
+            </h3>
+
+            {/* Use Current Location button */}
+            <div className="mb-2 border-b border-[#1D1D1F]/[0.08] py-5">
+              <button
+                type="button"
+                onClick={s.handleDetectClick}
+                disabled={s.isDetectingLocation || s.isAutoFilling}
+                className="group flex w-full items-center gap-4 text-left disabled:opacity-50"
+                aria-label="Use my current location"
+              >
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-white transition-colors group-hover:bg-white/75">
+                  <span
+                    className="material-symbols-outlined text-lg text-[#1D1D1F]/70"
+                    style={{ fontVariationSettings: "'wght' 400" }}
+                  >
+                    my_location
+                  </span>
+                </div>
                 <div>
-                  <h3 className="text-[11px] font-medium uppercase tracking-[1.6px] text-[#0066CC]/85">
-                    Residence
-                  </h3>
-                  <p className="mt-1 text-[13px] font-normal leading-[1.45] text-[#1D1D1F]/50">
-                    Legal residence used for investor verification.
+                  <p className="text-[14px] font-medium text-[#1D1D1F]">
+                    Use My Current Location
+                  </p>
+                  <p className="text-[12px] font-normal text-[#1D1D1F]/50">
+                    Auto-fill address using GPS
                   </p>
                 </div>
-                {/* v1 model: no GPS "Auto-fill" of legal residence. The device's
-                    current location is shown read-only in the "Current location"
-                    banner above and saved separately (gps_*) — it never fills the
-                    legal residence. Residence comes from the linked bank (Plaid),
-                    or the investor types it below. */}
-              </div>
+              </button>
+            </div>
 
-              <div className="space-y-4">
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <label className={fieldClass}>
-                    <span className={labelClass}>
-                      Citizenship
-                      <RequiredAsterisk />
-                    </span>
-                    <div className="relative">
-                      <select
-                        value={s.citizenshipCountry}
-                        onChange={(e) => s.handleCitizenshipChange(e.target.value)}
-                        disabled={s.isDetectingLocation}
-                        className={selectClass}
-                        aria-label="Select citizenship country"
-                      >
-                        <option disabled value="">
-                          Select country
-                        </option>
-                        {countries.map((c) => (
-                          <option key={c} value={c}>
-                            {c}
-                          </option>
-                        ))}
-                      </select>
-                      <span className="material-symbols-outlined pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-base text-[#1D1D1F]/30">
-                        expand_more
-                      </span>
-                    </div>
-                  </label>
-                  {/* v1 (Plaid pivot): Residence is shown ONLY when bank-verified.
-                      No-bank investors are not shown a residence field at all. */}
-                  {s.hasBankResidence && (
-                  <label className={fieldClass}>
-                    <span className={labelClass}>
-                      Residence
-                      <RequiredAsterisk />
-                      {s.fieldSources["residence_country"] === "plaid" && <BankVerifiedMarker />}
-                    </span>
-                    <div className="relative">
-                      <select
-                        value={s.residenceCountry}
-                        onChange={(e) => s.handleResidenceChange(e.target.value)}
-                        disabled={s.isDetectingLocation || s.isPlaidLocked("residence_country")}
-                        className={`${selectClass}${s.isPlaidLocked("residence_country") ? " cursor-not-allowed text-[#1D1D1F]/55" : ""}`}
-                        aria-label="Select residence country"
-                      >
-                        <option disabled value="">
-                          Select country
-                        </option>
-                        {countries.map((c) => (
-                          <option key={c} value={c}>
-                            {c}
-                          </option>
-                        ))}
-                      </select>
-                      <span className="material-symbols-outlined pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-base text-[#1D1D1F]/30">
-                        expand_more
-                      </span>
-                    </div>
-                  </label>
-                  )}
-                </div>
-
-                {/* v1: the bank-verified legal residence note + the address block
-                    render only when Plaid provided a bank address. */}
-                {s.hasBankResidence && (<>
-                <div className="flex items-start gap-3 rounded-[18px] bg-[#F5F5F7]/70 px-4 py-3 shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.06)]">
-                  <span className="material-symbols-outlined mt-0.5 text-[18px] text-[#1D1D1F]/35">
+            {/* Address Line 1 */}
+            <div className="border-b border-[#1D1D1F]/[0.08] py-5">
+              <div className="flex items-center gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-white">
+                  <span
+                    className="material-symbols-outlined text-lg text-[#1D1D1F]/70"
+                    style={{ fontVariationSettings: "'wght' 400" }}
+                  >
                     location_on
                   </span>
-                  <p className="text-[13px] font-normal leading-[1.45] text-[#1D1D1F]/50">
-                    Bank-verified legal residence is locked. Current location is tracked separately for security checks.
-                  </p>
                 </div>
-
-                <div className="grid gap-3 border-t border-[#1D1D1F]/[0.06] pt-4">
-                  <label className={fieldClass} htmlFor="addressLine1">
-                    <span className={labelClass}>
-                      Street Address
-                      <RequiredAsterisk />
-                      {s.fieldSources["address_line_1"] === "plaid" && <BankVerifiedMarker />}
-                    </span>
-                    <input
-                      id="addressLine1"
-                      type="text"
-                      value={s.addressLine1}
-                      onChange={(e) => s.handleAddressLine1Change(e.target.value)}
-                      onBlur={() => s.handleBlur("addressLine1", s.addressLine1)}
-                      placeholder="Street address"
-                      readOnly={s.isPlaidLocked("address_line_1")}
-                      className={`${inputClass}${s.isPlaidLocked("address_line_1") ? " cursor-not-allowed text-[#1D1D1F]/55" : ""}`}
-                      autoComplete="address-line1"
-                    />
-                  </label>
-                  {s.touched.addressLine1 && s.errors.addressLine1 && (
-                    <p className="px-1 text-[12px] text-[#FF3B30]">
-                      {s.errors.addressLine1}
-                    </p>
-                  )}
-
-                  {s.hasPlaidAddressLine2 && (
-                    <label className={fieldClass} htmlFor="addressLine2">
-                      <span className={labelClass}>
-                        Apt / Suite
-                        {s.fieldSources["address_line_2"] === "plaid" && <BankVerifiedMarker />}
-                      </span>
-                      <input
-                        id="addressLine2"
-                        type="text"
-                        value={s.addressLine2}
-                        onChange={(e) => s.handleAddressLine2Change(e.target.value)}
-                        readOnly={s.isPlaidLocked("address_line_2")}
-                        className={`${inputClass}${s.isPlaidLocked("address_line_2") ? " cursor-not-allowed text-[#1D1D1F]/55" : ""}`}
-                        autoComplete="address-line2"
-                      />
-                    </label>
-                  )}
-
-                  <div className="grid gap-3 sm:grid-cols-[1fr_0.8fr_0.65fr]">
-                    <label className={fieldClass} htmlFor="city">
-                      <span className={labelClass}>
-                        City
-                        <RequiredAsterisk />
-                        {s.fieldSources["city"] === "plaid" && <BankVerifiedMarker />}
-                      </span>
-                      <input
-                        id="city"
-                        type="text"
-                        value={s.addressCity}
-                        onChange={(e) => s.handleAddressCityChange(e.target.value)}
-                        onBlur={() => s.handleBlur("addressCity", s.addressCity)}
-                        placeholder="City"
-                        readOnly={s.isPlaidLocked("city")}
-                        className={`${inputClass}${s.isPlaidLocked("city") ? " cursor-not-allowed text-[#1D1D1F]/55" : ""}`}
-                        autoComplete="address-level2"
-                      />
-                    </label>
-                    <label className={fieldClass} htmlFor="state">
-                      <span className={labelClass}>
-                        State / Region
-                        <RequiredAsterisk />
-                        {s.fieldSources["state"] === "plaid" && <BankVerifiedMarker />}
-                      </span>
-                      <input
-                        id="state"
-                        type="text"
-                        value={s.addressState}
-                        onChange={(e) => s.handleAddressStateChange(e.target.value)}
-                        onBlur={() => s.handleBlur("addressState", s.addressState)}
-                        placeholder="State"
-                        readOnly={s.isPlaidLocked("state")}
-                        className={`${inputClass}${s.isPlaidLocked("state") ? " cursor-not-allowed text-[#1D1D1F]/55" : ""}`}
-                        autoComplete="address-level1"
-                      />
-                    </label>
-                    <label className={fieldClass} htmlFor="zipCode">
-                      <span className={labelClass}>
-                        Postal Code
-                        <RequiredAsterisk />
-                        {s.fieldSources["zip_code"] === "plaid" && <BankVerifiedMarker />}
-                      </span>
-                      <input
-                        id="zipCode"
-                        type="text"
-                        value={s.zipCode}
-                        inputMode="text"
-                        onChange={(e) => s.handleZipCodeChange(e.target.value)}
-                        onBlur={() => s.handleBlur("zipCode", s.zipCode)}
-                        placeholder="10001"
-                        readOnly={s.isPlaidLocked("zip_code")}
-                        className={`${inputClass}${s.isPlaidLocked("zip_code") ? " cursor-not-allowed text-[#1D1D1F]/55" : ""}`}
-                        autoComplete="postal-code"
-                      />
-                    </label>
-                  </div>
-                  {(s.touched.addressCity && s.errors.addressCity) ||
-                  (s.touched.addressState && s.errors.addressState) ? (
-                    <div className="grid gap-1 px-1 text-[12px] text-[#FF3B30] sm:grid-cols-[1fr_0.8fr_0.65fr]">
-                      <p>{s.touched.addressCity ? s.errors.addressCity : ""}</p>
-                      <p>{s.touched.addressState ? s.errors.addressState : ""}</p>
-                      <span />
-                    </div>
-                  ) : null}
-                  {s.touched.zipCode && s.errors.zipCode && (
-                    <p className="px-1 text-[12px] text-[#FF3B30]">
-                      {s.errors.zipCode}
-                    </p>
-                  )}
-                </div>
-                </>)}
-              </div>
-            </section>
-
-            <section className={panelClass}>
-              <div className="mb-4">
-                <h3 className="text-[11px] font-medium uppercase tracking-[1.6px] text-[#0066CC]/85">
-                  Tax Reporting
-                </h3>
-                <p className="mt-1 text-[13px] font-normal leading-[1.45] text-[#1D1D1F]/50">
-                  SSN is required for US investors and tax reporting.
-                </p>
-              </div>
-
-              <div className="grid gap-3">
-                <label className={fieldClass} htmlFor="ssn">
-                  <span className={labelClass}>
-                    SSN
-                    {s.isUsInvestor ? <RequiredAsterisk /> : <OptionalMarker />}
-                  </span>
-                  <input
-                    id="ssn"
-                    type="text"
-                    value={s.ssn}
-                    onChange={s.handleSSNChange}
-                    placeholder="000-00-0000"
-                    maxLength={11}
-                    inputMode="numeric"
-                    className={inputClass}
-                    autoComplete="off"
-                  />
-                </label>
-
-                <div className="overflow-hidden rounded-[18px] bg-[#F5F5F7] shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.06)]">
-                  <button
-                    type="button"
-                    onClick={() => setIsSsnHelpOpen((value) => !value)}
-                    className="flex w-full items-center gap-4 px-4 py-4 text-left"
-                    aria-expanded={isSsnHelpOpen}
+                <div className="flex-1 min-w-0">
+                  <label
+                    htmlFor="addressLine1"
+                    className="mb-1 block text-[14px] font-medium text-[#1D1D1F]"
                   >
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[13px] bg-white text-[#1D1D1F]/55 shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.08)]">
-                      <span
-                        className="material-symbols-outlined text-[19px]"
-                        style={{ fontVariationSettings: "'wght' 400" }}
-                      >
-                        info
-                      </span>
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block text-[15px] font-medium text-[#1D1D1F]">
-                        Why do we need your SSN?
-                      </span>
-                      <span className="mt-0.5 block text-[12px] font-normal text-[#1D1D1F]/45">
-                        Tap to learn more
-                      </span>
-                    </span>
-                    <span
-                      className={`material-symbols-outlined text-[20px] text-[#1D1D1F]/35 transition-transform ${
-                        isSsnHelpOpen ? "rotate-180" : ""
-                      }`}
-                    >
-                      expand_more
-                    </span>
-                  </button>
-                  {isSsnHelpOpen && (
-                    <div className="border-t border-[#1D1D1F]/[0.06] px-4 pb-4 pl-[68px] text-[12px] font-normal leading-[1.5] text-[#1D1D1F]/55">
-                      We use SSN only for US tax reporting, identity checks, and
-                      investor eligibility review. It is stored securely and never
-                      shown in full after submission.
-                    </div>
-                  )}
+                    Address Line 1
+                  </label>
+                  <input
+                    id="addressLine1"
+                    type="text"
+                    value={s.addressLine1}
+                    onChange={(e) => s.handleAddressLine1Change(e.target.value)}
+                    onBlur={() => s.handleBlur("addressLine1", s.addressLine1)}
+                    placeholder="Street address"
+                    className="w-full border-none bg-transparent p-0 text-[14px] font-normal text-[#1D1D1F]/70 outline-none placeholder:text-[#1D1D1F]/35 focus:ring-0"
+                    autoComplete="address-line1"
+                  />
                 </div>
               </div>
-            </section>
+            </div>
+            {s.touched.addressLine1 && s.errors.addressLine1 && (
+              <p className="py-1 pl-14 text-[12px] text-[#FF3B30]">
+                {s.errors.addressLine1}
+              </p>
+            )}
 
-            <section className={panelClass}>
-              <div className="mb-4">
-                <h3 className="text-[11px] font-medium uppercase tracking-[1.6px] text-[#0066CC]/85">
-                  Contact
-                </h3>
-                <p className="mt-1 text-[13px] font-normal leading-[1.45] text-[#1D1D1F]/50">
-                  We'll use this to share investor-review updates.
-                </p>
-              </div>
-
-              <div className="grid gap-3">
-
-                <div className="grid gap-3 sm:grid-cols-[132px_1fr]">
-                  <label className={fieldClass}>
-                    <span className={labelClass}>
-                      Code
-                      <RequiredAsterisk />
-                    </span>
-                    <select
-                      value={`${s.selectedDialOption.iso}|${s.selectedDialOption.code}`}
-                      onChange={(event) => {
-                        const [iso, code] = event.target.value.split("|");
-                        const next = s.phoneDialCodes.find(
-                          (option) => option.iso === iso && option.code === code
-                        );
-                        if (next) s.handleSelectDialCode(next);
-                      }}
-                      disabled={s.isPlaidLocked("phone_number")}
-                      className={`${selectClass}${s.isPlaidLocked("phone_number") ? " cursor-not-allowed text-[#1D1D1F]/55" : ""}`}
-                      aria-label="Phone country code"
-                    >
-                      {s.phoneDialCodes.map((option) => (
-                        <option
-                          key={`${option.iso}-${option.code}`}
-                          value={`${option.iso}|${option.code}`}
-                        >
-                          {option.iso} {option.code}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className={fieldClass} htmlFor="phoneNumber">
-                    <span className={labelClass}>
-                      Contact Number
-                      <RequiredAsterisk />
-                      {s.fieldSources["phone_number"] === "plaid" && <BankVerifiedMarker />}
-                    </span>
-                    <input
-                      id="phoneNumber"
-                      type="tel"
-                      value={s.formatPhoneNumber(s.phoneNumber)}
-                      onChange={s.handlePhoneChange}
-                      placeholder="(000) 000-0000"
-                      readOnly={s.isPlaidLocked("phone_number")}
-                      className={`${inputClass}${s.isPlaidLocked("phone_number") ? " cursor-not-allowed text-[#1D1D1F]/55" : ""}`}
-                      autoComplete="tel"
-                    />
-                  </label>
+            {/* Address Line 2 */}
+            <div className="py-5">
+              <div className="flex items-center gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-white">
+                  <span
+                    className="material-symbols-outlined text-lg text-[#1D1D1F]/70"
+                    style={{ fontVariationSettings: "'wght' 400" }}
+                  >
+                    apartment
+                  </span>
                 </div>
-
-                {!s.isValidPhone && s.phoneNumber && (
-                  <p className="px-1 text-[11px] font-medium text-[#FF3B30]">
-                    Enter 8 to 15 digits before sending the code.
-                  </p>
-                )}
+                <div className="flex-1 min-w-0">
+                  <label
+                    htmlFor="addressLine2"
+                    className="mb-1 block text-[14px] font-medium text-[#1D1D1F]"
+                  >
+                    Address Line 2
+                  </label>
+                  <input
+                    id="addressLine2"
+                    type="text"
+                    value={s.addressLine2}
+                    onChange={(e) => s.handleAddressLine2Change(e.target.value)}
+                    placeholder="City, State"
+                    className="w-full border-none bg-transparent p-0 text-[14px] font-normal text-[#1D1D1F]/70 outline-none placeholder:text-[#1D1D1F]/35 focus:ring-0"
+                    autoComplete="address-line2"
+                  />
+                </div>
               </div>
-            </section>
-            {/* ── Account-type sections (Step 2 drives these) ── */}
-            <AccountTypeSections at={at} />
-          </div>
-
-          {/* ── Legal-residence attestation — only when there is a bank-verified
-               residence to attest (v1 Plaid pivot). ── */}
-          {s.hasBankResidence && (
-          <section className="pt-2">
-            <ConsentCheckbox
-              id="residence-attest"
-              checked={s.residenceAttested}
-              onChange={s.handleResidenceAttestChange}
-              error={s.residenceAttestError}
-            >
-              I confirm the details above are my legal/permanent residence used for
-              investor verification — not a temporary or current travel location.
-            </ConsentCheckbox>
+            </div>
           </section>
-          )}
+
+          {/* ═══ SECTION 3: ZIP Code ═══ */}
+          <section className="mb-6 overflow-hidden rounded-[22px] bg-[#F5F5F7] p-4 shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.08)]">
+            {/* ZIP Code */}
+            <div className="py-5">
+              <div className="flex items-center gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-white">
+                  <span
+                    className="material-symbols-outlined text-lg text-[#1D1D1F]/70"
+                    style={{ fontVariationSettings: "'wght' 400" }}
+                  >
+                    pin
+                  </span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <label
+                    htmlFor="zipCode"
+                    className="mb-1 block text-[14px] font-medium text-[#1D1D1F]"
+                  >
+                    ZIP / Postal Code
+                  </label>
+                  <input
+                    id="zipCode"
+                    type="text"
+                    value={s.zipCode}
+                    inputMode="text"
+                    onChange={(e) => s.handleZipCodeChange(e.target.value)}
+                    onBlur={() => s.handleBlur("zipCode", s.zipCode)}
+                    placeholder="e.g. 10001"
+                    className="w-full border-none bg-transparent p-0 text-[14px] font-normal text-[#1D1D1F]/70 outline-none placeholder:text-[#1D1D1F]/35 focus:ring-0"
+                    autoComplete="postal-code"
+                  />
+                </div>
+              </div>
+            </div>
+            {s.touched.zipCode && s.errors.zipCode ? (
+              <p className="py-1 pl-14 text-[12px] text-[#FF3B30]">
+                {s.errors.zipCode}
+              </p>
+            ) : (
+              <p className="pl-14 pt-1 text-[10px] font-light text-[#1D1D1F]/40">
+                Supports numeric and alphanumeric codes based on region.
+              </p>
+            )}
+          </section>
 
           {/* ── CTAs — Continue & Skip ── */}
           <section className="pb-12 space-y-3 mt-4">
             <HushhTechCta
               variant={HushhTechCtaVariant.BLACK}
-              onClick={async () => {
-                // Persist the account-type sections first (signatory + retirement/
-                // entity fields), then run the existing step-3 save + navigation.
-                const res = await at.persist();
-                if (res.error) return;
-                await s.handleContinue();
-              }}
+              onClick={s.handleContinue}
               disabled={
-                !s.canContinue || !at.isComplete || s.isLoading || s.isDetectingLocation || s.isAutoFilling
+                !s.canContinue || s.isLoading || s.isDetectingLocation || s.isAutoFilling
               }
               className={primaryCtaClass}
             >
@@ -772,11 +448,16 @@ export default function OnboardingStep3Combined() {
                 ? "Auto-filling..."
                 : s.isLoading
                 ? "Saving..."
-                : s.returnToReview
-                ? "Save & return to Review"
                 : "Continue"}
             </HushhTechCta>
 
+            <HushhTechCta
+              variant={HushhTechCtaVariant.WHITE}
+              onClick={s.handleSkip}
+              className={secondaryCtaClass}
+            >
+              Skip
+            </HushhTechCta>
           </section>
 
           {/* ── Trust Badges ── */}

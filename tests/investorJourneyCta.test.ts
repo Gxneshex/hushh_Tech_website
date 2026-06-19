@@ -45,19 +45,19 @@ describe("useInvestorJourneyCta CTA matrix", () => {
       isInvestor: false,
     },
     {
-      label: "needs_onboarding mid-flow resumes at the folded canonical step",
+      label: "needs_onboarding mid-flow resumes at the canonical step",
       state: "needs_onboarding",
       currentStep: 5,
-      expectedText: "Continue from step 3",
-      expectedRoute: "/onboarding/step-3",
+      expectedText: "Continue from step 4",
+      expectedRoute: "/onboarding/step-4",
       isInvestor: false,
     },
     {
-      label: "needs_payment routes to step-6",
+      label: "needs_payment routes to step-9",
       state: "needs_payment",
       currentStep: 13,
       expectedText: "Complete your investment",
-      expectedRoute: "/onboarding/step-6",
+      expectedRoute: "/onboarding/step-9",
       isInvestor: false,
     },
     {
@@ -77,11 +77,11 @@ describe("useInvestorJourneyCta CTA matrix", () => {
       isInvestor: true,
     },
     {
-      label: "payment_reversed pushes user back to step-6 to retry",
+      label: "payment_reversed pushes user back to step-9 to retry",
       state: "payment_reversed",
       currentStep: 13,
       expectedText: "Resume your investment",
-      expectedRoute: "/onboarding/step-6",
+      expectedRoute: "/onboarding/step-9",
       isInvestor: false,
     },
     {

@@ -55,6 +55,9 @@ import FinancialLinkPage from './pages/onboarding/financial-link/ui';
 import OnboardingStep1 from './pages/onboarding/step-1/ui';
 import OnboardingStep2 from './pages/onboarding/step-2/ui';
 import OnboardingStep3 from './pages/onboarding/step-3/ui';
+import OnboardingStep4 from './pages/onboarding/step-4/ui';
+import OnboardingStep5 from './pages/onboarding/step-5/ui';
+import OnboardingStep6 from './pages/onboarding/step-6/ui';
 import OnboardingStep7 from './pages/onboarding/step-7/ui';
 import OnboardingReviewStep from './pages/onboarding/step-8/ui';
 import OnboardingBankDetailsStep from './pages/onboarding/step-9/ui';
@@ -278,28 +281,36 @@ function App() {
                 <OnboardingStep3 />
               </ProtectedRoute>
             } />
-            {/* Investment / review / payment. URLs are sequential step-4/5/6 to match the
-                6-step progress display. NOTE: the component folders keep their legacy names
-                (step-7 = investment, step-8 = review, step-9 = payment). */}
             <Route path="/onboarding/step-4" element={
               <ProtectedRoute>
-                <OnboardingStep7 />
+                <OnboardingStep4 />
               </ProtectedRoute>
             } />
             <Route path="/onboarding/step-5" element={
               <ProtectedRoute>
-                <OnboardingReviewStep />
+                <OnboardingStep5 />
               </ProtectedRoute>
             } />
             <Route path="/onboarding/step-6" element={
               <ProtectedRoute>
+                <OnboardingStep6 />
+              </ProtectedRoute>
+            } />
+            <Route path="/onboarding/step-7" element={
+              <ProtectedRoute>
+                <OnboardingStep7 />
+              </ProtectedRoute>
+            } />
+            <Route path="/onboarding/step-8" element={
+              <ProtectedRoute>
+                <OnboardingReviewStep />
+              </ProtectedRoute>
+            } />
+            <Route path="/onboarding/step-9" element={
+              <ProtectedRoute>
                 <OnboardingBankDetailsStep />
               </ProtectedRoute>
             } />
-            {/* Legacy raw-numbered URLs → redirect to the new sequential paths */}
-            <Route path="/onboarding/step-7" element={<Navigate to="/onboarding/step-4" replace />} />
-            <Route path="/onboarding/step-8" element={<Navigate to="/onboarding/step-5" replace />} />
-            <Route path="/onboarding/step-9" element={<Navigate to="/onboarding/step-6" replace />} />
             <Route path="/onboarding/verify" element={
               <ProtectedRoute>
                 <VerifyIdentityPage />

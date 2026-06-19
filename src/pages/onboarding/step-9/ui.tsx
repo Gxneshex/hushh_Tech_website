@@ -26,7 +26,7 @@ import {
 import ConsentCheckbox from "../../../components/consent/ConsentCheckbox";
 import { CONSENT_COPY, CONSENT_LINKS } from "../../../services/consent/consentConfig";
 
-const DISPLAY_META = getOnboardingDisplayMeta("/onboarding/step-6");
+const DISPLAY_META = getOnboardingDisplayMeta("/onboarding/step-9");
 const PROGRESS_PCT = Math.round((DISPLAY_META.displayStep / DISPLAY_META.totalSteps) * 100);
 const primaryCtaClass =
   "!rounded-full !border-[#0066CC] !bg-[#0066CC] !text-white !font-medium !tracking-normal !shadow-none";

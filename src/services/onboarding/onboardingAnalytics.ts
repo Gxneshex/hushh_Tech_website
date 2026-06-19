@@ -24,10 +24,13 @@ const CANONICAL_STEP_PATHS = new Set<string>([
   "/onboarding/step-4",
   "/onboarding/step-5",
   "/onboarding/step-6",
+  "/onboarding/step-7",
+  "/onboarding/step-8",
+  "/onboarding/step-9",
 ]);
 
 /**
- * Map an /onboarding/* pathname to a stable step slug (+ display index for the six
+ * Map an /onboarding/* pathname to a stable step slug (+ display index for the
  * numbered steps). Returns null for non-onboarding paths.
  */
 export function resolveOnboardingStep(

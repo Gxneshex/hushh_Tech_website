@@ -11,15 +11,13 @@ import {
 const readRepoFile = (path: string) =>
   readFileSync(join(process.cwd(), path), "utf8");
 
-// The routed onboarding step pages. URLs are sequential step-1..6, but the
-// component folders keep legacy names: step-7 = investment, step-8 = review,
-// step-9 = payment. The unrouted step-4/5/6 dirs were removed as dead code.
-const ROUTED_STEP_UI_PATHS = [1, 2, 3, 7, 8, 9].map(
+// The routed onboarding step pages. URLs are sequential step-1..9.
+const ROUTED_STEP_UI_PATHS = [1, 2, 3, 4, 5, 6, 7, 8, 9].map(
   (n) => `src/pages/onboarding/step-${n}/ui.tsx`,
 );
 
 describe("onboarding display sequence", () => {
-  it("renders the canonical onboarding routes as steps 1 through 6 without gaps", () => {
+  it("renders the canonical onboarding routes as steps 1 through 9 without gaps", () => {
     expect(CANONICAL_ONBOARDING_ROUTES).toEqual([
       "/onboarding/step-1",
       "/onboarding/step-2",
@@ -27,33 +25,35 @@ describe("onboarding display sequence", () => {
       "/onboarding/step-4",
       "/onboarding/step-5",
       "/onboarding/step-6",
+      "/onboarding/step-7",
+      "/onboarding/step-8",
+      "/onboarding/step-9",
     ]);
 
     const displaySteps = CANONICAL_ONBOARDING_ROUTES.map(
       (route) => getOnboardingDisplayMeta(route).displayStep,
     );
 
-    expect(displaySteps).toEqual([1, 2, 3, 4, 5, 6]);
-    expect(new Set(displaySteps).size).toBe(6);
+    expect(displaySteps).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+    expect(new Set(displaySteps).size).toBe(9);
     CANONICAL_ONBOARDING_ROUTES.forEach((route) => {
-      expect(getOnboardingDisplayMeta(route).totalSteps).toBe(6);
+      expect(getOnboardingDisplayMeta(route).totalSteps).toBe(9);
     });
   });
 
   it("lets a post-investment user reach the payment step (review → payment is not skip-blocked)", () => {
-    // The investment step (step-4) writes current_step = 12 on Continue. After
+    // The investment step (step-7) writes current_step = 12 on Continue. After
     // that the user is at the review step, so payment must be within the
     // ProtectedRoute skip-guard allowance of currentStep + 1.
     const postInvestmentRoute = getCanonicalOnboardingRoute(12);
     const reachedStep = getOnboardingDisplayMeta(postInvestmentRoute).displayStep;
-    const paymentStep = getOnboardingDisplayMeta("/onboarding/step-6").displayStep;
+    const paymentStep = getOnboardingDisplayMeta("/onboarding/step-9").displayStep;
 
-    expect(reachedStep).toBe(5);
+    expect(reachedStep).toBe(8);
     expect(paymentStep).toBeLessThanOrEqual(reachedStep + 1);
   });
 
-  it("uses the display step, not the raw saved step, on the investment step (display step 4)", () => {
-    // Display step 4 is served by the legacy-named dir step-7 (investment).
+  it("uses the display step, not the raw saved step, on the investment step (display step 7)", () => {
     const investmentUi = readRepoFile("src/pages/onboarding/step-7/ui.tsx");
 
     expect(investmentUi).toContain("Step {DISPLAY_STEP}/");
