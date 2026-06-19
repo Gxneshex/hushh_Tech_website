@@ -9,10 +9,7 @@ import HushhTechFooter, {
 } from "../../components/hushh-tech-footer/HushhTechFooter";
 import {
   AppleSection,
-  Display,
-  Eyebrow,
   Icon,
-  Lede,
   SmallSpinner,
   appleFont,
 } from "../../components/hushh-tech-ui/HushhAppleUI";
@@ -364,14 +361,48 @@ export default function CommunityPage() {
 
       <main id="main-content" aria-busy={apiLoading}>
         <AppleSection tone="light" pad="tight" overflow="visible" className="z-30">
-          <Eyebrow>Community</Eyebrow>
-          <Display as="h1" size="md" maxWidth="max-w-[460px]">
-            Latest updates.
-          </Display>
-          <Lede>
-            Insights, news, and privacy technology updates from Hushh
-            Technologies.
-          </Lede>
+          <div className="mx-auto text-center" style={{ maxWidth: 720 }}>
+            <div
+              style={{
+                color: "#0071e3",
+                fontFamily: appleFont,
+                fontSize: 13,
+                fontWeight: 700,
+                letterSpacing: "0.14em",
+                lineHeight: 1.1,
+                marginBottom: 18,
+                textTransform: "uppercase",
+              }}
+            >
+              Community
+            </div>
+            <h1
+              style={{
+                color: "#1d1d1f",
+                fontFamily: appleFont,
+                fontSize: "clamp(32px,4.6vw,54px)",
+                fontWeight: 600,
+                letterSpacing: "-0.025em",
+                lineHeight: 1.08,
+                margin: 0,
+              }}
+            >
+              Latest updates.
+            </h1>
+            <p
+              style={{
+                color: "rgba(0,0,0,.62)",
+                fontFamily: appleFont,
+                fontSize: "clamp(17px,1.6vw,20px)",
+                fontWeight: 400,
+                lineHeight: 1.5,
+                margin: "20px auto 0",
+                maxWidth: "46ch",
+              }}
+            >
+              Insights, news, and privacy technology updates from Hushh Technologies.
+            </p>
+          </div>
 
           <div className="mx-auto mt-7 flex max-w-2xl flex-col gap-2.5 px-5">
             <SearchBar
