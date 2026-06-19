@@ -1053,6 +1053,10 @@ const PublicInvestorProfilePage: React.FC = () => {
 
 
           {/* Bottom Navigation Bar - Black */}
+          <div
+            aria-hidden="true"
+            className="h-[calc(5.75rem+env(safe-area-inset-bottom,0px))] shrink-0"
+          />
           <nav className="fixed bottom-0 left-0 right-0 bg-black border-t border-gray-800 z-20">
             <div className="max-w-md mx-auto flex items-center justify-around py-2 px-4 safe-bottom">
               <button
