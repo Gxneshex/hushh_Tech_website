@@ -93,10 +93,19 @@ function FundAStyles() {
       .fa-r2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
       .fa-card { display: flex; flex-direction: column; border-radius: 24px; }
       .fa-glow {
-        transition: border-color .25s ease;
+        transition:
+          transform .4s cubic-bezier(.22,.61,.36,1),
+          border-color .4s ease,
+          background-color .4s ease,
+          box-shadow .4s ease;
       }
       .fa-glow:hover {
-        border-color: rgba(255,255,255,.11) !important;
+        transform: translateY(-6px);
+        background: #111216 !important;
+        border-color: rgba(41,151,255,.34) !important;
+        box-shadow:
+          0 26px 70px rgba(0,70,180,.22),
+          0 0 0 1px rgba(41,151,255,.06) inset;
       }
       .fa-lift { transition: transform .4s cubic-bezier(.22,.61,.36,1), box-shadow .4s; }
       .fa-lift:hover { transform: translateY(-6px); box-shadow: 0 22px 50px rgba(0,0,0,.09); }
@@ -413,7 +422,7 @@ const FundA = () => {
                   style={{
                     minHeight: 330,
                     padding: 34,
-                    background: "#0e0e10",
+                    background: "#101114",
                     border: "1px solid rgba(255,255,255,.07)",
                   }}
                 >
@@ -444,7 +453,7 @@ const FundA = () => {
                         fontSize: 13,
                         fontWeight: 700,
                         letterSpacing: ".14em",
-                        color: index === 1 ? "rgba(255,255,255,.5)" : "rgba(255,255,255,.32)",
+                        color: "rgba(255,255,255,.32)",
                       }}
                     >
                       {String(index + 1).padStart(2, "0")}
@@ -458,7 +467,7 @@ const FundA = () => {
                       margin: 0,
                       fontSize: 15,
                       lineHeight: 1.55,
-                      color: index === 1 ? "rgba(255,255,255,.66)" : "rgba(255,255,255,.56)",
+                      color: "rgba(255,255,255,.56)",
                     }}
                   >
                     {card.description}
