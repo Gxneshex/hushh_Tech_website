@@ -94,7 +94,7 @@ export const useDiscoverFundALogic = (): UseDiscoverFundALogicReturn => {
     {
       title: 'Targeting Equilibrium',
       description:
-        'Aiming for a 69% net IRR annually, reflecting a balance of aggressive alpha generation with disciplined risk control.',
+        'Balancing aggressive alpha generation with disciplined risk control to compound steadily through every market cycle.',
     },
   ];
 

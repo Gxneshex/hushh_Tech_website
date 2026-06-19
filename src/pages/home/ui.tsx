@@ -5,14 +5,9 @@ import SeoHead from "../../components/seo/SeoHead";
 import HushhTechFooter, {
   HushhFooterTab,
 } from "../../components/hushh-tech-footer/HushhTechFooter";
-import {
-  Icon,
-  PillButton,
-  SYS,
-  appleFont,
-} from "../../components/hushh-tech-ui/HushhAppleUI";
 import techTeamImage from "../../components/images/tech-team-final.png";
 
+const homeFont = "'Lato', -apple-system, 'Segoe UI', sans-serif";
 const easeOutCubic = (value: number) => 1 - Math.pow(1 - value, 3);
 
 function useInViewOnce<T extends HTMLElement>(threshold = 0.12) {
@@ -108,9 +103,335 @@ function Reveal({
 function HomeStyles() {
   return (
     <style>{`
+      @import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;400;500;600;700;900&display=swap');
+      :root {
+        --hh-home-blue: #0071e3;
+        --hh-home-blue-2: #2997ff;
+        --hh-home-ink: #1d1d1f;
+        --hh-home-muted: #6e6e73;
+      }
+      [data-page="hushh-home"] *,
+      [data-page="hushh-home"] *::before,
+      [data-page="hushh-home"] *::after {
+        box-sizing: border-box;
+      }
       @keyframes hh-home-glowdrift {
         0%, 100% { transform: translateX(-50%) translateY(0) scale(1); }
         50% { transform: translateX(-50%) translateY(-16px) scale(1.06); }
+      }
+      .hh-hero {
+        position: relative;
+        min-height: 100svh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: #fff;
+        color: var(--hh-home-ink);
+        padding: clamp(118px, 15vh, 168px) 24px clamp(100px, 13vh, 140px);
+        text-align: center;
+        overflow: hidden;
+      }
+      .hh-hero__glow {
+        position: absolute;
+        top: 6%;
+        left: 50%;
+        transform: translateX(-50%);
+        width: min(78vw, 920px);
+        height: min(70vw, 760px);
+        border-radius: 50%;
+        background: radial-gradient(ellipse at 50% 40%, rgba(0,113,227,.1), rgba(0,113,227,0) 62%);
+        pointer-events: none;
+        z-index: 0;
+        animation: hh-home-glowdrift 11s ease-in-out infinite;
+        will-change: transform;
+      }
+      .hh-hero__grid {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+        background-image: radial-gradient(rgba(0,0,0,.035) 1px, transparent 1px);
+        background-size: 40px 40px;
+        -webkit-mask-image: radial-gradient(ellipse 56% 42% at 50% 28%, #000 0%, transparent 76%);
+        mask-image: radial-gradient(ellipse 56% 42% at 50% 28%, #000 0%, transparent 76%);
+        opacity: .55;
+      }
+      .hh-hero__inner {
+        position: relative;
+        z-index: 2;
+        max-width: 980px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .hh-hero__badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 15px 7px 11px;
+        border-radius: 980px;
+        background: rgba(0,113,227,.08);
+        margin-bottom: 26px;
+      }
+      .hh-hero__badge span:first-child {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--hh-home-blue);
+      }
+      .hh-hero__badge span:last-child,
+      .hh-eyebrow {
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: .14em;
+        text-transform: uppercase;
+        color: var(--hh-home-blue);
+      }
+      .hh-hero h1 {
+        margin: 0;
+        font-weight: 600;
+        font-size: clamp(38px, 6.2vw, 68px);
+        line-height: 1.08;
+        letter-spacing: -.025em;
+        color: var(--hh-home-ink);
+        text-wrap: balance;
+      }
+      .hh-hero__sub {
+        margin: 26px 0 0;
+        max-width: 54ch;
+        font-weight: 400;
+        font-size: clamp(19px, 2.1vw, 25px);
+        line-height: 1.4;
+        letter-spacing: -.01em;
+        color: rgba(0,0,0,.6);
+        text-wrap: pretty;
+      }
+      .hh-hero__cta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 22px;
+        align-items: center;
+        justify-content: center;
+        margin-top: 36px;
+      }
+      .hh-hero__trust {
+        margin-top: 22px;
+        font-size: 13px;
+        color: rgba(0,0,0,.4);
+      }
+      .hh-section {
+        padding: clamp(96px, 11vw, 150px) 40px;
+      }
+      .hh-wrap {
+        max-width: 1280px;
+        margin: 0 auto;
+      }
+      .hh-h2 {
+        margin: 0;
+        font-weight: 600;
+        font-size: clamp(32px, 4.6vw, 54px);
+        line-height: 1.08;
+        letter-spacing: -.025em;
+        text-wrap: balance;
+      }
+      .hh-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 52px;
+        padding: 0 30px;
+        border-radius: 980px;
+        border: 0;
+        font-size: 17px;
+        font-weight: 500;
+        text-decoration: none;
+        transition: background .2s, transform .25s cubic-bezier(.4,0,.2,1), box-shadow .25s;
+        cursor: pointer;
+      }
+      .hh-btn--primary {
+        background: var(--hh-home-blue);
+        color: #fff;
+        box-shadow: 0 8px 24px rgba(0,113,227,.26);
+      }
+      .hh-btn--primary:hover {
+        background: #0077ed;
+        transform: translateY(-2px);
+        box-shadow: 0 14px 34px rgba(0,113,227,.34);
+      }
+      .hh-btn--primary:active {
+        transform: scale(.97);
+      }
+      .hh-btn--text {
+        background: transparent;
+        color: #0066cc;
+        gap: 5px;
+      }
+      .hh-btn--chevron::after {
+        content: "›";
+        font-size: 19px;
+        line-height: 1;
+      }
+      .hh-btn--text:hover {
+        text-decoration: underline;
+      }
+      .hh-btn--white {
+        background: #fff;
+        color: var(--hh-home-ink);
+        font-weight: 600;
+      }
+      .hh-btn--white:hover {
+        background: #f0f0f2;
+        transform: translateY(-1px);
+      }
+      .hh-btn--outline-dark {
+        background: transparent;
+        border: 1px solid rgba(255,255,255,.4);
+        color: #fff;
+        gap: 6px;
+      }
+      .hh-btn--outline-dark:hover {
+        background: rgba(255,255,255,.08);
+        border-color: rgba(255,255,255,.7);
+      }
+      .hh-perf {
+        background: #000;
+        color: #fff;
+      }
+      .hh-perf__head {
+        max-width: 760px;
+      }
+      .hh-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 24px;
+        padding: 8px 16px;
+        border-radius: 980px;
+        border: 1px solid rgba(255,255,255,.2);
+      }
+      .hh-chip span:first-child {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--hh-home-blue-2);
+      }
+      .hh-chip span:last-child {
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: .06em;
+        color: rgba(255,255,255,.82);
+      }
+      .hh-perf__sub {
+        margin-top: 22px;
+        max-width: 42ch;
+        font-weight: 300;
+        font-size: clamp(18px, 1.6vw, 24px);
+        line-height: 1.4;
+        color: rgba(255,255,255,.56);
+      }
+      .hh-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        margin-top: clamp(56px, 7vw, 88px);
+      }
+      .hh-stat {
+        padding: 8px clamp(20px, 3vw, 44px);
+      }
+      .hh-stat + .hh-stat {
+        border-left: 1px solid rgba(255,255,255,.14);
+      }
+      .hh-stat__num {
+        font-weight: 600;
+        font-size: clamp(52px, 7vw, 90px);
+        line-height: .95;
+        letter-spacing: -.03em;
+      }
+      .hh-stat__num small {
+        font-size: .5em;
+      }
+      .hh-stat__label {
+        margin-top: 18px;
+        font-size: 15px;
+        line-height: 1.45;
+        color: rgba(255,255,255,.6);
+      }
+      .hh-stat__meta {
+        margin-top: 6px;
+        font-size: 11px;
+        letter-spacing: .14em;
+        text-transform: uppercase;
+        color: rgba(255,255,255,.4);
+      }
+      .hh-tech__grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: clamp(40px, 6vw, 80px);
+        align-items: center;
+      }
+      .hh-tech h2 {
+        margin-top: 18px;
+        color: var(--hh-home-ink);
+      }
+      .hh-tech__p {
+        margin-top: 24px;
+        max-width: 44ch;
+        font-weight: 400;
+        font-size: clamp(18px, 1.5vw, 21px);
+        line-height: 1.47;
+        color: var(--hh-home-muted);
+      }
+      .hh-includes {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 28px 32px;
+        margin-top: 24px;
+      }
+      .hh-includes__label {
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        color: #86868b;
+        margin: clamp(40px,5vw,56px) 0 22px;
+      }
+      .hh-feat {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      .hh-feat h3 {
+        margin: 0;
+        font-size: 19px;
+        font-weight: 600;
+        color: var(--hh-home-ink);
+      }
+      .hh-feat p {
+        margin: 7px 0 0;
+        font-size: 15px;
+        line-height: 1.45;
+        color: var(--hh-home-muted);
+      }
+      .hh-tech__img img {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+      .hh-tile {
+        width: 46px;
+        height: 46px;
+        border-radius: 13px;
+        background: var(--hh-home-blue);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: none;
+      }
+      .hh-tile--sm {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
       }
       @media (prefers-reduced-motion: reduce) {
         [data-home-motion] {
@@ -118,6 +439,24 @@ function HomeStyles() {
           transition: none !important;
           transform: none !important;
           opacity: 1 !important;
+        }
+      }
+      @media (max-width: 760px) {
+        .hh-tech__grid { grid-template-columns: 1fr; }
+      }
+      @media (max-width: 640px) {
+        .hh-section,
+        .hh-hero {
+          padding-left: 20px;
+          padding-right: 20px;
+        }
+        .hh-includes {
+          grid-template-columns: 1fr;
+          gap: 26px;
+        }
+        .hh-stat + .hh-stat {
+          border-left: 0;
+          border-top: 1px solid rgba(255,255,255,.14);
         }
       }
     `}</style>
@@ -143,7 +482,7 @@ function Section({
   return (
     <section
       className={`relative overflow-hidden px-5 py-[96px] sm:px-10 lg:py-[150px] ${toneClass} ${className}`}
-      style={{ fontFamily: appleFont }}
+      style={{ fontFamily: homeFont }}
     >
       {children}
     </section>
@@ -162,7 +501,7 @@ function Eyebrow({
   return (
     <div
       className={`text-[13px] font-bold uppercase tracking-[0.14em] ${dark ? "text-[#2997FF]" : "text-[#0071E3]"} ${className}`}
-      style={{ fontFamily: appleFont }}
+      style={{ fontFamily: homeFont }}
     >
       {children}
     </div>
@@ -181,7 +520,7 @@ function Heading({
   return (
     <Tag
       className={`m-0 text-balance text-[clamp(32px,4.6vw,54px)] font-semibold leading-[1.08] tracking-[-0.025em] ${className}`}
-      style={{ fontFamily: appleFont }}
+      style={{ fontFamily: homeFont }}
     >
       {children}
     </Tag>
@@ -200,7 +539,7 @@ function Lead({
   return (
     <p
       className={`m-0 text-pretty text-[clamp(17px,1.6vw,20px)] font-light leading-[1.5] ${dark ? "text-white/55" : "text-black/50"} ${className}`}
-      style={{ fontFamily: appleFont }}
+      style={{ fontFamily: homeFont }}
     >
       {children}
     </p>
@@ -338,128 +677,117 @@ function FundStatsSection({
   const { ref, visible } = useInViewOnce<HTMLDivElement>(0.35);
 
   return (
-    <Section tone="dark" className="!py-[96px] lg:!py-[150px]">
-      <div className="mx-auto max-w-[1280px]">
+    <section id="fund" className="hh-section hh-perf" style={{ fontFamily: homeFont }}>
+      <div className="hh-wrap">
+        <Reveal className="hh-perf__head">
+          <div className="hh-chip">
+            <span />
+            <span>High Growth</span>
+          </div>
+          <h2 className="hh-h2">Fund A.</h2>
+          <p className="hh-perf__sub">
+            A high-growth strategy engineered to compound capital with discipline.
+          </p>
+        </Reveal>
+
         <Reveal>
-          <div className="max-w-[760px]">
-            <div className="mb-6 inline-flex items-center gap-[9px] rounded-full border border-white/20 px-4 py-2">
-              <span className="h-[7px] w-[7px] rounded-full bg-[#2997FF]" />
-              <span className="text-[12px] font-semibold tracking-[0.06em] text-white/80">
-                High Growth
-              </span>
+          <div ref={ref} className="hh-stats">
+              <div className="hh-stat">
+                <div className="hh-stat__num" style={{ color: "#2997ff" }}>
+                  +
+                  <span data-count="21.4" data-dec="1">
+                    <CountUp value={21.4} active={visible} decimals={1} />
+                  </span>
+                  <small>%</small>
+                </div>
+              <div className="hh-stat__label">Net of fees</div>
+              <div className="hh-stat__meta">FY 2025</div>
             </div>
-            <Heading className="text-white">Fund A.</Heading>
-            <p className="mt-[22px] max-w-[42ch] text-[clamp(18px,1.6vw,24px)] font-light leading-[1.4] text-white/55">
-              A high-growth strategy engineered to compound capital with discipline.
-            </p>
+
+              <div className="hh-stat">
+                <div className="hh-stat__num">
+                  <span data-count="18">
+                    <CountUp value={18} active={visible} />
+                  </span>
+                  &ndash;
+                  <span data-count="23">
+                    <CountUp value={23} active={visible} />
+                  </span>
+                  <small>%</small>
+                </div>
+              <div className="hh-stat__label">Target internal rate of return</div>
+            </div>
+
+            <div className="hh-stat">
+              <div
+                className="hh-stat__num"
+                style={{ fontSize: "clamp(40px,5vw,66px)", lineHeight: 1.1 }}
+              >
+                Quarterly
+              </div>
+              <div className="hh-stat__label">Redemption liquidity windows</div>
+            </div>
           </div>
         </Reveal>
 
-        <div
-          ref={ref}
-          className="mt-[clamp(56px,7vw,88px)] grid grid-cols-1 md:grid-cols-3"
-        >
-          <div className="border-white/15 px-0 py-8 md:border-r md:px-[clamp(20px,3vw,44px)] md:py-2">
-            <div className="text-[clamp(52px,7vw,90px)] font-semibold leading-[0.95] tracking-[-0.03em] text-[#2997FF]">
-              +<CountUp value={21.4} decimals={1} active={visible} />
-              <small className="text-[0.5em]">%</small>
-            </div>
-            <div className="mt-[18px] text-[15px] leading-[1.45] text-white/60">
-              Net of fees
-            </div>
-            <div className="mt-1.5 text-[11px] uppercase tracking-[0.14em] text-white/40">
-              FY 2025
-            </div>
-          </div>
-
-          <div className="border-t border-white/15 px-0 py-8 md:border-r md:border-t-0 md:px-[clamp(20px,3vw,44px)] md:py-2">
-            <div className="text-[clamp(52px,7vw,90px)] font-semibold leading-[0.95] tracking-[-0.03em] text-white">
-              <CountUp value={18} active={visible} />&ndash;
-              <CountUp value={23} active={visible} />
-              <small className="text-[0.5em]">%</small>
-            </div>
-            <div className="mt-[18px] text-[15px] leading-[1.45] text-white/60">
-              Target internal rate of return
-            </div>
-          </div>
-
-          <div className="border-t border-white/15 px-0 py-8 md:border-t-0 md:px-[clamp(20px,3vw,44px)] md:py-2">
-            <div className="text-[clamp(40px,5vw,66px)] font-semibold leading-[1.1] tracking-[-0.03em] text-white">
-              Quarterly
-            </div>
-            <div className="mt-[18px] text-[15px] leading-[1.45] text-white/60">
-              Redemption liquidity windows
-            </div>
-          </div>
-        </div>
-
         <Reveal className="mt-[clamp(48px,6vw,72px)]">
-          <button
-            type="button"
-            onClick={onInvest}
-            className="inline-flex min-h-[52px] items-center justify-center rounded-full bg-white px-[30px] text-[17px] font-semibold text-[#1D1D1F] transition hover:-translate-y-px hover:bg-[#F0F0F2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2997FF]/50"
-          >
+          <button type="button" onClick={onInvest} className="hh-btn hh-btn--white">
             Invest in Fund A
           </button>
         </Reveal>
       </div>
-    </Section>
+    </section>
   );
 }
 
 function TechnologySection() {
   return (
-    <Section>
-      <div className="mx-auto max-w-[1280px]">
-        <div className="grid items-center gap-[clamp(40px,6vw,80px)] lg:grid-cols-2">
+    <section id="tech" className="hh-section hh-tech bg-white" style={{ fontFamily: homeFont }}>
+      <div className="hh-wrap">
+        <div className="hh-tech__grid">
           <Reveal>
-            <Eyebrow>Fund Technology</Eyebrow>
-            <Heading className="mt-[18px] max-w-[560px]">
-              Designed like a technology product.
-            </Heading>
-            <p className="mt-6 max-w-[44ch] text-[clamp(18px,1.5vw,21px)] leading-[1.47] text-[#6E6E73]">
+            <div className="hh-eyebrow">Fund Technology</div>
+            <h2 className="hh-h2">Designed like a technology product.</h2>
+            <p className="hh-tech__p">
               Institutional analytics, human oversight, and modern fund operations
               &mdash; in one investment experience.
             </p>
 
-            <div className="mb-[22px] mt-[clamp(40px,5vw,56px)] text-[12px] font-semibold uppercase tracking-[0.08em] text-[#86868B]">
-              Includes
-            </div>
-            <div className="grid gap-7 sm:grid-cols-2">
+            <div className="hh-includes__label">Includes</div>
+            <div className="hh-includes">
               {technologyFeatures.map((feature) => (
-                <div key={feature.title} className="flex flex-col gap-4">
-                  <IconTile>{feature.icon}</IconTile>
+                <div key={feature.title} className="hh-feat">
+                  <span className="hh-tile hh-tile--sm">{feature.icon}</span>
                   <div>
-                    <h3 className="text-[19px] font-semibold text-[#1D1D1F]">
-                      {feature.title}
-                    </h3>
-                    <p className="mt-[7px] max-w-[280px] text-[15px] leading-[1.45] text-[#6E6E73]">
-                      {feature.body}
-                    </p>
+                    <h3>{feature.title}</h3>
+                    <p>{feature.body}</p>
                   </div>
                 </div>
               ))}
             </div>
 
-            <button
-              type="button"
-              className="mt-[clamp(40px,5vw,56px)] inline-flex items-center gap-1 text-[17px] font-medium text-[#0066CC] transition hover:underline"
+            <a
+              className="hh-btn hh-btn--text"
+              style={{
+                marginTop: "clamp(40px,5vw,56px)",
+                minHeight: "auto",
+                padding: 0,
+              }}
+              href="#tech"
             >
-              Explore the technology
-              <span className="text-[19px] leading-none">&rsaquo;</span>
-            </button>
+              Explore the technology <span style={{ fontSize: 19 }}>&rsaquo;</span>
+            </a>
           </Reveal>
 
-          <Reveal delay={120} className="flex justify-center">
+          <Reveal delay={120} className="hh-tech__img">
             <img
               src={techTeamImage}
-              alt="Hushh product team - AI-powered, +21.4% net"
-              className="block w-full max-w-[720px] object-contain"
+              alt="hushh product team - AI-powered, +21.4% net"
             />
           </Reveal>
         </div>
       </div>
-    </Section>
+    </section>
   );
 }
 
@@ -546,20 +874,22 @@ function WhatYouGetSection({
         </div>
 
         <Reveal className="mt-[clamp(44px,6vw,62px)] flex flex-wrap justify-center gap-4">
-          <button
-            type="button"
-            onClick={onInvest}
+          <a
+            href="/discover-fund-a"
+            onClick={(event) => {
+              event.preventDefault();
+              onInvest();
+            }}
             className="inline-flex min-h-[52px] items-center justify-center rounded-full bg-white px-[30px] text-[17px] font-semibold text-[#1D1D1F] transition hover:-translate-y-px hover:bg-[#F0F0F2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2997FF]/50"
           >
             Invest in Fund A
-          </button>
+          </a>
           <button
             type="button"
             onClick={onProspectus}
-            className="inline-flex min-h-[52px] items-center justify-center gap-1 rounded-full border border-white/40 bg-transparent px-[30px] text-[17px] font-medium text-white transition hover:bg-white/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2997FF]/50"
+            className="hh-btn--chevron inline-flex min-h-[52px] items-center justify-center gap-1 rounded-full border border-white/40 bg-transparent px-[30px] text-[17px] font-medium text-white transition hover:bg-white/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2997FF]/50"
           >
-            Read the prospectus
-            <span className="text-[18px] leading-none">&rsaquo;</span>
+            Read the fund prospectus
           </button>
         </Reveal>
       </div>
@@ -579,7 +909,7 @@ function PageFooter() {
     <footer className="border-t border-[#1D1D1F]/[0.08] bg-[#F5F5F7] px-10 pb-36 pt-[clamp(48px,6vw,72px)] text-center">
       <p
         className="mx-auto max-w-[74ch] text-[13px] leading-[1.6] text-black/45"
-        style={{ fontFamily: appleFont }}
+        style={{ fontFamily: homeFont }}
       >
         Investing involves risk, including loss of principal. Past performance does
         not guarantee future results. Hushh Technologies, Inc. is an SEC-registered
@@ -591,7 +921,7 @@ function PageFooter() {
             key={label}
             href={href}
             className="text-[14px] font-medium text-[#0066CC] transition hover:underline"
-            style={{ fontFamily: appleFont }}
+            style={{ fontFamily: homeFont }}
           >
             {label}
           </a>
@@ -599,23 +929,22 @@ function PageFooter() {
       </div>
       <p
         className="text-[12px] text-black/40"
-        style={{ fontFamily: appleFont }}
+        style={{ fontFamily: homeFont }}
       >
-        © 2026 Hushh. All Rights Reserved.
+        © 2026 Hushh All Rights Reserved.
       </p>
     </footer>
   );
 }
 
 export default function HomePage() {
-  const { primaryCTA, onNavigate } = useHomeLogic();
-  const primaryLabel = primaryCTA.text;
+  const { onNavigate, primaryCTA } = useHomeLogic();
 
   return (
     <div
       data-page="hushh-home"
       className="min-h-screen overflow-x-hidden bg-white text-[#1D1D1F] antialiased selection:bg-[#0066CC] selection:text-[#F5F5F7]"
-      style={{ fontFamily: appleFont }}
+      style={{ fontFamily: homeFont }}
     >
       <HomeStyles />
       <SeoHead
@@ -625,93 +954,45 @@ export default function HomePage() {
       <HushhTechHeader showSearch={false} />
 
       <main id="main-content">
-        <section
-          className="relative flex min-h-[100svh] flex-col items-center justify-center overflow-hidden bg-white px-6 pb-[clamp(100px,13vh,140px)] pt-[clamp(118px,15vh,168px)] text-center text-[#1D1D1F]"
-          style={{ fontFamily: appleFont }}
-        >
-          <div
-            data-home-motion
-            aria-hidden="true"
-            className="pointer-events-none absolute left-1/2 top-[6%] z-0 h-[min(70vw,760px)] w-[min(78vw,920px)] rounded-full"
-            style={{
-              background:
-                "radial-gradient(ellipse at 50% 40%, rgba(0,113,227,0.1), rgba(0,113,227,0) 62%)",
-              animation: "hh-home-glowdrift 11s ease-in-out infinite",
-            }}
-          />
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 z-0 opacity-55"
-            style={{
-              backgroundImage:
-                "radial-gradient(rgba(0,0,0,0.035) 1px, transparent 1px)",
-              backgroundSize: "40px 40px",
-              WebkitMaskImage:
-                "radial-gradient(ellipse 56% 42% at 50% 28%, #000 0%, transparent 76%)",
-              maskImage:
-                "radial-gradient(ellipse 56% 42% at 50% 28%, #000 0%, transparent 76%)",
-            }}
-          />
-
-          <div className="relative z-[2] mx-auto flex max-w-[980px] flex-col items-center">
+        <section className="hh-hero" style={{ fontFamily: homeFont }}>
+          <div data-home-motion className="hh-hero__glow" />
+          <div className="hh-hero__grid" />
+          <div className="hh-hero__inner">
             <Reveal immediate>
-              <div className="mb-[26px] inline-flex items-center gap-2 rounded-full bg-[#0071E3]/[0.08] py-[7px] pl-[11px] pr-[15px]">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#0071E3]" />
-                <span className="text-[13px] font-bold uppercase tracking-[0.14em] text-[#0071E3]">
-                  AI-Powered Investing
-                </span>
+              <div className="hh-hero__badge">
+                <span />
+                <span>AI-Powered Investing</span>
               </div>
             </Reveal>
-
             <Reveal immediate delay={70}>
-              <Heading
-                as="h1"
-                className="max-w-[980px] text-[clamp(38px,6.2vw,68px)]"
-              >
-                The world's first AI-powered Berkshire Hathaway.
-              </Heading>
+              <h1>The world&apos;s first AI-powered Berkshire Hathaway.</h1>
             </Reveal>
-
             <Reveal immediate delay={140}>
-              <p className="mt-[26px] max-w-[36ch] text-[clamp(19px,2.1vw,25px)] font-light leading-[1.4] tracking-[-0.01em] text-black/50">
+              <p className="hh-hero__sub">
                 Merging rigorous data science with human wisdom.
               </p>
             </Reveal>
-
             <Reveal immediate delay={210}>
-              <div className="mt-9 flex flex-wrap items-center justify-center gap-[22px]">
-                <PillButton
-                  onClick={primaryCTA.action}
-                  disabled={primaryCTA.loading}
-                >
-                  {primaryCTA.loading ? (
-                    <span className="inline-flex items-center gap-2">
-                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-                      {primaryLabel}
-                    </span>
-                  ) : (
-                    primaryLabel
-                  )}
-                </PillButton>
+              <div className="hh-hero__cta">
                 <button
+                  className="hh-btn hh-btn--primary"
+                  type="button"
+                  disabled={primaryCTA.loading}
+                  onClick={primaryCTA.action}
+                >
+                  {primaryCTA.text}
+                </button>
+                <button
+                  className="hh-btn hh-btn--text hh-btn--chevron"
                   type="button"
                   onClick={() => onNavigate("/discover-fund-a")}
-                  className="inline-flex min-h-[52px] items-center gap-1 text-[17px] font-medium text-[#0066CC] transition hover:underline"
                 >
                   Discover Fund A
-                  {Icon.chevronRight(SYS.blue, 14)}
                 </button>
               </div>
             </Reveal>
-
-            {primaryCTA.progressLabel && (
-              <p className="mt-3 text-center text-[11px] font-medium uppercase tracking-[1.6px] text-[#0066CC]/75">
-                {primaryCTA.progressLabel}
-              </p>
-            )}
-
             <Reveal immediate delay={280}>
-              <div className="mt-[22px] text-[13px] text-black/40">
+              <div className="hh-hero__trust">
                 SEC Registered &nbsp;&middot;&nbsp; Bank-Level Security
               </div>
             </Reveal>

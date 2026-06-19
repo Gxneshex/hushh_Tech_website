@@ -6,29 +6,28 @@ const read = (filePath: string) =>
   fs.readFileSync(path.join(process.cwd(), filePath), "utf8");
 
 describe("Home Fund A visual contract", () => {
-  it("keeps the Fund A performance visual as a single Activity-style return ring", () => {
+  it("keeps the Home exact-reference hero and Fund A performance section", () => {
     const home = read("src/pages/home/ui.tsx");
 
-    expect(home).toContain("const PerformancePreview = () =>");
-    expect(home).toContain("max-w-[360px] text-center md:max-w-[420px]");
-    expect(home).toContain("h-[168px] w-[168px]");
-    expect(home).toContain("min-[390px]:h-[176px] min-[390px]:w-[176px]");
-    expect(home).toContain("strokeDashoffset={0}");
-    expect(home).toContain('const FUND_A_APPLE_GREEN = "#30D158";');
-    expect(home).toContain("const stroke = 12;");
-    expect(home).toContain('stdDeviation="1.6"');
-    expect(home).toContain("text-[42px] md:text-[58px]");
-    expect(home).toContain('<Display size="sm" tone="dark" maxWidth="max-w-[520px]">');
-    expect(home).toContain("!pt-20 !pb-[10rem] md:!pt-24 md:!pb-[6rem]");
-    expect(home).toContain("h-[118px] w-[192px]");
-    expect(home).toContain('id="homeFundARingGrad"');
-    expect(home).toContain('id="homeFundARingGlow"');
-    expect(home).toContain('strokeDasharray={`${dash} ${circumference}`}');
+    expect(home).toContain("AI-Powered Investing");
+    expect(home).toContain("The world&apos;s first AI-powered Berkshire Hathaway.");
+    expect(home).toContain("Merging rigorous data science with human wisdom.");
+    expect(home).toContain("max-width: 54ch;");
+    expect(home).toContain("font-size: clamp(19px, 2.1vw, 25px);");
+    expect(home).toContain("color: rgba(0,0,0,.6);");
+    expect(home).toContain("function CountUp");
+    expect(home).toContain("function FundStatsSection");
+    expect(home).toContain("Fund A.");
+    expect(home).toContain("High Growth");
+    expect(home).toContain("data-count");
+    expect(home).toContain("<CountUp value={21.4} active={visible} decimals={1} />");
+    expect(home).toContain('data-count="18"');
+    expect(home).toContain("&ndash;");
+    expect(home).toContain("<CountUp value={23} active={visible} />");
     expect(home).toContain("FY 2025");
-    expect(home).toContain("18&ndash;23%");
-    expect(home).toContain("Target IRR");
+    expect(home).toContain("Target internal rate of return");
     expect(home).toContain("Quarterly");
-    expect(home).toContain("Liquidity");
+    expect(home).toContain("Redemption liquidity windows");
     expect(home).not.toContain("PERFORMANCE_RANGES");
     expect(home).not.toContain("performanceRangeKeys");
     expect(home).not.toContain("Target Net IRR");
@@ -58,21 +57,28 @@ describe("Home Fund A visual contract", () => {
   it("keeps Fund A page net IRR on the shared calmer blue gradient", () => {
     const fundA = read("src/pages/discover-fund-a/ui.tsx");
 
-    expect(fundA).toContain(
-      'const FUND_A_NET_IRR_GRADIENT = "linear-gradient(135deg, #006FE6 0%, #4F50D6 100%)";',
-    );
-    expect(fundA).toContain("background: FUND_A_NET_IRR_GRADIENT");
-    expect(fundA).toContain("text-[#F5F5F7]/75");
-    expect(fundA).toContain('WebkitBackgroundClip: "text"');
+    expect(fundA).toContain("Flagship Fund");
+    expect(fundA).toContain("Hushh Fund A.");
+    expect(fundA).toContain("fontWeight: 400");
+    expect(fundA).toContain('fontSize: "clamp(17px,1.6vw,20px)"');
+    expect(fundA).toContain('color: "rgba(0,0,0,.62)"');
+    expect(fundA).toContain('color: "#0071e3"');
+    expect(fundA).toContain('{targetIRRValue.replace("-", "–")}');
     expect(fundA).not.toContain("Back to Home");
+    expect(fundA).not.toContain("FUND_A_NET_IRR_GRADIENT");
+    expect(fundA).not.toContain('WebkitBackgroundClip: "text"');
     expect(fundA).not.toContain("bg-gradient-to-br from-[#007AFF] to-[#5E5CE6]");
   });
 
-  it("keeps home technology cards direct without redundant eyebrow labels", () => {
+  it("keeps home technology section on the supplied reference image treatment", () => {
     const home = read("src/pages/home/ui.tsx");
 
-    expect(home).toContain("eyebrow?: string;");
-    expect(home).toContain("{eyebrow && (");
+    expect(home).toContain("Fund Technology");
+    expect(home).toContain("Designed like a technology product.");
+    expect(home).toContain("Institutional analytics, human oversight, and modern fund operations");
+    expect(home).toContain("tech-team-final.png");
+    expect(home).toContain("AI-Powered");
+    expect(home).toContain("Human-Led");
     expect(home).not.toContain('eyebrow="AI"');
     expect(home).not.toContain('eyebrow="Human"');
   });
@@ -90,8 +96,21 @@ describe("Home Fund A visual contract", () => {
   it("keeps Fund A framework row icons on the liquid-glass black-white system", () => {
     const fundA = read("src/pages/discover-fund-a/ui.tsx");
 
-    expect(fundA).toContain('data-testid="framework-row-icon"');
-    expect(fundA).toContain('backdropFilter: "blur(18px) saturate(1.3)"');
-    expect(fundA).toContain("bg-white text-[#1D1D1F]");
+    expect(fundA).toContain("The Sell the Wall framework.");
+    expect(fundA).toContain("fa-framework-row");
+    expect(fundA).toContain("fa-framework-num");
+    expect(fundA).toContain('{String(index + 1).padStart(2, "0")}');
+    expect(fundA).toContain("borderRadius: 28");
+  });
+
+  it("keeps Aloha 27 on the green sprout asset icon", () => {
+    const fundA = read("src/pages/discover-fund-a/ui.tsx");
+
+    expect(fundA).toContain("const SproutIcon = () =>");
+    expect(fundA).toContain('tag: "Aloha 27"');
+    expect(fundA).toContain('title: "Humanity-Driven Growth"');
+    expect(fundA).toContain('color: "#1d8a4f"');
+    expect(fundA).toContain('d="M12 21V10"');
+    expect(fundA).toContain("icon: <SproutIcon />");
   });
 });

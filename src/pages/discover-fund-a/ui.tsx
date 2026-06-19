@@ -1,335 +1,221 @@
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import SeoHead from "../../components/seo/SeoHead";
-import {
-  CircleDollarSign,
-  Clock3,
-  Layers3,
-  Scale,
-  type LucideIcon,
-} from "lucide-react";
 
 import HushhTechBackHeader from "../../components/hushh-tech-back-header/HushhTechBackHeader";
 import HushhTechFooter, {
   HushhFooterTab,
 } from "../../components/hushh-tech-footer/HushhTechFooter";
-import {
-  AppleButton,
-  AppleSection,
-  AppIcon,
-  Display,
-  Eyebrow,
-  Icon,
-  Lede,
-  SYS,
-  SectionLabel,
-  appleFont,
-} from "../../components/hushh-tech-ui/HushhAppleUI";
+import SeoHead from "../../components/seo/SeoHead";
 import { useDiscoverFundALogic } from "./logic";
 
-const FUND_A_NET_IRR_GRADIENT = "linear-gradient(135deg, #006FE6 0%, #4F50D6 100%)";
+const fundAFont = "'Lato', -apple-system, 'Segoe UI', sans-serif";
 
-const iconForTitle = (title: string) => {
-  const lower = title.toLowerCase();
+function useInViewOnce<T extends HTMLElement>(threshold = 0.12) {
+  const ref = useRef<T | null>(null);
+  const [visible, setVisible] = useState(false);
 
-  if (lower.includes("data") || lower.includes("equity")) return "chart";
-  if (lower.includes("equilibrium") || lower.includes("delta")) return "balance";
-  if (/\bai\b/.test(lower)) return "intelligence";
-  if (lower.includes("api")) return "api";
-  if (lower.includes("premium") || lower.includes("income")) return "dollar";
-  if (lower.includes("decay")) return "clock";
-  if (lower.includes("accumulation") || lower.includes("strategic")) return "layers";
-  if (lower.includes("risk") || lower.includes("framework")) return "shield";
-  if (lower.includes("liquidity") || lower.includes("market")) return "liquidity";
-  if (lower.includes("aloha") || lower.includes("esg")) return "leaf";
-  if (lower.includes("ultra") || lower.includes("velocity")) return "bolt";
-  if (lower.includes("alpha")) return "monoA";
+  useEffect(() => {
+    const element = ref.current;
+    if (!element || visible) return;
 
-  return "api";
-};
+    if (!("IntersectionObserver" in window)) {
+      setVisible(true);
+      return;
+    }
 
-type AppIconKind = Parameters<typeof AppIcon>[0]["kind"];
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry?.isIntersecting) return;
+        setVisible(true);
+        observer.disconnect();
+      },
+      { threshold, rootMargin: "0px 0px -6% 0px" },
+    );
 
-const frameworkIconForTitle = (title: string): LucideIcon => {
-  const lower = title.toLowerCase();
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [threshold, visible]);
 
-  if (lower.includes("decay")) return Clock3;
-  if (lower.includes("delta")) return Scale;
-  if (lower.includes("accumulation") || lower.includes("strategic")) return Layers3;
+  return { ref, visible };
+}
 
-  return CircleDollarSign;
-};
-
-const FrameworkRowIcon = ({ icon: IconComponent }: { icon: LucideIcon }) => (
-  <span
-    data-testid="framework-row-icon"
-    aria-hidden="true"
-    className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-[14px] bg-white text-[#1D1D1F] shadow-[0_10px_24px_rgba(29,29,31,0.08),0_3px_10px_rgba(29,29,31,0.05),inset_0_0_0_0.5px_rgba(29,29,31,0.08),inset_0_1px_0_rgba(255,255,255,0.88)]"
-    style={{
-      WebkitBackdropFilter: "blur(18px) saturate(1.3)",
-      backdropFilter: "blur(18px) saturate(1.3)",
-    }}
-  >
-    <span
-      className="pointer-events-none absolute inset-0"
-      style={{
-        background:
-          "linear-gradient(145deg, rgba(255,255,255,0.48) 0%, rgba(255,255,255,0.16) 38%, rgba(255,255,255,0.04) 62%, rgba(255,255,255,0.20) 100%)",
-        mixBlendMode: "screen",
-      }}
-    />
-    <span
-      className="pointer-events-none absolute -left-2 -top-2 h-7 w-8 rounded-full"
-      style={{
-        background:
-          "radial-gradient(circle, rgba(255,255,255,0.58) 0%, rgba(255,255,255,0.20) 48%, rgba(255,255,255,0) 72%)",
-        filter: "blur(1px)",
-      }}
-    />
-    <IconComponent className="relative z-[1]" size={18} strokeWidth={1.9} />
-  </span>
-);
-
-const DarkFeatureCard = ({
-  title,
-  body,
-  iconKind,
+function Reveal({
+  children,
+  className = "",
 }: {
-  title: string;
-  body: string;
-  iconKind: AppIconKind;
-}) => (
-  <div
-    data-testid="feature-comparison-card"
-    className="gap-3 rounded-[20px] bg-[#161617] p-4 shadow-[inset_0_0_0_0.5px_rgba(245,245,247,0.08)] sm:gap-4 sm:p-5 md:p-6"
-  >
-    <div className="mb-4" data-testid="feature-card-icon" aria-hidden="true">
-      <AppIcon kind={iconKind} size={40} />
-    </div>
-    <h3
-      className="mb-1.5 text-[20px] font-medium leading-[1.06] tracking-[-0.028em] text-[#F5F5F7]"
-      style={{ fontFamily: appleFont }}
-    >
-      {title}
-    </h3>
-    <p
-      className="text-[14.5px] leading-[1.4] tracking-normal text-[#F5F5F7]/70"
-      style={{ fontFamily: appleFont }}
-    >
-      {body}
-    </p>
-  </div>
-);
-
-const NumberedRow = ({
-  title,
-  body,
-  icon,
-  isLast,
-}: {
-  title: string;
-  body: string;
-  icon: LucideIcon;
-  isLast: boolean;
-}) => (
-  <div className="relative grid grid-cols-[40px_1fr] gap-4 px-4 py-5 md:grid-cols-[44px_1fr] md:px-5">
-    <div className="pt-0.5">
-      <FrameworkRowIcon icon={icon} />
-    </div>
-    <div className="min-w-0 pt-0.5">
-      <h3
-        className="mb-1.5 text-[17px] font-medium leading-[1.08] tracking-[-0.028em] text-[#1D1D1F]"
-        style={{ fontFamily: appleFont }}
-      >
-        {title}
-      </h3>
-      <p
-        className="text-[14px] leading-[1.4] tracking-normal text-[#1D1D1F]/60"
-        style={{ fontFamily: appleFont }}
-      >
-        {body}
-      </p>
-    </div>
-    {!isLast ? (
-      <span className="absolute bottom-0 left-[76px] right-0 h-px bg-[#000000]/[0.08]" />
-    ) : null}
-  </div>
-);
-
-const AlphaRow = ({
-  label,
-  value,
-  isTotal,
-}: {
-  label: string;
-  value: string;
-  isTotal?: boolean;
-}) => (
-  <div
-    className={`relative flex items-center gap-4 px-5 py-4 ${isTotal ? "bg-[#FFFFFF]/[0.04]" : ""}`}
-  >
-    <div className="min-w-0 flex-1">
-      <h3
-        className="text-[15px] font-medium tracking-[-0.028em] text-[#F5F5F7]"
-        style={{ fontFamily: appleFont }}
-      >
-        {label}
-      </h3>
-      <p
-        className="mt-0.5 text-[12px] tracking-normal text-[#F5F5F7]/75"
-        style={{ fontFamily: appleFont }}
-      >
-        Illustrative annual contribution
-      </p>
-    </div>
-    <p
-      className={`shrink-0 tabular-nums tracking-[-0.02em] ${isTotal ? "text-[24px] text-[#34C759]" : "text-[18px] text-[#F5F5F7]"} font-bold`}
-      style={{ fontFamily: appleFont }}
-    >
-      {value}
-    </p>
-  </div>
-);
-
-const PillarTile = ({
-  tag,
-  title,
-  body,
-  index,
-}: {
-  tag: string;
-  title: string;
-  body: string;
-  index: number;
-}) => {
-  const tints = [SYS.blue, SYS.green, SYS.purple];
-  const tint = tints[index % tints.length];
-  const iconKinds: AppIconKind[] = ["monoA", "leaf", "bolt"];
+  children: ReactNode;
+  className?: string;
+}) {
+  const { ref, visible } = useInViewOnce<HTMLDivElement>();
 
   return (
     <div
-      data-testid="feature-comparison-card"
-      className="gap-3 rounded-[18px] bg-[#FFFFFF] p-4 sm:gap-4 sm:p-5"
+      ref={ref}
+      className={className}
+      style={{
+        opacity: visible ? 1 : 0,
+        transform: visible ? "translateY(0)" : "translateY(26px)",
+        transition:
+          "opacity .8s cubic-bezier(.22,.61,.36,1), transform .8s cubic-bezier(.22,.61,.36,1)",
+      }}
     >
-      <div className="mb-4 flex items-center gap-3">
-        <span data-testid="feature-card-icon" aria-hidden="true">
-          <AppIcon kind={iconKinds[index % iconKinds.length]} size={38} />
-        </span>
-        <div
-          className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1"
-          style={{ background: `${tint}14` }}
-        >
-          <span className="h-1.5 w-1.5 rounded-full" style={{ background: tint }} />
-          <span
-            className="text-[11px] font-normal uppercase tracking-[0.04em]"
-            style={{ color: tint, fontFamily: appleFont }}
-          >
-            {tag}
-          </span>
-        </div>
-      </div>
-      <h3
-        className="mb-1.5 text-[20px] font-medium leading-[1.06] tracking-[-0.028em] text-[#1D1D1F]"
-        style={{ fontFamily: appleFont }}
-      >
-        {title}
-      </h3>
-      <p
-        className="text-[14.5px] leading-[1.4] tracking-normal text-[#1D1D1F]/65"
-        style={{ fontFamily: appleFont }}
-      >
-        {body}
-      </p>
+      {children}
     </div>
   );
-};
+}
 
-const ClassCard = ({
-  name,
-  min,
-  managementFee,
-  performanceFee,
-  hurdleRate,
-}: {
-  name: string;
-  min: string;
-  managementFee: string;
-  performanceFee: string;
-  hurdleRate: string;
-}) => {
+function FundAStyles() {
   return (
-    <div
-      data-testid="share-class-pricing-card"
-      className="flex flex-col gap-3 rounded-[16px] bg-[#FFFFFF] p-4 text-[#1D1D1F] transition-colors hover:bg-[#F5F5F7] sm:flex-row sm:items-center"
-    >
-      <div
-        data-testid="share-class-pricing-header"
-        className="flex flex-col gap-1 sm:w-24 sm:shrink-0 sm:flex-row sm:items-end sm:justify-between"
-      >
-        <h3
-          className="text-[17px] font-medium tracking-[-0.028em]"
-          style={{ fontFamily: appleFont }}
-        >
-          {name}
-        </h3>
-        <p
-          className="mt-0.5 text-[12px] font-normal text-[#1D1D1F]/55"
-          style={{ fontFamily: appleFont }}
-        >
-          Min {min}
-        </p>
-      </div>
-      <div data-testid="share-class-pricing-metrics" className="grid min-w-0 flex-1 grid-cols-1 gap-2 sm:grid-cols-3">
-        {[
-          ["Management fee", managementFee],
-          ["Performance fee", performanceFee],
-          ["Hurdle rate", hurdleRate],
-        ].map(([label, value]) => (
-          <div key={label} className="min-w-0 text-left sm:text-center">
-            <p
-              className="text-[17px] font-medium tracking-[-0.028em] tabular-nums"
-              style={{ fontFamily: appleFont }}
-            >
-              {value}
-            </p>
-            <p
-              className="mt-0.5 text-[11px] font-medium uppercase tracking-[1.05px] text-[#0066CC]/85"
-              style={{ fontFamily: appleFont }}
-            >
-              {label}
-            </p>
-          </div>
-        ))}
-      </div>
-    </div>
+    <style>{`
+      @import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap');
+      [data-page="fund-a"] *,
+      [data-page="fund-a"] *::before,
+      [data-page="fund-a"] *::after { box-sizing: border-box; }
+      [data-page="fund-a"] h1,
+      [data-page="fund-a"] h2,
+      [data-page="fund-a"] h3 { margin: 0; text-wrap: balance; }
+      [data-page="fund-a"] p { margin: 0; text-wrap: pretty; }
+      .fa-sec { padding: clamp(96px,12vw,150px) 40px; }
+      .fa-head-c { text-align: center; margin-left: auto; margin-right: auto; }
+      .fa-eyebrow {
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: .14em;
+        text-transform: uppercase;
+      }
+      .fa-h2 {
+        font-weight: 600;
+        font-size: clamp(32px,4.6vw,54px);
+        line-height: 1.08;
+        letter-spacing: -.025em;
+      }
+      .fa-r3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+      .fa-r2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+      .fa-card { display: flex; flex-direction: column; border-radius: 24px; }
+      .fa-glow {
+        transition: transform .4s cubic-bezier(.22,.61,.36,1), border-color .4s, background-color .4s, box-shadow .4s;
+      }
+      .fa-glow:hover {
+        transform: translateY(-6px);
+        background: #0c2350 !important;
+        border-color: rgba(41,151,255,.55) !important;
+        box-shadow: 0 26px 60px rgba(0,70,180,.32);
+      }
+      .fa-lift { transition: transform .4s cubic-bezier(.22,.61,.36,1), box-shadow .4s; }
+      .fa-lift:hover { transform: translateY(-6px); box-shadow: 0 22px 50px rgba(0,0,0,.09); }
+      .fa-framework-row {
+        display: flex;
+        gap: clamp(18px,3vw,34px);
+        align-items: flex-start;
+        padding: clamp(24px,3vw,32px) 0;
+      }
+      .fa-framework-num {
+        flex: none;
+        min-width: 48px;
+        font-weight: 700;
+        font-size: clamp(26px,3.4vw,40px);
+        line-height: 1;
+        letter-spacing: -.02em;
+        color: #0071e3;
+      }
+      @media (max-width: 760px) {
+        .fa-r3 { grid-template-columns: 1fr !important; }
+      }
+      @media (max-width: 640px) {
+        .fa-r2 { grid-template-columns: 1fr; }
+        .fa-sec { padding-left: 20px; padding-right: 20px; }
+        .fa-framework-row { gap: 16px; }
+        .fa-framework-num { min-width: 38px; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        [data-page="fund-a"] * { animation: none !important; transition: none !important; }
+      }
+    `}</style>
   );
-};
+}
 
-const TermRow = ({
-  label,
-  value,
-  isLast,
-}: {
-  label: string;
-  value: string;
-  isLast: boolean;
-}) => (
-  <div className="relative flex items-center gap-4 px-5 py-4">
-    <p
-      className="min-w-0 flex-1 text-[13px] font-medium tracking-[-0.01em] text-[#1D1D1F]/60"
-      style={{ fontFamily: appleFont }}
-    >
-      {label}
-    </p>
-    <p
-      className="min-w-0 max-w-[60%] text-right text-[15px] font-normal leading-snug tracking-normal text-[#1D1D1F]"
-      style={{ fontFamily: appleFont }}
-    >
-      {value}
-    </p>
-    {!isLast ? (
-      <span className="absolute bottom-0 left-5 right-5 h-px bg-[#000000]/[0.10]" />
-    ) : null}
-  </div>
+const BarIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+    <path d="M5 20V11M12 20V5M19 20v-7" stroke="#fff" strokeWidth="1.9" strokeLinecap="round" />
+  </svg>
+);
+
+const ChipIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+    <rect x="7" y="7" width="10" height="10" rx="2.2" stroke="#fff" strokeWidth="1.8" />
+    <rect x="10" y="10" width="4" height="4" rx="1" fill="#fff" />
+    <path
+      d="M9.5 3v2.5M14.5 3v2.5M9.5 18.5V21M14.5 18.5V21M3 9.5h2.5M3 14.5h2.5M18.5 9.5H21M18.5 14.5H21"
+      stroke="#fff"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
+const CubeIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+    <path d="M12 3v18M5 8l7-5 7 5M5 8v8l7 5 7-5V8" stroke="#0e0e10" strokeWidth="1.8" strokeLinejoin="round" />
+  </svg>
+);
+
+const ShieldIcon = ({ dark = false }: { dark?: boolean }) => (
+  <svg width="23" height="23" viewBox="0 0 24 24" fill="none">
+    <path
+      d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6l7-3z"
+      stroke={dark ? "#1d1d1f" : "#fff"}
+      strokeWidth="1.7"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M9 12l2 2 4-4"
+      stroke={dark ? "#1d1d1f" : "#fff"}
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+const SproutIcon = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+    <path
+      d="M12 21V10"
+      stroke="#fff"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+    />
+    <path
+      d="M12 14C8.5 14 6.5 11.5 6.5 8 10 8 12 10.5 12 14Z"
+      stroke="#fff"
+      strokeWidth="1.6"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M12 12C15.5 12 17.5 9.5 17.5 6 14 6 12 8.5 12 12Z"
+      stroke="#fff"
+      strokeWidth="1.6"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+const BoltIcon = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+    <path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" stroke="#fff" strokeWidth="1.7" strokeLinejoin="round" />
+  </svg>
+);
+
+const ArrowsIcon = () => (
+  <svg width="23" height="23" viewBox="0 0 24 24" fill="none">
+    <path
+      d="M4 8h13l-3.5-3.5M20 16H7l3.5 3.5"
+      stroke="#1d1d1f"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
 );
 
 const FUND_A_SCHEMA: Record<string, unknown> = {
@@ -344,17 +230,35 @@ const FUND_A_SCHEMA: Record<string, unknown> = {
     url: "https://hushhtech.com",
   },
   description:
-    "Fund A is HushhTech's AI-driven, long-term value investing strategy — " +
+    "Fund A is HushhTech's AI-driven, long-term value investing strategy - " +
     "disciplined capital allocation into exceptional businesses, modeled on " +
     "Berkshire Hathaway.",
 };
 
+const assetVisuals = [
+  {
+    tag: "Alpha 27",
+    title: "Core Compounders",
+    color: "#0071e3",
+    icon: <ShieldIcon />,
+  },
+  {
+    tag: "Aloha 27",
+    title: "Humanity-Driven Growth",
+    color: "#1d8a4f",
+    icon: <SproutIcon />,
+  },
+  {
+    tag: "Ultra 27",
+    title: "High-Velocity Growth",
+    color: "#7c3aed",
+    icon: <BoltIcon />,
+  },
+];
+
 const FundA = () => {
   const navigate = useNavigate();
   const {
-    heroTitle,
-    heroSubtitle,
-    heroDescription,
     targetIRRLabel,
     targetIRRValue,
     targetIRRPeriod,
@@ -362,7 +266,6 @@ const FundA = () => {
     philosophySectionTitle,
     philosophyCards,
     edgeCards,
-    sellTheWallHref,
     assetFocusDescription,
     assetPillars,
     alphaStackSubtitle,
@@ -371,20 +274,21 @@ const FundA = () => {
     keyTermsSubtitle,
     keyTerms,
     shareClasses,
-    joinSectionTitle,
-    joinSectionDescription,
-    joinButtonLabel,
-    handleCompleteProfile,
   } = useDiscoverFundALogic();
 
-  const assetTags = ["Alpha 27", "Aloha 27", "Ultra 27"];
+  const grossReturn =
+    alphaStackRows.find((row) => row.label.toLowerCase().includes("gross"))
+      ?.value ?? targetIRRValue;
+
   return (
     <div
+      data-page="fund-a"
       className="min-h-screen bg-[#FFFFFF] text-[#1D1D1F] antialiased selection:bg-[#0066CC] selection:text-[#F5F5F7]"
-      style={{ fontFamily: appleFont }}
+      style={{ fontFamily: fundAFont }}
     >
+      <FundAStyles />
       <SeoHead
-        title="Fund A — AI-powered value investing"
+        title="Fund A - AI-powered value investing"
         description="Fund A is HushhTech's AI-driven, long-term value strategy: disciplined capital allocation into exceptional businesses, modeled on Berkshire Hathaway."
         path="/discover-fund-a"
         jsonLd={FUND_A_SCHEMA}
@@ -395,233 +299,598 @@ const FundA = () => {
       />
 
       <main id="main-content">
-        <AppleSection tone="light" pad="tight" fill>
-          <Eyebrow>Flagship Fund</Eyebrow>
-          <Display as="h1" size="md" maxWidth="max-w-[640px]">
-            {heroTitle.replace(/:\s*$/, "")}.
-          </Display>
-          <Lede>
-            {heroSubtitle} {heroDescription}
-          </Lede>
-
-          <div className="mt-10 px-6 text-center">
-            <p
-              className="mb-2 text-[11px] font-medium uppercase tracking-[1.6px] text-[#0066CC]/85"
-              style={{ fontFamily: appleFont }}
-            >
-              {targetIRRLabel}
-            </p>
-            <div
-              className="text-[72px] font-bold leading-[0.96] tracking-[-0.06em] md:text-[96px]"
-              style={{
-                background: FUND_A_NET_IRR_GRADIENT,
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                backgroundClip: "text",
-                color: "transparent",
-                fontFamily: appleFont,
-              }}
-            >
-              {targetIRRValue}
-            </div>
-            <p
-              className="mt-3 text-[13px] font-normal text-[#1D1D1F]/55"
-              style={{ fontFamily: appleFont }}
-            >
-              {targetIRRPeriod}
-            </p>
-            <p
-              className="mx-auto mt-3 max-w-[320px] text-[11px] leading-[1.4] text-[#1D1D1F]/45"
-              style={{ fontFamily: appleFont }}
-            >
-              {targetIRRDisclaimer}
-            </p>
-          </div>
-        </AppleSection>
-
-        <AppleSection tone="dark" pad="normal">
-          <Eyebrow tone="dark">Investment Philosophy</Eyebrow>
-          <Display size="md" tone="dark" maxWidth="max-w-[500px]">
-            {philosophySectionTitle.replace(/^Investment Philosophy:\s*/i, "")}
-          </Display>
-
-          <div className="mx-auto mt-9 grid max-w-5xl gap-3 px-5 md:grid-cols-3">
-            {philosophyCards.map((card) => (
-              <DarkFeatureCard
-                key={card.title}
-                title={card.title}
-                body={card.description}
-                iconKind={iconForTitle(card.title) as AppIconKind}
-              />
-            ))}
-          </div>
-        </AppleSection>
-
-        <AppleSection tone="light" pad="normal">
-          <Eyebrow>Our Edge</Eyebrow>
-          <Display size="sm" maxWidth="max-w-[520px]">
-            The Sell the Wall framework.
-          </Display>
-
-          <div className="mx-auto mt-9 max-w-4xl px-5">
-            <div className="overflow-hidden rounded-[16px] bg-[#FFFFFF] shadow-[0_0_0_0.5px_rgba(29,29,31,0.06)]">
-              {edgeCards.map((card, index) => (
-                <NumberedRow
-                  key={card.title}
-                  title={card.title}
-                  body={card.description}
-                  icon={frameworkIconForTitle(card.title)}
-                  isLast={index === edgeCards.length - 1}
-                />
-              ))}
-            </div>
-            <div className="mt-5 text-center">
-              <a
-                href={sellTheWallHref}
-                className="inline-flex items-center gap-1 text-[15px] font-semibold text-[#0066CC]"
-                style={{ fontFamily: appleFont }}
-              >
-                Sell the Wall details {Icon.chevronRight(SYS.blue, 13)}
-              </a>
-            </div>
-          </div>
-        </AppleSection>
-
-        <AppleSection tone="gray" pad="normal">
-          <Eyebrow>Asset Focus</Eyebrow>
-          <Display size="sm" maxWidth="max-w-[520px]">
-            Three pillars. 81 global enterprises.
-          </Display>
-          <Lede>{assetFocusDescription}</Lede>
-
-          <div className="mx-auto mt-9 grid max-w-5xl gap-3 px-5 md:grid-cols-3">
-            {assetPillars.map((pillar, index) => (
-              <PillarTile
-                key={pillar.title}
-                tag={assetTags[index] ?? `Pillar ${index + 1}`}
-                title={pillar.title}
-                body={pillar.description}
-                index={index}
-              />
-            ))}
-          </div>
-        </AppleSection>
-
-        <AppleSection tone="dark" pad="normal">
-          <Eyebrow tone="dark">Alpha Stack</Eyebrow>
-          <Display size="sm" tone="dark" maxWidth="max-w-[520px]">
-            Targeted returns, broken down.
-          </Display>
-          <Lede tone="dark">{alphaStackSubtitle}</Lede>
-
-          <div className="mx-auto mt-9 max-w-4xl px-5">
-            <div className="overflow-hidden rounded-[16px] bg-[#161617] shadow-[inset_0_0_0_0.5px_rgba(245,245,247,0.08)]">
-              {alphaStackRows
-                .filter((row) => !row.isTotalRow)
-                .map((row) => (
-                  <AlphaRow key={row.label} label={row.label} value={row.value} />
-                ))}
-              <AlphaRow
-                label="Total Gross"
-                value={alphaStackRows.find((row) => row.label.toLowerCase().includes("gross"))?.value ?? targetIRRValue}
-                isTotal
-              />
-            </div>
-
-          </div>
-        </AppleSection>
-
-        <AppleSection tone="light" pad="normal">
-          <Eyebrow>Risk & Liquidity</Eyebrow>
-          <Display size="sm" maxWidth="max-w-[520px]">
-            Disciplined risk. Assured liquidity.
-          </Display>
-
-          <div className="mx-auto mt-9 grid max-w-5xl gap-3 px-5 md:grid-cols-2">
-            {riskCards.map((card) => (
-              <div
-                key={card.title}
-                data-testid="feature-comparison-card"
-                className="gap-3 rounded-[20px] bg-[#F5F5F7] p-4 sm:gap-4 sm:p-5 md:p-6"
-              >
-                <div className="mb-4" data-testid="feature-card-icon" aria-hidden="true">
-                  <AppIcon
-                    kind={iconForTitle(card.title) as AppIconKind}
-                    size={40}
-                  />
+        <section className="fa-sec" style={{ background: "#fff" }}>
+          <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+            <Reveal className="fa-head-c">
+              <div style={{ maxWidth: 720, margin: "0 auto clamp(48px,6vw,66px)" }}>
+                <div className="fa-eyebrow" style={{ color: "#0071e3", marginBottom: 18 }}>
+                  Flagship Fund
                 </div>
-                <h3
-                  className="mb-1.5 text-[20px] font-medium leading-[1.06] tracking-[-0.028em] text-[#1D1D1F]"
-                  style={{ fontFamily: appleFont }}
-                >
-                  {card.title}
-                </h3>
+                <h2 className="fa-h2" style={{ color: "#1d1d1f" }}>
+                  Hushh Fund A.
+                </h2>
                 <p
-                  className="text-[14.5px] leading-[1.4] tracking-normal text-[#1D1D1F]/70"
-                  style={{ fontFamily: appleFont }}
+                  style={{
+                    margin: "20px auto 0",
+                    maxWidth: "46ch",
+                    fontWeight: 400,
+                    fontSize: "clamp(17px,1.6vw,20px)",
+                    lineHeight: 1.5,
+                    color: "rgba(0,0,0,.62)",
+                  }}
                 >
-                  {card.description}
+                  Our inaugural fund &mdash; an AI-driven value strategy built for consistent,
+                  risk-adjusted alpha.
                 </p>
               </div>
-            ))}
+            </Reveal>
+            <Reveal className="fa-head-c">
+              <div className="fa-eyebrow" style={{ color: "#0071e3", marginBottom: 14 }}>
+                {targetIRRLabel}
+              </div>
+              <div
+                style={{
+                  fontWeight: 700,
+                  fontSize: "clamp(56px,9vw,104px)",
+                  lineHeight: .98,
+                  letterSpacing: "-.04em",
+                  color: "#0071e3",
+                }}
+              >
+                {targetIRRValue.replace("-", "–")}
+              </div>
+              <div style={{ marginTop: 10, fontSize: 15, color: "rgba(0,0,0,.5)" }}>
+                {targetIRRPeriod}
+              </div>
+              <p
+                style={{
+                  margin: "24px auto 0",
+                  maxWidth: "48ch",
+                  fontSize: 13,
+                  lineHeight: 1.5,
+                  color: "rgba(0,0,0,.38)",
+                }}
+              >
+                {targetIRRDisclaimer}
+              </p>
+            </Reveal>
           </div>
-        </AppleSection>
+        </section>
 
-        <AppleSection tone="gray" pad="normal">
-          <Eyebrow>Key Terms</Eyebrow>
-          <Display size="sm" maxWidth="max-w-[520px]">
-            How the fund is structured.
-          </Display>
-          <Lede>{keyTermsSubtitle}</Lede>
+        <section className="fa-sec" style={{ background: "#000", color: "#fff" }}>
+          <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+            <Reveal className="fa-head-c">
+              <div style={{ maxWidth: 720, margin: "0 auto clamp(44px,6vw,64px)" }}>
+                <div className="fa-eyebrow" style={{ color: "#2997ff", marginBottom: 18 }}>
+                  Investment Philosophy
+                </div>
+                <h2 className="fa-h2">
+                  {philosophySectionTitle.replace(/^Investment Philosophy:\s*/i, "")}
+                </h2>
+                <p
+                  style={{
+                    margin: "20px auto 0",
+                    maxWidth: "50ch",
+                    fontWeight: 300,
+                    fontSize: "clamp(17px,1.5vw,20px)",
+                    lineHeight: 1.5,
+                    color: "rgba(255,255,255,.55)",
+                  }}
+                >
+                  Three principles turn market noise into durable, market-independent returns.
+                </p>
+              </div>
+            </Reveal>
+            <Reveal className="fa-r3">
+              {philosophyCards.map((card, index) => (
+                <div
+                  key={card.title}
+                  className="fa-card fa-glow"
+                  style={{
+                    minHeight: 330,
+                    padding: 34,
+                    background: "#0e0e10",
+                    border: "1px solid rgba(255,255,255,.07)",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      marginBottom: 28,
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: 48,
+                        height: 48,
+                        borderRadius: 13,
+                        background: index === 1 ? "#0071e3" : index === 2 ? "#fff" : "#1c1c1f",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        boxShadow: index === 1 ? "0 8px 20px rgba(0,113,227,.4)" : undefined,
+                      }}
+                    >
+                      {index === 0 ? <BarIcon /> : index === 1 ? <ChipIcon /> : <CubeIcon />}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: 13,
+                        fontWeight: 700,
+                        letterSpacing: ".14em",
+                        color: index === 1 ? "rgba(255,255,255,.5)" : "rgba(255,255,255,.32)",
+                      }}
+                    >
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+                  </div>
+                  <h3 style={{ margin: "0 0 10px", fontWeight: 600, fontSize: 22, letterSpacing: "-.01em" }}>
+                    {card.title}
+                  </h3>
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: 15,
+                      lineHeight: 1.55,
+                      color: index === 1 ? "rgba(255,255,255,.66)" : "rgba(255,255,255,.56)",
+                    }}
+                  >
+                    {card.description}
+                  </p>
+                </div>
+              ))}
+            </Reveal>
+          </div>
+        </section>
 
-          <div className="mx-auto mt-9 max-w-4xl px-5">
-            <SectionLabel className="mb-2 px-1">Share Classes</SectionLabel>
-            <div className="grid gap-2">
-              {shareClasses.map((shareClass, index) => (
-                <ClassCard
+        <section className="fa-sec" style={{ background: "#fff" }}>
+          <div style={{ maxWidth: 980, margin: "0 auto" }}>
+            <Reveal className="fa-head-c">
+              <div style={{ maxWidth: 680, margin: "0 auto clamp(44px,6vw,60px)" }}>
+                <div className="fa-eyebrow" style={{ color: "#0071e3", marginBottom: 18 }}>
+                  Our Edge
+                </div>
+                <h2 className="fa-h2" style={{ color: "#1d1d1f" }}>
+                  The Sell the Wall framework.
+                </h2>
+              </div>
+            </Reveal>
+            <Reveal>
+              <div
+                style={{
+                  borderRadius: 28,
+                  overflow: "hidden",
+                  background: "#f6f7f9",
+                  border: "1px solid rgba(0,0,0,.06)",
+                  padding: "clamp(16px,2.5vw,30px) clamp(24px,3.5vw,46px)",
+                }}
+              >
+                {edgeCards.map((card, index) => (
+                  <div key={card.title}>
+                    <div className="fa-framework-row">
+                      <span className="fa-framework-num">{String(index + 1).padStart(2, "0")}</span>
+                      <div>
+                        <h3
+                          style={{
+                            margin: "0 0 7px",
+                            fontWeight: 600,
+                            fontSize: "clamp(20px,2.2vw,24px)",
+                            letterSpacing: "-.01em",
+                            color: "#1d1d1f",
+                          }}
+                        >
+                          {card.title}
+                        </h3>
+                        <p style={{ margin: 0, fontSize: 16, lineHeight: 1.55, color: "rgba(0,0,0,.5)" }}>
+                          {card.description}
+                        </p>
+                      </div>
+                    </div>
+                    {index < edgeCards.length - 1 ? (
+                      <div style={{ height: 1, background: "rgba(0,0,0,.08)" }} />
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            </Reveal>
+          </div>
+        </section>
+
+        <section className="fa-sec" style={{ background: "#f5f5f7" }}>
+          <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+            <Reveal className="fa-head-c">
+              <div style={{ maxWidth: 760, margin: "0 auto clamp(44px,6vw,60px)" }}>
+                <div className="fa-eyebrow" style={{ color: "#0071e3", marginBottom: 18 }}>
+                  Asset Focus
+                </div>
+                <h2 className="fa-h2" style={{ color: "#1d1d1f" }}>
+                  Three pillars. 81 global enterprises.
+                </h2>
+                <p
+                  style={{
+                    margin: "22px auto 0",
+                    maxWidth: "44ch",
+                    fontWeight: 300,
+                    fontSize: "clamp(17px,1.7vw,21px)",
+                    lineHeight: 1.45,
+                    color: "rgba(0,0,0,.5)",
+                  }}
+                >
+                  {assetFocusDescription.replace(
+                    "Fund A applies its multi-strategy approach across three distinct, yet complementary, selections of ",
+                    "Three complementary selections of ",
+                  )}
+                </p>
+              </div>
+            </Reveal>
+            <Reveal className="fa-r3">
+              {assetPillars.map((pillar, index) => {
+                const visual = assetVisuals[index];
+                return (
+                  <div
+                    key={pillar.title}
+                    className="fa-card fa-lift"
+                    style={{ padding: 30, background: "#fff", boxShadow: "0 1px 3px rgba(0,0,0,.05)" }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
+                      <span
+                        style={{
+                          width: 40,
+                          height: 40,
+                          borderRadius: 11,
+                          background: visual.color,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        {visual.icon}
+                      </span>
+                      <span
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 7,
+                          padding: "5px 12px",
+                          borderRadius: 980,
+                          background: `${visual.color}1A`,
+                        }}
+                      >
+                        <span style={{ width: 6, height: 6, borderRadius: "50%", background: visual.color }} />
+                        <span
+                          style={{
+                            fontSize: 11,
+                            fontWeight: 600,
+                            letterSpacing: ".08em",
+                            color: visual.color,
+                            textTransform: "uppercase",
+                          }}
+                        >
+                          {visual.tag}
+                        </span>
+                      </span>
+                    </div>
+                    <h3
+                      style={{
+                        margin: "0 0 12px",
+                        fontWeight: 600,
+                        fontSize: 21,
+                        letterSpacing: "-.01em",
+                        color: "#1d1d1f",
+                      }}
+                    >
+                      {visual.title}
+                    </h3>
+                    <p style={{ margin: 0, fontSize: 15, lineHeight: 1.5, color: "rgba(0,0,0,.5)" }}>
+                      {pillar.description}
+                    </p>
+                  </div>
+                );
+              })}
+            </Reveal>
+          </div>
+        </section>
+
+        <section className="fa-sec" style={{ background: "#000", color: "#fff" }}>
+          <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+            <Reveal className="fa-head-c">
+              <div style={{ maxWidth: 760, margin: "0 auto clamp(44px,6vw,60px)" }}>
+                <div className="fa-eyebrow" style={{ color: "#2997ff", marginBottom: 18 }}>
+                  Alpha Stack
+                </div>
+                <h2 className="fa-h2">Targeted returns, broken down.</h2>
+                <p
+                  style={{
+                    margin: "20px auto 0",
+                    fontWeight: 300,
+                    fontSize: "clamp(16px,1.7vw,20px)",
+                    lineHeight: 1.45,
+                    color: "rgba(255,255,255,.5)",
+                  }}
+                >
+                  {alphaStackSubtitle}
+                </p>
+              </div>
+            </Reveal>
+            <Reveal>
+              <div
+                style={{
+                  background: "#0e0e10",
+                  border: "1px solid rgba(255,255,255,.07)",
+                  borderRadius: 24,
+                  padding: "8px clamp(20px,3vw,40px)",
+                }}
+              >
+                {alphaStackRows
+                  .filter((row) => !row.isTotalRow)
+                  .map((row) => (
+                    <div
+                      key={row.label}
+                      style={{
+                        padding: "22px 0",
+                        borderBottom: "1px solid rgba(255,255,255,.08)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        gap: 16,
+                      }}
+                    >
+                      <div>
+                        <div style={{ fontWeight: 600, fontSize: "clamp(16px,1.8vw,19px)", letterSpacing: "-.01em" }}>
+                          {row.label}
+                        </div>
+                        <div style={{ marginTop: 4, fontSize: 13, color: "rgba(255,255,255,.42)" }}>
+                          Illustrative annual contribution
+                        </div>
+                      </div>
+                      <div
+                        style={{
+                          flex: "none",
+                          fontWeight: 600,
+                          fontSize: "clamp(20px,2.4vw,26px)",
+                          letterSpacing: "-.02em",
+                        }}
+                      >
+                        {row.value.replace("-", "–")}
+                      </div>
+                    </div>
+                  ))}
+                <div
+                  style={{
+                    padding: "24px clamp(16px,2vw,24px)",
+                    margin: "8px -8px 0",
+                    borderRadius: 18,
+                    background: "rgba(255,255,255,.04)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 16,
+                  }}
+                >
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: "clamp(17px,1.9vw,20px)", letterSpacing: "-.01em" }}>
+                      Total Gross
+                    </div>
+                    <div style={{ marginTop: 4, fontSize: 13, color: "rgba(255,255,255,.42)" }}>
+                      Illustrative annual contribution
+                    </div>
+                  </div>
+                  <div
+                    style={{
+                      flex: "none",
+                      fontWeight: 700,
+                      fontSize: "clamp(22px,2.6vw,30px)",
+                      letterSpacing: "-.02em",
+                      color: "#30d673",
+                    }}
+                  >
+                    {grossReturn.replace("-", "–")}
+                  </div>
+                </div>
+              </div>
+            </Reveal>
+          </div>
+        </section>
+
+        <section className="fa-sec" style={{ background: "#fff" }}>
+          <div style={{ maxWidth: 1080, margin: "0 auto" }}>
+            <Reveal className="fa-head-c">
+              <div style={{ maxWidth: 700, margin: "0 auto clamp(44px,6vw,60px)" }}>
+                <div className="fa-eyebrow" style={{ color: "#0071e3", marginBottom: 18 }}>
+                  Risk &amp; Liquidity
+                </div>
+                <h2 className="fa-h2" style={{ color: "#1d1d1f" }}>
+                  Disciplined risk. Assured liquidity.
+                </h2>
+              </div>
+            </Reveal>
+            <Reveal className="fa-r2">
+              {riskCards.map((card, index) => (
+                <div key={card.title} className="fa-card fa-lift" style={{ padding: 38, background: "#f5f5f7" }}>
+                  <span
+                    style={{
+                      width: 48,
+                      height: 48,
+                      borderRadius: 13,
+                      background: "#fff",
+                      boxShadow: "0 4px 14px rgba(0,0,0,.07)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      marginBottom: 26,
+                    }}
+                  >
+                    {index === 0 ? <ShieldIcon dark /> : <ArrowsIcon />}
+                  </span>
+                  <h3 style={{ margin: "0 0 12px", fontWeight: 600, fontSize: 23, letterSpacing: "-.01em", color: "#1d1d1f" }}>
+                    {card.title}
+                  </h3>
+                  <p style={{ margin: 0, fontSize: 16, lineHeight: 1.5, color: "rgba(0,0,0,.5)" }}>
+                    {card.description}
+                  </p>
+                </div>
+              ))}
+            </Reveal>
+          </div>
+        </section>
+
+        <section className="fa-sec" style={{ background: "#f5f5f7" }}>
+          <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+            <Reveal className="fa-head-c">
+              <div style={{ maxWidth: 780, margin: "0 auto clamp(40px,5vw,56px)" }}>
+                <div className="fa-eyebrow" style={{ color: "#0071e3", marginBottom: 18 }}>
+                  Key Terms
+                </div>
+                <h2 className="fa-h2" style={{ color: "#1d1d1f" }}>
+                  How the fund is structured.
+                </h2>
+                <p style={{ margin: "18px auto 0", maxWidth: "52ch", fontSize: 14, lineHeight: 1.5, color: "rgba(0,0,0,.4)" }}>
+                  {keyTermsSubtitle}
+                </p>
+              </div>
+            </Reveal>
+            <Reveal>
+              <div
+                style={{
+                  fontSize: 12,
+                  fontWeight: 600,
+                  letterSpacing: ".12em",
+                  textTransform: "uppercase",
+                  color: "rgba(0,0,0,.45)",
+                  marginBottom: 18,
+                }}
+              >
+                Share Classes
+              </div>
+            </Reveal>
+            <Reveal className="fa-r3">
+              {shareClasses.map((shareClass) => (
+                <div
                   key={shareClass.shareClass}
-                  name={shareClass.shareClass}
-                  min={shareClass.minInvestment}
-                  managementFee={shareClass.managementFee}
-                  performanceFee={shareClass.performanceFee}
-                  hurdleRate={shareClass.hurdleRate}
-                />
+                  className="fa-card fa-lift"
+                  style={{ padding: 30, background: "#fff", boxShadow: "0 1px 3px rgba(0,0,0,.05)" }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, marginBottom: 22 }}>
+                    <span style={{ fontWeight: 600, fontSize: 24, letterSpacing: "-.02em", color: "#1d1d1f" }}>
+                      {shareClass.shareClass}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: 12,
+                        fontWeight: 600,
+                        color: "#0071e3",
+                        background: "rgba(0,113,227,.1)",
+                        padding: "5px 12px",
+                        borderRadius: 980,
+                      }}
+                    >
+                      Min {shareClass.minInvestment}
+                    </span>
+                  </div>
+                  {[
+                    ["Management fee", shareClass.managementFee],
+                    ["Performance fee", shareClass.performanceFee],
+                    ["Hurdle rate", shareClass.hurdleRate],
+                  ].map(([label, value]) => (
+                    <div
+                      key={label}
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        gap: 16,
+                        padding: "13px 0",
+                        borderTop: "1px solid rgba(0,0,0,.07)",
+                      }}
+                    >
+                      <span style={{ fontSize: 14, color: "rgba(0,0,0,.5)" }}>{label}</span>
+                      <span style={{ fontWeight: 600, fontSize: 20, color: "#1d1d1f" }}>{value}</span>
+                    </div>
+                  ))}
+                </div>
               ))}
-            </div>
-
-            <div className="mt-6 overflow-hidden rounded-[14px] bg-[#FFFFFF]">
-              {keyTerms.map((term, index) => (
-                <TermRow
-                  key={term.title}
-                  label={term.title}
-                  value={term.content}
-                  isLast={index === keyTerms.length - 1}
-                />
-              ))}
-            </div>
+            </Reveal>
+            <Reveal>
+              <div
+                style={{
+                  marginTop: 20,
+                  background: "#fff",
+                  borderRadius: 24,
+                  boxShadow: "0 1px 3px rgba(0,0,0,.05)",
+                  padding: "8px clamp(22px,3vw,38px)",
+                }}
+              >
+                {keyTerms.map((term, index) => (
+                  <div
+                    key={term.title}
+                    style={{
+                      display: "flex",
+                      gap: 16,
+                      justifyContent: "space-between",
+                      alignItems: "flex-start",
+                      padding: "22px 0",
+                      borderBottom: index < keyTerms.length - 1 ? "1px solid rgba(0,0,0,.07)" : undefined,
+                    }}
+                  >
+                    <span style={{ flex: "none", width: 200, fontWeight: 600, fontSize: 16, color: "#1d1d1f" }}>
+                      {term.title}
+                    </span>
+                    <span style={{ fontSize: 15, lineHeight: 1.5, color: "rgba(0,0,0,.55)", textAlign: "right" }}>
+                      {term.content}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </Reveal>
           </div>
-        </AppleSection>
-
-        <AppleSection tone="dark" pad="loose" last>
-          <Eyebrow tone="dark">
-            {joinSectionTitle.replace(/\.+$/, "")}
-          </Eyebrow>
-          <Display size="sm" tone="dark" maxWidth="max-w-[520px]">
-            The AI-powered Berkshire Hathaway.
-          </Display>
-          <Lede tone="dark">{joinSectionDescription}</Lede>
-
-          <div className="mx-auto mt-8 flex max-w-[360px] flex-col gap-3 px-6">
-            <AppleButton kind="bordered" onClick={handleCompleteProfile}>
-              {joinButtonLabel}
-            </AppleButton>
-          </div>
-        </AppleSection>
+        </section>
       </main>
 
-      <div>
-        <HushhTechFooter activeTab={HushhFooterTab.FUND_A} />
-      </div>
+      <footer
+        style={{
+          background: "#f5f5f7",
+          borderTop: "1px solid rgba(0,0,0,.08)",
+          padding: "clamp(48px,6vw,72px) 40px calc(clamp(48px,6vw,72px) + 96px)",
+          textAlign: "center",
+        }}
+      >
+        <div style={{ maxWidth: 1000, margin: "0 auto" }}>
+          <p style={{ margin: "0 auto", maxWidth: "74ch", fontSize: 13, lineHeight: 1.6, color: "rgba(0,0,0,.45)" }}>
+            Investing involves risk, including loss of principal. Past performance does not guarantee future results. Hushh Technologies,
+            Inc. is an SEC-registered investment adviser.
+          </p>
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "10px 30px",
+              justifyContent: "center",
+              margin: "26px 0 24px",
+              fontSize: 14,
+              fontWeight: 500,
+            }}
+          >
+            <a href="/risk-disclosures" style={{ color: "#0066cc" }}>
+              Disclosures
+            </a>
+            <a href="/privacy-policy" style={{ color: "#0066cc" }}>
+              Privacy
+            </a>
+            <a href="/terms" style={{ color: "#0066cc" }}>
+              Terms
+            </a>
+            <a href="/support" style={{ color: "#0066cc" }}>
+              Support
+            </a>
+          </div>
+          <div style={{ fontSize: 12, color: "rgba(0,0,0,.4)" }}>
+            &copy; 2026 Hushh. All Rights Reserved.
+          </div>
+        </div>
+      </footer>
+
+      <HushhTechFooter activeTab={HushhFooterTab.FUND_A} />
     </div>
   );
 };

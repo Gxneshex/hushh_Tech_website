@@ -106,13 +106,6 @@ vi.mock("../src/components/hushh-tech-footer/HushhTechFooter", () => ({
 
 import FundA from "../src/pages/discover-fund-a/ui";
 
-const expectClassTokens = (element: Element | null | undefined, tokens: string[]) => {
-  expect(element).toBeTruthy();
-  tokens.forEach((token) => {
-    expect(element?.classList.contains(token)).toBe(true);
-  });
-};
-
 describe("FundA footer shell", () => {
   let container: HTMLDivElement;
   let root: Root;
@@ -145,81 +138,64 @@ describe("FundA footer shell", () => {
     expect(footer?.parentElement?.className).not.toContain("lg:hidden");
   });
 
-  it("marks feature card icons as decorative", async () => {
+  it("renders the Flagship Fund section as a normal subpage section", async () => {
     await act(async () => {
       root.render(React.createElement(FundA));
     });
 
-    const featureIcons = Array.from(
-      container.querySelectorAll('[data-testid="feature-card-icon"]'),
-    );
-
-    expect(featureIcons.length).toBeGreaterThan(0);
-    featureIcons.forEach((icon) => {
-      expect(icon.getAttribute("aria-hidden")).toBe("true");
-    });
+    expect(container.textContent).toContain("Flagship Fund");
+    expect(container.textContent).toContain("Hushh Fund A.");
+    expect(container.textContent).toContain("Target Net IRR");
+    expect(container.textContent).toContain("18–23%");
+    expect(container.textContent).toContain("Annually");
+    expect(container.textContent).not.toContain("Back to Home");
   });
 
-  it("keeps Sell the Wall framework icons present but understated", async () => {
+  it("keeps Sell the Wall framework rows in the supplied reference structure", async () => {
     await act(async () => {
       root.render(React.createElement(FundA));
     });
 
-    const frameworkIcons = Array.from(
-      container.querySelectorAll('[data-testid="framework-row-icon"]'),
+    const frameworkRows = Array.from(
+      container.querySelectorAll(".fa-framework-row"),
     );
 
-    expect(frameworkIcons).toHaveLength(4);
-    frameworkIcons.forEach((icon) => {
-      const className = icon.getAttribute("class") ?? "";
-
-      expect(icon.getAttribute("aria-hidden")).toBe("true");
-      expect(className).toContain("bg-white");
-      expect(className).not.toContain("rounded-full");
-    });
+    expect(container.textContent).toContain("The Sell the Wall framework.");
+    expect(frameworkRows).toHaveLength(4);
+    expect(frameworkRows[0]?.textContent).toContain("01");
+    expect(frameworkRows[3]?.textContent).toContain("04");
   });
 
-  it("keeps feature comparison cards comfortably spaced across breakpoints", async () => {
+  it("keeps Aloha 27 on the green sprout asset visual", async () => {
     await act(async () => {
       root.render(React.createElement(FundA));
     });
 
-    const featureCards = Array.from(
-      container.querySelectorAll('[data-testid="feature-comparison-card"]'),
+    const assetCards = Array.from(container.querySelectorAll(".fa-card.fa-lift"));
+    const alohaCard = assetCards.find((card) =>
+      card.textContent?.includes("Aloha 27"),
     );
 
-    expect(featureCards).toHaveLength(6);
-
-    featureCards.forEach((card) => {
-      expectClassTokens(card, ["gap-3", "p-4", "sm:gap-4", "sm:p-5"]);
-    });
+    expect(alohaCard).toBeTruthy();
+    expect(alohaCard?.textContent).toContain("Humanity-Driven Growth");
+    expect(alohaCard?.innerHTML).toContain("M12 21V10");
   });
 
-  it("stacks share class pricing details on narrow viewports before widening", async () => {
+  it("keeps share class pricing on equal card treatment with full labels", async () => {
     await act(async () => {
       root.render(React.createElement(FundA));
     });
 
-    const pricingCards = Array.from(
-      container.querySelectorAll('[data-testid="share-class-pricing-card"]'),
-    );
-    const pricingHeaders = Array.from(
-      container.querySelectorAll('[data-testid="share-class-pricing-header"]'),
-    );
-    const pricingMetrics = Array.from(
-      container.querySelectorAll('[data-testid="share-class-pricing-metrics"]'),
+    const shareClassCards = Array.from(container.querySelectorAll(".fa-card.fa-lift")).filter(
+      (card) => card.textContent?.includes("Management fee"),
     );
 
-    expect(pricingCards).toHaveLength(3);
-    expect(pricingHeaders).toHaveLength(pricingCards.length);
-    expect(pricingMetrics).toHaveLength(pricingCards.length);
-
-    pricingHeaders.forEach((pricingHeader) => {
-      expectClassTokens(pricingHeader, ["flex-col", "sm:flex-row"]);
-    });
-
-    pricingMetrics.forEach((pricingMetricGroup) => {
-      expectClassTokens(pricingMetricGroup, ["grid-cols-1", "sm:grid-cols-3"]);
+    expect(shareClassCards).toHaveLength(3);
+    shareClassCards.forEach((card) => {
+      expect(card.textContent).toContain("Management fee");
+      expect(card.textContent).toContain("Performance fee");
+      expect(card.textContent).toContain("Hurdle rate");
+      expect(card.className).toContain("fa-lift");
     });
   });
 });
