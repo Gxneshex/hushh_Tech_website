@@ -69,13 +69,81 @@ type JourneyState = "loading" | "unauthenticated" | InvestorAccessState;
 
 interface InvestorProfileStatusRecord {
   user_confirmed?: boolean | null;
+  confirmed_at?: string | null;
   investor_profile?: unknown | null;
+  shadow_profile?: unknown | null;
+  profile_research?: unknown | null;
+  analyst_summary?: string | null;
+  enriched_company?: string | null;
+  enriched_title?: string | null;
+  enriched_bio?: string | null;
+  enriched_linkedin_url?: string | null;
+  enriched_location?: string | null;
+}
+
+function hasProfilePayload(value: unknown): boolean {
+  if (!value) return false;
+  if (typeof value === "string") return value.trim().length > 0;
+  if (Array.isArray(value)) return value.length > 0;
+  if (typeof value === "object") return Object.keys(value as Record<string, unknown>).length > 0;
+  return true;
 }
 
 function hasBuiltInvestorProfile(
   profile: InvestorProfileStatusRecord | null | undefined,
 ): boolean {
-  return Boolean(profile?.user_confirmed || profile?.investor_profile);
+  if (!profile) return false;
+
+  return Boolean(
+    profile.user_confirmed ||
+      profile.confirmed_at ||
+      hasProfilePayload(profile.investor_profile) ||
+      hasProfilePayload(profile.shadow_profile) ||
+      hasProfilePayload(profile.profile_research) ||
+      hasProfilePayload(profile.analyst_summary) ||
+      hasProfilePayload(profile.enriched_company) ||
+      hasProfilePayload(profile.enriched_title) ||
+      hasProfilePayload(profile.enriched_bio) ||
+      hasProfilePayload(profile.enriched_linkedin_url) ||
+      hasProfilePayload(profile.enriched_location),
+  );
+}
+
+const INVESTOR_PROFILE_STATUS_COLUMNS = [
+  "user_confirmed",
+  "confirmed_at",
+  "investor_profile",
+  "shadow_profile",
+  "profile_research",
+  "analyst_summary",
+  "enriched_company",
+  "enriched_title",
+  "enriched_bio",
+  "enriched_linkedin_url",
+  "enriched_location",
+].join(", ");
+
+const INVESTOR_PROFILE_STATUS_FALLBACK_COLUMNS = [
+  "user_confirmed",
+  "confirmed_at",
+  "investor_profile",
+  "shadow_profile",
+].join(", ");
+
+const INVESTOR_PROFILE_STATUS_CORE_COLUMNS = [
+  "user_confirmed",
+  "investor_profile",
+].join(", ");
+
+function isMissingProfileStatusColumnError(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const candidate = error as { code?: string; message?: string; details?: string };
+  const text = `${candidate.code ?? ""} ${candidate.message ?? ""} ${candidate.details ?? ""}`.toLowerCase();
+  return text.includes("column") && (
+    text.includes("not found") ||
+    text.includes("could not find") ||
+    text.includes("does not exist")
+  );
 }
 
 async function fetchInvestorProfileBuiltStatus(
@@ -84,19 +152,29 @@ async function fetchInvestorProfileBuiltStatus(
 ): Promise<boolean> {
   if (typeof client.from !== "function") return false;
 
-  try {
-    const { data, error } = await client
-      .from("investor_profiles")
-      .select("user_confirmed, investor_profile")
-      .eq("user_id", userId)
-      .maybeSingle();
+  const selections = [
+    INVESTOR_PROFILE_STATUS_COLUMNS,
+    INVESTOR_PROFILE_STATUS_FALLBACK_COLUMNS,
+    INVESTOR_PROFILE_STATUS_CORE_COLUMNS,
+  ];
+  let lastError: unknown = null;
 
-    if (error) {
-      console.warn("[useInvestorJourneyCta] investor profile status fetch failed", error);
-      return false;
+  try {
+    for (const columns of selections) {
+      const { data, error } = await client
+        .from("investor_profiles")
+        .select(columns)
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      if (!error) return hasBuiltInvestorProfile(data);
+
+      lastError = error;
+      if (!isMissingProfileStatusColumnError(error)) break;
     }
 
-    return hasBuiltInvestorProfile(data);
+    console.warn("[useInvestorJourneyCta] investor profile status fetch failed", lastError);
+    return false;
   } catch (error) {
     console.warn("[useInvestorJourneyCta] investor profile status fetch failed", error);
     return false;
@@ -279,4 +357,9 @@ export function useInvestorJourneyCta(
 export const __testing__ = {
   ctaForState,
   hasBuiltInvestorProfile,
+  hasProfilePayload,
+  INVESTOR_PROFILE_STATUS_COLUMNS,
+  INVESTOR_PROFILE_STATUS_FALLBACK_COLUMNS,
+  INVESTOR_PROFILE_STATUS_CORE_COLUMNS,
+  isMissingProfileStatusColumnError,
 };

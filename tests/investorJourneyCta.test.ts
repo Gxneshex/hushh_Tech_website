@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { __testing__, type InvestorJourneyCta } from "../src/hooks/useInvestorJourneyCta";
 import type { InvestorAccessState } from "../src/services/investorAccess/state";
 
-const { ctaForState, hasBuiltInvestorProfile } = __testing__;
+const { ctaForState, hasBuiltInvestorProfile, isMissingProfileStatusColumnError } = __testing__;
 
 type JourneyState = "loading" | "unauthenticated" | InvestorAccessState;
 
@@ -151,13 +151,62 @@ describe("useInvestorJourneyCta CTA matrix", () => {
 
   it("detects only confirmed or generated investor profiles as built", () => {
     expect(hasBuiltInvestorProfile({ user_confirmed: true, investor_profile: null })).toBe(true);
+    expect(hasBuiltInvestorProfile({ user_confirmed: false, confirmed_at: "2026-06-21T00:00:00Z" })).toBe(true);
     expect(
       hasBuiltInvestorProfile({
         user_confirmed: false,
         investor_profile: { risk_tolerance: "moderate" },
       }),
     ).toBe(true);
+    expect(
+      hasBuiltInvestorProfile({
+        user_confirmed: false,
+        investor_profile: null,
+        shadow_profile: {
+          profileIntelligence: {
+            headline: "Profile intelligence ready",
+          },
+        },
+      }),
+    ).toBe(true);
+    expect(
+      hasBuiltInvestorProfile({
+        user_confirmed: false,
+        investor_profile: null,
+        profile_research: { status: "completed" },
+      }),
+    ).toBe(true);
+    expect(
+      hasBuiltInvestorProfile({
+        user_confirmed: false,
+        investor_profile: null,
+        analyst_summary: "Founder and investor profile available",
+      }),
+    ).toBe(true);
+    expect(
+      hasBuiltInvestorProfile({
+        user_confirmed: false,
+        investor_profile: null,
+        enriched_title: "Founder",
+      }),
+    ).toBe(true);
     expect(hasBuiltInvestorProfile({ user_confirmed: false, investor_profile: null })).toBe(false);
+    expect(hasBuiltInvestorProfile({ user_confirmed: false, investor_profile: {}, shadow_profile: {} })).toBe(false);
     expect(hasBuiltInvestorProfile(null)).toBe(false);
+  });
+
+  it("only falls back on missing-column profile status errors", () => {
+    expect(
+      isMissingProfileStatusColumnError({
+        code: "PGRST204",
+        message: "Could not find the 'profile_research' column of 'investor_profiles'",
+      }),
+    ).toBe(true);
+    expect(
+      isMissingProfileStatusColumnError({
+        code: "42501",
+        message: "permission denied for table investor_profiles",
+      }),
+    ).toBe(false);
   });
 });

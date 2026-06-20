@@ -50,7 +50,9 @@ describe("Investor journey entry-point contract", () => {
     const hook = read("src/hooks/useInvestorJourneyCta.ts");
 
     expect(hook).toContain('.from("investor_profiles")');
-    expect(hook).toContain(".select(\"user_confirmed, investor_profile\")");
+    expect(hook).toContain("INVESTOR_PROFILE_STATUS_COLUMNS");
+    expect(hook).toContain('"shadow_profile"');
+    expect(hook).toContain('"profile_research"');
     expect(hook).toContain("hasBuiltInvestorProfile");
     expect(hook).toContain("View your profile");
     expect(hook).toContain("hasBuiltInvestorProfile: profileBuilt");
