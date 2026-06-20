@@ -63,7 +63,7 @@ interface ReviewSummary {
   recurring_day_of_month: number | null;
 }
 
-const DISPLAY_META = getOnboardingDisplayMeta('/onboarding/step-8');
+const DISPLAY_META = getOnboardingDisplayMeta('/onboarding/step-5');
 const PROGRESS_PCT = Math.round((DISPLAY_META.displayStep / DISPLAY_META.totalSteps) * 100);
 const primaryCtaClass =
   "!rounded-full !border-[#0066CC] !bg-[#0066CC] !text-white !font-medium !tracking-[-0.01em] !shadow-none";
@@ -307,7 +307,7 @@ export default function OnboardingReviewStep() {
   }, []);
 
   const handleContinueToPayment = async () => {
-    trackCta('continue', 'step-8');
+    trackCta('continue', 'step-5');
     // Account-type accounts (Joint/Retirement/Trust) must clear the parties +
     // signatory + account-type-fields gate, server-validated, before proceeding.
     if (atGate.accountType && atGate.accountType !== 'individual') {
@@ -322,8 +322,8 @@ export default function OnboardingReviewStep() {
       }
       setSubmitting(false);
     }
-    trackStepCompleted('step-8', 8);
-    goTo('/onboarding/step-9');
+    trackStepCompleted('step-5', 5);
+    goTo('/onboarding/step-6');
   };
 
   return (
@@ -331,7 +331,7 @@ export default function OnboardingReviewStep() {
       className="flex min-h-screen flex-col bg-[#FFFFFF] text-[#1D1D1F] antialiased selection:bg-[#0066CC] selection:text-[#F5F5F7]"
       style={{ fontFamily: appleFont }}
     >
-      <HushhTechBackHeader onBackClick={() => navigate('/onboarding/step-7')} rightLabel="FAQs" />
+      <HushhTechBackHeader onBackClick={() => navigate('/onboarding/step-4')} rightLabel="FAQs" />
       <OnboardingBankReviewChip />
 
       <main className="mx-auto w-full max-w-[680px] flex-grow px-4 pb-48 sm:px-5">
@@ -390,7 +390,7 @@ export default function OnboardingReviewStep() {
                 label="Account Type"
                 value={isAccountTypeMissing ? 'Missing required detail' : accountType}
                 editLabel="Edit"
-                onEdit={() => goTo('/onboarding/step-4?from=review')}
+                onEdit={() => goTo('/onboarding/step-2?from=review')}
                 required
                 missing={isAccountTypeMissing}
               />
@@ -399,7 +399,7 @@ export default function OnboardingReviewStep() {
                 label="Legal Name"
                 value={isFullNameMissing ? 'Missing required detail' : fullName}
                 editLabel="Edit"
-                onEdit={() => goTo('/onboarding/step-5?from=review')}
+                onEdit={() => goTo('/onboarding/step-3?from=review')}
                 required
                 missing={isFullNameMissing}
               />
@@ -408,7 +408,7 @@ export default function OnboardingReviewStep() {
                 label="Date of Birth"
                 value={formatDate(summary?.date_of_birth)}
                 editLabel="Edit"
-                onEdit={() => goTo('/onboarding/step-6?from=review')}
+                onEdit={() => goTo('/onboarding/step-3?from=review')}
                 required
                 missing={isDateOfBirthMissing}
               />
@@ -421,7 +421,7 @@ export default function OnboardingReviewStep() {
                     : phone
                 }
                 editLabel="Edit"
-                onEdit={() => goTo('/onboarding/step-4?from=review')}
+                onEdit={() => goTo('/onboarding/step-3?from=review')}
                 required
                 missing={isPhoneMissing}
               />
@@ -448,7 +448,7 @@ export default function OnboardingReviewStep() {
                 label="Tax Reporting"
                 value={ssnStatus}
                 editLabel="Edit"
-                onEdit={() => goTo('/onboarding/step-6?from=review')}
+                onEdit={() => goTo('/onboarding/step-3?from=review')}
                 required={isUsInvestor}
                 optional={!isUsInvestor}
                 missing={isSsnMissing}
@@ -462,7 +462,7 @@ export default function OnboardingReviewStep() {
                     : `${formatCurrency(summary?.initial_investment_amount)} • ${shareUnits}`
                 }
                 editLabel="Edit"
-                onEdit={() => goTo('/onboarding/step-7?from=review')}
+                onEdit={() => goTo('/onboarding/step-4?from=review')}
                 required
                 missing={isInvestmentMissing}
               />
@@ -490,7 +490,7 @@ export default function OnboardingReviewStep() {
                   label="Recurring Investment"
                   value={formatRecurringSummary(summary || {} as ReviewSummary)}
                   editLabel="Edit"
-                  onEdit={() => goTo('/onboarding/step-7?from=review')}
+                  onEdit={() => goTo('/onboarding/step-4?from=review')}
                   optional
                 />
               </div>
@@ -560,7 +560,7 @@ export default function OnboardingReviewStep() {
               </HushhTechCta>
               <HushhTechCta
                 variant={HushhTechCtaVariant.WHITE}
-                onClick={() => goTo('/onboarding/step-7')}
+                onClick={() => goTo('/onboarding/step-4')}
                 className={secondaryCtaClass}
               >
                 Back to Investment Summary

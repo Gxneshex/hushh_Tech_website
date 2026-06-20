@@ -4,7 +4,7 @@ export const FINANCIAL_LINK_REVIEW_ROUTE = `${FINANCIAL_LINK_ROUTE}?mode=review`
 export type FinancialLinkStatus = 'pending' | 'completed' | 'skipped';
 const LOCAL_ONBOARDING_PREVIEW_PARAM = 'preview';
 
-const TOTAL_VISIBLE_ONBOARDING_STEPS = 9;
+const TOTAL_VISIBLE_ONBOARDING_STEPS = 6;
 
 const CANONICAL_STEP_ROUTE_BY_DISPLAY_STEP = {
   1: '/onboarding/step-1',
@@ -13,9 +13,6 @@ const CANONICAL_STEP_ROUTE_BY_DISPLAY_STEP = {
   4: '/onboarding/step-4',
   5: '/onboarding/step-5',
   6: '/onboarding/step-6',
-  7: '/onboarding/step-7',
-  8: '/onboarding/step-8',
-  9: '/onboarding/step-9',
 } as const;
 
 export type CanonicalOnboardingRoute =
@@ -36,30 +33,34 @@ const DISPLAY_STEP_BY_ROUTE: Record<CanonicalOnboardingRoute, number> = {
   '/onboarding/step-4': 4,
   '/onboarding/step-5': 5,
   '/onboarding/step-6': 6,
-  '/onboarding/step-7': 7,
-  '/onboarding/step-8': 8,
-  '/onboarding/step-9': 9,
 };
 
 /**
  * Maps raw Supabase `current_step` values to canonical routes.
- * Raw values are historical persistence checkpoints and do not always equal
- * display step numbers, so this service owns the stable URL mapping.
+ * Multiple raw values can map to the same route (for backward compat).
+ *
+ * After combining old step-3 (country) + old step-6 (address) into new step-3:
+ *   raw 4 → step-3 (combined country + address)
+ *   raw 8 → step-3 (old address step now folded into step-3)
  */
 const RAW_STEP_TO_ROUTE: Record<number, CanonicalOnboardingRoute> = {
   1: '/onboarding/step-1',
   2: '/onboarding/step-2',
   3: '/onboarding/step-3',
   4: '/onboarding/step-3',
-  5: '/onboarding/step-4',
-  6: '/onboarding/step-4',
-  7: '/onboarding/step-5',
-  8: '/onboarding/step-3',
-  9: '/onboarding/step-6',
-  10: '/onboarding/step-7',
-  11: '/onboarding/step-7',
-  12: '/onboarding/step-8',
-  13: '/onboarding/step-9',
+  5: '/onboarding/step-3',
+  6: '/onboarding/step-3',
+  7: '/onboarding/step-3',
+  8: '/onboarding/step-3',  // old address step → now folded into combined step-3
+  9: '/onboarding/step-3',
+  10: '/onboarding/step-4',
+  11: '/onboarding/step-4',
+  // raw 12 is written by the investment step (step-4) on Continue → the user has
+  // *completed* investment and is now at the review step (step-5). Mapping it to
+  // step-5 (not step-4) keeps the skip-guard from bouncing review → payment back
+  // to investment: payment (display 6) is then within currentStep(5) + 1.
+  12: '/onboarding/step-5',
+  13: '/onboarding/step-6',
 };
 
 export const getCanonicalOnboardingRoute = (currentStep: number): CanonicalOnboardingRoute => {
@@ -137,12 +138,12 @@ export const withLocalOnboardingPreview = (route: string): string => {
   return `${parsed.pathname}${parsed.search}${parsed.hash}`;
 };
 
-// Edit-and-return: the Review screen (step-8) opens an earlier step to edit a
+// Edit-and-return: the Review screen (step-5) opens an earlier step to edit a
 // single field by appending `?from=review`. The edited step reads this flag and,
 // instead of marching forward through the wizard on Save/Back, returns straight
 // to Review. Steps must ALSO avoid downgrading `current_step` while editing, or
 // the ProtectedRoute skip-guard would bounce the return-to-Review navigation.
-export const REVIEW_ROUTE = '/onboarding/step-8' as const;
+export const REVIEW_ROUTE = '/onboarding/step-5' as const;
 const EDIT_RETURN_PARAM = 'from';
 const EDIT_RETURN_VALUE = 'review';
 
@@ -175,9 +176,21 @@ export const normalizeLegacyOnboardingRedirectTarget = (target: string): string 
   }
 };
 
+// Legacy URL aliases — old raw-numbered paths still resolve to the new canonical
+// routes (URLs are now sequential step-1…step-6 matching the 6-step display).
+const COMPATIBLE_ROUTE_ALIAS: Record<string, CanonicalOnboardingRoute> = {
+  '/onboarding/step-7': '/onboarding/step-4',
+  '/onboarding/step-8': '/onboarding/step-5',
+  '/onboarding/step-9': '/onboarding/step-6',
+};
+
 const normalizeCompatibleOnboardingRoute = (route: string): CanonicalOnboardingRoute => {
   if (CANONICAL_ONBOARDING_ROUTES.includes(route as CanonicalOnboardingRoute)) {
     return route as CanonicalOnboardingRoute;
+  }
+
+  if (COMPATIBLE_ROUTE_ALIAS[route]) {
+    return COMPATIBLE_ROUTE_ALIAS[route];
   }
 
   return '/onboarding/step-1';

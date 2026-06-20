@@ -124,7 +124,7 @@ describe("decideInvestorAccessRoute", () => {
     });
   });
 
-  it("redirects needs_payment to step-9", () => {
+  it("redirects needs_payment to the payment step", () => {
     expect(decideInvestorAccessRoute("needs_payment")).toEqual({
       allow: false,
       redirectTo: STEP_9_ROUTE,
@@ -132,7 +132,7 @@ describe("decideInvestorAccessRoute", () => {
     });
   });
 
-  it("redirects payment_reversed to step-9 with banner reason", () => {
+  it("redirects payment_reversed to the payment step with banner reason", () => {
     expect(decideInvestorAccessRoute("payment_reversed")).toEqual({
       allow: false,
       redirectTo: STEP_9_ROUTE,
@@ -162,7 +162,7 @@ describe("getResumeRouteForState", () => {
     expect(getResumeRouteForState("rejected_investor", 13)).toBe(ACCESS_DENIED_ROUTE);
   });
 
-  it("routes reversed and unpaid states to step-9", () => {
+  it("routes reversed and unpaid states to the payment step", () => {
     expect(getResumeRouteForState("payment_reversed", 13)).toBe(STEP_9_ROUTE);
     expect(getResumeRouteForState("needs_payment", 13)).toBe(STEP_9_ROUTE);
   });
@@ -171,7 +171,7 @@ describe("getResumeRouteForState", () => {
     expect(getResumeRouteForState("needs_onboarding", 5)).toBe(FINANCIAL_LINK_ROUTE);
   });
 
-  it("routes incomplete onboarding near step-9 directly to step-9", () => {
+  it("routes incomplete onboarding near payment directly to the payment step", () => {
     expect(getResumeRouteForState("needs_onboarding", 13)).toBe(STEP_9_ROUTE);
   });
 });

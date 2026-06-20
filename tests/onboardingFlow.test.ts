@@ -38,7 +38,7 @@ describe("onboarding flow helpers", () => {
   it("resumes financial-link continuations from step 1 when no later step exists", () => {
     expect(getFinancialLinkContinuationRoute(0)).toBe("/onboarding/step-1");
     expect(getFinancialLinkContinuationRoute(1)).toBe("/onboarding/step-1");
-    // raw step 4 remains in the location/residence part of the restored 9-step flow
+    // raw step 4 → combined step-3 after merging country + address steps
     expect(getFinancialLinkContinuationRoute(4)).toBe("/onboarding/step-3");
   });
 
@@ -83,32 +83,27 @@ describe("edit-from-review (Review screen Edit-and-return)", () => {
     expect(withReviewEdit("/onboarding/step-4?foo=bar")).toBe(
       "/onboarding/step-4?foo=bar&from=review"
     );
-    expect(REVIEW_ROUTE).toBe("/onboarding/step-8");
+    expect(REVIEW_ROUTE).toBe("/onboarding/step-5");
   });
 
   it("tags every Review Edit button with ?from=review (but not Continue/Back)", () => {
     const reviewUi = readRepoFile("src/pages/onboarding/step-8/ui.tsx");
     // All Edit targets carry the flag.
+    expect(reviewUi).toContain("goTo('/onboarding/step-2?from=review')");
     expect(reviewUi).toContain("goTo('/onboarding/step-3?from=review')");
     expect(reviewUi).toContain("goTo('/onboarding/step-4?from=review')");
-    expect(reviewUi).toContain("goTo('/onboarding/step-5?from=review')");
-    expect(reviewUi).toContain("goTo('/onboarding/step-6?from=review')");
-    expect(reviewUi).toContain("goTo('/onboarding/step-7?from=review')");
     // The Review's own forward (payment) and back (investment) nav stay plain.
-    expect(reviewUi).toContain("goTo('/onboarding/step-9')");
-    expect(reviewUi).toContain("goTo('/onboarding/step-7')");
+    expect(reviewUi).toContain("goTo('/onboarding/step-6')");
+    expect(reviewUi).toContain("goTo('/onboarding/step-4')");
   });
 
   it("returns edited steps to Review and preserves current_step in edit mode", () => {
     const step2 = readRepoFile("src/pages/onboarding/step-2/logic.ts");
     const step3 = readRepoFile("src/pages/onboarding/step-3/logic.ts");
-    const step4 = readRepoFile("src/pages/onboarding/step-4/logic.ts");
-    const step5 = readRepoFile("src/pages/onboarding/step-5/logic.ts");
-    const step6 = readRepoFile("src/pages/onboarding/step-6/logic.ts");
     const step7 = readRepoFile("src/pages/onboarding/step-7/logic.ts");
 
     // Each editable step reads the flag and routes back to Review.
-    for (const src of [step2, step3, step4, step5, step6, step7]) {
+    for (const src of [step2, step3, step7]) {
       expect(src).toContain("isReturnToReview(location.search)");
       expect(src).toContain("REVIEW_ROUTE");
     }

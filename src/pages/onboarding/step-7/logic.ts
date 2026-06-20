@@ -57,7 +57,7 @@ export const SHARE_CLASSES: ShareClassInfo[] = [
 export const MIN_RECURRING_AMOUNT = 100;
 export const MAX_RECURRING_AMOUNT = 100000000;
 
-const DISPLAY_META = getOnboardingDisplayMeta('/onboarding/step-7');
+const DISPLAY_META = getOnboardingDisplayMeta('/onboarding/step-4');
 
 export const DISPLAY_STEP = DISPLAY_META.displayStep;
 export const PROG_TOTAL = DISPLAY_META.totalSteps;
@@ -324,15 +324,15 @@ export const useStep11Logic = (): Step11Logic => {
   };
 
   const handleContinue = async () => {
-    trackCta('continue', 'step-7');
+    trackCta('continue', 'step-4');
     if (totalInvestment < 1000000) {
-      trackStepError('step-7', 'min_investment');
+      trackStepError('step-4', 'min_investment');
       setError('Minimum investment is $1 million');
       return;
     }
 
     if (customAmountError) {
-      trackStepError('step-7', 'recurring_amount');
+      trackStepError('step-4', 'recurring_amount');
       setShowRecurringEditor(true);
       setError(customAmountError);
       return;
@@ -357,7 +357,7 @@ export const useStep11Logic = (): Step11Logic => {
           : null,
       }));
       setLoading(false);
-      navigate(withLocalOnboardingPreview('/onboarding/step-8'));
+      navigate(withLocalOnboardingPreview('/onboarding/step-5'));
       return;
     }
 
@@ -408,14 +408,14 @@ export const useStep11Logic = (): Step11Logic => {
     const { error: upsertError } = await upsertOnboardingData(user.id, updateData);
 
     if (upsertError) {
-      trackStepError('step-7', 'save_failed');
+      trackStepError('step-4', 'save_failed');
       setError('Failed to save data');
       setLoading(false);
       return;
     }
 
-    trackStepCompleted('step-7', 7);
-    navigate(withLocalOnboardingPreview('/onboarding/step-8'));
+    trackStepCompleted('step-4', 4);
+    navigate(withLocalOnboardingPreview('/onboarding/step-5'));
   };
 
   // Get units for a class
@@ -437,13 +437,13 @@ export const useStep11Logic = (): Step11Logic => {
   const isFormValid = hasAnyUnits && totalInvestment >= 1000000 && hasValidRecurringAmount;
 
   const handleBack = () => {
-    navigate(withLocalOnboardingPreview(returnToReview ? REVIEW_ROUTE : '/onboarding/step-6'));
+    navigate(withLocalOnboardingPreview(returnToReview ? REVIEW_ROUTE : '/onboarding/step-3'));
   };
 
   const handleSkip = () => {
-    trackCta('skip', 'step-7');
-    trackStepSkipped('step-7');
-    navigate(withLocalOnboardingPreview('/onboarding/step-8'));
+    trackCta('skip', 'step-4');
+    trackStepSkipped('step-4');
+    navigate(withLocalOnboardingPreview('/onboarding/step-5'));
   };
 
   // Generate units summary text

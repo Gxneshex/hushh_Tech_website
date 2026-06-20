@@ -4,8 +4,8 @@
  * A single derived view of an `onboarding_data` row that decides whether the
  * user has cleared the Stripe payment gate for post-payment surfaces
  * (Meet CEO, Profile). The state is consumed by the route wrapper, by
- * step-9's polling UI, and by login resume routing — every consumer reads
- * from this util so the rules stay consistent.
+ * the fund-payment polling UI, and by login resume routing — every consumer
+ * reads from this util so the rules stay consistent.
  *
  * Conventions:
  * - `fund_payment_status` mirrors the values the Stripe webhook writes.
@@ -57,7 +57,7 @@ export const FUND_PAYMENT_REVERSED_STATUSES: ReadonlyArray<string> = [
 /**
  * Statuses that mean payment has not been completed yet (including never
  * started, link sent but unused, Checkout abandoned, expired). All redirect
- * the user back to step-9 to finish payment.
+ * the user back to the payment step to finish payment.
  */
 export const FUND_PAYMENT_NOT_PAID_STATUSES: ReadonlyArray<string> = [
   "not_started",
@@ -85,9 +85,9 @@ export function getInvestorAccessState(
   if (FUND_PAYMENT_PAID_STATUSES.includes(payment)) return "payment_in_review";
 
   // From here on payment is not in a paid state. Onboarding has to be at least
-  // through KYC (is_completed true) before we route the user to step-9 to
-  // pay. Otherwise they are still mid-KYC and the onboarding flow should
-  // catch them first.
+  // through KYC (is_completed true) before we route the user to the payment
+  // step. Otherwise they are still mid-KYC and the onboarding flow should catch
+  // them first.
   if (!onboarding.is_completed) return "needs_onboarding";
   return "needs_payment";
 }
@@ -96,8 +96,9 @@ export function isInvestorAccessGranted(state: InvestorAccessState): boolean {
   return state === "payment_in_review" || state === "verified_investor";
 }
 
-// Fund payment step. Constant name kept as-is to avoid churn across consumers.
-export const STEP_9_ROUTE = "/onboarding/step-9";
+// Fund payment step. URL renumbered to step-6 to match the 6-step display
+// (constant name kept as-is to avoid churn across consumers).
+export const STEP_9_ROUTE = "/onboarding/step-6";
 export const MEET_CEO_ROUTE = "/onboarding/meet-ceo";
 export const ACCESS_DENIED_ROUTE = "/onboarding/access-denied";
 export const PROFILE_ROUTE = "/hushh-user-profile";
@@ -156,7 +157,7 @@ export function getResumeRouteForState(
     case "needs_onboarding":
     default: {
       const step = Number.isFinite(currentStep) ? Math.trunc(Number(currentStep)) : 0;
-      // KYC nearly done — route to step-9 so they can pay.
+      // KYC nearly done — route to the payment step so they can pay.
       if (step >= 13) return STEP_9_ROUTE;
       // Otherwise let financial-link's own continuation logic handle it.
       return FINANCIAL_LINK_ROUTE;
