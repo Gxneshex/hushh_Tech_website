@@ -68,6 +68,10 @@ export interface InvestorJourneyResult {
 type JourneyState = "loading" | "unauthenticated" | InvestorAccessState;
 
 interface InvestorProfileStatusRecord {
+  id?: string | number | null;
+  slug?: string | null;
+  name?: string | null;
+  email?: string | null;
   user_confirmed?: boolean | null;
   confirmed_at?: string | null;
   investor_profile?: unknown | null;
@@ -89,13 +93,23 @@ function hasProfilePayload(value: unknown): boolean {
   return true;
 }
 
+function hasProfileShell(profile: InvestorProfileStatusRecord): boolean {
+  return Boolean(
+    hasProfilePayload(profile.slug) ||
+      hasProfilePayload(profile.name) ||
+      hasProfilePayload(profile.email) ||
+      hasProfilePayload(profile.id),
+  );
+}
+
 function hasBuiltInvestorProfile(
   profile: InvestorProfileStatusRecord | null | undefined,
 ): boolean {
   if (!profile) return false;
 
   return Boolean(
-    profile.user_confirmed ||
+    hasProfileShell(profile) ||
+      profile.user_confirmed ||
       profile.confirmed_at ||
       hasProfilePayload(profile.investor_profile) ||
       hasProfilePayload(profile.shadow_profile) ||
@@ -110,6 +124,10 @@ function hasBuiltInvestorProfile(
 }
 
 const INVESTOR_PROFILE_STATUS_COLUMNS = [
+  "id",
+  "slug",
+  "name",
+  "email",
   "user_confirmed",
   "confirmed_at",
   "investor_profile",
@@ -124,6 +142,10 @@ const INVESTOR_PROFILE_STATUS_COLUMNS = [
 ].join(", ");
 
 const INVESTOR_PROFILE_STATUS_FALLBACK_COLUMNS = [
+  "id",
+  "slug",
+  "name",
+  "email",
   "user_confirmed",
   "confirmed_at",
   "investor_profile",
@@ -131,6 +153,10 @@ const INVESTOR_PROFILE_STATUS_FALLBACK_COLUMNS = [
 ].join(", ");
 
 const INVESTOR_PROFILE_STATUS_CORE_COLUMNS = [
+  "id",
+  "slug",
+  "name",
+  "email",
   "user_confirmed",
   "investor_profile",
 ].join(", ");
@@ -358,6 +384,7 @@ export const __testing__ = {
   ctaForState,
   hasBuiltInvestorProfile,
   hasProfilePayload,
+  hasProfileShell,
   INVESTOR_PROFILE_STATUS_COLUMNS,
   INVESTOR_PROFILE_STATUS_FALLBACK_COLUMNS,
   INVESTOR_PROFILE_STATUS_CORE_COLUMNS,

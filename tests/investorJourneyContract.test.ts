@@ -51,6 +51,9 @@ describe("Investor journey entry-point contract", () => {
 
     expect(hook).toContain('.from("investor_profiles")');
     expect(hook).toContain("INVESTOR_PROFILE_STATUS_COLUMNS");
+    expect(hook).toContain('"id"');
+    expect(hook).toContain('"slug"');
+    expect(hook).toContain("hasProfileShell");
     expect(hook).toContain('"shadow_profile"');
     expect(hook).toContain('"profile_research"');
     expect(hook).toContain("hasBuiltInvestorProfile");

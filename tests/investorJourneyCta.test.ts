@@ -3,7 +3,12 @@ import { describe, expect, it, vi } from "vitest";
 import { __testing__, type InvestorJourneyCta } from "../src/hooks/useInvestorJourneyCta";
 import type { InvestorAccessState } from "../src/services/investorAccess/state";
 
-const { ctaForState, hasBuiltInvestorProfile, isMissingProfileStatusColumnError } = __testing__;
+const {
+  ctaForState,
+  hasBuiltInvestorProfile,
+  hasProfileShell,
+  isMissingProfileStatusColumnError,
+} = __testing__;
 
 type JourneyState = "loading" | "unauthenticated" | InvestorAccessState;
 
@@ -149,7 +154,11 @@ describe("useInvestorJourneyCta CTA matrix", () => {
     expect(mock).toHaveBeenCalledWith("/onboarding/meet-ceo");
   });
 
-  it("detects only confirmed or generated investor profiles as built", () => {
+  it("detects profile-ready rows and generated investor payloads as built", () => {
+    expect(hasBuiltInvestorProfile({ id: "profile-row-1", user_confirmed: false, investor_profile: null })).toBe(true);
+    expect(hasBuiltInvestorProfile({ slug: "manish", user_confirmed: false, investor_profile: null })).toBe(true);
+    expect(hasBuiltInvestorProfile({ name: "MANISH", user_confirmed: false, investor_profile: null })).toBe(true);
+    expect(hasBuiltInvestorProfile({ email: "manish@example.com", user_confirmed: false, investor_profile: null })).toBe(true);
     expect(hasBuiltInvestorProfile({ user_confirmed: true, investor_profile: null })).toBe(true);
     expect(hasBuiltInvestorProfile({ user_confirmed: false, confirmed_at: "2026-06-21T00:00:00Z" })).toBe(true);
     expect(
@@ -193,6 +202,12 @@ describe("useInvestorJourneyCta CTA matrix", () => {
     expect(hasBuiltInvestorProfile({ user_confirmed: false, investor_profile: null })).toBe(false);
     expect(hasBuiltInvestorProfile({ user_confirmed: false, investor_profile: {}, shadow_profile: {} })).toBe(false);
     expect(hasBuiltInvestorProfile(null)).toBe(false);
+  });
+
+  it("treats a visible profile shell as profile-ready even before AI enrichment", () => {
+    expect(hasProfileShell({ slug: "manish", name: "", email: "", investor_profile: null })).toBe(true);
+    expect(hasProfileShell({ id: "profile-row-1", investor_profile: null })).toBe(true);
+    expect(hasProfileShell({ slug: "", name: "", email: "", investor_profile: null })).toBe(false);
   });
 
   it("only falls back on missing-column profile status errors", () => {
