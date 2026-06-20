@@ -180,6 +180,10 @@ const useLayoutVisibility = () => {
     location.pathname === '/about/leadership' ||
     location.pathname === '/philosophy' ||
     location.pathname === '/about/philosophy';
+  const isAboutPublicPage =
+    location.pathname === '/about/leadership' ||
+    location.pathname === '/philosophy' ||
+    location.pathname === '/about/philosophy';
 
   // All pages using HushhTechHeader — hide old global Navbar/Footer
   const isPublicInvestorProfile = location.pathname.startsWith('/investor/');
@@ -189,7 +193,7 @@ const useLayoutVisibility = () => {
   const hideOld = isHushhAI || isKai || isStudio || isHomePage || isOnboarding || isInvestorGuide || isProfile || isFundA || isCommunity || isDeleteAccount || isLogin || isSignup || isSignNda || isMyDocuments || isDocumentViewer || isHushhUserProfile || isCareer || isBenefits || isLegalPublicPage || isModernPublicPage || isPublicInvestorProfile || isHushhHackathon || isMetrics || isFundAdmin;
   return {
     showNavbar: !hideOld,
-    showFooter: !hideOld || isCareer,
+    showFooter: !hideOld || isCareer || isAboutPublicPage,
     showMobileNav: !hideOld,
   };
 };
