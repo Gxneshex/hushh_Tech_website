@@ -347,6 +347,7 @@ const FundA = () => {
       <HushhTechBackHeader
         onBackClick={() => navigate("/")}
         rightType="hamburger"
+        showTicker
       />
 
       <main id="main-content">

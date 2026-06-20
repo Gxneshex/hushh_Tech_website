@@ -6,13 +6,17 @@ const read = (path: string) => readFileSync(join(process.cwd(), path), "utf8");
 
 describe("legal and support footer pages", () => {
   it("routes all four home footer links to modern public pages", () => {
-    const home = read("src/pages/home/ui.tsx");
+    const footer = read("src/components/Footer.tsx");
     const app = read("src/App.tsx");
 
-    expect(home).toContain('{ label: "Disclosures", href: "/risk-disclosures" }');
-    expect(home).toContain('{ label: "Privacy", href: "/privacy-policy" }');
-    expect(home).toContain('{ label: "Terms", href: "/terms" }');
-    expect(home).toContain('{ label: "Support", href: "/support" }');
+    expect(footer).toContain('href="/risk-disclosures"');
+    expect(footer).toContain("Risk Disclosures");
+    expect(footer).toContain('href="/privacy-policy"');
+    expect(footer).toContain("Website Privacy Policy");
+    expect(footer).toContain('href="/terms"');
+    expect(footer).toContain("Website Terms of Use");
+    expect(footer).toContain('href="/support"');
+    expect(footer).toContain("Support");
 
     expect(app).toContain("<Route path='/privacy-policy' element={<PrivacyPolicy />} />");
     expect(app).toContain("<Route path='/terms' element={<TermsOfService />} />");
@@ -35,6 +39,7 @@ describe("legal and support footer pages", () => {
 
     expect(app).toContain("isLegalPublicPage || isModernPublicPage");
     expect(app).toContain("isHushhUserProfile || isCareer || isBenefits || isLegalPublicPage || isModernPublicPage");
+    expect(app).toContain("showPublicWebsiteFooter");
   });
 
   it("keeps legal pages on the shared HushhTech legal shell, not Chakra pages", () => {

@@ -31,7 +31,7 @@ const ProfilePage: React.FC = () => {
       style={{ fontFamily: appleFont }}
     >
       {/* header */}
-      <HushhTechBackHeader rightType="hamburger" />
+      <HushhTechBackHeader rightType="hamburger" showTicker />
 
       {/* scrollable content */}
       <main className="relative flex min-h-[100svh] flex-1 flex-col items-center justify-center overflow-hidden bg-white px-6 pb-[clamp(120px,15vh,150px)] pt-[clamp(140px,16vh,190px)] text-center">

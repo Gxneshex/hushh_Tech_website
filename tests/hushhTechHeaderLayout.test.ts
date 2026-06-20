@@ -85,11 +85,16 @@ describe("HushhTechHeader layout stability", () => {
       "src/components/hushh-tech-header/HushhTechHeader.tsx",
       "utf8",
     );
+    const sharedTicker = fs.readFileSync(
+      "src/components/hushh-tech-ticker/HushhTechTicker.tsx",
+      "utf8",
+    );
     const legacyNavbar = fs.readFileSync("src/components/Navbar.tsx", "utf8");
 
     const hook = fs.readFileSync("src/hooks/useConstantTickerMotion.ts", "utf8");
 
-    expect(modernHeader).toContain("const TICKER_SCROLL_PIXELS_PER_SECOND = 136;");
+    expect(modernHeader).toContain("HushhTechTicker");
+    expect(sharedTicker).toContain("const TICKER_SCROLL_PIXELS_PER_SECOND = 136;");
     expect(legacyNavbar).toContain("const TICKER_SCROLL_PIXELS_PER_SECOND = 136;");
     expect(hook).toContain("const DEFAULT_TICKER_PIXELS_PER_SECOND = 136;");
     expect(hook).toContain("Math.min(40, Math.max(0, time - lastTime))");

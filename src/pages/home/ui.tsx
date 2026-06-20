@@ -943,46 +943,6 @@ function WhatYouGetSection({
   );
 }
 
-const footerLinks = [
-  { label: "Disclosures", href: "/risk-disclosures" },
-  { label: "Privacy", href: "/privacy-policy" },
-  { label: "Terms", href: "/terms" },
-  { label: "Support", href: "/support" },
-] as const;
-
-function PageFooter() {
-  return (
-    <footer className="border-t border-[#1D1D1F]/[0.08] bg-[#F5F5F7] px-10 pb-36 pt-[clamp(48px,6vw,72px)] text-center">
-      <p
-        className="mx-auto max-w-[74ch] text-[13px] leading-[1.6] text-black/45"
-        style={{ fontFamily: homeFont }}
-      >
-        Investing involves risk, including loss of principal. Past performance does
-        not guarantee future results. Hushh Technologies, Inc. is an SEC-registered
-        investment adviser.
-      </p>
-      <div className="my-6 flex flex-wrap justify-center gap-x-[30px] gap-y-2.5">
-        {footerLinks.map(({ label, href }) => (
-          <a
-            key={label}
-            href={href}
-            className="text-[14px] font-medium text-[#0066CC] transition hover:underline"
-            style={{ fontFamily: homeFont }}
-          >
-            {label}
-          </a>
-        ))}
-      </div>
-      <p
-        className="text-[12px] text-black/40"
-        style={{ fontFamily: homeFont }}
-      >
-        © 2026 Hushh All Rights Reserved.
-      </p>
-    </footer>
-  );
-}
-
 export default function HomePage() {
   const { onNavigate, primaryCTA } = useHomeLogic();
 
@@ -1056,7 +1016,6 @@ export default function HomePage() {
         />
       </main>
 
-      <PageFooter />
       <HushhTechFooter activeTab={HushhFooterTab.HOME} />
     </div>
   );

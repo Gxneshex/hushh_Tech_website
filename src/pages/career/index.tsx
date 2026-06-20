@@ -106,7 +106,7 @@ function LiquidIcon({
 const CareerList = () => {
   return (
     <Box bg={pageBg} minH="100vh" style={{ fontFamily: appleFont }}>
-      <HushhTechBackHeader rightType="hamburger" />
+      <HushhTechBackHeader rightType="hamburger" showTicker />
       <Box as="main" id="main-content" w="100%">
         <Container maxW="7xl" pt={{ base: 28, md: 32 }} pb={{ base: 12, md: 20 }} px={{ base: 5, md: 6, lg: 8 }}>
           <Box textAlign="center" mb={{ base: 10, md: 14 }}>

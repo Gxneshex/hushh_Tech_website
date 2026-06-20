@@ -357,6 +357,7 @@ export default function CommunityPage() {
       <HushhTechBackHeader
         onBackClick={handleBackClick}
         rightType="hamburger"
+        showTicker
       />
 
       <main id="main-content" aria-busy={apiLoading}>

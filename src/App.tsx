@@ -188,9 +188,19 @@ const useLayoutVisibility = () => {
   const isMetrics = location.pathname === '/metrics' || location.pathname === '/metric';
   const isFundAdmin = location.pathname.startsWith('/fund-admin');
   const hideOld = isHushhAI || isKai || isStudio || isHomePage || isOnboarding || isInvestorGuide || isProfile || isFundA || isCommunity || isDeleteAccount || isLogin || isSignup || isSignNda || isMyDocuments || isDocumentViewer || isHushhUserProfile || isCareer || isBenefits || isLegalPublicPage || isModernPublicPage || isPublicInvestorProfile || isHushhHackathon || isMetrics || isFundAdmin;
+  const showPublicWebsiteFooter =
+    isHomePage ||
+    isFundA ||
+    isCommunity ||
+    isProfile ||
+    isCareer ||
+    isBenefits ||
+    isLegalPublicPage ||
+    isModernPublicPage ||
+    isAboutPublicPage;
   return {
     showNavbar: !hideOld,
-    showFooter: !hideOld || isCareer || isAboutPublicPage,
+    showFooter: !hideOld || showPublicWebsiteFooter,
     showMobileNav: !hideOld,
   };
 };

@@ -125,6 +125,12 @@ export default function Footer() {
                 >
                   Contact
                 </a>
+                <a
+                  href="/profile"
+                  className="py-2 text-gray-300 hover:text-white text-base font-medium flex items-center justify-between group block transition-colors duration-200"
+                >
+                  Profile
+                </a>
               </div>
             </div>
           </nav>
@@ -159,6 +165,24 @@ export default function Footer() {
               className="py-2 text-gray-300 hover:text-white text-base font-medium flex items-center justify-between group transition-colors duration-200"
             >
               Careers Site Privacy Notice
+            </a>
+            <a
+              href="/terms"
+              className="py-2 text-gray-300 hover:text-white text-base font-medium flex items-center justify-between group transition-colors duration-200"
+            >
+              Website Terms of Use
+            </a>
+            <a
+              href="/risk-disclosures"
+              className="py-2 text-gray-300 hover:text-white text-base font-medium flex items-center justify-between group transition-colors duration-200"
+            >
+              Risk Disclosures
+            </a>
+            <a
+              href="/support"
+              className="py-2 text-gray-300 hover:text-white text-base font-medium flex items-center justify-between group transition-colors duration-200"
+            >
+              Support
             </a>
           </nav>
         </div>

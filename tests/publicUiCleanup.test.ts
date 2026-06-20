@@ -66,7 +66,8 @@ describe("public HushhTech UI cleanup", () => {
 
     expect(backHeader).toContain("fixed left-0 right-0 top-0 z-50");
     expect(backHeader).toContain('data-hushh-back-header');
-    expect(backHeader).toContain('<div className="h-[72px]" />');
+    expect(backHeader).toContain('"h-[146px]"');
+    expect(backHeader).toContain('"h-[72px]"');
   });
 
   it("keeps FAQs copy consistent and scopes the FAQ sheet to onboarding", () => {
