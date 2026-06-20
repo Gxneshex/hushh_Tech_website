@@ -189,7 +189,7 @@ const useLayoutVisibility = () => {
   const hideOld = isHushhAI || isKai || isStudio || isHomePage || isOnboarding || isInvestorGuide || isProfile || isFundA || isCommunity || isDeleteAccount || isLogin || isSignup || isSignNda || isMyDocuments || isDocumentViewer || isHushhUserProfile || isCareer || isBenefits || isLegalPublicPage || isModernPublicPage || isPublicInvestorProfile || isHushhHackathon || isMetrics || isFundAdmin;
   return {
     showNavbar: !hideOld,
-    showFooter: !hideOld,
+    showFooter: !hideOld || isCareer,
     showMobileNav: !hideOld,
   };
 };
