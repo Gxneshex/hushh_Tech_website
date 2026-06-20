@@ -34,7 +34,7 @@ export default function Footer() {
               className="w-10 h-10 object-contain"
             />
             <h2 className="tracking-tight text-[22px] font-extrabold leading-tight">
-              Hushh 🤫 Technologies LLC
+              Hushh Technologies LLC
             </h2>
           </div>
           <p className="text-gray-400 text-base font-medium leading-relaxed max-w-[80%]">
