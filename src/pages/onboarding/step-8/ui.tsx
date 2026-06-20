@@ -11,9 +11,10 @@ import {
 } from 'lucide-react';
 import config from '../../../resources/config/config';
 import { trackCta, trackStepCompleted } from '../../../services/onboarding/onboardingAnalytics';
-import { submitApplication, getProofOfFunds } from '../../../services/onboarding/inviteService';
+import { submitApplication, getProofOfFunds, getFundingNameMatch } from '../../../services/onboarding/inviteService';
 import { REVIEW_GATE_REASON_LABELS } from '../../../services/onboarding/reviewGate';
 import { PROOF_OF_FUNDS_LABELS, type ProofOfFundsStatus } from '../../../services/onboarding/proofOfFunds';
+import { FUNDING_NAME_MATCH_LABELS, type FundingNameMatchStatus } from '../../../services/onboarding/fundingNameMatch';
 import { useReviewAccountTypeGate } from './accountTypeGate';
 import HushhTechBackHeader from '../../../components/hushh-tech-back-header/HushhTechBackHeader';
 import OnboardingBankReviewChip from '../../../components/onboarding-bank-review-chip/OnboardingBankReviewChip';
@@ -291,11 +292,16 @@ export default function OnboardingReviewStep() {
   const atGate = useReviewAccountTypeGate();
   const [submitting, setSubmitting] = useState(false);
   const [proofOfFunds, setProofOfFunds] = useState<ProofOfFundsStatus | null>(null);
+  const [fundingNameMatch, setFundingNameMatch] = useState<FundingNameMatchStatus | null>(null);
 
   useEffect(() => {
     let active = true;
     getProofOfFunds()
       .then((r) => { if (active) setProofOfFunds(r.status); })
+      .catch(() => {});
+    // Trust/retirement: surface the bank holder-name vs entity/custodian match.
+    getFundingNameMatch()
+      .then((r) => { if (active && r.applicable) setFundingNameMatch(r.status); })
       .catch(() => {});
     return () => { active = false; };
   }, []);
@@ -505,6 +511,25 @@ export default function OnboardingReviewStep() {
                   }`}
                 >
                   {PROOF_OF_FUNDS_LABELS[proofOfFunds]}
+                </span>
+              </section>
+            )}
+
+            {fundingNameMatch && (
+              <section className="mb-4 flex items-center justify-between rounded-[18px] bg-[#F5F5F7] px-4 py-3 shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.08)]">
+                <span className="text-[12px] font-medium uppercase tracking-[1.3px] text-[#1D1D1F]/55">
+                  Bank account name
+                </span>
+                <span
+                  className={`rounded-full px-2.5 py-1 text-[11px] font-medium ${
+                    fundingNameMatch === 'match'
+                      ? 'bg-[#34C759]/12 text-[#1E7A33]'
+                      : fundingNameMatch === 'mismatch'
+                      ? 'bg-[#FF9500]/12 text-[#B25E00]'
+                      : 'bg-[#1D1D1F]/8 text-[#1D1D1F]/60'
+                  }`}
+                >
+                  {FUNDING_NAME_MATCH_LABELS[fundingNameMatch]}
                 </span>
               </section>
             )}

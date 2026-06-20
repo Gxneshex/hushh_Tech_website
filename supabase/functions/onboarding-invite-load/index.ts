@@ -29,7 +29,7 @@ Deno.serve(async (req) => {
     const state = inviteState(invite);
     const { data: party } = await supabase
       .from("onboarding_parties")
-      .select("id, display_name, profile, status")
+      .select("id, display_name, profile, status, plaid_item_id")
       .eq("id", invite.party_id)
       .maybeSingle();
 
@@ -59,6 +59,7 @@ Deno.serve(async (req) => {
         primary_name: primaryName,
         fields: getPartyFieldDefs(invite.party_role),
         profile: party?.profile ?? {},
+        bank_connected: Boolean(party?.plaid_item_id),
         expires_at: invite.expires_at,
       },
       200,

@@ -1,10 +1,19 @@
 /**
  * onboarding-invite-save — token-only partial save of the invited party's own
- * profile. Whitelists fields to the role's known keys; marks the party in_progress.
+ * profile. Whitelists fields to the role's known keys; sensitive fields (tax id)
+ * are split into their dedicated column and kept out of the profile jsonb. Marks
+ * the party in_progress without downgrading a bank-connected / completed party.
  */
 import { createAdminClient, getCorsHeaders, json } from "../_shared/fundStripe.ts";
 import { findInviteByToken, inviteState } from "../_shared/onboardingInvite.ts";
-import { sanitizePartyProfile } from "../_shared/onboardingParties.ts";
+import {
+  extractSensitivePartyFields,
+  sanitizePartyProfile,
+  SENSITIVE_FIELD_COLUMNS,
+} from "../_shared/onboardingParties.ts";
+
+// Statuses past which a draft save must not roll the party back.
+const ADVANCED_PARTY_STATUSES = ["plaid_pending", "plaid_connected", "kyc_pending", "completed"];
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders();
@@ -24,13 +33,28 @@ Deno.serve(async (req) => {
       return json({ error: `Invite is ${state}`, state }, 409, corsHeaders);
     }
 
-    const profile = sanitizePartyProfile(invite.party_role, body.profile || {});
+    const raw = body.profile || {};
+    const profile = sanitizePartyProfile(invite.party_role, raw);
+    const sensitive = extractSensitivePartyFields(invite.party_role, raw);
     const nowIso = new Date().toISOString();
 
-    await supabase
+    const { data: party } = await supabase
       .from("onboarding_parties")
-      .update({ profile, status: "in_progress", updated_at: nowIso })
-      .eq("id", invite.party_id);
+      .select("status")
+      .eq("id", invite.party_id)
+      .maybeSingle();
+
+    const update: Record<string, unknown> = { profile, updated_at: nowIso };
+    for (const [key, value] of Object.entries(sensitive)) {
+      const col = SENSITIVE_FIELD_COLUMNS[key];
+      if (col) update[col] = value;
+    }
+    // Don't downgrade a party that has already connected a bank or completed.
+    if (!ADVANCED_PARTY_STATUSES.includes(String(party?.status || ""))) {
+      update.status = "in_progress";
+    }
+
+    await supabase.from("onboarding_parties").update(update).eq("id", invite.party_id);
     await supabase
       .from("onboarding_invites")
       .update({ status: "in_progress", updated_at: nowIso })

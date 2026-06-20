@@ -108,6 +108,7 @@ function buildAccountTypeDetails(ob: any | null) {
   if (ob.account_type === "retirement") {
     return {
       retirementAccountType: ob.retirement_account_type ?? null,
+      retirementRegistration: ob.retirement_registration_name ?? null,
       custodianName: ob.custodian_name ?? null,
       custodianContactEmail: ob.custodian_contact_email ?? null,
       custodianContactPhone: ob.custodian_contact_phone ?? null,
@@ -366,6 +367,7 @@ Deno.serve(async (req) => {
       parties: partyRows,
     });
     if (proofOfFundsStatus === "funds_insufficient") pieces.push("funds_insufficient");
+    if (ob?.funding_name_match_status === "mismatch") pieces.push("funding_name_mismatch");
 
     const displayName = ob || authUser
       ? getDisplayName(authUser, ob)
@@ -417,6 +419,8 @@ Deno.serve(async (req) => {
             : "not_verified",
           kycStatus: kyc?.status ?? (kycAvailable ? "not_found" : "not_configured"),
           proofOfFunds: proofOfFundsStatus,
+          fundingNameMatch: ob?.funding_name_match_status ?? null,
+          fundingAccountHolderName: ob?.funding_account_holder_name ?? null,
           missingPieces: pieces,
           dataSources,
         },

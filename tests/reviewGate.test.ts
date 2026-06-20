@@ -41,6 +41,18 @@ describe('review/submit account-type gate (§9)', () => {
     expect(r.reasons).toContain('account_type_fields_incomplete');
   });
 
+  it('Retirement blocks until the custodian (subscriber) completes their section', () => {
+    const r = computeAccountTypeReviewGate({
+      ...base,
+      accountType: 'retirement',
+      requiredPartiesComplete: false,
+    });
+    expect(r.ok).toBe(false);
+    expect(r.reasons).toContain('required_party_not_completed');
+
+    expect(computeAccountTypeReviewGate({ ...base, accountType: 'retirement' }).ok).toBe(true);
+  });
+
   it('Trust requires entity fields + a completed trustee', () => {
     const r = computeAccountTypeReviewGate({
       accountType: 'trust',

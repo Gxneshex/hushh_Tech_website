@@ -36,6 +36,8 @@ export interface Step2Logic {
   returnToReview: boolean;
   setSelectedAccountType: (value: UIAccountType) => void;
   handleContinue: () => Promise<void>;
+  /** Persist the picked account type (no current_step bump) before entering the sub-steps. */
+  persistAccountType: () => Promise<boolean>;
   handleBack: () => void;
 }
 
@@ -115,6 +117,20 @@ export const useStep2Logic = (): Step2Logic => {
     }
   };
 
+  const persistAccountType = async (): Promise<boolean> => {
+    if (!selectedAccountType) return false;
+    if (isPreview) {
+      savePreview();
+      return true;
+    }
+    if (!userId || !config.supabaseClient) return false;
+    const { error } = await upsertOnboardingData(userId, {
+      account_type: selectedAccountType,
+      account_structure: accountStructureFor(selectedAccountType),
+    });
+    return !error;
+  };
+
   const handleBack = () =>
     navigate(withLocalOnboardingPreview(returnToReview ? REVIEW_ROUTE : '/onboarding/step-1'));
 
@@ -124,6 +140,7 @@ export const useStep2Logic = (): Step2Logic => {
     returnToReview,
     setSelectedAccountType,
     handleContinue,
+    persistAccountType,
     handleBack,
   };
 };

@@ -8,6 +8,7 @@ import { getAuthenticatedSession } from '../../auth/session';
 import config from '../../resources/config/config';
 import type { PartyFieldDef } from './partyRequirements';
 import type { ProofOfFundsStatus } from './proofOfFunds';
+import type { FundingNameMatchStatus } from './fundingNameMatch';
 
 const getFunctionsUrl = (): string => {
   if (!config.SUPABASE_URL) throw new Error('VITE_SUPABASE_URL is not configured');
@@ -71,6 +72,8 @@ export interface LoadInviteResult {
   primary_name: string;
   fields: PartyFieldDef[];
   profile: Record<string, string>;
+  /** Whether the invited party has already connected their own bank via Plaid. */
+  bank_connected: boolean;
   expires_at: string;
 }
 
@@ -87,6 +90,31 @@ export const saveInviteSection = (token: string, profile: Record<string, string>
 
 export const completeInvite = (token: string, profile: Record<string, string>) =>
   postJson<{ success: boolean }>('onboarding-invite-complete', tokenHeaders, { token, profile });
+
+/**
+ * Mint a Plaid Link token for the invited party to connect their OWN bank.
+ * Pass `redirectUri` for OAuth banks (must be registered in the Plaid dashboard).
+ */
+export const createInviteLinkToken = (token: string, redirectUri?: string) =>
+  postJson<{ success: boolean; link_token: string; expiration: string }>(
+    'onboarding-invite-link-token',
+    tokenHeaders,
+    { token, ...(redirectUri ? { redirect_uri: redirectUri } : {}) },
+  );
+
+export interface ExchangeInvitePlaidPayload {
+  publicToken: string;
+  institutionName?: string | null;
+  institutionId?: string | null;
+}
+
+/** Exchange the invited party's Plaid public token and link the bank to the party. */
+export const exchangeInvitePlaid = (token: string, payload: ExchangeInvitePlaidPayload) =>
+  postJson<{ success: boolean; item_id: string; accounts: unknown[] }>(
+    'onboarding-invite-plaid-exchange',
+    tokenHeaders,
+    { token, ...payload },
+  );
 
 export const resendInvite = async (inviteId: string) =>
   postJson<{ success: boolean; invite_url: string; expires_at: string; email_sent: boolean }>(
@@ -116,3 +144,16 @@ export const getProofOfFunds = async () =>
     balance_available: boolean;
     investment_selected: boolean;
   }>('onboarding-proof-of-funds', await authedHeaders(), {});
+
+/**
+ * Funding account-holder name match (trust/retirement). Computes + persists whether
+ * the connected bank holder name matches the entity/custodian legal name, flagging
+ * manual review on a mismatch. `applicable` is false for individual/joint.
+ */
+export const getFundingNameMatch = async () =>
+  postJson<{
+    success: boolean;
+    applicable: boolean;
+    status: FundingNameMatchStatus;
+    holder_name_available?: boolean;
+  }>('onboarding-funding-name-match', await authedHeaders(), {});
