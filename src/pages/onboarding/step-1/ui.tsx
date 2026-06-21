@@ -82,15 +82,15 @@ export default function OnboardingStep1() {
         Math.max(rect.left, gutter),
         window.innerWidth - width - gutter
       );
-      const estimatedHeight = selectedSource === "other" ? 132 : 256;
+      const estimatedHeight = selectedSource === "other" ? 112 : 244;
       const spaceBelow = window.innerHeight - rect.bottom - gutter;
       const top =
         spaceBelow >= estimatedHeight
           ? rect.bottom + 8
           : Math.max(gutter, rect.top - estimatedHeight - 8);
       const maxHeight = Math.max(
-        132,
-        Math.min(256, window.innerHeight - top - gutter)
+        selectedSource === "other" ? 112 : 156,
+        Math.min(selectedSource === "other" ? 132 : 244, window.innerHeight - top - gutter)
       );
 
       setDetailPopoverStyle({ left, top, width, maxHeight });
@@ -242,10 +242,10 @@ export default function OnboardingStep1() {
                 {showDetail && detailPopoverStyle && (
                   <div
                     ref={detailPopoverRef}
-                    className="fixed z-[100] overflow-y-auto overscroll-contain rounded-[22px] border border-white/75 bg-[#F5F5F7]/96 p-3 shadow-[0_18px_44px_rgba(0,0,0,0.14),inset_0_0_0_0.5px_rgba(29,29,31,0.08)] backdrop-blur-2xl"
+                    className="fixed z-[100] overflow-y-auto overscroll-contain rounded-[24px] border border-[#1D1D1F]/[0.08] bg-white/95 p-3 shadow-[0_24px_60px_rgba(0,0,0,0.16),inset_0_1px_0_rgba(255,255,255,0.95)] backdrop-blur-2xl [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
                     style={detailPopoverStyle}
                   >
-                    <label htmlFor="referral-detail" className="mb-2 block px-1 text-[10px] font-medium uppercase tracking-[1.5px] text-[#0066CC]/82">
+                    <label htmlFor="referral-detail" className="mb-2 block px-1 text-[10px] font-semibold uppercase tracking-[1.5px] text-[#0066CC]/82">
                       {detailLabel}
                       <RequiredAsterisk />
                     </label>
@@ -257,10 +257,10 @@ export default function OnboardingStep1() {
                       value={detailQuery}
                       onChange={(event) => setDetailQuery(event.target.value)}
                       placeholder={detailPlaceholder}
-                      className="h-11 w-full rounded-[15px] border-none bg-white px-4 text-[15px] font-medium text-[#1D1D1F] outline-none placeholder:text-[#1D1D1F]/30 shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.10)]"
+                      className="h-12 w-full rounded-[16px] border-none bg-[#F5F5F7] px-4 text-[15px] font-medium text-[#1D1D1F] outline-none placeholder:text-[#1D1D1F]/30 shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.10)] focus:bg-white focus:shadow-[inset_0_0_0_1px_rgba(0,102,204,0.28),0_0_0_4px_rgba(0,102,204,0.08)]"
                     />
                     {filteredDetailOptions.length > 0 && (
-                      <div className="mt-2 overflow-hidden rounded-[16px] bg-white shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.08)]">
+                      <div className="mt-2 grid gap-1.5">
                         {filteredDetailOptions.map((detailOption) => {
                           const activeDetail =
                             (detailQuery.trim() || detailValue.trim()) ===
@@ -273,10 +273,10 @@ export default function OnboardingStep1() {
                                 selectDetail(detailOption);
                                 setDetailPopoverOpen(false);
                               }}
-                              className={`flex h-11 w-full items-center justify-between border-b border-[#1D1D1F]/[0.06] px-4 text-left text-[14px] font-medium last:border-b-0 ${
+                              className={`flex h-10 w-full items-center justify-between rounded-[14px] px-3.5 text-left text-[14px] font-medium transition ${
                                 activeDetail
-                                  ? "bg-[#0066CC]/8 text-[#0066CC]"
-                                  : "text-[#1D1D1F]/78"
+                                  ? "bg-[#0066CC] text-white"
+                                  : "bg-[#F5F5F7] text-[#1D1D1F]/78 hover:bg-[#ECECF0]"
                               }`}
                             >
                               <span>{detailOption}</span>

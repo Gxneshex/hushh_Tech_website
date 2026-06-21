@@ -73,8 +73,6 @@ export const useStep2Logic = (): Step2Logic => {
       const validTypes: UIAccountType[] = ['individual', 'joint', 'retirement', 'trust'];
       if (data?.account_type && validTypes.includes(data.account_type as UIAccountType)) {
         setSelectedAccountType(data.account_type as UIAccountType);
-      } else if (data?.account_structure === 'individual') {
-        setSelectedAccountType('individual');
       }
     };
     load();
