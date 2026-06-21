@@ -173,92 +173,6 @@ function HomeStyles() {
         flex-direction: column;
         align-items: center;
       }
-      .hh-hero__visual {
-        display: none;
-      }
-      .hh-hero__panel {
-        width: min(100%, 430px);
-        border-radius: 32px;
-        padding: 28px;
-        background:
-          radial-gradient(circle at 18% 10%, rgba(0,113,227,.12), transparent 36%),
-          linear-gradient(180deg, rgba(255,255,255,.94), rgba(245,247,250,.84));
-        box-shadow:
-          0 28px 80px rgba(29,29,31,.12),
-          inset 0 1px 0 rgba(255,255,255,.92);
-        border: 1px solid rgba(0,0,0,.06);
-      }
-      .hh-hero__panelTop {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 24px;
-      }
-      .hh-hero__panelLabel {
-        margin: 0;
-        font-size: 12px;
-        font-weight: 700;
-        letter-spacing: .14em;
-        text-transform: uppercase;
-        color: var(--hh-home-blue);
-      }
-      .hh-hero__panelTitle {
-        margin: 10px 0 0;
-        font-size: 34px;
-        font-weight: 600;
-        letter-spacing: -.03em;
-        line-height: 1;
-        color: var(--hh-home-ink);
-      }
-      .hh-hero__panelMetric {
-        text-align: right;
-        font-size: 38px;
-        font-weight: 600;
-        letter-spacing: -.035em;
-        line-height: 1;
-        color: var(--hh-home-blue);
-      }
-      .hh-hero__panelMetric span {
-        display: block;
-        margin-top: 8px;
-        font-size: 12px;
-        font-weight: 600;
-        letter-spacing: .08em;
-        text-transform: uppercase;
-        color: rgba(0,0,0,.42);
-      }
-      .hh-hero__chart {
-        margin-top: 34px;
-      }
-      .hh-hero__facts {
-        display: grid;
-        grid-template-columns: 1fr 1px 1fr;
-        align-items: center;
-        gap: 20px;
-        margin-top: 24px;
-        padding-top: 22px;
-        border-top: 1px solid rgba(0,0,0,.08);
-      }
-      .hh-hero__facts strong {
-        display: block;
-        font-size: 24px;
-        font-weight: 600;
-        letter-spacing: -.025em;
-        color: var(--hh-home-ink);
-      }
-      .hh-hero__facts span {
-        display: block;
-        margin-top: 5px;
-        font-size: 11px;
-        font-weight: 700;
-        letter-spacing: .11em;
-        text-transform: uppercase;
-        color: rgba(0,0,0,.42);
-      }
-      .hh-hero__divider {
-        height: 40px;
-        background: rgba(0,0,0,.1);
-      }
       .hh-hero__badge {
         display: inline-flex;
         align-items: center;
@@ -536,33 +450,6 @@ function HomeStyles() {
       }
       @media (max-width: 760px) {
         .hh-tech__grid { grid-template-columns: 1fr; }
-      }
-      @media (min-width: 1024px) {
-        .hh-hero {
-          text-align: left;
-        }
-        .hh-hero__inner {
-          display: grid;
-          grid-template-columns: minmax(0, 1fr) minmax(360px, .88fr);
-          align-items: center;
-          gap: clamp(48px, 6vw, 88px);
-        }
-        .hh-hero__copy {
-          align-items: flex-start;
-        }
-        .hh-hero h1 {
-          max-width: 11.5ch;
-        }
-        .hh-hero__sub {
-          max-width: 34ch;
-        }
-        .hh-hero__cta {
-          justify-content: flex-start;
-        }
-        .hh-hero__visual {
-          display: block;
-          justify-self: end;
-        }
       }
       @media (max-width: 640px) {
         .hh-section,
@@ -906,75 +793,6 @@ function FundStatsSection({
   );
 }
 
-function HeroProductPanel() {
-  return (
-    <div className="hh-hero__panel" aria-label="Fund A performance preview">
-      <div className="hh-hero__panelTop">
-        <div>
-          <p className="hh-hero__panelLabel">Fund A</p>
-          <div className="hh-hero__panelTitle">Performance</div>
-        </div>
-        <div className="hh-hero__panelMetric">
-          +21.4%
-          <span>FY 2025 net</span>
-        </div>
-      </div>
-
-      <svg
-        className="hh-hero__chart"
-        viewBox="0 0 360 150"
-        width="100%"
-        height="150"
-        role="img"
-        aria-label="Fund A net return rising steadily through 2025"
-      >
-        <defs>
-          <linearGradient id="homeHeroArea" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stopColor="#0071E3" stopOpacity="0.18" />
-            <stop offset="100%" stopColor="#0071E3" stopOpacity="0" />
-          </linearGradient>
-        </defs>
-        <path
-          d="M8 128 L54 121 L92 112 L132 104 L172 92 L211 82 L250 68 L292 55 L352 40 L352 150 L8 150 Z"
-          fill="url(#homeHeroArea)"
-        />
-        <path
-          d="M8 128 L54 121 L92 112 L132 104 L172 92 L211 82 L250 68 L292 55 L352 40"
-          fill="none"
-          stroke="#0071E3"
-          strokeWidth="3"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        {[42, 78, 114].map((y) => (
-          <line
-            key={y}
-            x1="8"
-            x2="352"
-            y1={y}
-            y2={y}
-            stroke="rgba(0,0,0,0.07)"
-            strokeWidth="1"
-          />
-        ))}
-        <circle cx="352" cy="40" r="5" fill="#0071E3" />
-      </svg>
-
-      <div className="hh-hero__facts">
-        <div>
-          <strong>18-23%</strong>
-          <span>Target IRR</span>
-        </div>
-        <div className="hh-hero__divider" />
-        <div>
-          <strong>Quarterly</strong>
-          <span>Liquidity</span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function TechnologySection() {
   return (
     <section id="tech" className="hh-section hh-tech bg-white" style={{ fontFamily: homeFont }}>
@@ -1194,9 +1012,6 @@ export default function HomePage() {
               </Reveal>
             </div>
 
-            <Reveal immediate delay={220} className="hh-hero__visual">
-              <HeroProductPanel />
-            </Reveal>
           </div>
         </section>
 

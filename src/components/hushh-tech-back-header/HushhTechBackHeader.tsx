@@ -17,6 +17,7 @@ interface HushhTechBackHeaderProps {
 }
 
 const DESKTOP_NAV_ITEMS = [
+  { label: "Home", path: "/" },
   { label: "Fund A", path: "/discover-fund-a" },
   { label: "Community", path: "/community" },
   { label: "Profile", path: "/profile" },
@@ -70,15 +71,13 @@ const HushhTechBackHeader: React.FC<HushhTechBackHeaderProps> = ({
   };
 
   const handleBrandClick = () => navigate("/");
-  const headerClassName = `fixed left-0 right-0 top-0 z-50 ${className}`;
+  const headerClassName = `fixed left-0 right-0 top-0 z-50 border-b border-[#1D1D1F]/[0.06] bg-white/88 shadow-[0_1px_0_rgba(255,255,255,0.8)_inset] backdrop-blur-xl ${className}`;
 
   const desktopNav = (
     <nav
       aria-label="Primary"
-      className="hidden items-center gap-2 rounded-full bg-white/62 px-2 py-1.5 shadow-[0_14px_34px_rgba(29,29,31,0.08),inset_0_1px_0_rgba(255,255,255,0.9)] ring-1 ring-black/[0.06] md:flex"
+      className="hidden items-center gap-7 md:flex"
       style={{
-        WebkitBackdropFilter: "blur(24px) saturate(180%)",
-        backdropFilter: "blur(24px) saturate(180%)",
         fontFamily: appleFont,
       }}
     >
@@ -87,7 +86,7 @@ const HushhTechBackHeader: React.FC<HushhTechBackHeaderProps> = ({
           key={item.path}
           type="button"
           onClick={() => navigate(item.path)}
-          className="rounded-full px-4 py-2 text-[14px] font-medium tracking-[-0.01em] text-[#1D1D1F]/72 transition hover:bg-white/70 hover:text-[#1D1D1F] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066CC]/35"
+          className="text-[14px] font-semibold tracking-[-0.01em] text-[#1D1D1F]/76 transition hover:text-[#0071E3] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066CC]/35"
         >
           {item.label}
         </button>
@@ -95,7 +94,7 @@ const HushhTechBackHeader: React.FC<HushhTechBackHeaderProps> = ({
       <button
         type="button"
         onClick={() => navigate("/profile")}
-        className="rounded-full bg-[#0071E3] px-5 py-2 text-[14px] font-semibold tracking-[-0.01em] text-white shadow-[0_8px_22px_rgba(0,113,227,0.22)] transition hover:bg-[#0077ED] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066CC]/35"
+        className="rounded-full bg-[#0071E3] px-5 py-2.5 text-[14px] font-semibold tracking-[-0.01em] text-white shadow-[0_8px_22px_rgba(0,113,227,0.22)] transition hover:bg-[#0077ED] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066CC]/35"
       >
         Start investing
       </button>
@@ -133,10 +132,8 @@ const HushhTechBackHeader: React.FC<HushhTechBackHeaderProps> = ({
         className={headerClassName}
         data-hushh-back-header
       >
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-[72px] bg-gradient-to-b from-white/75 via-white/45 to-white/10 backdrop-blur-xl [mask-image:linear-gradient(to_bottom,black_72%,transparent)]" />
-
-        <div className="relative flex w-full items-center justify-between px-3 pb-3 pt-[max(env(safe-area-inset-top),0.85rem)] sm:px-5 md:px-8">
-          <div className="relative flex min-w-0 items-center">
+        <div className="relative mx-auto flex w-full max-w-[1240px] items-center justify-between px-3 pb-3 pt-[max(env(safe-area-inset-top),0.85rem)] sm:px-5 md:h-[74px] md:px-8 md:py-0">
+          <div className="relative flex min-w-0 items-center md:hidden">
             <GlassPill className="relative min-w-0 shrink">
               <div className="flex min-w-0 items-center">
                 <button
@@ -151,6 +148,19 @@ const HushhTechBackHeader: React.FC<HushhTechBackHeaderProps> = ({
                 {brandButton}
               </div>
             </GlassPill>
+          </div>
+
+          <div className="hidden min-w-0 items-center gap-3 md:flex">
+            <button
+              type="button"
+              onClick={handleBackClick}
+              className="flex h-10 w-10 items-center justify-center rounded-full text-[#1D1D1F]/78 transition hover:bg-[#1D1D1F]/[0.06] hover:text-[#1D1D1F] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066CC]/35"
+              aria-label="Go back"
+            >
+              {Icon.back("currentColor", 18)}
+            </button>
+            <span aria-hidden className="h-7 w-px bg-[#1D1D1F]/10" />
+            {brandButton}
           </div>
 
           {showRightButton && rightType === "hamburger" ? (
@@ -188,7 +198,7 @@ const HushhTechBackHeader: React.FC<HushhTechBackHeaderProps> = ({
         {showTicker ? <HushhTechTicker /> : null}
       </header>
 
-      <div className={showTicker ? "h-[146px]" : "h-[72px]"} />
+      <div className={showTicker ? "h-[146px] md:h-[148px]" : "h-[72px] md:h-[74px]"} />
 
       {rightType === "hamburger" ? (
         <HushhTechNavDrawer

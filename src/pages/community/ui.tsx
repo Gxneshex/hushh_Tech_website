@@ -48,6 +48,94 @@ const getTint = (value: string) => {
   return getCategoryMeta(value).tint;
 };
 
+const CATEGORY_VISUAL_THEME = {
+  investment: { from: "#0066CC", via: "#5E5CE6", to: "#0A0A0E" },
+  documents: { from: "#007AFF", via: "#5E5CE6", to: "#111827" },
+  fund: { from: "#5E5CE6", via: "#007AFF", to: "#0A0A0E" },
+  market: { from: "#FF9500", via: "#007AFF", to: "#141414" },
+  general: { from: "#34C759", via: "#007AFF", to: "#121212" },
+  investor: { from: "#AF52DE", via: "#007AFF", to: "#111827" },
+  product: { from: "#5AC8FA", via: "#007AFF", to: "#141414" },
+  sensitive: { from: "#1D1D1F", via: "#5E5CE6", to: "#000000" },
+};
+
+const getVisualTheme = (value: string) => {
+  const lower = value.toLowerCase();
+
+  if (lower.includes("nda") || lower.includes("sensitive")) return CATEGORY_VISUAL_THEME.sensitive;
+  if (lower.includes("investment")) return CATEGORY_VISUAL_THEME.investment;
+  if (lower.includes("document")) return CATEGORY_VISUAL_THEME.documents;
+  if (lower.includes("fund")) return CATEGORY_VISUAL_THEME.fund;
+  if (lower.includes("market")) return CATEGORY_VISUAL_THEME.market;
+  if (lower.includes("investor")) return CATEGORY_VISUAL_THEME.investor;
+  if (lower.includes("product")) return CATEGORY_VISUAL_THEME.product;
+
+  return CATEGORY_VISUAL_THEME.general;
+};
+
+const isGenericHushhImage = (image?: string) => {
+  if (!image) return false;
+  const lower = image.toLowerCase();
+  return lower.includes("blog2o") || lower.includes("hushh-logo");
+};
+
+const CommunityVisual = ({
+  image,
+  category,
+  categoryLabel,
+  compact = false,
+}: {
+  image?: string;
+  category: string;
+  categoryLabel: string;
+  compact?: boolean;
+}) => {
+  const shouldUseImage = image && !isGenericHushhImage(image);
+  const theme = getVisualTheme(category);
+
+  return (
+    <div
+      className={`relative overflow-hidden bg-[#111111] ${compact ? "h-[168px]" : "h-full min-h-[230px] md:min-h-[320px]"}`}
+      style={{
+        background: shouldUseImage
+          ? undefined
+          : `radial-gradient(circle at 18% 22%, ${theme.via}b8 0%, transparent 28%), linear-gradient(135deg, ${theme.from} 0%, ${theme.via} 48%, ${theme.to} 100%)`,
+      }}
+    >
+      {shouldUseImage ? (
+        <img
+          src={image}
+          alt=""
+          className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+          loading="lazy"
+        />
+      ) : (
+        <>
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_20%,rgba(255,255,255,0.28),transparent_24%),radial-gradient(circle_at_28%_82%,rgba(255,255,255,0.18),transparent_28%)]" />
+          <div className="absolute left-1/2 top-[42%] -translate-x-1/2 -translate-y-1/2 text-[54px] font-light tracking-[-0.08em] text-white/90 md:text-[72px]" style={{ fontFamily: appleFont }}>
+            hushh
+          </div>
+          <div className="absolute bottom-5 right-6 h-16 w-24 rounded-[18px] border border-white/24 bg-white/14 shadow-[0_16px_40px_rgba(0,0,0,0.20)] backdrop-blur-xl" />
+          <div className="absolute bottom-10 right-12 h-[2px] w-28 rotate-[-18deg] rounded-full bg-white/75" />
+          <div className="absolute bottom-8 left-6 h-12 w-12 rounded-[14px] border border-white/20 bg-white/12 backdrop-blur-xl" />
+        </>
+      )}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_18%,rgba(255,255,255,0.22),transparent_34%)]" />
+      <div
+        className="absolute left-5 top-5 rounded-full px-3 py-1.5 text-[12px] font-semibold uppercase text-[#1D1D1F]"
+        style={{
+          background: "rgba(255,255,255,0.90)",
+          color: getTint(category),
+          fontFamily: appleFont,
+          letterSpacing: 0.6,
+        }}
+      >
+        {categoryLabel}
+      </div>
+    </div>
+  );
+};
+
 const SearchBar = ({
   value,
   onChange,
@@ -134,46 +222,20 @@ type CommunityPost = ReturnType<typeof useCommunityListLogic>["filteredContent"]
 const FeaturedArticle = ({
   image,
   date,
+  category,
   categoryLabel,
-  tint,
   title,
   description,
 }: {
   image?: string;
   date: string;
+  category: string;
   categoryLabel: string;
-  tint: string;
   title: string;
   description: string;
 }) => (
   <article className="grid cursor-pointer overflow-hidden rounded-[28px] bg-[#FFFFFF] shadow-[0_24px_70px_rgba(29,29,31,0.08),inset_0_0_0_1px_rgba(29,29,31,0.08)] md:grid-cols-[1.05fr_0.95fr]">
-    <div
-      className="relative min-h-[230px] overflow-hidden bg-[#F5F5F7] md:min-h-[320px]"
-      style={{
-        background: image ? undefined : `linear-gradient(135deg, ${tint}38 0%, ${tint}10 100%)`,
-      }}
-    >
-      {image ? (
-        <img
-          src={image}
-          alt=""
-          className="h-full w-full object-cover"
-          loading="lazy"
-        />
-      ) : null}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_18%,rgba(255,255,255,0.36),transparent_34%)]" />
-      <div
-        className="absolute left-5 top-5 rounded-full px-3 py-1.5 text-[12px] font-semibold uppercase text-[#1D1D1F]"
-        style={{
-          background: "rgba(255,255,255,0.85)",
-          color: tint,
-          fontFamily: appleFont,
-          letterSpacing: 0.6,
-        }}
-      >
-        {categoryLabel}
-      </div>
-    </div>
+    <CommunityVisual image={image} category={category} categoryLabel={categoryLabel} />
     <div className="flex flex-col justify-center p-7 md:p-10">
       <p
         className="mb-5 text-[13px] font-semibold uppercase text-[#1D1D1F]/45"
@@ -207,38 +269,16 @@ const ArticleCard = ({
   image,
   date,
   categoryLabel,
-  tint,
   description,
 }: {
   post: CommunityPost;
   image?: string;
   date: string;
   categoryLabel: string;
-  tint: string;
   description: string;
 }) => (
   <article className="group flex h-full cursor-pointer flex-col overflow-hidden rounded-[18px] bg-[#FFFFFF] shadow-[0_0_0_1px_rgba(29,29,31,0.10)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_45px_rgba(29,29,31,0.10),0_0_0_1px_rgba(29,29,31,0.12)]">
-    <div
-      className="relative h-[190px] overflow-hidden bg-[#F5F5F7]"
-      style={{
-        background: image ? undefined : `linear-gradient(135deg, ${tint}34 0%, ${tint}0f 100%)`,
-      }}
-    >
-      {image ? (
-        <img
-          src={image}
-          alt=""
-          className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
-          loading="lazy"
-        />
-      ) : null}
-      <span
-        className="absolute bottom-4 left-4 rounded-full bg-white/90 px-3 py-1 text-[12px] font-semibold uppercase"
-        style={{ color: tint, fontFamily: appleFont, letterSpacing: 0.5 }}
-      >
-        {categoryLabel}
-      </span>
-    </div>
+    <CommunityVisual image={image} category={post.category || categoryLabel} categoryLabel={categoryLabel} compact />
     <div className="flex flex-1 flex-col p-6">
       <p
         className="mb-5 text-[13px] text-[#1D1D1F]/45"
@@ -281,43 +321,76 @@ const DocumentCard = ({
   tint: string;
   description: string;
 }) => (
-  <article className="group flex h-full min-h-[250px] cursor-pointer flex-col rounded-[24px] bg-[#FFFFFF] p-7 shadow-[0_18px_48px_rgba(29,29,31,0.07),inset_0_0_0_1px_rgba(29,29,31,0.10)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_26px_64px_rgba(29,29,31,0.10),inset_0_0_0_1px_rgba(0,102,204,0.22)]">
-    <div className="mb-7 flex items-start justify-between gap-4">
-      <span
-        className="rounded-full px-3 py-1.5 text-[12px] font-semibold uppercase"
-        style={{ color: "#0066CC", background: "rgba(0,102,204,0.10)", fontFamily: appleFont, letterSpacing: 1.5 }}
+  <article className="group flex h-full min-h-[330px] cursor-pointer flex-col overflow-hidden rounded-[24px] bg-[#FFFFFF] shadow-[0_18px_48px_rgba(29,29,31,0.07),inset_0_0_0_1px_rgba(29,29,31,0.10)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_26px_64px_rgba(29,29,31,0.10),inset_0_0_0_1px_rgba(0,102,204,0.22)]">
+    <CommunityVisual category={post.category || categoryLabel} categoryLabel={categoryLabel} compact />
+    <div className="flex flex-1 flex-col p-7">
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <span
+          className="rounded-full px-3 py-1.5 text-[12px] font-semibold uppercase"
+          style={{ color: "#0066CC", background: "rgba(0,102,204,0.10)", fontFamily: appleFont, letterSpacing: 1.5 }}
+        >
+          {categoryLabel}
+        </span>
+        <span className="flex h-10 w-10 items-center justify-center rounded-[12px] bg-[#F5F5F7]">
+          {Icon.lock("#1D1D1F", 17)}
+        </span>
+      </div>
+      <h3
+        className="mb-3 text-[24px] font-semibold leading-[1.12] tracking-[-0.025em] text-[#1D1D1F]"
+        style={{ fontFamily: appleFont }}
       >
-        {categoryLabel}
-      </span>
-      <span className="flex h-10 w-10 items-center justify-center rounded-[12px] bg-[#F5F5F7]">
-        {Icon.lock("#1D1D1F", 17)}
-      </span>
-    </div>
-    <h3
-      className="mb-3 text-[24px] font-semibold leading-[1.12] tracking-[-0.025em] text-[#1D1D1F]"
-      style={{ fontFamily: appleFont }}
-    >
-      {post.title}
-    </h3>
-    <p
-      className="mb-7 text-[17px] font-normal leading-[1.45] text-[#1D1D1F]/68"
-      style={{ fontFamily: appleFont }}
-    >
-      {description}
-    </p>
-    <div className="mt-auto flex items-center justify-between gap-4">
-      <span className="text-[13px] text-[#1D1D1F]/42" style={{ fontFamily: appleFont }}>
-        {date}
-      </span>
-      <span
-        className="inline-flex items-center gap-2 text-[15px] font-semibold"
-        style={{ color: tint, fontFamily: appleFont }}
+        {post.title}
+      </h3>
+      <p
+        className="mb-7 text-[17px] font-normal leading-[1.45] text-[#1D1D1F]/68"
+        style={{ fontFamily: appleFont }}
       >
-        Open document {Icon.arrowRight(tint, 14)}
-      </span>
+        {description}
+      </p>
+      <div className="mt-auto flex items-center justify-between gap-4">
+        <span className="text-[13px] text-[#1D1D1F]/42" style={{ fontFamily: appleFont }}>
+          {date}
+        </span>
+        <span
+          className="inline-flex items-center gap-2 text-[15px] font-semibold"
+          style={{ color: tint, fontFamily: appleFont }}
+        >
+          Open document {Icon.arrowRight(tint, 14)}
+        </span>
+      </div>
     </div>
   </article>
 );
+
+const groupPostsByCategory = (
+  posts: CommunityPost[],
+  labelFor: (value: string) => string
+) => {
+  const groups = new Map<string, CommunityPost[]>();
+
+  posts.forEach((post) => {
+    const label = labelFor(post.category || "general");
+    groups.set(label, [...(groups.get(label) || []), post]);
+  });
+
+  const preferredOrder = [
+    "Market",
+    "Investment",
+    "Fund Updates",
+    "Investor Relations",
+    "Product",
+    "General",
+  ];
+
+  return Array.from(groups.entries()).sort(([a], [b]) => {
+    const ai = preferredOrder.indexOf(a);
+    const bi = preferredOrder.indexOf(b);
+    if (ai !== -1 || bi !== -1) {
+      return (ai === -1 ? Number.MAX_SAFE_INTEGER : ai) - (bi === -1 ? Number.MAX_SAFE_INTEGER : bi);
+    }
+    return a.localeCompare(b);
+  });
+};
 
 export default function CommunityPage() {
   const [searchParams] = useSearchParams();
@@ -362,6 +435,7 @@ export default function CommunityPage() {
     }
     return toTitleCase(value);
   };
+  const newsroomGroups = groupPostsByCategory(newsroomPosts, labelFor);
 
   useEffect(() => {
     if (searchParams.get("focus") !== "search") return;
@@ -489,8 +563,8 @@ export default function CommunityPage() {
                     <FeaturedArticle
                       image={featured.image}
                       date={formatDisplayDate(featured.date)}
+                      category={featured.category || "general"}
                       categoryLabel={labelFor(featured.category || "general")}
-                      tint={getTint(featured.category || "general")}
                       title={featured.title}
                       description={getPostDescription(featured)}
                     />
@@ -559,20 +633,46 @@ export default function CommunityPage() {
                       {newsroomPosts.length} published {newsroomPosts.length === 1 ? "article" : "articles"}
                     </h2>
                   </div>
-                  <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-                    {newsroomPosts.map((post) =>
-                    renderPostLink(
-                      post,
-                      <ArticleCard
-                        post={post}
-                        image={post.image}
-                        date={formatDisplayDate(post.date)}
-                        categoryLabel={labelFor(post.category || "general")}
-                        tint={getTint(post.category || "general")}
-                        description={getPostDescription(post)}
-                      />
-                    )
-                  )}
+                  <div className="space-y-12">
+                    {newsroomGroups.map(([categoryLabel, posts]) => (
+                      <section key={categoryLabel} aria-labelledby={`community-${categoryLabel.replace(/\s+/g, "-").toLowerCase()}`}>
+                        <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                          <div>
+                            <p
+                              className="mb-2 text-[13px] font-semibold uppercase"
+                              style={{
+                                color: getTint(categoryLabel),
+                                fontFamily: appleFont,
+                                letterSpacing: 2.6,
+                              }}
+                            >
+                              {categoryLabel}
+                            </p>
+                            <h3
+                              id={`community-${categoryLabel.replace(/\s+/g, "-").toLowerCase()}`}
+                              className="text-[28px] font-semibold leading-[1.08] tracking-[-0.03em] text-[#1D1D1F] md:text-[36px]"
+                              style={{ fontFamily: appleFont }}
+                            >
+                              {posts.length} {posts.length === 1 ? "story" : "stories"}
+                            </h3>
+                          </div>
+                        </div>
+                        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                          {posts.map((post) =>
+                            renderPostLink(
+                              post,
+                              <ArticleCard
+                                post={post}
+                                image={post.image}
+                                date={formatDisplayDate(post.date)}
+                                categoryLabel={labelFor(post.category || "general")}
+                                description={getPostDescription(post)}
+                              />
+                            )
+                          )}
+                        </div>
+                      </section>
+                    ))}
                   </div>
                 </div>
               </AppleSection>
