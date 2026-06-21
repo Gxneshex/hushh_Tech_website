@@ -91,8 +91,8 @@ describe("onboarding display sequence", () => {
     expect(header).toContain('aria-label="Go back"');
     expect(header).toContain('aria-label="Go to Hushh Technologies home"');
     expect(header).toContain('<div className="flex min-w-0 items-center">');
-    expect(header).toContain('"h-[72px]"');
-    expect(header).toContain('"h-[146px]"');
+    expect(header).toContain("h-[72px]");
+    expect(header).toContain("h-[146px]");
     expect(readRepoFile("src/index.css")).toContain(
       ".onboarding-shell > header:not([data-hushh-back-header])",
     );

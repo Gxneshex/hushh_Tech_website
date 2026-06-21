@@ -63,6 +63,7 @@ const SITE_SEARCH_ITEMS = [
 ] as const;
 
 const DESKTOP_NAV_ITEMS = [
+  { label: "Home", path: "/" },
   { label: "Fund A", path: "/discover-fund-a" },
   { label: "Community", path: "/community" },
   { label: "Profile", path: "/profile" },
@@ -71,10 +72,8 @@ const DESKTOP_NAV_ITEMS = [
 const DesktopNav = ({ onNavigate }: { onNavigate: (path: string) => void }) => (
   <nav
     aria-label="Primary"
-    className="hidden items-center gap-2 rounded-full bg-white/62 px-2 py-1.5 shadow-[0_14px_34px_rgba(29,29,31,0.08),inset_0_1px_0_rgba(255,255,255,0.9)] ring-1 ring-black/[0.06] md:flex"
+    className="hidden items-center gap-7 md:flex"
     style={{
-      WebkitBackdropFilter: "blur(24px) saturate(180%)",
-      backdropFilter: "blur(24px) saturate(180%)",
       fontFamily: appleFont,
     }}
   >
@@ -83,7 +82,7 @@ const DesktopNav = ({ onNavigate }: { onNavigate: (path: string) => void }) => (
         key={item.path}
         type="button"
         onClick={() => onNavigate(item.path)}
-        className="rounded-full px-4 py-2 text-[14px] font-medium tracking-[-0.01em] text-[#1D1D1F]/72 transition hover:bg-white/70 hover:text-[#1D1D1F] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066CC]/35"
+        className="text-[14px] font-semibold tracking-[-0.01em] text-[#1D1D1F]/76 transition hover:text-[#0071E3] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066CC]/35"
       >
         {item.label}
       </button>
@@ -91,7 +90,7 @@ const DesktopNav = ({ onNavigate }: { onNavigate: (path: string) => void }) => (
     <button
       type="button"
       onClick={() => onNavigate("/profile")}
-      className="rounded-full bg-[#0071E3] px-5 py-2 text-[14px] font-semibold tracking-[-0.01em] text-white shadow-[0_8px_22px_rgba(0,113,227,0.22)] transition hover:bg-[#0077ED] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066CC]/35"
+      className="rounded-full bg-[#0071E3] px-5 py-2.5 text-[14px] font-semibold tracking-[-0.01em] text-white shadow-[0_8px_22px_rgba(0,113,227,0.22)] transition hover:bg-[#0077ED] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066CC]/35"
     >
       Start investing
     </button>
@@ -258,18 +257,25 @@ const HushhTechHeader: React.FC<HushhTechHeaderProps> = ({
       <SkipToContentLink />
 
       <header
-        className={`fixed left-0 right-0 top-0 z-50 transition-transform duration-300 ${className}`}
+        className={`fixed left-0 right-0 top-0 z-50 border-b border-[#1D1D1F]/[0.06] bg-white/88 shadow-[0_1px_0_rgba(255,255,255,0.8)_inset] backdrop-blur-xl transition-transform duration-300 ${className}`}
         data-hushh-header
       >
-        <div className="pointer-events-none px-3 pt-[max(env(safe-area-inset-top),0.85rem)] sm:px-5 md:px-8">
-          <div className="pointer-events-auto flex items-center justify-between gap-3">
-            <GlassPill>
+        <div className="pointer-events-none px-3 pt-[max(env(safe-area-inset-top),0.85rem)] sm:px-5 md:px-8 md:pt-[max(env(safe-area-inset-top),0rem)]">
+          <div className="pointer-events-auto mx-auto flex h-auto max-w-[1240px] items-center justify-between gap-3 md:h-[74px]">
+            <GlassPill className="md:hidden">
               {hasRouter ? (
                 <RoutedBrandButton />
               ) : (
                 <BrandButton onClick={() => window.location.assign("/")} />
               )}
             </GlassPill>
+            <div className="hidden md:block">
+              {hasRouter ? (
+                <RoutedBrandButton />
+              ) : (
+                <BrandButton onClick={() => window.location.assign("/")} />
+              )}
+            </div>
 
             <div className="hidden shrink-0 items-center md:flex">
               {hasRouter ? (
@@ -302,7 +308,7 @@ const HushhTechHeader: React.FC<HushhTechHeaderProps> = ({
         {showTicker ? <HushhTechTicker /> : null}
       </header>
 
-      <div className={showTicker ? "h-[146px]" : "h-[72px]"} />
+      <div className={showTicker ? "h-[146px] md:h-[148px]" : "h-[72px] md:h-[74px]"} />
 
       <HushhTechNavDrawer
         isOpen={isDrawerOpen}
