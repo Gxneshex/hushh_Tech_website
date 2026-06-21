@@ -39,7 +39,7 @@ const primaryCtaClass =
 function Centered({ icon, title, body }: { icon: string; title: string; body: string }) {
   return (
     <div className={shell} style={{ fontFamily: appleFont }}>
-      <HushhTechBackHeader rightLabel="FAQs" />
+      <HushhTechBackHeader rightLabel="FAQ" />
       <main className="mx-auto flex w-full max-w-[560px] flex-1 flex-col items-center justify-center px-5 text-center">
         <span className="material-symbols-outlined mb-4 text-[44px] text-[#0066CC]">{icon}</span>
         <Display as="h1" size="xs" maxWidth="max-w-[460px]">
@@ -176,7 +176,7 @@ export default function OnboardingInvitePage() {
 
   return (
     <div className={shell} style={{ fontFamily: appleFont }}>
-      <HushhTechBackHeader rightLabel="FAQs" />
+      <HushhTechBackHeader rightLabel="FAQ" />
       <main className="mx-auto w-full max-w-[640px] flex-grow px-4 pb-32 sm:px-5">
         <section className="pb-4 pt-8 text-center">
           <Eyebrow>{d.role_label}</Eyebrow>

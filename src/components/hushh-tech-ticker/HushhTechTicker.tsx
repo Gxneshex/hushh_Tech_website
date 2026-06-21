@@ -2,31 +2,24 @@ import { useRef } from "react";
 
 import { useConstantTickerMotion } from "../../hooks/useConstantTickerMotion";
 import { StockQuote, useStockQuotes } from "../../hooks/useStockQuotes";
-import { Icon, SYS, appleFont } from "../hushh-tech-ui/HushhAppleUI";
-
-const logoTint = [
-  "#EAF3FF",
-  "#EEFBEF",
-  "#FFF4E6",
-  "#F4ECFF",
-];
+import { Icon, appleFont } from "../hushh-tech-ui/HushhAppleUI";
 
 const TICKER_SCROLL_PIXELS_PER_SECOND = 136;
+const TICKER_UP = "#B3892E";
+const TICKER_DOWN = "#B95C5C";
 
 const TickerChip = ({
   quote,
   isLoading,
-  index,
 }: {
   quote: StockQuote;
   isLoading?: boolean;
-  index: number;
 }) => {
-  const tint = quote.isUp ? SYS.green : SYS.red;
+  const tint = quote.isUp ? TICKER_UP : TICKER_DOWN;
 
   return (
     <div
-      className="flex h-9 shrink-0 items-center gap-2 rounded-full bg-[#FFFFFF] py-2 pl-2 pr-3"
+      className="flex h-9 shrink-0 items-center gap-2 rounded-full bg-[#FFFFFF] py-2 pl-2.5 pr-3.5"
       style={{
         boxShadow:
           "0 0 0 0.5px rgba(60,60,67,0.08), 0 1px 2px rgba(0,0,0,0.03)",
@@ -34,24 +27,10 @@ const TickerChip = ({
       }}
     >
       <div
-        className="flex h-[22px] w-[22px] shrink-0 items-center justify-center overflow-hidden rounded-full text-[10.5px] font-medium text-[#1D1D1F]"
-        style={{ background: logoTint[index % logoTint.length] }}
+        className="flex h-[22px] min-w-[22px] shrink-0 items-center justify-center rounded-full bg-[#F5F5F7] px-1.5 text-[10px] font-semibold uppercase text-[#1D1D1F]/62 ring-1 ring-black/[0.04]"
+        aria-hidden="true"
       >
-        {quote.logo ? (
-          <img
-            src={quote.logo}
-            alt={`${quote.displaySymbol} logo`}
-            width="14"
-            height="14"
-            className="h-3.5 w-3.5 object-contain mix-blend-multiply"
-            loading="lazy"
-            onError={(event) => {
-              event.currentTarget.style.display = "none";
-            }}
-          />
-        ) : (
-          quote.displaySymbol.charAt(0)
-        )}
+        {quote.displaySymbol.slice(0, 2)}
       </div>
       <span className="text-[13.5px] font-medium leading-none tracking-[-0.01em] text-[#1D1D1F]">
         {quote.displaySymbol}
@@ -123,7 +102,6 @@ export default function HushhTechTicker() {
                 <TickerChip
                   key={`${loopIndex}-${quote.symbol}-${idx}`}
                   quote={quote}
-                  index={idx}
                   isLoading={quotesLoading && quotes.length === 0}
                 />
               ))}

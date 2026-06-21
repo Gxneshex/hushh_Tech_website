@@ -2,7 +2,8 @@
  * Step 3 — Confirm Your Residence & Address (Combined)
  *
  * Single page merging country/residence detection + full address entry.
- * GPS/current location is shown separately and never fills legal residence.
+ * Current location can prefill blank self-declared fields without overwriting
+ * bank-verified or user-entered residence details.
  */
 import { useRef, useState } from "react";
 import {
@@ -13,6 +14,7 @@ import {
 } from "./logic";
 import HushhTechBackHeader from "../../../components/hushh-tech-back-header/HushhTechBackHeader";
 import OnboardingBankReviewChip from "../../../components/onboarding-bank-review-chip/OnboardingBankReviewChip";
+import { OnboardingStepJumpNav } from "../../../components/onboarding/OnboardingStepJumpNav";
 import HushhTechCta, {
   HushhTechCtaVariant,
 } from "../../../components/hushh-tech-cta/HushhTechCta";
@@ -80,7 +82,7 @@ export default function OnboardingStep3Combined() {
         }`}
       >
         {/* ═══ Header ═══ */}
-        <HushhTechBackHeader onBackClick={s.handleBack} rightLabel="FAQs" />
+        <HushhTechBackHeader onBackClick={s.handleBack} rightLabel="FAQ" />
         <OnboardingBankReviewChip />
 
         <main className="mx-auto w-full max-w-[700px] flex-grow px-4 pb-48 sm:px-5">
@@ -98,6 +100,7 @@ export default function OnboardingStep3Combined() {
                 style={{ width: `${PROGRESS_PCT}%` }}
               />
             </div>
+            <OnboardingStepJumpNav currentStep={DISPLAY_STEP} totalSteps={TOTAL_STEPS} />
           </div>
 
           {/* ── Title Section ── */}
@@ -380,20 +383,26 @@ export default function OnboardingStep3Combined() {
             </section>
 
             <section className={panelClass}>
-              <div className="mb-5 flex items-center justify-between gap-4">
+              <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h3 className="text-[11px] font-medium uppercase tracking-[1.6px] text-[#0066CC]/85">
                     Residence
                   </h3>
                   <p className="mt-1 text-[13px] font-normal leading-[1.45] text-[#1D1D1F]/50">
-                    Legal residence used for investor verification.
+                    Add your legal residence and address for investor verification.
                   </p>
                 </div>
-                {/* v1 model: no GPS "Auto-fill" of legal residence. The device's
-                    current location is shown read-only in the "Current location"
-                    banner above and saved separately (gps_*) — it never fills the
-                    legal residence. Residence comes from the linked bank (Plaid),
-                    or the investor types it below. */}
+                <button
+                  type="button"
+                  onClick={s.handleDetectClick}
+                  disabled={s.isDetectingLocation}
+                  className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-[#EAF4FF] px-4 text-[13px] font-medium text-[#0066CC] transition hover:bg-[#DDEFFF] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  <span className="material-symbols-outlined text-[18px]">
+                    my_location
+                  </span>
+                  {s.isDetectingLocation ? "Locating..." : "Use current location"}
+                </button>
               </div>
 
               <div className="space-y-4">
@@ -425,9 +434,6 @@ export default function OnboardingStep3Combined() {
                       </span>
                     </div>
                   </label>
-                  {/* v1 (Plaid pivot): Residence is shown ONLY when bank-verified.
-                      No-bank investors are not shown a residence field at all. */}
-                  {s.hasBankResidence && (
                   <label className={fieldClass}>
                     <span className={labelClass}>
                       Residence
@@ -456,18 +462,16 @@ export default function OnboardingStep3Combined() {
                       </span>
                     </div>
                   </label>
-                  )}
                 </div>
 
-                {/* v1: the bank-verified legal residence note + the address block
-                    render only when Plaid provided a bank address. */}
-                {s.hasBankResidence && (<>
                 <div className="flex items-start gap-3 rounded-[18px] bg-[#F5F5F7]/70 px-4 py-3 shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.06)]">
                   <span className="material-symbols-outlined mt-0.5 text-[18px] text-[#1D1D1F]/35">
                     location_on
                   </span>
                   <p className="text-[13px] font-normal leading-[1.45] text-[#1D1D1F]/50">
-                    Bank-verified legal residence is locked. Current location is tracked separately for security checks.
+                    {s.hasBankResidence
+                      ? "Bank-verified fields are locked. Current location is tracked separately for security checks."
+                      : "Use current location to prefill blank address fields, then review and edit before continuing."}
                   </p>
                 </div>
 
@@ -496,23 +500,23 @@ export default function OnboardingStep3Combined() {
                     </p>
                   )}
 
-                  {s.hasPlaidAddressLine2 && (
-                    <label className={fieldClass} htmlFor="addressLine2">
-                      <span className={labelClass}>
-                        Apt / Suite
-                        {s.fieldSources["address_line_2"] === "plaid" && <BankVerifiedMarker />}
-                      </span>
-                      <input
-                        id="addressLine2"
-                        type="text"
-                        value={s.addressLine2}
-                        onChange={(e) => s.handleAddressLine2Change(e.target.value)}
-                        readOnly={s.isPlaidLocked("address_line_2")}
-                        className={`${inputClass}${s.isPlaidLocked("address_line_2") ? " cursor-not-allowed text-[#1D1D1F]/55" : ""}`}
-                        autoComplete="address-line2"
-                      />
-                    </label>
-                  )}
+                  <label className={fieldClass} htmlFor="addressLine2">
+                    <span className={labelClass}>
+                      Apt / Suite
+                      <OptionalMarker />
+                      {s.fieldSources["address_line_2"] === "plaid" && <BankVerifiedMarker />}
+                    </span>
+                    <input
+                      id="addressLine2"
+                      type="text"
+                      value={s.addressLine2}
+                      onChange={(e) => s.handleAddressLine2Change(e.target.value)}
+                      placeholder="Apartment, suite, unit"
+                      readOnly={s.isPlaidLocked("address_line_2")}
+                      className={`${inputClass}${s.isPlaidLocked("address_line_2") ? " cursor-not-allowed text-[#1D1D1F]/55" : ""}`}
+                      autoComplete="address-line2"
+                    />
+                  </label>
 
                   <div className="grid gap-3 sm:grid-cols-[1fr_0.8fr_0.65fr]">
                     <label className={fieldClass} htmlFor="city">
@@ -585,7 +589,6 @@ export default function OnboardingStep3Combined() {
                     </p>
                   )}
                 </div>
-                </>)}
               </div>
             </section>
 

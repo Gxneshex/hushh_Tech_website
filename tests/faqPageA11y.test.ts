@@ -57,12 +57,14 @@ describe("FAQ page", () => {
     );
 
     expect(firstFaq?.getAttribute("aria-expanded")).toBe("false");
-    expect(firstFaq?.getAttribute("aria-controls")).toBe("faq-panel-0");
+    const controlledPanelId = firstFaq?.getAttribute("aria-controls");
+    expect(controlledPanelId).toBeTruthy();
 
     await act(async () => {
       firstFaq?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     });
 
     expect(firstFaq?.getAttribute("aria-expanded")).toBe("true");
+    expect(container.querySelector(`#${controlledPanelId}`)).toBeTruthy();
   });
 });

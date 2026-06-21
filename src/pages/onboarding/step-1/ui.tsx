@@ -12,6 +12,7 @@ import {
 } from "./logic";
 import HushhTechBackHeader from "../../../components/hushh-tech-back-header/HushhTechBackHeader";
 import OnboardingBankReviewChip from "../../../components/onboarding-bank-review-chip/OnboardingBankReviewChip";
+import { OnboardingStepJumpNav } from "../../../components/onboarding/OnboardingStepJumpNav";
 import HushhTechCta, {
   HushhTechCtaVariant,
 } from "../../../components/hushh-tech-cta/HushhTechCta";
@@ -154,7 +155,7 @@ export default function OnboardingStep1() {
       className="flex min-h-screen flex-col bg-[#FFFFFF] text-[#1D1D1F] antialiased selection:bg-[#0066CC] selection:text-[#F5F5F7]"
       style={{ fontFamily: appleFont }}
     >
-      <HushhTechBackHeader onBackClick={handleBack} rightLabel="FAQs" />
+      <HushhTechBackHeader onBackClick={handleBack} rightLabel="FAQ" />
       <OnboardingBankReviewChip />
 
       <main className="mx-auto w-full max-w-[640px] flex-grow px-4 pb-48 sm:px-5">
@@ -169,6 +170,7 @@ export default function OnboardingStep1() {
               style={{ width: `${PROGRESS_PCT}%` }}
             />
           </div>
+          <OnboardingStepJumpNav currentStep={CURRENT_STEP} totalSteps={TOTAL_STEPS} />
         </div>
 
         <section className="pb-8 pt-8 text-center">

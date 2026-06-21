@@ -86,10 +86,10 @@ export default function OnboardingFinancialLink() {
       className="flex min-h-screen flex-col bg-[#FFFFFF] text-[#1D1D1F] antialiased selection:bg-[#0066CC] selection:text-[#F5F5F7]"
       style={{ fontFamily: appleFont }}
     >
-      {/* Header — back + FAQs */}
+      {/* Header — back + FAQ */}
       <HushhTechBackHeader
         onBackClick={handleBack}
-        rightLabel="FAQs"
+        rightLabel="FAQ"
       />
 
       {/* Main Content */}

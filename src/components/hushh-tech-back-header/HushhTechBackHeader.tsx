@@ -16,10 +16,16 @@ interface HushhTechBackHeaderProps {
   className?: string;
 }
 
+const DESKTOP_NAV_ITEMS = [
+  { label: "Fund A", path: "/discover-fund-a" },
+  { label: "Community", path: "/community" },
+  { label: "Profile", path: "/profile" },
+] as const;
+
 const HushhTechBackHeader: React.FC<HushhTechBackHeaderProps> = ({
   onBackClick,
   rightType = "label",
-  rightLabel = "FAQs",
+  rightLabel = "FAQ",
   onRightClick,
   showRightButton = true,
   showTicker = false,
@@ -29,6 +35,7 @@ const HushhTechBackHeader: React.FC<HushhTechBackHeaderProps> = ({
   const location = useLocation();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isFaqOpen, setIsFaqOpen] = useState(false);
+  const isOnboarding = location.pathname.startsWith("/onboarding");
 
   const handleRightClick = () => {
     if (onRightClick) {
@@ -36,7 +43,7 @@ const HushhTechBackHeader: React.FC<HushhTechBackHeaderProps> = ({
       return;
     }
 
-    if (rightLabel?.toLowerCase() !== "faqs") return;
+    if (!["faq", "faqs"].includes(rightLabel?.toLowerCase() ?? "")) return;
 
     if (location.pathname.startsWith("/onboarding")) {
       setIsFaqOpen(true);
@@ -64,6 +71,36 @@ const HushhTechBackHeader: React.FC<HushhTechBackHeaderProps> = ({
 
   const handleBrandClick = () => navigate("/");
   const headerClassName = `fixed left-0 right-0 top-0 z-50 ${className}`;
+
+  const desktopNav = (
+    <nav
+      aria-label="Primary"
+      className="hidden items-center gap-2 rounded-full bg-white/62 px-2 py-1.5 shadow-[0_14px_34px_rgba(29,29,31,0.08),inset_0_1px_0_rgba(255,255,255,0.9)] ring-1 ring-black/[0.06] md:flex"
+      style={{
+        WebkitBackdropFilter: "blur(24px) saturate(180%)",
+        backdropFilter: "blur(24px) saturate(180%)",
+        fontFamily: appleFont,
+      }}
+    >
+      {DESKTOP_NAV_ITEMS.map((item) => (
+        <button
+          key={item.path}
+          type="button"
+          onClick={() => navigate(item.path)}
+          className="rounded-full px-4 py-2 text-[14px] font-medium tracking-[-0.01em] text-[#1D1D1F]/72 transition hover:bg-white/70 hover:text-[#1D1D1F] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066CC]/35"
+        >
+          {item.label}
+        </button>
+      ))}
+      <button
+        type="button"
+        onClick={() => navigate("/profile")}
+        className="rounded-full bg-[#0071E3] px-5 py-2 text-[14px] font-semibold tracking-[-0.01em] text-white shadow-[0_8px_22px_rgba(0,113,227,0.22)] transition hover:bg-[#0077ED] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066CC]/35"
+      >
+        Start investing
+      </button>
+    </nav>
+  );
 
   const brandButton = (
     <button
@@ -98,7 +135,7 @@ const HushhTechBackHeader: React.FC<HushhTechBackHeaderProps> = ({
       >
         <div className="pointer-events-none absolute inset-x-0 top-0 h-[72px] bg-gradient-to-b from-white/75 via-white/45 to-white/10 backdrop-blur-xl [mask-image:linear-gradient(to_bottom,black_72%,transparent)]" />
 
-        <div className="relative flex w-full items-center justify-between px-3 pb-3 pt-[max(env(safe-area-inset-top),0.85rem)] sm:px-5">
+        <div className="relative flex w-full items-center justify-between px-3 pb-3 pt-[max(env(safe-area-inset-top),0.85rem)] sm:px-5 md:px-8">
           <div className="relative flex min-w-0 items-center">
             <GlassPill className="relative min-w-0 shrink">
               <div className="flex min-w-0 items-center">
@@ -117,7 +154,7 @@ const HushhTechBackHeader: React.FC<HushhTechBackHeaderProps> = ({
           </div>
 
           {showRightButton && rightType === "hamburger" ? (
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 md:hidden">
               <GlassPill className="relative">
                 <button
                   type="button"
@@ -132,7 +169,7 @@ const HushhTechBackHeader: React.FC<HushhTechBackHeaderProps> = ({
           ) : null}
 
           {showRightButton && rightType === "label" ? (
-            <GlassPill className="relative">
+            <GlassPill className={isOnboarding ? "relative" : "relative md:hidden"}>
               <button
                 type="button"
                 onClick={handleRightClick}
@@ -144,6 +181,8 @@ const HushhTechBackHeader: React.FC<HushhTechBackHeaderProps> = ({
               </button>
             </GlassPill>
           ) : null}
+
+          {!isOnboarding ? desktopNav : null}
         </div>
 
         {showTicker ? <HushhTechTicker /> : null}

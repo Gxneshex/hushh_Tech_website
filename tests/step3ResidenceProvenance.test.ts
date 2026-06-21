@@ -49,18 +49,21 @@ describe('step-3 residence provenance + attestation (PR 2)', () => {
     });
   });
 
-  it('persists provenance + legal-residence attestation on save, gated on the checkbox', () => {
+  it('persists provenance + full legal residence on save, with attestation only for bank-verified residence', () => {
     const logic = read('src/pages/onboarding/step-3/logic.ts');
     expect(logic).toContain('payload.field_provenance = buildStep3FieldProvenance(fieldSources)');
-    expect(logic).toContain('Object.assign(payload, buildStep3LegalResidenceClearPayload())');
+    expect(logic).not.toContain('Object.assign(payload, buildStep3LegalResidenceClearPayload())');
+    expect(logic).toContain('addressLine1.trim() &&');
+    expect(logic).toContain('addressCity.trim() &&');
+    expect(logic).toContain('addressState.trim() &&');
+    expect(logic).toContain('zipCode.trim() &&');
     expect(logic).toContain('payload.residence_attested_at = new Date().toISOString()');
     expect(logic).toContain('payload.consent_version = CONSENT_VERSION');
-    // v1.1: attestation is required + persisted ONLY when there is a bank-verified
-    // residence to attest (no-Plaid investors see no residence section).
+    // Attestation is still required + persisted ONLY when there is a bank-verified
+    // residence to attest, but self-declared residence/address are required for everyone.
     expect(logic).toContain('if (hasBankResidence && !residenceAttested)');
     expect(logic).toContain('if (hasBankResidence && residenceAttested) {');
-    // canContinue gates residence/address/attestation behind hasBankResidence
-    expect(logic).toContain('!hasBankResidence || (');
+    expect(logic).toContain('(!hasBankResidence || residenceAttested)');
     expect(logic).toContain('residenceAttested');
   });
 

@@ -50,7 +50,7 @@ function VerifyCompletePage() {
       className="bg-white text-[#1D1D1F] min-h-screen antialiased flex flex-col selection:bg-hushh-blue selection:text-white"
       style={{ fontFamily: appleFont }}
     >
-      <HushhTechBackHeader onBackClick={handleContinue} rightLabel="FAQs" />
+      <HushhTechBackHeader onBackClick={handleContinue} rightLabel="FAQ" />
 
       <main className="px-6 flex-grow max-w-md mx-auto w-full flex flex-col items-center justify-center text-center pb-16">
         {/* Status icon */}

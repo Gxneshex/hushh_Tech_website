@@ -208,7 +208,7 @@ export default function FundPaymentLinkPage() {
     >
       <HushhTechBackHeader
         onBackClick={showForwardCta ? goToMeetCeo : goToStep9}
-        rightLabel="FAQs"
+        rightLabel="FAQ"
       />
 
       <main className="mx-auto flex w-full max-w-[560px] flex-grow flex-col px-5 pb-24 pt-20 text-center">

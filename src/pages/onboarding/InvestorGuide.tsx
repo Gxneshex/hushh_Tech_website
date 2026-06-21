@@ -122,7 +122,7 @@ const faqs = [
   },
   {
     question: 'Is my data secure?',
-    answer: 'Absolutely. We use bank-level encryption (AES-256) and never sell your personal data to third parties.',
+    answer: 'Absolutely. We use AES-256 encryption and never sell your personal data to third parties.',
   },
 ];
 
@@ -204,7 +204,7 @@ export default function InvestorGuide() {
       style={{ fontFamily: appleFont }}
     >
       <div className="onboarding-shell mx-auto flex h-full min-h-screen w-full max-w-[500px] flex-col bg-white shadow-xl relative overflow-hidden border-x border-slate-100">
-        <HushhTechBackHeader onBackClick={handleBack} rightLabel="FAQs" />
+        <HushhTechBackHeader onBackClick={handleBack} rightLabel="FAQ" />
 
         {/* Main Scrollable Content */}
         <main className="flex-1 flex flex-col pb-44 sm:pb-52 overflow-y-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
