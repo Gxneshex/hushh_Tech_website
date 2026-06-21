@@ -29,8 +29,7 @@ describe("Community Fund A document presentation", () => {
     expect(logic).toContain("mergedBySlug.set(post.slug");
     expect(ui).toContain('documents: { label: "Fund Documents"');
     expect(ui).toContain('if (lower.includes("document")) return CATEGORY_META.documents;');
-    expect(ui).toContain("ArticleCard");
-    expect(ui).toContain("DocumentCard");
+    expect(ui).toContain("ArticleRow");
     expect(ui).not.toContain("FundAOfferingDocuments");
   });
 

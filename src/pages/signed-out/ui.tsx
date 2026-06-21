@@ -59,7 +59,7 @@ export default function SignedOutPage() {
     >
       <HushhTechBackHeader
         onBackClick={() => window.location.assign("/")}
-        rightLabel="FAQ"
+        rightLabel="FAQs"
       />
 
       <main className="mx-auto flex w-full max-w-[560px] flex-grow flex-col px-5 pb-24 pt-20 text-center">

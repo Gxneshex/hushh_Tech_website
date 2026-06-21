@@ -59,11 +59,12 @@ describe("Leadership card grid", () => {
     const cards = Array.from(grid?.children || []);
 
     expect(grid).not.toBeNull();
-    expect(cards).toHaveLength(1);
-    expect(grid?.className).toContain("justify-center");
+    expect(cards).toHaveLength(2);
+    expect(grid?.className).toContain("md:grid-cols-2");
     expect(grid?.textContent).toContain("Manish");
-    expect(grid?.textContent).not.toContain("Justin");
+    expect(grid?.textContent).toContain("Justin");
     expect(grid?.textContent).toContain("Founder & CEO");
+    expect(grid?.textContent).toContain("Chief Scientist & Investment Strategist");
   });
 
   it("keeps the strategy overview aligned to the home-page grid rhythm", () => {

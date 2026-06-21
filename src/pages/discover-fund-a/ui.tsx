@@ -76,52 +76,6 @@ function FundAStyles() {
       [data-page="fund-a"] h3 { margin: 0; text-wrap: balance; }
       [data-page="fund-a"] p { margin: 0; text-wrap: pretty; }
       .fa-sec { padding: clamp(96px,12vw,150px) 40px; }
-      .fa-flagship {
-        position: relative;
-        overflow: hidden;
-        padding-top: clamp(76px,8vw,112px);
-        padding-bottom: clamp(76px,8vw,112px);
-      }
-      .fa-flagship::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background:
-          radial-gradient(ellipse at 50% 8%, rgba(0,113,227,.10), rgba(0,113,227,0) 52%),
-          linear-gradient(180deg, #fff 0%, #f8fbff 52%, #fff 100%);
-        pointer-events: none;
-      }
-      .fa-flagship-card {
-        position: relative;
-        max-width: 920px;
-        margin: 0 auto;
-        padding: clamp(34px,5vw,56px);
-        border-radius: 34px;
-        border: 1px solid rgba(0,0,0,.06);
-        background: rgba(255,255,255,.78);
-        box-shadow:
-          0 28px 80px rgba(29,29,31,.07),
-          inset 0 1px 0 rgba(255,255,255,.9);
-        backdrop-filter: blur(18px) saturate(160%);
-        -webkit-backdrop-filter: blur(18px) saturate(160%);
-      }
-      .fa-flagship-copy {
-        max-width: 720px;
-        margin: 0 auto clamp(30px,4vw,42px);
-      }
-      .fa-flagship-stat {
-        max-width: 640px;
-        margin: 0 auto;
-        padding-top: clamp(28px,4vw,40px);
-        border-top: 1px solid rgba(0,0,0,.08);
-      }
-      .fa-flagship-value {
-        font-weight: 700;
-        font-size: clamp(56px,9vw,104px);
-        line-height: .98;
-        letter-spacing: -.04em;
-        color: #0071e3;
-      }
       .fa-head-c { text-align: center; margin-left: auto; margin-right: auto; }
       .fa-eyebrow {
         font-size: 13px;
@@ -195,8 +149,6 @@ function FundAStyles() {
       @media (max-width: 640px) {
         .fa-r2 { grid-template-columns: 1fr; }
         .fa-sec { padding: 72px 20px; }
-        .fa-flagship { padding: 62px 20px 72px; }
-        .fa-flagship-card { padding: 30px 20px 34px; border-radius: 28px; }
         .fa-framework-row { gap: 16px; }
         .fa-framework-num { min-width: 38px; }
         .fa-card { border-radius: 22px; }
@@ -399,10 +351,10 @@ const FundA = () => {
       />
 
       <main id="main-content">
-        <section className="fa-sec fa-flagship" style={{ background: "#fff" }}>
-          <div className="fa-flagship-card">
+        <section className="fa-sec" style={{ background: "#fff" }}>
+          <div style={{ maxWidth: 1100, margin: "0 auto" }}>
             <Reveal className="fa-head-c">
-              <div className="fa-flagship-copy">
+              <div style={{ maxWidth: 720, margin: "0 auto clamp(48px,6vw,66px)" }}>
                 <div className="fa-eyebrow" style={{ color: "#0071e3", marginBottom: 18 }}>
                   Flagship Fund
                 </div>
@@ -424,11 +376,19 @@ const FundA = () => {
                 </p>
               </div>
             </Reveal>
-            <Reveal className="fa-head-c fa-flagship-stat">
+            <Reveal className="fa-head-c">
               <div className="fa-eyebrow" style={{ color: "#0071e3", marginBottom: 14 }}>
                 {targetIRRLabel}
               </div>
-              <div className="fa-flagship-value">
+              <div
+                style={{
+                  fontWeight: 700,
+                  fontSize: "clamp(56px,9vw,104px)",
+                  lineHeight: .98,
+                  letterSpacing: "-.04em",
+                  color: "#0071e3",
+                }}
+              >
                 {targetIRRValue.replace("-", "–")}
               </div>
               <div style={{ marginTop: 10, fontSize: 15, color: "rgba(0,0,0,.5)" }}>

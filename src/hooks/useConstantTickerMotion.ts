@@ -7,7 +7,7 @@ interface ConstantTickerMotionOptions {
   pixelsPerSecond?: number;
 }
 
-const DEFAULT_TICKER_PIXELS_PER_SECOND = 162;
+const DEFAULT_TICKER_PIXELS_PER_SECOND = 136;
 
 export const useConstantTickerMotion = ({
   enabled,

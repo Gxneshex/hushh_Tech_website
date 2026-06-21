@@ -66,11 +66,11 @@ describe("public HushhTech UI cleanup", () => {
 
     expect(backHeader).toContain("fixed left-0 right-0 top-0 z-50");
     expect(backHeader).toContain('data-hushh-back-header');
-    expect(backHeader).toContain("h-[146px]");
-    expect(backHeader).toContain("h-[72px]");
+    expect(backHeader).toContain('"h-[146px]"');
+    expect(backHeader).toContain('"h-[72px]"');
   });
 
-  it("keeps FAQ copy consistent and scopes the FAQ sheet to onboarding", () => {
+  it("keeps FAQs copy consistent and scopes the FAQ sheet to onboarding", () => {
     const backHeader = read(
       "src/components/hushh-tech-back-header/HushhTechBackHeader.tsx",
     );
@@ -79,13 +79,13 @@ describe("public HushhTech UI cleanup", () => {
     const footer = read("src/components/Footer.tsx");
     const enLocale = read("src/i18n/locales/en.json");
 
-    expect(backHeader).toContain('rightLabel = "FAQ"');
+    expect(backHeader).toContain('rightLabel = "FAQs"');
     expect(backHeader).toContain('location.pathname.startsWith("/onboarding")');
     expect(backHeader).toContain('navigate("/faq")');
     expect(backHeader).not.toContain("px-5 text-[12px] font-medium uppercase");
     expect(faqPage).toContain("<HushhTechBackHeader showRightButton={false} />");
-    expect(navDrawer).toContain('label: "FAQ", path: "/faq"');
-    expect(footer).toContain("FAQ");
-    expect(enLocale).toContain('"faq": "FAQ"');
+    expect(navDrawer).toContain('label: "FAQs", path: "/faq"');
+    expect(footer).toContain("FAQs");
+    expect(enLocale).toContain('"faq": "FAQs"');
   });
 });

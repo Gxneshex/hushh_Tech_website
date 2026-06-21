@@ -1,5 +1,5 @@
 /**
- * HushhTechFaqSheet — Bottom sheet with onboarding FAQ accordions.
+ * HushhTechFaqSheet — Bottom sheet with accordion FAQs.
  * Follows the unified Hushh Tech Apple-style design language.
  */
 import React, { useState, useEffect, useCallback, useRef } from "react";
@@ -19,87 +19,70 @@ interface FaqCategory {
 
 const FAQ_DATA: FaqCategory[] = [
   {
-    title: "Getting started",
-    items: [
-      {
-        q: "What is this onboarding for?",
-        a: "This flow helps Hushh collect the account, identity, eligibility, and review details needed before an investment can move forward.",
-      },
-      {
-        q: "How long does onboarding take?",
-        a: "Most investors can move through the flow quickly if their basic identity, tax, bank, and allocation details are ready. You can pause and return if you need more time.",
-      },
-      {
-        q: "Can I come back later?",
-        a: "Yes. You can return to onboarding from your profile. Required steps must still be completed before review or payment can proceed.",
-      },
-      {
-        q: "Which steps are required?",
-        a: "Identity, eligibility, bank review, document acknowledgment, and payment-related steps are required when they apply to your account type. Optional fields are marked separately in the flow.",
-      },
-    ],
-  },
-  {
-    title: "Identity and tax",
+    title: "Onboarding",
     items: [
       {
         q: "What is KYC verification?",
-        a: "KYC means Know Your Customer. It is the identity review private investment platforms use to confirm who is applying and whether the account can be reviewed.",
+        a: "KYC (Know Your Customer) is a regulatory requirement that verifies your identity before you can invest. We collect basic personal and financial information to ensure compliance with SEC regulations.",
       },
       {
-        q: "Why do you ask for SSN?",
-        a: "For U.S. investors, SSN helps support identity verification, tax reporting, and compliance review. It is used only for the review process described in the onboarding disclosures.",
+        q: "How long does onboarding take?",
+        a: "Most users complete the full onboarding process in under 5 minutes. If you need to gather documents, you can save your progress and return anytime.",
       },
       {
-        q: "Why do you ask for date of birth and address?",
-        a: "These details help verify identity, screen eligibility, and prepare the investor profile accurately for review.",
+        q: "Can I skip steps and come back later?",
+        a: "Yes — some steps can be skipped. However, all required verifications must be completed before you can make your first investment.",
       },
-    ],
-  },
-  {
-    title: "Bank and documents",
-    items: [
-      {
-        q: "Why connect a bank?",
-        a: "Bank connection helps verify account, balance, identity, and investment data for review. The connect button stays gated by the consent checkbox before Plaid opens.",
-      },
-      {
-        q: "Can I review my answers before submitting?",
-        a: "Yes. The review step is designed so you can check key details and go back to edit before final submission.",
-      },
-      {
-        q: "Why do I need to accept disclosures before payment?",
-        a: "Before a secure payment link can be sent, you must acknowledge the risk disclosures, eligibility criteria, subscription agreement, and investment-risk language shown in the flow.",
-      },
-    ],
-  },
-  {
-    title: "Rewards",
-    items: [
       {
         q: "What are Hushh Coins?",
-        a: "Hushh Coins are onboarding rewards that show progress and can unlock future Hushh experiences. They are not fund units, investment returns, or cash interest.",
-      },
-      {
-        q: "When do I earn them?",
-        a: "You earn coins as you complete key onboarding actions, such as profile setup, verification, and review steps.",
-      },
-      {
-        q: "How can I use them?",
-        a: "Coins are designed for Hushh platform benefits, such as future access, perks, or fee-related experiences when available.",
+        a: "Hushh Coins are reward tokens you earn during onboarding and by engaging with the platform. They can be redeemed for premium features and reduced fees.",
       },
     ],
   },
   {
-    title: "Help",
+    title: "Investment",
     items: [
       {
-        q: "What if I get stuck?",
-        a: "You can close this sheet and use the support link below, or return to the previous step with the top-left back control.",
+        q: "What is Hushh Fund A?",
+        a: "Hushh Fund A (27FCF) is our flagship AI-driven quantitative fund. It uses proprietary algorithms to identify market opportunities while managing risk through diversification.",
       },
       {
-        q: "Where can I read broader Fund A questions?",
-        a: "Use the main FAQ page from the site menu for strategy, risk, privacy, Fund A, and account questions that are not specific to the onboarding steps.",
+        q: "What is the minimum investment?",
+        a: "The minimum investment varies by investor type. Accredited investors can start with as little as $25,000. Please refer to the fund documents for full details.",
+      },
+      {
+        q: "How do I track my investment performance?",
+        a: "Once invested, you'll have access to a real-time dashboard showing your portfolio performance, returns, and detailed analytics — all from your profile.",
+      },
+    ],
+  },
+  {
+    title: "Security & Privacy",
+    items: [
+      {
+        q: "How is my data protected?",
+        a: "All data is encrypted with 256-bit AES encryption in transit and at rest. We use bank-grade security infrastructure and are fully GDPR and SOC 2 compliant.",
+      },
+      {
+        q: "Who can see my financial information?",
+        a: "Your financial data is strictly confidential. Only authorized compliance personnel can access it for regulatory purposes. It is never shared with third parties for marketing.",
+      },
+      {
+        q: "What is the NDA I signed?",
+        a: "The Non-Disclosure Agreement protects confidential investment strategies and fund performance data shared with you. It's standard practice for private investment funds.",
+      },
+    ],
+  },
+  {
+    title: "Account",
+    items: [
+      {
+        q: "How do I update my profile?",
+        a: "Navigate to your Profile from the bottom navigation bar. You can edit your personal details, investment preferences, and notification settings at any time.",
+      },
+      {
+        q: "Can I delete my account?",
+        a: "Yes. Go to Profile → Settings → Delete Account. Please note that active investments must be redeemed before account deletion can be processed.",
       },
     ],
   },
@@ -201,13 +184,13 @@ const HushhTechFaqSheet: React.FC<HushhTechFaqSheetProps> = ({
             id="hushh-tech-faq-title"
             className="text-[24px] font-semibold leading-[1.05] tracking-[-0.035em] text-[#1D1D1F]"
           >
-            Onboarding FAQ
+            Frequently Asked Questions
           </h2>
           <button
             ref={closeButtonRef}
             onClick={handleBackdropClick}
             className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors"
-            aria-label="Close FAQ"
+            aria-label="Close FAQs"
           >
             {Icon.close("#6E6E73", 14)}
           </button>

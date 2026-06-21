@@ -253,7 +253,7 @@ const PublicInvestorProfilePage: React.FC = () => {
   if (!profileData || error) {
     return (
       <div className="bg-white text-gray-900 min-h-screen antialiased flex flex-col selection:bg-hushh-blue selection:text-white">
-        <HushhTechBackHeader onBackClick={() => navigate('/')} rightLabel="FAQ" />
+        <HushhTechBackHeader onBackClick={() => navigate('/')} rightLabel="FAQs" />
         <main className="px-6 flex-grow max-w-md mx-auto w-full flex flex-col items-center justify-center">
           <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-6">
             <User className="w-8 h-8 text-gray-400" />

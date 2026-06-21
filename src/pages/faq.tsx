@@ -1,162 +1,81 @@
-import React from "react";
+import React from 'react';
 import {
-  Box,
   Container,
+  Box,
   Heading,
-  Icon,
   Text,
   VStack,
+  Icon,
 } from "@chakra-ui/react";
-import { ChevronDownIcon, ChevronUpIcon } from "@chakra-ui/icons";
-
+import { ChevronDownIcon, ChevronUpIcon } from '@chakra-ui/icons';
 import HushhTechBackHeader from "../components/hushh-tech-back-header/HushhTechBackHeader";
-import {
-  appleDisplayFont,
-  appleFont,
-} from "../components/hushh-tech-ui/HushhAppleUI";
+import { appleDisplayFont, appleFont } from "../components/hushh-tech-ui/HushhAppleUI";
 
 interface FaqItem {
   question: string;
   answer: string;
 }
 
-interface FaqCategory {
-  eyebrow: string;
-  title: string;
-  items: FaqItem[];
-}
-
-const faqCategories: FaqCategory[] = [
+const faqs: FaqItem[] = [
   {
-    eyebrow: "Fund A",
-    title: "Fund Access and Terms",
-    items: [
-      {
-        question: "What is Hushh Fund A?",
-        answer:
-          "Hushh Fund A is our flagship AI-assisted, multi-strategy investment fund built around disciplined portfolio construction, options income, and long-term value creation.",
-      },
-      {
-        question: "What is the minimum investment?",
-        answer:
-          "The minimum commitment is $1 million for eligible investors. Final eligibility and class terms are confirmed through the fund documents and investor review.",
-      },
-      {
-        question: "How do I track my investment performance?",
-        answer:
-          "After onboarding and review, investors can use their profile to view key account status, fund updates, documents, and performance-related information as it becomes available.",
-      },
-      {
-        question: "Is my investment liquid?",
-        answer:
-          "Fund A is designed for long-term investors. Liquidity is expected through quarterly redemption windows after the applicable lock-up and subject to the fund documents.",
-      },
-    ],
+    question: "How does Hushh Technologies ensure its investment strategies align with long-term value creation?",
+    answer: "At Hushh, we’re playing the long game. Every strategy we deploy is designed with sustainability in mind. We don’t just focus on short-term gains or trendy assets. Instead, we ground ourselves in businesses with robust cash flows, a strong competitive advantage, and a clear path for compounding growth. Our approach is built on options income, volatility capture, and disciplined dividend reinvestment in market leaders. It’s about making smart, calculated moves that allow us to grow steadily over time, and all our models are built to withstand a variety of market conditions. In short, we’re not interested in chasing the next big thing—we’re here to build something that lasts."
   },
   {
-    eyebrow: "Strategy",
-    title: "Investment Philosophy",
-    items: [
-      {
-        question:
-          "How does Hushh align investment strategy with long-term value creation?",
-        answer:
-          "We focus on durable businesses, disciplined risk controls, and repeatable investment processes. The goal is not to chase short-term market noise, but to compound capital through a structured, data-informed approach.",
-      },
-      {
-        question:
-          "How is Hushh different from a traditional investment firm?",
-        answer:
-          "Hushh combines AI-assisted research, human oversight, and a product-quality investor experience. The moat is the operating system around data, discipline, transparency, and speed of iteration.",
-      },
-      {
-        question:
-          "What does Hushh's human-first approach mean in practice?",
-        answer:
-          "It means investor clarity, privacy, and control remain central. Technology supports the decision process, but the experience is designed to be understandable, accountable, and aligned with long-term trust.",
-      },
-    ],
+    question: "What are the key risk management protocols that Hushh has in place?",
+    answer: "We manage risk with the same precision that we seek in returns. Every strategy is safeguarded by a few core principles: diversification, position limits, and stop-loss triggers. We never allow ourselves to be overexposed in a single sector or asset, and we’re relentless about preserving capital. Options, by nature, introduce leverage and exposure, so we’ve built guardrails to prevent excessive risk-taking. Think of it like an artist using the finest brushstrokes—controlled, intentional, and designed to minimize waste. We know that wealth preservation is as crucial as wealth generation, and we’re fanatical about protecting what we’ve built."
   },
   {
-    eyebrow: "Risk",
-    title: "Portfolio and Market Discipline",
-    items: [
-      {
-        question: "What risk controls does Hushh use?",
-        answer:
-          "The strategy uses diversification, position sizing, eligibility review, liquidity rules, and portfolio monitoring to keep risk intentional rather than accidental.",
-      },
-      {
-        question: "What types of assets does Hushh focus on?",
-        answer:
-          "The Fund A approach centers on high-quality public-market businesses, options income, volatility harvesting, and AI-assisted research signals. Exact exposure is governed by the fund documents.",
-      },
-      {
-        question: "How does Hushh handle downturns or market corrections?",
-        answer:
-          "The strategy is built to respect market cycles. During stress periods, risk controls, liquidity discipline, and portfolio review matter more than chasing returns.",
-      },
-      {
-        question: "Are returns guaranteed?",
-        answer:
-          "No. Investing carries risk, including possible loss of principal. Target returns are not guarantees, and investors should review the risk disclosures before committing capital.",
-      },
-    ],
+    question: "You talk about putting data to work for people. How does Hushh use data in a way that’s ethical and human-first?",
+    answer: "This is the core of what Hushh stands for. Data is powerful, but only when it serves people, not exploits them. Every data-driven decision we make is built around empowering our users and investors. We’re not in the business of selling data or compromising privacy. Our AI models are designed to find inefficiencies, identify opportunities, and help us deliver consistent value—all while respecting user privacy. In essence, we use data as a tool to benefit our stakeholders, not as a product. We believe that wealth creation should never come at the cost of trust."
   },
   {
-    eyebrow: "Data",
-    title: "AI, Privacy, and Security",
-    items: [
-      {
-        question: "How does Hushh use AI?",
-        answer:
-          "AI supports research, signal processing, portfolio monitoring, and operational workflows. It does not replace investment judgment, review, or risk discipline.",
-      },
-      {
-        question: "How is my data protected?",
-        answer:
-          "Hushh uses secure systems, consent-based data access, and limited internal access for review and compliance purposes. Personal and financial data is not treated as a marketing asset.",
-      },
-      {
-        question: "Who can see my financial information?",
-        answer:
-          "Financial information is used for onboarding, verification, and investor review by authorized personnel and service providers supporting those workflows.",
-      },
-      {
-        question: "What is the NDA for?",
-        answer:
-          "The NDA protects confidential investment materials, fund information, and private review content shared during the investor process.",
-      },
-    ],
+    question: "How does Hushh differentiate itself from traditional investment firms? What’s the “moat” here?",
+    answer: "Our moat is threefold: our technology, our commitment to human-first principles, and our adaptability. Traditional firms are often tied to legacy systems and rigid structures, while we’re built for agility. We leverage cutting-edge AI and machine learning in ways that larger, more bureaucratic firms simply can’t match. Our focus on making data work for individuals—turning it into a genuine personal asset—isn’t just innovative; it’s transformative. Add to that our dedication to transparency and ethical business practices, and you’ve got a platform that stands apart in a world dominated by transactional relationships."
   },
   {
-    eyebrow: "Account",
-    title: "Profile, Rewards, and Support",
-    items: [
-      {
-        question: "What are Hushh Coins?",
-        answer:
-          "Hushh Coins are onboarding and engagement rewards that help explain progress and unlock future Hushh experiences. They are not investment returns or fund units.",
-      },
-      {
-        question: "How do I update my profile?",
-        answer:
-          "Use the Profile tab to review your onboarding status, account details, documents, and next steps. Some submitted review details may require support help to change.",
-      },
-      {
-        question: "Where do I get help?",
-        answer:
-          "Use the Support page or email support@hushh.ai with the page URL and a short description of the issue so the team can route it quickly.",
-      },
-    ],
+    question: "What types of assets do you invest in?",
+    answer: "We maintain a diversified approach across multiple asset classes including equities, fixed income, alternatives, and derivatives. Our AI models are designed to identify opportunities across global markets and various sectors. The specific allocation depends on market conditions, risk parameters, and individual client objectives."
   },
+  {
+    question: "What’s the biggest challenge Hushh faces, and how do you plan to address it?",
+    answer: "Our biggest challenge is managing growth without losing our soul. We’re gaining traction fast, and with that comes the risk of diluting our values as we scale. To address this, we’re committed to a few non-negotiables: transparency, ethical data use, and a human-centered approach. We’re building a strong core team that not only understands finance but is also deeply aligned with our vision. As we grow, we’ll be deliberate about who joins the Hu$$h family, ensuring that every addition strengthens our values rather than compromises them. Growth is only meaningful if it’s rooted in integrity."  
+  },  
+  {
+    question: "Why should investors trust that Hushh’s results are sustainable over time?",
+    answer: "Trust comes from discipline, and our discipline is unbreakable. We’re not just achieving returns by chasing the latest market trends; we’re doing it through structured, data-driven strategies that have proven resilient over time. Our options income strategy, our focus on high-free-cash-flow stocks, and our conservative approach to volatility capture are built to endure. We’re not promising the moon—we’re focused on realistic, consistent growth. Just as Apple created products that people could rely on, we’re creating a financial ecosystem that people can count on, year in and year out."
+  },
+  {
+    question: "How does Hushh plan to handle downturns or market corrections?",
+    answer: "Market corrections are a given, and we don’t shy away from that reality. Our strategies are inherently defensive, with built-in risk management features that prioritize capital preservation. During downturns, we lean heavily on our dividend-compounding assets, which provide stability, and we adjust our options strategies to minimize exposure. The beauty of our approach is that we’re not reliant on bull markets to create value. Our focus on fundamentals and disciplined risk protocols allows us to stay resilient. In fact, volatility often creates the very opportunities we’re structured to capture."
+  },
+  {
+    question: "How do you ensure Hushh remains innovative and adaptable as it grows?",
+    answer: "Adaptability is in our DNA. The key is to stay curious and never assume we have it all figured out. We’re constantly refining our models, experimenting with new data sources, and pushing the limits of what our AI can do. Like Steve Jobs always sought perfection through iteration, we’re obsessive about improvement. Innovation doesn’t mean adding complexity; sometimes, it means simplifying even further. Our approach to adaptability is to stay lean, stay focused, and always look for ways to deliver more value without sacrificing the core principles that define us."
+  },
+  {
+    question: "What does Hushh’s commitment to “human-first” actually look like in practice?",
+    answer: "Being “human-first” isn’t a slogan for us—it’s a fundamental operational principle. Every decision we make has to answer the question: “Does this serve our users and investors?” For example, our privacy policies are designed to give users control over their data, not just because it’s compliant, but because it’s the right thing to do. Our platform features are designed to educate, empower, and support, not overwhelm or manipulate. In practical terms, “human-first” means transparency, simplicity, and a commitment to integrity in every interaction we have with our users and stakeholders"
+  },
+  {
+    question:"How will Hushh continue to attract and retain top talent as it scales?",
+    answer:"Talent is the backbone of any great company, and we’re committed to building a team of “learn-it-alls,” not “know-it-alls.” We look for people who are hungry, curious, and aligned with our mission. Our culture is built on transparency, accountability, and a love for innovation. We don’t just offer jobs; we offer a chance to be part of a movement that’s reshaping wealth creation. Like Apple’s approach to product design, we believe in investing in people who believe in our vision, creating an environment that fosters both excellence and creativity."
+  },
+  {
+    question:"If Hushh could only achieve one thing, what would it be?",
+    answer:"To redefine wealth as something personal, empowering, and accessible. At the end of the day, we’re here to make sure that every person can see their data as an asset they own and control. If we can shift the world’s perspective—even a little—toward that vision, we’ll have succeeded beyond measure. We’re not just creating financial returns; we’re creating a legacy where data-driven wealth is human-centered and inclusive."
+  },
+  {
+    question:"What’s the biggest risk you’re willing to take, and why?",
+    answer:"The biggest risk we’re willing to take is betting on the intelligence and autonomy of our users. We believe people are smarter and more capable than they’re often given credit for. By empowering them with the right tools, insights, and control over their data, we’re stepping away from the traditional “trust us, we know best” model. It’s a leap of faith, but it’s one we believe will pay off. Our users are our greatest asset, and betting on them to succeed is a risk we’re proud to take."
+  }
 ];
 
 const FaqPage: React.FC = () => {
-  const [openKey, setOpenKey] = React.useState<string | null>(null);
+  const [openIndex, setOpenIndex] = React.useState<number | null>(null);
 
-  const toggleAccordion = (key: string) => {
-    setOpenKey((current) => (current === key ? null : key));
+  const toggleAccordion = (index: number) => {
+    setOpenIndex(openIndex === index ? null : index);
   };
 
   return (
@@ -165,226 +84,170 @@ const FaqPage: React.FC = () => {
       color="#1D1D1F"
       fontFamily={appleFont}
       minH="100vh"
-      sx={{
-        WebkitFontSmoothing: "antialiased",
-        MozOsxFontSmoothing: "grayscale",
-      }}
+      sx={{ WebkitFontSmoothing: "antialiased", MozOsxFontSmoothing: "grayscale" }}
     >
       <HushhTechBackHeader showRightButton={false} />
-
       <Box as="main" id="main-content">
-        <Container
-          maxW="7xl"
-          py={{ base: 10, md: 14, lg: 16 }}
-          px={{ base: 4, sm: 6, lg: 8 }}
-        >
-          <Box textAlign="center" mb={{ base: 12, md: 14 }}>
-            <Heading
-              as="h1"
-              fontFamily={appleDisplayFont}
-              fontWeight="600"
-              fontSize="clamp(32px, 4.6vw, 54px)"
-              lineHeight="1.08"
-              letterSpacing="-0.025em"
-              color="#1D1D1F"
-            >
-              Frequently Asked Questions.
-            </Heading>
-
-            <Text
-              fontSize="clamp(17px, 1.6vw, 20px)"
-              fontWeight="400"
-              maxW="46ch"
-              mx="auto"
-              color="rgba(0,0,0,0.62)"
-              mt="20px"
-              lineHeight="1.5"
-              letterSpacing="-0.01em"
-            >
-              Clear answers about Fund A, investment risk, privacy, rewards, and
-              investor support.
-            </Text>
-          </Box>
-
-          <VStack
-            spacing={{ base: 8, md: 10 }}
-            align="stretch"
-            maxW="5xl"
-            mx="auto"
-            w="100%"
-            role="list"
+      <Container maxW="7xl" py={{ base: 10, md: 14, lg: 16 }} px={{ base: 4, sm: 6, lg: 8 }}>
+        <Box textAlign="center" mb={{ base: 12, md: 14 }}>
+          <Heading
+            as="h1"
+            fontFamily={appleDisplayFont}
+            fontWeight="600"
+            fontSize="clamp(32px, 4.6vw, 54px)"
+            lineHeight="1.08"
+            letterSpacing="-0.025em"
+            color="#1D1D1F"
           >
-            {faqCategories.map((category, categoryIndex) => (
-              <Box key={category.title} role="listitem">
-                <Box
-                  display={{ base: "block", md: "flex" }}
-                  alignItems="end"
-                  justifyContent="space-between"
-                  mb={{ base: 4, md: 5 }}
-                  px={{ base: 1, md: 2 }}
-                >
-                  <Box>
-                    <Text
-                      fontFamily={appleFont}
-                      fontSize="12px"
-                      fontWeight="700"
-                      letterSpacing="0.18em"
-                      textTransform="uppercase"
-                      color="#0071E3"
-                      mb={2}
-                    >
-                      {category.eyebrow}
-                    </Text>
-                    <Heading
-                      as="h2"
-                      fontFamily={appleDisplayFont}
-                      fontSize={{ base: "1.45rem", md: "1.85rem" }}
-                      fontWeight="600"
-                      letterSpacing="-0.025em"
-                      lineHeight="1.12"
-                      color="#1D1D1F"
-                    >
-                      {category.title}
-                    </Heading>
-                  </Box>
-                  <Text
-                    mt={{ base: 2, md: 0 }}
-                    fontSize="0.9rem"
-                    color="rgba(0,0,0,0.42)"
+            Frequently Asked Questions.
+          </Heading>
+
+          <Text
+            fontSize="clamp(17px, 1.6vw, 20px)"
+            fontWeight="400"
+            maxW="46ch"
+            mx="auto"
+            color="rgba(0,0,0,0.62)"
+            mt="20px"
+            lineHeight="1.5"
+            letterSpacing="-0.01em"
+          >
+            Find answers to common questions about our investment strategies, processes, and
+            services.
+          </Text>
+        </Box>
+
+        <VStack
+          spacing={{ base: 5, md: 6 }}
+          align="stretch"
+          maxW="4xl"
+          mx="auto"
+          w="100%"
+          role="list"
+        >
+          {faqs.map((faq, index: number) => {
+            const isOpen = openIndex === index;
+            const panelId = `faq-panel-${index}`;
+            const triggerId = `faq-trigger-${index}`;
+
+            return (
+            <Box
+              key={index}
+              role="listitem"
+              bg="whiteAlpha.800"
+              borderRadius="24px"
+              overflow="hidden"
+              borderWidth="1px"
+              borderColor="blackAlpha.100"
+              boxShadow={
+                isOpen
+                  ? "0 18px 50px rgba(29,29,31,0.08)"
+                  : "0 10px 32px rgba(29,29,31,0.05)"
+              }
+              transition="box-shadow 0.2s ease, border-color 0.2s ease"
+              _hover={{
+                borderColor: "rgba(0,102,204,0.24)",
+                boxShadow: "0 18px 48px rgba(29,29,31,0.08)",
+              }}
+            >
+              <Heading
+                as="h3"
+                m={0}
+                fontFamily={appleFont}
+                fontSize={{ base: "0.95rem", md: "1rem" }}
+                fontWeight="600"
+                lineHeight="snug"
+              >
+                <Box role="group" w="100%">
+                  <Box
+                    as="button"
+                    type="button"
+                    id={triggerId}
+                    aria-expanded={isOpen}
+                    aria-controls={panelId}
+                    onClick={() => toggleAccordion(index)}
+                    display="flex"
+                    w="100%"
+                    alignItems="flex-start"
+                    justifyContent="space-between"
+                    gap={4}
+                    px={{ base: 5, md: 6 }}
+                    py={{ base: 5, md: 6 }}
+                    cursor="pointer"
+                    border="none"
+                    bg="transparent"
+                    borderTopRadius="2xl"
+                    textAlign="left"
+                    font="inherit"
+                    color="gray.900"
+                    transition="background-color 0.2s ease, box-shadow 0.2s ease"
+                    _hover={{
+                      bg: "whiteAlpha.700",
+                      boxShadow: "inset 0 0 0 1px rgba(0, 0, 0, 0.04)",
+                    }}
+                    _active={{
+                      bg: "gray.100",
+                    }}
+                    _focus={{ outline: "none" }}
+                    _focusVisible={{
+                      boxShadow:
+                        "inset 0 0 0 1px rgba(0, 0, 0, 0.04), 0 0 0 3px rgba(0, 169, 224, 0.45)",
+                    }}
                   >
-                    {category.items.length} questions
-                  </Text>
+                    <Box
+                      as="span"
+                      display="block"
+                      flex="1"
+                      pr={1}
+                      minW={0}
+                      overflowWrap="anywhere"
+                      wordBreak="normal"
+                      transition="color 0.2s ease"
+                      _groupHover={{ color: "black" }}
+                    >
+                      {faq.question}
+                    </Box>
+                    <Icon
+                      as={isOpen ? ChevronUpIcon : ChevronDownIcon}
+                      aria-hidden
+                      w={5}
+                      h={5}
+                      mt={0.5}
+                      flexShrink={0}
+                      color="gray.400"
+                      transition="color 0.2s ease, transform 0.2s ease"
+                      _groupHover={{
+                        color: "gray.600",
+                        transform: isOpen ? "translateY(-1px)" : "translateY(2px)",
+                      }}
+                    />
+                  </Box>
                 </Box>
+              </Heading>
 
-                <VStack spacing={{ base: 3, md: 4 }} align="stretch" role="list">
-                  {category.items.map((faq, itemIndex) => {
-                    const key = `${categoryIndex}-${itemIndex}`;
-                    const isOpen = openKey === key;
-                    const panelId = `faq-panel-${key}`;
-                    const triggerId = `faq-trigger-${key}`;
-
-                    return (
-                      <Box
-                        key={key}
-                        role="listitem"
-                        bg="whiteAlpha.800"
-                        borderRadius="24px"
-                        overflow="hidden"
-                        borderWidth="1px"
-                        borderColor="blackAlpha.100"
-                        boxShadow={
-                          isOpen
-                            ? "0 18px 50px rgba(29,29,31,0.08)"
-                            : "0 10px 32px rgba(29,29,31,0.05)"
-                        }
-                        transition="box-shadow 0.2s ease, border-color 0.2s ease"
-                        _hover={{
-                          borderColor: "rgba(0,102,204,0.24)",
-                          boxShadow: "0 18px 48px rgba(29,29,31,0.08)",
-                        }}
-                      >
-                        <Heading
-                          as="h3"
-                          m={0}
-                          fontFamily={appleFont}
-                          fontSize={{ base: "0.95rem", md: "1rem" }}
-                          fontWeight="600"
-                          lineHeight="snug"
-                        >
-                          <Box role="group" w="100%">
-                            <Box
-                              as="button"
-                              type="button"
-                              id={triggerId}
-                              aria-expanded={isOpen}
-                              aria-controls={panelId}
-                              onClick={() => toggleAccordion(key)}
-                              display="flex"
-                              w="100%"
-                              alignItems="flex-start"
-                              justifyContent="space-between"
-                              gap={4}
-                              px={{ base: 5, md: 6 }}
-                              py={{ base: 5, md: 6 }}
-                              cursor="pointer"
-                              border="none"
-                              bg="transparent"
-                              borderTopRadius="2xl"
-                              textAlign="left"
-                              font="inherit"
-                              color="gray.900"
-                              transition="background-color 0.2s ease, box-shadow 0.2s ease"
-                              _hover={{
-                                bg: "whiteAlpha.700",
-                                boxShadow:
-                                  "inset 0 0 0 1px rgba(0, 0, 0, 0.04)",
-                              }}
-                              _active={{ bg: "gray.100" }}
-                              _focus={{ outline: "none" }}
-                              _focusVisible={{
-                                boxShadow:
-                                  "inset 0 0 0 1px rgba(0, 0, 0, 0.04), 0 0 0 3px rgba(0, 113, 227, 0.28)",
-                              }}
-                            >
-                              <Box
-                                as="span"
-                                display="block"
-                                flex="1"
-                                pr={1}
-                                minW={0}
-                                overflowWrap="anywhere"
-                                wordBreak="normal"
-                                transition="color 0.2s ease"
-                                _groupHover={{ color: "black" }}
-                              >
-                                {faq.question}
-                              </Box>
-                              <Icon
-                                as={isOpen ? ChevronUpIcon : ChevronDownIcon}
-                                aria-hidden
-                                w={5}
-                                h={5}
-                                mt={0.5}
-                                flexShrink={0}
-                                color="gray.400"
-                                transition="color 0.2s ease, transform 0.2s ease"
-                                _groupHover={{
-                                  color: "gray.600",
-                                  transform: isOpen
-                                    ? "translateY(-1px)"
-                                    : "translateY(2px)",
-                                }}
-                              />
-                            </Box>
-                          </Box>
-                        </Heading>
-
-                        {isOpen ? (
-                          <Box
-                            id={panelId}
-                            role="region"
-                            aria-labelledby={triggerId}
-                            px={{ base: 5, md: 6 }}
-                            pb={{ base: 5, md: 6 }}
-                            pt={4}
-                            borderTopWidth="1px"
-                            borderTopColor="gray.100"
-                            color="gray.600"
-                            fontSize={{ base: "0.9375rem", md: "1rem" }}
-                            fontWeight="400"
-                            lineHeight="tall"
-                          >
-                            {faq.answer}
-                          </Box>
-                        ) : null}
-                      </Box>
-                    );
-                  })}
-                </VStack>
-              </Box>
-            ))}
-          </VStack>
-        </Container>
+              {isOpen && (
+                <Box
+                  id={panelId}
+                  role="region"
+                  aria-labelledby={triggerId}
+                  px={{ base: 5, md: 6 }}
+                  pb={{ base: 5, md: 6 }}
+                  pt={4}
+                  borderTopWidth="1px"
+                  borderTopColor="gray.100"
+                  color="gray.600"
+                  fontSize={{ base: "0.9375rem", md: "1rem" }}
+                  fontWeight="400"
+                  lineHeight="tall"
+                >
+                  {faq.answer}
+                </Box>
+              )}
+            </Box>
+            );
+          })}
+        </VStack>
+      </Container>
       </Box>
     </Box>
   );

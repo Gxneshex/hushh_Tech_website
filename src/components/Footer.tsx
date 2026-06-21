@@ -117,7 +117,7 @@ export default function Footer() {
                   href="/faq" 
                   className="py-2 text-gray-300 hover:text-white text-base font-medium flex items-center justify-between group block transition-colors duration-200"
                 >
-                  FAQ
+                  FAQs
                 </a>
                 <a 
                   href="/contact" 

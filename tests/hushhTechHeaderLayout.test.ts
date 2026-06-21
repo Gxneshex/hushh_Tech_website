@@ -50,15 +50,18 @@ describe("HushhTechHeader layout stability", () => {
     container.remove();
   });
 
-  it("uses richer logo marks in the ticker", async () => {
+  it("reserves intrinsic space for async ticker logos", async () => {
     await act(async () => {
       root.render(React.createElement(HushhTechHeader));
     });
 
-    const tickerLogo = container.querySelector<HTMLImageElement>("[data-hushh-ticker] img");
+    const tickerLogo = container.querySelector<HTMLImageElement>(
+      "img[alt='AAPL logo']",
+    );
 
-    expect(tickerLogo).not.toBeNull();
-    expect(tickerLogo?.getAttribute("src")).toBe("https://example.com/aapl.png");
+    expect(tickerLogo?.getAttribute("width")).toBe("14");
+    expect(tickerLogo?.getAttribute("height")).toBe("14");
+    expect(tickerLogo?.getAttribute("loading")).toBe("lazy");
   });
 
   it("uses constant requestAnimationFrame motion for the live market ticker", async () => {
@@ -91,9 +94,9 @@ describe("HushhTechHeader layout stability", () => {
     const hook = fs.readFileSync("src/hooks/useConstantTickerMotion.ts", "utf8");
 
     expect(modernHeader).toContain("HushhTechTicker");
-    expect(sharedTicker).toContain("const TICKER_SCROLL_PIXELS_PER_SECOND = 162;");
-    expect(legacyNavbar).toContain("const TICKER_SCROLL_PIXELS_PER_SECOND = 162;");
-    expect(hook).toContain("const DEFAULT_TICKER_PIXELS_PER_SECOND = 162;");
+    expect(sharedTicker).toContain("const TICKER_SCROLL_PIXELS_PER_SECOND = 136;");
+    expect(legacyNavbar).toContain("const TICKER_SCROLL_PIXELS_PER_SECOND = 136;");
+    expect(hook).toContain("const DEFAULT_TICKER_PIXELS_PER_SECOND = 136;");
     expect(hook).toContain("Math.min(40, Math.max(0, time - lastTime))");
   });
 });

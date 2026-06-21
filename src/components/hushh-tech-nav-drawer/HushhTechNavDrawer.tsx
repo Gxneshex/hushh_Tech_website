@@ -19,7 +19,7 @@ const PRIMARY_NAV: NavItem[] = [
   { icon: Icon.chart, label: "Fund A", path: "/discover-fund-a" },
   { icon: Icon.community, label: "Community", path: "/community" },
   { icon: Icon.mail, label: "Contact", path: "/contact" },
-  { icon: Icon.help, label: "FAQ", path: "/faq" },
+  { icon: Icon.help, label: "FAQs", path: "/faq" },
   { icon: Icon.briefcase, label: "Careers", path: "/career" },
 ];
 

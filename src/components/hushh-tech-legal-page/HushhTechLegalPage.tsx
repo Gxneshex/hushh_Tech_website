@@ -95,7 +95,7 @@ export default function HushhTechLegalPage({
       className="min-h-screen bg-[#F5F5F7] text-[#1D1D1F] antialiased selection:bg-[#0066CC] selection:text-white"
       style={{ fontFamily: appleFont }}
     >
-      <HushhTechBackHeader rightLabel="FAQ" />
+      <HushhTechBackHeader rightLabel="FAQs" />
 
       <main
         id="main-content"

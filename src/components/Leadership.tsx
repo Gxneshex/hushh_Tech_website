@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import img from "../../files/img.png";
+import img2 from "../../files/img (1).png";
 import HushhTechBackHeader from "./hushh-tech-back-header/HushhTechBackHeader";
 import {
   AppleSection,
@@ -36,6 +37,13 @@ const leaders = [
     image: img,
     body:
       "With leadership experience across Google, Microsoft, and Splunk, Manish brings AI, machine learning, and data-driven operating expertise to Hushh's long-term investment vision.",
+  },
+  {
+    name: "Justin Donaldson",
+    role: "Chief Scientist & Investment Strategist",
+    image: img2,
+    body:
+      "Justin leads the scientific and strategic investment approach behind systematic options strategies such as Sell the Wall and risk-aware alpha generation.",
   },
 ];
 
@@ -132,9 +140,9 @@ export default function Leadership() {
             <Display size="sm" maxWidth="max-w-[560px]">
               People behind the strategy.
             </Display>
-            <div className="mt-8 grid justify-center gap-4">
+            <div className="mt-8 grid gap-4 md:grid-cols-2">
               {leaders.map((leader) => (
-                <GlassCard key={leader.name} className="w-full max-w-[680px] p-6 text-left md:p-7">
+                <GlassCard key={leader.name} className="p-6 text-left md:p-7">
                   <div className="flex flex-col gap-5 sm:flex-row">
                     <img
                       src={leader.image}

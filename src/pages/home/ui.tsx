@@ -160,15 +160,8 @@ function HomeStyles() {
       .hh-hero__inner {
         position: relative;
         z-index: 2;
-        width: 100%;
-        max-width: 1120px;
+        max-width: 980px;
         margin: 0 auto;
-        padding-inline: clamp(1.5rem, 5vw, 4rem);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-      }
-      .hh-hero__copy {
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -971,47 +964,44 @@ export default function HomePage() {
           <div data-home-motion className="hh-hero__glow" />
           <div className="hh-hero__grid" />
           <div className="hh-hero__inner">
-            <div className="hh-hero__copy">
-              <Reveal immediate>
-                <div className="hh-hero__badge">
-                  <span />
-                  <span>AI-Powered Investing</span>
-                </div>
-              </Reveal>
-              <Reveal immediate delay={70}>
-                <h1>The world&apos;s first AI-powered Berkshire Hathaway.</h1>
-              </Reveal>
-              <Reveal immediate delay={140}>
-                <p className="hh-hero__sub">
-                  Merging rigorous data science with human wisdom.
-                </p>
-              </Reveal>
-              <Reveal immediate delay={210}>
-                <div className="hh-hero__cta">
-                  <button
-                    className="hh-btn hh-btn--primary"
-                    type="button"
-                    disabled={primaryCTA.loading}
-                    onClick={primaryCTA.action}
-                  >
-                    {primaryCTA.text}
-                  </button>
-                  <button
-                    className="hh-btn hh-btn--text hh-btn--chevron"
-                    type="button"
-                    onClick={() => onNavigate("/discover-fund-a")}
-                  >
-                    Discover Fund A
-                  </button>
-                </div>
-              </Reveal>
-              <Reveal immediate delay={280}>
-                <div className="hh-hero__trust">
-                  SEC Registered &nbsp;&middot;&nbsp; 256-bit encryption
-                </div>
-              </Reveal>
-            </div>
-
+            <Reveal immediate>
+              <div className="hh-hero__badge">
+                <span />
+                <span>AI-Powered Investing</span>
+              </div>
+            </Reveal>
+            <Reveal immediate delay={70}>
+              <h1>The world&apos;s first AI-powered Berkshire Hathaway.</h1>
+            </Reveal>
+            <Reveal immediate delay={140}>
+              <p className="hh-hero__sub">
+                Merging rigorous data science with human wisdom.
+              </p>
+            </Reveal>
+            <Reveal immediate delay={210}>
+              <div className="hh-hero__cta">
+                <button
+                  className="hh-btn hh-btn--primary"
+                  type="button"
+                  disabled={primaryCTA.loading}
+                  onClick={primaryCTA.action}
+                >
+                  {primaryCTA.text}
+                </button>
+                <button
+                  className="hh-btn hh-btn--text hh-btn--chevron"
+                  type="button"
+                  onClick={() => onNavigate("/discover-fund-a")}
+                >
+                  Discover Fund A
+                </button>
+              </div>
+            </Reveal>
+            <Reveal immediate delay={280}>
+              <div className="hh-hero__trust">
+                SEC Registered &nbsp;&middot;&nbsp; Bank-Level Security
+              </div>
+            </Reveal>
           </div>
         </section>
 
