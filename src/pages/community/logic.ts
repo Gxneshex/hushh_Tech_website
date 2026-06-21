@@ -54,6 +54,8 @@ export interface UnifiedPost {
   slug: string;
   description?: string;
   category?: string;
+  image?: string;
+  sourceKind?: string;
 }
 
 /* ── Helpers ── */
@@ -176,6 +178,8 @@ export const useCommunityListLogic = () => {
             post.description ||
             getPostDescription({ id: post.slug, title: post.title, date: post.publishedAt }),
           category: post.category,
+          image: post.image,
+          sourceKind: "legacy",
         });
       });
 
@@ -189,6 +193,8 @@ export const useCommunityListLogic = () => {
           p.description ||
           getPostDescription({ id: p.slug, title: p.title, date: p.publishedAt || p.date }),
         category: p.category,
+        image: p.assetUrl || p.mediaItems?.find((item) => item.type !== "video")?.url,
+        sourceKind: p.sourceKind,
       });
     });
 

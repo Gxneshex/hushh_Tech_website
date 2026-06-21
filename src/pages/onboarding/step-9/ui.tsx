@@ -9,6 +9,7 @@ import {
   useStep13Logic,
 } from "./logic";
 import HushhTechBackHeader from "../../../components/hushh-tech-back-header/HushhTechBackHeader";
+import { OnboardingStepJumpNav } from "../../../components/onboarding/OnboardingStepJumpNav";
 import HushhTechCta, {
   HushhTechCtaVariant,
 } from "../../../components/hushh-tech-cta/HushhTechCta";
@@ -200,7 +201,7 @@ export default function OnboardingStep9() {
       className="flex min-h-screen flex-col bg-[#FFFFFF] text-[#1D1D1F] antialiased selection:bg-[#0066CC] selection:text-[#F5F5F7]"
       style={{ fontFamily: appleFont }}
     >
-      <HushhTechBackHeader onBackClick={handleBack} rightLabel="FAQs" />
+      <HushhTechBackHeader onBackClick={handleBack} rightLabel="FAQ" />
 
       <main className="mx-auto w-full max-w-[640px] flex-grow px-4 pb-48 sm:px-5">
         <div className="pb-6 pt-5">
@@ -214,6 +215,7 @@ export default function OnboardingStep9() {
               style={{ width: `${PROGRESS_PCT}%` }}
             />
           </div>
+          <OnboardingStepJumpNav currentStep={DISPLAY_META.displayStep} totalSteps={DISPLAY_META.totalSteps} />
         </div>
 
         <section className="pb-8 pt-8 text-center">

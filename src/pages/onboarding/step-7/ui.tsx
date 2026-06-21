@@ -21,6 +21,7 @@ import {
 } from './logic';
 import HushhTechBackHeader from '../../../components/hushh-tech-back-header/HushhTechBackHeader';
 import OnboardingBankReviewChip from '../../../components/onboarding-bank-review-chip/OnboardingBankReviewChip';
+import { OnboardingStepJumpNav } from '../../../components/onboarding/OnboardingStepJumpNav';
 import HushhTechCta, {
   HushhTechCtaVariant,
 } from '../../../components/hushh-tech-cta/HushhTechCta';
@@ -105,7 +106,7 @@ export default function OnboardingStep11() {
       style={{ fontFamily: appleFont }}
     >
       {/* ═══ Header ═══ */}
-      <HushhTechBackHeader onBackClick={handleBack} rightLabel="FAQs" />
+      <HushhTechBackHeader onBackClick={handleBack} rightLabel="FAQ" />
       <OnboardingBankReviewChip />
 
       <main className="mx-auto w-full max-w-[680px] flex-grow px-4 pb-48 sm:px-5">
@@ -118,6 +119,7 @@ export default function OnboardingStep11() {
           <div className="h-1 w-full overflow-hidden rounded-full bg-[#1D1D1F]/10">
             <div className="h-full rounded-full bg-[#0066CC] transition-all duration-500" style={{ width: `${PROG_PCT}%` }} />
           </div>
+          <OnboardingStepJumpNav currentStep={DISPLAY_STEP} totalSteps={PROG_TOTAL} />
         </div>
 
         {/* ── Title Section ── */}
@@ -256,7 +258,7 @@ export default function OnboardingStep11() {
                 onClick={() => setShowRecurringEditor((prev) => !prev)}
                 className="shrink-0 rounded-full bg-white px-4 py-2 text-[12px] font-medium text-[#1D1D1F] shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.10)] transition hover:bg-[#FFFFFF]/80"
               >
-                {showRecurringEditor ? 'Hide' : 'Edit'}
+                {showRecurringEditor ? 'Hide' : recurringAmount > 0 ? 'Edit' : 'Add'}
               </button>
             </div>
           </div>

@@ -36,26 +36,30 @@ describe('step 3 address save payload', () => {
   });
 });
 
-describe('step 3 — GPS never fills legal fields (v1 model)', () => {
+describe('step 3 — GPS only fills empty residence/address fields', () => {
   const logic = read('src/pages/onboarding/step-3/logic.ts');
 
   it('removed the GPS→legal patch builder entirely', () => {
     expect(logic).not.toContain('buildStep3AutofillPatch');
   });
 
-  it('applyDetectedLocation only updates the current-location banner, not legal inputs', () => {
+  it('applyDetectedLocation updates residence/address but not citizenship identity', () => {
     const fn = logic.slice(
       logic.indexOf('const applyDetectedLocation'),
       logic.indexOf('/* ─── GPS refresh ─── */'),
     );
     expect(fn).toContain('setDetectedLocation');
-    // No legal-field writes from GPS:
-    expect(fn).not.toContain('setResidenceCountry(');
+    expect(fn).toContain('setResidenceCountry(');
+    expect(fn).toContain('setAddressLine1(');
+    expect(fn).toContain('setAddressCity(');
+    expect(fn).toContain('setAddressState(');
+    expect(fn).toContain('setAddressCountry(');
+    expect(fn).toContain('setZipCode(');
+    expect(fn).toContain("fieldSources['residence_country'] !== 'plaid'");
+    expect(fn).toContain('!manualOverridesRef.current.residenceCountry');
+    expect(fn).toContain('!currentForm.addressLine1');
+    // Citizenship remains user-declared and cannot be silently changed by GPS.
     expect(fn).not.toContain('setCitizenshipCountry(');
-    expect(fn).not.toContain('setAddressCity(');
-    expect(fn).not.toContain('setAddressState(');
-    expect(fn).not.toContain('setZipCode(');
-    expect(fn).not.toContain('setAddressLine1(');
   });
 });
 

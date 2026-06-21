@@ -135,7 +135,7 @@ const Sidebar = ({ activeSection, setActiveSection, isMobile = false }: {
           }}
         >
           <Icon as={FiHelpCircle} boxSize={5} aria-hidden />
-          <Text>FAQs</Text>
+          <Text>FAQ</Text>
         </Box>
       </Box>
     </VStack>

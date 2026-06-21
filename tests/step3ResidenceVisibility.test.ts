@@ -6,50 +6,55 @@ import { describe, expect, it } from 'vitest';
 const read = (p: string) => readFileSync(join(process.cwd(), p), 'utf8');
 
 /**
- * v1.1 (Plaid pivot): the legal residence section renders ONLY when Plaid
- * returned a bank address. No-Plaid investors see no residence section (no
- * manual entry) and are not blocked. Citizenship is always shown (user-declared);
- * current location is shown separately (read-only, AML signal).
+ * v2: every investor supplies legal residence + full address. Bank/Plaid data
+ * can lock verified fields, while "Use current location" only helps prefill
+ * blank self-declared fields for review.
  */
-describe('step-3 residence visibility — Plaid pivot (v1.1)', () => {
+describe('step-3 residence visibility — full investor address', () => {
   const logic = read('src/pages/onboarding/step-3/logic.ts');
   const ui = read('src/pages/onboarding/step-3/ui.tsx');
 
-  it('logic derives + exposes hasBankResidence from Plaid sources', () => {
-    expect(logic).toContain('resolvePlaidLegalResidence(financialResult.data?.identity_data)');
-    expect(logic).toContain(
-      "fieldSources['residence_country'] === 'plaid' || fieldSources['address_line_1'] === 'plaid'",
-    );
-    expect(logic).toContain('hasBankResidence,'); // returned from the hook
-  });
-
-  it('canContinue does NOT require residence/address when there is no bank residence', () => {
+  it('requires legal residence and full address before continuing', () => {
     const canContinue = logic.slice(
       logic.indexOf('const canContinue = Boolean('),
       logic.indexOf('const isErrorStatus'),
     );
-    // residence/address/attestation are behind the hasBankResidence gate
-    expect(canContinue).toContain('!hasBankResidence || (');
-    expect(canContinue).toContain('residenceAttested');
-    // citizenship is always required (outside the gate)
+
     expect(canContinue).toContain('citizenshipCountry &&');
+    expect(canContinue).toContain('residenceCountry &&');
+    expect(canContinue).toContain('addressLine1.trim() &&');
+    expect(canContinue).toContain('addressCity.trim() &&');
+    expect(canContinue).toContain('addressState.trim() &&');
+    expect(canContinue).toContain('zipCode.trim() &&');
+    expect(canContinue).toContain('(!hasBankResidence || residenceAttested)');
   });
 
-  it('ui gates the residence selector / address block / attestation behind hasBankResidence', () => {
-    expect(ui).toContain('s.hasBankResidence && (');
-    expect(ui).toContain('s.hasPlaidAddressLine2 && (');
-    // citizenship dropdown is rendered before (outside) the first residence gate
-    expect(ui.indexOf('handleCitizenshipChange')).toBeGreaterThan(-1);
-    expect(ui.indexOf('handleCitizenshipChange')).toBeLessThan(
-      ui.indexOf('s.hasBankResidence && ('),
-    );
+  it('renders residence selector, full address fields, and location prefill affordance', () => {
+    expect(ui).toContain('Use current location');
+    expect(ui).toContain('onChange={(e) => s.handleResidenceChange(e.target.value)}');
+    expect(ui).toContain('onChange={(e) => s.handleAddressLine1Change(e.target.value)}');
+    expect(ui).toContain('onChange={(e) => s.handleAddressCityChange(e.target.value)}');
+    expect(ui).toContain('onChange={(e) => s.handleAddressStateChange(e.target.value)}');
+    expect(ui).toContain('onChange={(e) => s.handleZipCodeChange(e.target.value)}');
+    expect(ui).not.toContain('s.hasBankResidence && (\n                <div className="grid gap-3 border-t');
   });
 
-  it('does not hydrate legal residence from cached GPS/current location fallbacks', () => {
-    expect(logic).not.toContain('cachedLocationDetails.normalizedAddress.addressLine1');
-    expect(logic).not.toContain('cachedLocationDetails.normalizedAddress.addressLine2');
-    expect(logic).not.toContain('cachedLocationDetails.normalizedAddress.zipCode');
-    expect(logic).not.toContain('cachedLocationDetails.matchedCountry');
-    expect(logic).toContain('Object.assign(payload, buildStep3LegalResidenceClearPayload())');
+  it('keeps bank-sourced residence fields read-only but allows self-declared prefill', () => {
+    expect(logic).toContain("if (fieldSources['residence_country'] === 'plaid') return;");
+    expect(logic).toContain("if (fieldSources['address_line_1'] === 'plaid') return;");
+    expect(logic).toContain('!manualOverridesRef.current.addressLine1');
+    expect(logic).toContain('setAddressLine1(normalizedAddress.addressLine1)');
+    expect(logic).toContain('setAddressCity(normalizedAddress.city)');
+    expect(logic).toContain('setZipCode(normalizedAddress.zipCode)');
+  });
+
+  it('persists residence and address fields for preview and real saves', () => {
+    expect(logic).toContain('residence_country: residenceCountry');
+    expect(logic).toContain('address_line_1: addressLine1.trim()');
+    expect(logic).toContain('city: addressCity.trim()');
+    expect(logic).toContain('state: addressState.trim()');
+    expect(logic).toContain('zip_code: zipCode.trim()');
+    expect(logic).toContain('addressCountry: addressCountry || residenceCountry');
+    expect(logic).not.toContain('Object.assign(payload, buildStep3LegalResidenceClearPayload())');
   });
 });

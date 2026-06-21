@@ -18,6 +18,7 @@ import { FUNDING_NAME_MATCH_LABELS, type FundingNameMatchStatus } from '../../..
 import { useReviewAccountTypeGate } from './accountTypeGate';
 import HushhTechBackHeader from '../../../components/hushh-tech-back-header/HushhTechBackHeader';
 import OnboardingBankReviewChip from '../../../components/onboarding-bank-review-chip/OnboardingBankReviewChip';
+import { OnboardingStepJumpNav } from '../../../components/onboarding/OnboardingStepJumpNav';
 import HushhTechCta, {
   HushhTechCtaVariant,
 } from '../../../components/hushh-tech-cta/HushhTechCta';
@@ -80,7 +81,7 @@ const formatCurrency = (amount: number | null | undefined) => {
 };
 
 const formatRecurringSummary = (data: ReviewSummary) => {
-  if (!data.recurring_amount) return 'No recurring investment configured';
+  if (!data.recurring_amount) return 'Optional recurring investment not added';
   const frequency = (data.recurring_frequency || 'once_a_month').replace(/_/g, ' ');
   const day = data.recurring_day_of_month === 31 ? 'Last day' : `Day ${data.recurring_day_of_month || 1}`;
   return `${formatCurrency(data.recurring_amount)} • ${frequency} • ${day}`;
@@ -331,7 +332,7 @@ export default function OnboardingReviewStep() {
       className="flex min-h-screen flex-col bg-[#FFFFFF] text-[#1D1D1F] antialiased selection:bg-[#0066CC] selection:text-[#F5F5F7]"
       style={{ fontFamily: appleFont }}
     >
-      <HushhTechBackHeader onBackClick={() => navigate('/onboarding/step-4')} rightLabel="FAQs" />
+      <HushhTechBackHeader onBackClick={() => navigate('/onboarding/step-4')} rightLabel="FAQ" />
       <OnboardingBankReviewChip />
 
       <main className="mx-auto w-full max-w-[680px] flex-grow px-4 pb-48 sm:px-5">
@@ -343,6 +344,7 @@ export default function OnboardingReviewStep() {
           <div className="h-1 w-full overflow-hidden rounded-full bg-[#1D1D1F]/10">
             <div className="h-full rounded-full bg-[#0066CC] transition-all duration-500" style={{ width: `${PROGRESS_PCT}%` }} />
           </div>
+          <OnboardingStepJumpNav currentStep={DISPLAY_META.displayStep} totalSteps={DISPLAY_META.totalSteps} />
         </div>
 
         <section className="pb-8 pt-8 text-center">

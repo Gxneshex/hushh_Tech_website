@@ -39,7 +39,7 @@ function VerifyIdentityPage() {
         className="bg-white min-h-screen flex flex-col antialiased selection:bg-hushh-blue selection:text-white"
         style={{ fontFamily: appleFont }}
       >
-        <HushhTechBackHeader onBackClick={goBack} rightLabel="FAQs" />
+        <HushhTechBackHeader onBackClick={goBack} rightLabel="FAQ" />
         <div className="flex-1 flex items-center justify-center px-6">
           <div className="text-center">
             <div className="w-14 h-14 mx-auto mb-6 rounded-full border-4 border-gray-200 border-t-hushh-blue animate-spin" />
@@ -92,7 +92,7 @@ function VerifyIdentityPage() {
       className="bg-white text-[#1D1D1F] min-h-screen antialiased flex flex-col selection:bg-hushh-blue selection:text-white"
       style={{ fontFamily: appleFont }}
     >
-      <HushhTechBackHeader onBackClick={goBack} rightLabel="FAQs" />
+      <HushhTechBackHeader onBackClick={goBack} rightLabel="FAQ" />
 
       <main className="px-6 flex-grow max-w-[520px] mx-auto w-full pb-16">
         {/* Title */}

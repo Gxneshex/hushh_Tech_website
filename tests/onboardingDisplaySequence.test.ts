@@ -101,7 +101,7 @@ describe("onboarding display sequence", () => {
       const ui = readRepoFile(path);
 
       expect(ui).toContain("<HushhTechBackHeader");
-      expect(ui).toContain("rightLabel=\"FAQs\"");
+      expect(ui).toContain("rightLabel=\"FAQ\"");
     });
 
     [

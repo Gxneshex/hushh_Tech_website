@@ -50,18 +50,18 @@ describe("HushhTechHeader layout stability", () => {
     container.remove();
   });
 
-  it("reserves intrinsic space for async ticker logos", async () => {
+  it("uses neutral letter-marks instead of mixed brand logos in the ticker", async () => {
     await act(async () => {
       root.render(React.createElement(HushhTechHeader));
     });
 
-    const tickerLogo = container.querySelector<HTMLImageElement>(
-      "img[alt='AAPL logo']",
-    );
+    const tickerLogo = container.querySelector<HTMLImageElement>("[data-hushh-ticker] img");
+    const neutralMark = Array.from(
+      container.querySelectorAll("[data-hushh-ticker] div"),
+    ).find((node) => node.textContent === "AA");
 
-    expect(tickerLogo?.getAttribute("width")).toBe("14");
-    expect(tickerLogo?.getAttribute("height")).toBe("14");
-    expect(tickerLogo?.getAttribute("loading")).toBe("lazy");
+    expect(tickerLogo).toBeNull();
+    expect(neutralMark).toBeTruthy();
   });
 
   it("uses constant requestAnimationFrame motion for the live market ticker", async () => {

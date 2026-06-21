@@ -458,11 +458,11 @@ export const useStep11Logic = (): Step11Logic => {
   const recurringSummaryTitle =
     recurringAmount > 0
       ? `$${recurringAmount.toLocaleString()} recurring`
-      : 'No recurring investment configured';
+      : 'Optional recurring investment';
   const recurringSummarySubtitle =
     recurringAmount > 0
       ? `${getFrequencyLabel(frequency)} \u2022 Day ${investmentDay}`
-      : 'Tap Edit to add recurring amount, frequency, and day.';
+      : 'Add this only if you want scheduled follow-on contributions.';
 
   return {
     loading,

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode, type RefObject } from "react";
+import { useEffect, useRef, type ReactNode, type RefObject } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 
 import NDADocumentModal from "../../components/NDADocumentModal";
@@ -57,8 +57,8 @@ const SearchBar = ({
   onChange: (value: string) => void;
   inputRef?: RefObject<HTMLInputElement>;
 }) => (
-  <div className="flex h-10 items-center gap-2 rounded-[12px] bg-[#767680]/10 px-3.5">
-    {Icon.search("rgba(60,60,67,0.55)", 15)}
+  <div className="flex h-[58px] min-w-0 flex-1 items-center gap-3 rounded-[20px] bg-[#FFFFFF] px-5 shadow-[inset_0_0_0_1px_rgba(29,29,31,0.14)]">
+    {Icon.search("rgba(60,60,67,0.58)", 20)}
     <label htmlFor="community-search" className="sr-only">
       Search articles
     </label>
@@ -68,8 +68,8 @@ const SearchBar = ({
       type="text"
       value={value}
       onChange={(event) => onChange(event.target.value)}
-      placeholder="Search articles..."
-      className="h-full min-w-0 flex-1 border-0 bg-transparent text-[15px] tracking-normal text-[#1D1D1F] outline-none placeholder:text-[#3C3C43]/45"
+      placeholder="Search articles, documents, and updates"
+      className="h-full min-w-0 flex-1 border-0 bg-transparent text-[17px] tracking-[-0.01em] text-[#1D1D1F] outline-none placeholder:text-[#3C3C43]/45"
       style={{ fontFamily: appleFont }}
     />
     {value ? (
@@ -85,7 +85,7 @@ const SearchBar = ({
   </div>
 );
 
-const CategoryDropdown = ({
+const CategoryChips = ({
   value,
   options,
   onChange,
@@ -95,102 +95,75 @@ const CategoryDropdown = ({
   options: string[];
   onChange: (value: string) => void;
   labelFor: (value: string) => string;
-}) => {
-  const [open, setOpen] = useState(false);
-  const selectedTint = getTint(value);
-  const selectedLabel = getCategoryMeta(value).label;
+}) => (
+  <div
+    className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+    role="listbox"
+    aria-label="Community categories"
+  >
+    {options.map((option) => {
+      const selected = option === value;
+      const label = option === "All" ? "All" : labelFor(option);
 
-  return (
-    <div className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen((next) => !next)}
-        className="flex h-10 w-full items-center justify-between gap-2 rounded-[12px] bg-[#FFFFFF] px-3.5 text-[15px] font-medium tracking-[-0.01em] text-[#1D1D1F] shadow-[inset_0_0_0_1px_rgba(29,29,31,0.12)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066CC]/35"
-        style={{ fontFamily: appleFont }}
-        aria-expanded={open}
-        aria-haspopup="listbox"
-      >
-        <span className="flex min-w-0 items-center gap-2">
-          <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: selectedTint }} />
-          <span className="truncate">Category: {selectedLabel}</span>
-        </span>
-        <span className={`transition ${open ? "rotate-180" : ""}`}>
-          {Icon.chevronDown("rgba(29,29,31,0.6)", 12)}
-        </span>
-      </button>
-
-      {open ? (
-        <div
-          className="absolute left-0 right-0 top-12 z-20 overflow-hidden rounded-[14px] bg-[#FFFFFF] shadow-[0_16px_32px_rgba(29,29,31,0.18),inset_0_0_0_0.5px_rgba(29,29,31,0.06)]"
-          role="listbox"
+      return (
+        <button
+          key={option}
+          type="button"
+          role="option"
+          aria-selected={selected}
+          onClick={() => onChange(option)}
+          className="h-11 shrink-0 rounded-full px-5 text-[16px] font-semibold tracking-[-0.01em] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066CC]/35"
+          style={{
+            fontFamily: appleFont,
+            color: selected ? "#FFFFFF" : "rgba(29,29,31,0.68)",
+            background: selected ? "#1D1D1F" : "#FFFFFF",
+            boxShadow: selected
+              ? "0 10px 24px rgba(29,29,31,0.18)"
+              : "inset 0 0 0 1px rgba(29,29,31,0.16)",
+          }}
         >
-          {options.map((option, index) => {
-            const tint = getTint(option);
-            const label = getCategoryMeta(option).label || labelFor(option);
-            const selected = option === value;
-
-            return (
-              <button
-                type="button"
-                key={option}
-                onClick={() => {
-                  onChange(option);
-                  setOpen(false);
-                }}
-                className="relative flex w-full items-center gap-2.5 px-3.5 py-3 text-left text-[15px] tracking-normal text-[#1D1D1F]"
-                style={{ fontFamily: appleFont, fontWeight: selected ? 600 : 400 }}
-                role="option"
-                aria-selected={selected}
-              >
-                <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: tint }} />
-                <span className="min-w-0 flex-1 truncate">{label}</span>
-                {selected ? (
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                    <path
-                      d="M2 7l3 3 7-7"
-                      stroke="#0066CC"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                    />
-                  </svg>
-                ) : null}
-                {index !== options.length - 1 ? (
-                  <span className="absolute bottom-0 left-8 right-0 h-px bg-[#000000]/[0.10]" />
-                ) : null}
-              </button>
-            );
-          })}
-        </div>
-      ) : null}
-    </div>
-  );
-};
+          {label}
+        </button>
+      );
+    })}
+  </div>
+);
 
 type CommunityPost = ReturnType<typeof useCommunityListLogic>["filteredContent"][number];
 
 const FeaturedArticle = ({
+  image,
   date,
   categoryLabel,
   tint,
   title,
   description,
 }: {
+  image?: string;
   date: string;
   categoryLabel: string;
   tint: string;
   title: string;
   description: string;
 }) => (
-  <article className="cursor-pointer rounded-[22px] bg-[#FFFFFF] p-[22px]">
+  <article className="grid cursor-pointer overflow-hidden rounded-[28px] bg-[#FFFFFF] shadow-[0_24px_70px_rgba(29,29,31,0.08),inset_0_0_0_1px_rgba(29,29,31,0.08)] md:grid-cols-[1.05fr_0.95fr]">
     <div
-      className="relative mb-[18px] h-[120px] overflow-hidden rounded-[16px]"
+      className="relative min-h-[230px] overflow-hidden bg-[#F5F5F7] md:min-h-[320px]"
       style={{
-        background: `linear-gradient(135deg, ${tint}40 0%, ${tint}10 100%)`,
+        background: image ? undefined : `linear-gradient(135deg, ${tint}38 0%, ${tint}10 100%)`,
       }}
     >
+      {image ? (
+        <img
+          src={image}
+          alt=""
+          className="h-full w-full object-cover"
+          loading="lazy"
+        />
+      ) : null}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_18%,rgba(255,255,255,0.36),transparent_34%)]" />
       <div
-        className="absolute left-4 top-4 rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase text-[#1D1D1F]"
+        className="absolute left-5 top-5 rounded-full px-3 py-1.5 text-[12px] font-semibold uppercase text-[#1D1D1F]"
         style={{
           background: "rgba(255,255,255,0.85)",
           color: tint,
@@ -200,90 +173,149 @@ const FeaturedArticle = ({
       >
         {categoryLabel}
       </div>
-      <div
-        className="absolute -bottom-10 -right-5 h-[140px] w-[140px] rounded-full"
-        style={{
-          background: `radial-gradient(circle, ${tint}50 0%, transparent 70%)`,
-        }}
-      />
     </div>
-    <p
-      className="mb-2 text-[11px] font-medium uppercase text-[#1D1D1F]/55"
-      style={{ fontFamily: appleFont, letterSpacing: 0.6 }}
-    >
-      {date}
-    </p>
-    <h2
-      className="mb-2 text-[22px] font-medium leading-[1.06] tracking-[-0.028em] text-[#1D1D1F]"
-      style={{ fontFamily: appleFont }}
-    >
-      {title}
-    </h2>
-    <p
-      className="mb-[14px] line-clamp-3 text-[14px] font-normal leading-[1.4] text-[#1D1D1F]/65"
-      style={{ fontFamily: appleFont, letterSpacing: -0.12 }}
-    >
-      {description}
-    </p>
-    <span
-      className="inline-flex items-center gap-1 text-[15px] font-medium text-[#0066CC]"
-      style={{ fontFamily: appleFont, letterSpacing: -0.2 }}
-    >
-      Read More {Icon.arrowRight("#0066CC", 13)}
-    </span>
+    <div className="flex flex-col justify-center p-7 md:p-10">
+      <p
+        className="mb-5 text-[13px] font-semibold uppercase text-[#1D1D1F]/45"
+        style={{ fontFamily: appleFont, letterSpacing: 2.6 }}
+      >
+        Featured
+      </p>
+      <h2
+        className="mb-5 text-[32px] font-semibold leading-[1.08] tracking-[-0.03em] text-[#1D1D1F] md:text-[44px]"
+        style={{ fontFamily: appleFont }}
+      >
+        {title}
+      </h2>
+      <p
+        className="mb-7 text-[18px] font-normal leading-[1.55] text-[#1D1D1F]/62"
+        style={{ fontFamily: appleFont, letterSpacing: -0.2 }}
+      >
+        {description}
+      </p>
+      <div className="flex flex-wrap items-center gap-4 text-[14px] text-[#1D1D1F]/45">
+        <span>{date}</span>
+        <span className="h-1 w-1 rounded-full bg-[#1D1D1F]/25" />
+        <span>{categoryLabel}</span>
+      </div>
+    </div>
   </article>
 );
 
-const ArticleRow = ({
+const ArticleCard = ({
+  post,
+  image,
+  date,
+  categoryLabel,
+  tint,
+  description,
+}: {
+  post: CommunityPost;
+  image?: string;
+  date: string;
+  categoryLabel: string;
+  tint: string;
+  description: string;
+}) => (
+  <article className="group flex h-full cursor-pointer flex-col overflow-hidden rounded-[18px] bg-[#FFFFFF] shadow-[0_0_0_1px_rgba(29,29,31,0.10)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_45px_rgba(29,29,31,0.10),0_0_0_1px_rgba(29,29,31,0.12)]">
+    <div
+      className="relative h-[190px] overflow-hidden bg-[#F5F5F7]"
+      style={{
+        background: image ? undefined : `linear-gradient(135deg, ${tint}34 0%, ${tint}0f 100%)`,
+      }}
+    >
+      {image ? (
+        <img
+          src={image}
+          alt=""
+          className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+          loading="lazy"
+        />
+      ) : null}
+      <span
+        className="absolute bottom-4 left-4 rounded-full bg-white/90 px-3 py-1 text-[12px] font-semibold uppercase"
+        style={{ color: tint, fontFamily: appleFont, letterSpacing: 0.5 }}
+      >
+        {categoryLabel}
+      </span>
+    </div>
+    <div className="flex flex-1 flex-col p-6">
+      <p
+        className="mb-5 text-[13px] text-[#1D1D1F]/45"
+        style={{ fontFamily: appleFont }}
+      >
+        {date}
+      </p>
+      <h3
+        className="mb-4 text-[21px] font-semibold leading-[1.16] tracking-[-0.025em] text-[#1D1D1F]"
+        style={{ fontFamily: appleFont }}
+      >
+        {post.title}
+      </h3>
+      <p
+        className="mb-6 line-clamp-3 text-[16px] font-normal leading-[1.5] text-[#1D1D1F]/62"
+        style={{ fontFamily: appleFont, letterSpacing: -0.12 }}
+      >
+        {description}
+      </p>
+      <span
+        className="mt-auto inline-flex items-center gap-2 text-[15px] font-semibold text-[#1D1D1F]"
+        style={{ fontFamily: appleFont }}
+      >
+        Read article {Icon.arrowRight("#1D1D1F", 14)}
+      </span>
+    </div>
+  </article>
+);
+
+const DocumentCard = ({
   post,
   date,
   categoryLabel,
   tint,
   description,
-  isLast,
 }: {
   post: CommunityPost;
   date: string;
   categoryLabel: string;
   tint: string;
   description: string;
-  isLast: boolean;
 }) => (
-  <article className="relative flex cursor-pointer gap-[14px] px-[18px] py-4">
-    <span className="mt-1 h-6 w-1 shrink-0 rounded-full" style={{ background: tint }} />
-    <div className="min-w-0 flex-1">
-      <div className="mb-1.5 flex flex-wrap items-center gap-2">
-        <span
-          className="text-[11px] font-medium uppercase text-[#1D1D1F]/55 tabular-nums"
-          style={{ fontFamily: appleFont, letterSpacing: 0.6 }}
-        >
-          {date}
-        </span>
-        <span className="h-0.5 w-0.5 rounded-full bg-[#1D1D1F]/30" />
-        <span
-          className="text-[11px] font-semibold uppercase"
-          style={{ color: tint, fontFamily: appleFont, letterSpacing: 0.4 }}
-        >
-          {categoryLabel}
-        </span>
-      </div>
-      <h3
-        className="mb-1 text-[16px] font-medium leading-[1.06] text-[#1D1D1F]"
-        style={{ fontFamily: appleFont, letterSpacing: "-0.028em" }}
+  <article className="group flex h-full min-h-[250px] cursor-pointer flex-col rounded-[24px] bg-[#FFFFFF] p-7 shadow-[0_18px_48px_rgba(29,29,31,0.07),inset_0_0_0_1px_rgba(29,29,31,0.10)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_26px_64px_rgba(29,29,31,0.10),inset_0_0_0_1px_rgba(0,102,204,0.22)]">
+    <div className="mb-7 flex items-start justify-between gap-4">
+      <span
+        className="rounded-full px-3 py-1.5 text-[12px] font-semibold uppercase"
+        style={{ color: "#0066CC", background: "rgba(0,102,204,0.10)", fontFamily: appleFont, letterSpacing: 1.5 }}
       >
-        {post.title}
-      </h3>
-      <p
-        className="line-clamp-2 text-[13.5px] font-normal leading-[1.4] text-[#1D1D1F]/60"
-        style={{ fontFamily: appleFont, letterSpacing: -0.1 }}
-      >
-        {description}
-      </p>
+        {categoryLabel}
+      </span>
+      <span className="flex h-10 w-10 items-center justify-center rounded-[12px] bg-[#F5F5F7]">
+        {Icon.lock("#1D1D1F", 17)}
+      </span>
     </div>
-    <span className="self-center">{Icon.chevronRight("rgba(60,60,67,0.25)", 13)}</span>
-    {!isLast ? (
-      <span className="absolute bottom-0 left-9 right-0 h-px bg-[#000000]/[0.10]" />
-    ) : null}
+    <h3
+      className="mb-3 text-[24px] font-semibold leading-[1.12] tracking-[-0.025em] text-[#1D1D1F]"
+      style={{ fontFamily: appleFont }}
+    >
+      {post.title}
+    </h3>
+    <p
+      className="mb-7 text-[17px] font-normal leading-[1.45] text-[#1D1D1F]/68"
+      style={{ fontFamily: appleFont }}
+    >
+      {description}
+    </p>
+    <div className="mt-auto flex items-center justify-between gap-4">
+      <span className="text-[13px] text-[#1D1D1F]/42" style={{ fontFamily: appleFont }}>
+        {date}
+      </span>
+      <span
+        className="inline-flex items-center gap-2 text-[15px] font-semibold"
+        style={{ color: tint, fontFamily: appleFont }}
+      >
+        Open document {Icon.arrowRight(tint, 14)}
+      </span>
+    </div>
   </article>
 );
 
@@ -315,8 +347,21 @@ export default function CommunityPage() {
     NDA_OPTION,
   } = useCommunityListLogic();
 
-  const [featured, ...rest] = filteredContent;
-  const labelFor = (value: string) => getCategoryMeta(value).label || (value === "All" ? "All" : toTitleCase(value));
+  const documentPosts = filteredContent.filter((post) =>
+    (post.category || "").toLowerCase().includes("document")
+  );
+  const nonDocumentPosts = filteredContent.filter(
+    (post) => !(post.category || "").toLowerCase().includes("document")
+  );
+  const [featured, ...newsroomPosts] = nonDocumentPosts;
+  const labelFor = (value: string) => {
+    const variant = getCategoryMeta(value);
+    if (value === "All") return "All";
+    if (variant !== CATEGORY_META.general || value.toLowerCase().includes("general")) {
+      return variant.label;
+    }
+    return toTitleCase(value);
+  };
 
   useEffect(() => {
     if (searchParams.get("focus") !== "search") return;
@@ -405,13 +450,23 @@ export default function CommunityPage() {
             </p>
           </div>
 
-          <div className="mx-auto mt-7 flex max-w-2xl flex-col gap-2.5 px-5">
-            <SearchBar
-              value={searchQuery}
-              onChange={setSearchQuery}
-              inputRef={searchInputRef}
-            />
-            <CategoryDropdown
+          <div className="mx-auto mt-10 flex w-full max-w-5xl flex-col gap-7 px-5">
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <SearchBar
+                value={searchQuery}
+                onChange={setSearchQuery}
+                inputRef={searchInputRef}
+              />
+              <button
+                type="button"
+                onClick={() => searchInputRef.current?.focus()}
+                className="h-[58px] rounded-full bg-[#1D1D1F] px-8 text-[17px] font-semibold text-white shadow-[0_16px_38px_rgba(29,29,31,0.18)] transition hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066CC]/35"
+                style={{ fontFamily: appleFont }}
+              >
+                Search
+              </button>
+            </div>
+            <CategoryChips
               value={selectedCategory}
               options={dropdownOptions}
               onChange={onCategoryChange}
@@ -428,16 +483,11 @@ export default function CommunityPage() {
           <>
             {featured ? (
               <AppleSection tone="gray" pad="tight">
-                <div className="px-5">
-                  <p
-                    className="mb-3 text-[11px] font-medium uppercase text-[#0066CC]/85"
-                    style={{ fontFamily: appleFont, letterSpacing: 1.6 }}
-                  >
-                    Featured
-                  </p>
+                <div className="mx-auto max-w-7xl px-5">
                   {renderPostLink(
                     featured,
                     <FeaturedArticle
+                      image={featured.image}
                       date={formatDisplayDate(featured.date)}
                       categoryLabel={labelFor(featured.category || "general")}
                       tint={getTint(featured.category || "general")}
@@ -449,32 +499,84 @@ export default function CommunityPage() {
               </AppleSection>
             ) : null}
 
-            <AppleSection tone="light" pad="tight" last>
-              <div className="px-5">
-                <p
-                  className="mb-3 text-[11px] font-medium uppercase text-[#0066CC]/85"
-                  style={{ fontFamily: appleFont, letterSpacing: 1.6 }}
-                >
-                  {rest.length} more {rest.length === 1 ? "article" : "articles"}
-                </p>
-                <div className="overflow-hidden rounded-[16px] bg-[#FFFFFF] shadow-[0_0_0_0.5px_rgba(29,29,31,0.06)]">
-                  {rest.map((post, index) =>
+            {documentPosts.length ? (
+              <AppleSection tone="light" pad="tight">
+                <div className="mx-auto max-w-7xl px-5">
+                  <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                    <div>
+                      <p
+                        className="mb-3 text-[13px] font-semibold uppercase text-[#0066CC]"
+                        style={{ fontFamily: appleFont, letterSpacing: 2.6 }}
+                      >
+                        Fund documents
+                      </p>
+                      <h2
+                        className="text-[34px] font-semibold leading-[1.08] tracking-[-0.03em] text-[#1D1D1F] md:text-[48px]"
+                        style={{ fontFamily: appleFont }}
+                      >
+                        Organized for investor review.
+                      </h2>
+                    </div>
+                    <p
+                      className="max-w-md text-[17px] leading-[1.5] text-[#1D1D1F]/58"
+                      style={{ fontFamily: appleFont }}
+                    >
+                      Prospectus, offering terms, and partnership agreements stay together, searchable, and easy to open.
+                    </p>
+                  </div>
+                  <div className="grid gap-5 md:grid-cols-2">
+                    {documentPosts.map((post) =>
+                      renderPostLink(
+                        post,
+                        <DocumentCard
+                          post={post}
+                          date={formatDisplayDate(post.date)}
+                          categoryLabel={labelFor(post.category || "documents")}
+                          tint={getTint(post.category || "documents")}
+                          description={getPostDescription(post)}
+                        />
+                      )
+                    )}
+                  </div>
+                </div>
+              </AppleSection>
+            ) : null}
+
+            {newsroomPosts.length ? (
+              <AppleSection tone="gray" pad="tight" last>
+                <div className="mx-auto max-w-7xl px-5">
+                  <div className="mb-8">
+                    <p
+                      className="mb-3 text-[13px] font-semibold uppercase text-[#1D1D1F]/45"
+                      style={{ fontFamily: appleFont, letterSpacing: 2.6 }}
+                    >
+                      Newsroom
+                    </p>
+                    <h2
+                      className="text-[34px] font-semibold leading-[1.08] tracking-[-0.03em] text-[#1D1D1F] md:text-[48px]"
+                      style={{ fontFamily: appleFont }}
+                    >
+                      {newsroomPosts.length} published {newsroomPosts.length === 1 ? "article" : "articles"}
+                    </h2>
+                  </div>
+                  <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                    {newsroomPosts.map((post) =>
                     renderPostLink(
                       post,
-                      <ArticleRow
+                      <ArticleCard
                         post={post}
+                        image={post.image}
                         date={formatDisplayDate(post.date)}
                         categoryLabel={labelFor(post.category || "general")}
                         tint={getTint(post.category || "general")}
                         description={getPostDescription(post)}
-                        isLast={index === rest.length - 1}
-                      />,
-                      "block rounded-none"
+                      />
                     )
                   )}
+                  </div>
                 </div>
-              </div>
-            </AppleSection>
+              </AppleSection>
+            ) : null}
           </>
         ) : (
           <AppleSection tone="light" pad="tight" last>

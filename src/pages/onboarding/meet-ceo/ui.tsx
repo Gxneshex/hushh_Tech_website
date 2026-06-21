@@ -85,7 +85,7 @@ function MeetCeoPage() {
         className="flex min-h-screen flex-col bg-[#FFFFFF] text-[#1D1D1F] antialiased selection:bg-[#0066CC] selection:text-[#F5F5F7]"
         style={{ fontFamily: appleFont }}
       >
-        <HushhTechBackHeader onBackClick={handleBack} rightLabel="FAQs" />
+        <HushhTechBackHeader onBackClick={handleBack} rightLabel="FAQ" />
         <div className="flex flex-1 items-center justify-center px-6">
           <div className="text-center">
             <div className="mx-auto mb-5 h-9 w-9 animate-spin rounded-full border-2 border-[#1D1D1F]/10 border-t-[#0066CC]" />
@@ -103,7 +103,7 @@ function MeetCeoPage() {
       className="flex min-h-screen flex-col bg-[#FFFFFF] text-[#1D1D1F] antialiased selection:bg-[#0066CC] selection:text-[#F5F5F7]"
       style={{ fontFamily: appleFont }}
     >
-      <HushhTechBackHeader onBackClick={handleBack} rightLabel="FAQs" />
+      <HushhTechBackHeader onBackClick={handleBack} rightLabel="FAQ" />
 
       <main className="mx-auto w-full max-w-[640px] flex-grow px-4 pb-48 sm:px-5">
         <section className="pb-8 pt-14 text-center">
