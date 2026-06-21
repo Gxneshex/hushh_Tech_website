@@ -40,6 +40,34 @@ upsertMeta("app-version", appVersion)
 upsertMeta("build-commit", gitCommit)
 upsertMeta("deploy-verified", buildTimestamp)
 
+function clearLegacyServiceWorkerCache() {
+  if (typeof window === "undefined") return
+
+  const cleanupKey = `hushh-cache-cleaned:${appVersion}`
+  if (window.localStorage.getItem(cleanupKey) === "true") return
+
+  const rememberCleanup = () => {
+    window.localStorage.setItem(cleanupKey, "true")
+  }
+
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.getRegistrations()
+      .then((registrations) => Promise.all(registrations.map((registration) => registration.unregister())))
+      .catch(() => undefined)
+  }
+
+  if ("caches" in window) {
+    caches.keys()
+      .then((keys) => Promise.all(keys.map((key) => caches.delete(key))))
+      .then(rememberCleanup)
+      .catch(() => undefined)
+  } else {
+    rememberCleanup()
+  }
+}
+
+clearLegacyServiceWorkerCache()
+
 // Import DM Sans font weights
 import "@fontsource/dm-sans/400.css";
 import "@fontsource/dm-sans/500.css";
