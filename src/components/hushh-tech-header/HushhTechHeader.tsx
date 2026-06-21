@@ -217,8 +217,19 @@ const HushhTechHeader: React.FC<HushhTechHeaderProps> = ({
       <SkipToContentLink />
 
       <header
-        className={`fixed left-0 right-0 top-0 z-50 border-b border-[#1D1D1F]/[0.08] bg-white/80 backdrop-blur-xl transition-transform duration-300 ${className}`}
+        className={`fixed left-0 right-0 top-0 z-50 border-b border-[#1D1D1F]/[0.08] transition-transform duration-300 ${className}`}
         data-hushh-header
+        style={{
+          // Apple "Liquid Glass": translucent fill + blurred, saturated backdrop
+          // (vibrancy), a bright specular top edge, and a soft drop shadow for
+          // depth. Matches the GlassPill glass system used by the floating pills.
+          background:
+            "linear-gradient(180deg, rgba(255,255,255,0.66) 0%, rgba(255,255,255,0.52) 100%)",
+          WebkitBackdropFilter: "blur(24px) saturate(180%)",
+          backdropFilter: "blur(24px) saturate(180%)",
+          boxShadow:
+            "0 12px 34px rgba(29,29,31,0.10), inset 0 1px 0 rgba(255,255,255,0.92), inset 0 -0.5px 0 rgba(29,29,31,0.05)",
+        }}
       >
         <div className="pointer-events-none px-3 pt-[max(env(safe-area-inset-top),0.85rem)] sm:px-5">
           <div className="pointer-events-auto flex items-center justify-between gap-3">
