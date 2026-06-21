@@ -53,16 +53,9 @@ export default function OnboardingFinancialLink() {
     /* Actions */
     handleBack,
     handleButtonClick,
-    openSkipConfirm,
-    closeSkipConfirm,
-    handleConfirmSkip,
     openChangeBankConfirm,
     closeChangeBankConfirm,
     handleConfirmChangeBank,
-    /* Skip state */
-    isSkipConfirmOpen,
-    isSkipping,
-    skipError,
     /* Plaid consent gate */
     plaidConsentChecked,
     plaidConsentError,
@@ -321,8 +314,8 @@ export default function OnboardingFinancialLink() {
           <div className="mt-4 rounded-[16px] bg-[#FF9500]/10 p-3 text-center shadow-[inset_0_0_0_1px_rgba(255,149,0,0.2)]">
             <p className="text-[12px] font-medium leading-[1.45] text-[#B45309]">
               Your bank connected but some verification data didn't sync.
-              Press <strong>Try Again</strong> to refresh, switch banks, or
-              skip and continue with manual review.
+              Press <strong>Try Again</strong> to refresh, or change banks to
+              complete verification.
             </p>
           </div>
         )}
@@ -365,7 +358,7 @@ export default function OnboardingFinancialLink() {
           </div>
         </section>
 
-        {/* CTAs — Connect/Continue & Skip */}
+        {/* CTAs — Plaid connection is required before onboarding can continue. */}
         <section className="pb-12 space-y-3">
           {/* Plaid data-sharing consent — shown only before a bank is linked.
               Inline, single acknowledgment; links open the Privacy Policy
@@ -403,7 +396,7 @@ export default function OnboardingFinancialLink() {
             {buttonText}
           </HushhTechCta>
 
-          {isDone && canProceed ? (
+          {isDone && (
             <HushhTechCta
               variant={HushhTechCtaVariant.WHITE}
               onClick={openChangeBankConfirm}
@@ -411,14 +404,6 @@ export default function OnboardingFinancialLink() {
               className={secondaryCtaClass}
             >
               Change bank
-            </HushhTechCta>
-          ) : (
-            <HushhTechCta
-              variant={HushhTechCtaVariant.WHITE}
-              onClick={openSkipConfirm}
-              className={secondaryCtaClass}
-            >
-              Skip
             </HushhTechCta>
           )}
         </section>
@@ -449,7 +434,8 @@ export default function OnboardingFinancialLink() {
                 <p className="mx-auto mt-2 max-w-[320px] text-[14px] leading-5 text-[#1D1D1F]/65">
                   This permanently disconnects the current Plaid bank. Once
                   removed, the old bank's data cannot be restored. If your new
-                  bank connection fails, you can retry or skip verification.
+                  bank connection fails, you can retry or connect a different
+                  bank to complete verification.
                   Your fund selections stay saved.
                 </p>
               </div>
@@ -490,65 +476,6 @@ export default function OnboardingFinancialLink() {
                   variant={HushhTechCtaVariant.WHITE}
                   onClick={closeChangeBankConfirm}
                   disabled={isChangingBank}
-                  className={secondaryCtaClass}
-                >
-                  Cancel
-                </HushhTechCta>
-              </div>
-            </section>
-          </div>
-        </>
-      )}
-
-      {isSkipConfirmOpen && (
-        <>
-          <div className="fixed inset-0 z-40 bg-[#000000]/35 backdrop-blur-[14px]" />
-          <div className="fixed inset-0 z-50 flex items-end justify-center px-4 pb-6 sm:items-center sm:pb-0">
-            <section
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="skip-financial-link-title"
-              className="w-full max-w-[390px] rounded-[24px] bg-white p-5 text-[#1D1D1F] shadow-[0_24px_72px_rgba(0,0,0,0.22)]"
-            >
-              <div className="mb-5 text-center">
-                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#FF9500]/12">
-                  <span
-                    className="material-symbols-outlined text-[22px] text-[#B45309]"
-                    style={{ fontVariationSettings: "'wght' 300" }}
-                  >
-                    shield_question
-                  </span>
-                </div>
-                <h2 id="skip-financial-link-title" className="text-[19px] font-semibold text-[#1D1D1F]">
-                  Skip Plaid verification?
-                </h2>
-                <p className="mx-auto mt-2 max-w-[320px] text-[14px] leading-5 text-[#1D1D1F]/65">
-                  Without a linked bank, investor approval needs extra manual review and may take longer. You can come back and connect anytime.
-                </p>
-              </div>
-
-              {skipError && (
-                <div className="mb-4 rounded-[16px] bg-[#FF3B30]/10 p-3 text-center shadow-[inset_0_0_0_1px_rgba(255,59,48,0.18)]">
-                  <p className="text-[12px] font-medium text-[#B42318]">{skipError}</p>
-                </div>
-              )}
-
-              <div className="space-y-3">
-                <HushhTechCta
-                  variant={HushhTechCtaVariant.BLACK}
-                  onClick={handleConfirmSkip}
-                  disabled={isSkipping}
-                  className={primaryCtaClass}
-                >
-                  {isSkipping && (
-                    <span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                  )}
-                  Skip and continue
-                </HushhTechCta>
-                <HushhTechCta
-                  variant={HushhTechCtaVariant.WHITE}
-                  onClick={closeSkipConfirm}
-                  disabled={isSkipping}
                   className={secondaryCtaClass}
                 >
                   Cancel

@@ -38,19 +38,20 @@ describe("onboarding edge-case hardening (P0)", () => {
     expect(logic).not.toContain(".select('plaid_consent_at')");
   });
 
-  it("GAP-05: handleConfirmSkip surfaces an upsert {error} instead of navigating blindly", () => {
+  it("GAP-05: financial-link has no Plaid skip bypass", () => {
     const logic = read("src/pages/onboarding/financial-link/logic.ts");
-    const skip = logic.slice(
-      logic.indexOf("const handleConfirmSkip"),
-      logic.indexOf("const closeChangeBankConfirm"),
-    );
+    const ui = read("src/pages/onboarding/financial-link/ui.tsx");
 
-    // Must destructure { error } and short-circuit (return) before navigate.
-    expect(skip).toContain("const { error } = await upsertOnboardingData");
-    expect(skip).toContain("setSkipError(error.message");
-    // The error check must precede the success navigate.
-    expect(skip.indexOf("if (error)")).toBeGreaterThan(-1);
-    expect(skip.indexOf("if (error)")).toBeLessThan(skip.indexOf("navigate(resumeRoute"));
+    expect(logic).not.toContain("handleConfirmSkip");
+    expect(logic).not.toContain("openSkipConfirm");
+    expect(logic).not.toContain("isSkipConfirmOpen");
+    expect(logic).not.toContain("financial_link_status: 'skipped'");
+    expect(logic).not.toContain("trackFinancialLink('skipped')");
+
+    expect(ui).not.toContain("Skip Plaid verification?");
+    expect(ui).not.toContain("Skip and continue");
+    expect(ui).not.toContain("openSkipConfirm");
+    expect(ui).not.toMatch(/>\s*Skip\s*</);
   });
 
   it("GAP-03: continue-to-KYC logs (does not silently swallow) a failed completed-status write", () => {

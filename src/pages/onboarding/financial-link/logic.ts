@@ -174,9 +174,6 @@ export const useFinancialLinkLogic = () => {
   const [isChangingBank, setIsChangingBank] = useState(false);
   const [isSandboxConnecting, setIsSandboxConnecting] = useState(false);
   const [changeBankError, setChangeBankError] = useState<string | null>(null);
-  const [isSkipConfirmOpen, setIsSkipConfirmOpen] = useState(false);
-  const [isSkipping, setIsSkipping] = useState(false);
-  const [skipError, setSkipError] = useState<string | null>(null);
   /* Plaid data-sharing consent gate. Default unchecked; if the user already
      consented in a prior session we flip it true on load so we never re-prompt. */
   const [plaidConsentChecked, setPlaidConsentChecked] = useState(false);
@@ -772,48 +769,6 @@ export const useFinancialLinkLogic = () => {
     persistPlaidConsent,
   ]);
 
-  /* Skip — show confirm modal first, so accidental clicks do not lock the
-   * user into the manual-review-only path. */
-  const openSkipConfirm = useCallback(() => {
-    setSkipError(null);
-    setIsSkipConfirmOpen(true);
-  }, []);
-
-  const closeSkipConfirm = useCallback(() => {
-    if (isSkipping) return;
-    setIsSkipConfirmOpen(false);
-    setSkipError(null);
-  }, [isSkipping]);
-
-  const handleConfirmSkip = useCallback(async () => {
-    if (!userId) return;
-    setIsSkipping(true);
-    setSkipError(null);
-    try {
-      console.log('[FinancialLink] User skipped financial verification');
-      // upsertOnboardingData never throws — it returns { error }. The skipped
-      // status has NO downstream self-heal (it can only come from
-      // onboarding_data.financial_link_status), so we MUST surface a write
-      // failure and keep the user on the page rather than silently navigating
-      // forward with the skip/manual-review decision unrecorded.
-      const { error } = await upsertOnboardingData(userId, {
-        current_step: currentOnboardingStep,
-        financial_link_status: 'skipped',
-      });
-      if (error) {
-        setSkipError(error.message || 'Failed to skip financial verification. Please try again.');
-        return;
-      }
-      trackFinancialLink('skipped');
-      setIsSkipConfirmOpen(false);
-      navigate(resumeRoute, { replace: true });
-    } catch (err) {
-      setSkipError(err instanceof Error ? err.message : 'Failed to skip financial verification');
-    } finally {
-      setIsSkipping(false);
-    }
-  }, [currentOnboardingStep, navigate, resumeRoute, userId]);
-
   const closeChangeBankConfirm = useCallback(() => {
     if (isChangingBank) return;
     setIsChangeBankConfirmOpen(false);
@@ -892,9 +847,6 @@ export const useFinancialLinkLogic = () => {
     /* Actions */
     handleBack,
     handleButtonClick,
-    openSkipConfirm,
-    closeSkipConfirm,
-    handleConfirmSkip,
     openChangeBankConfirm,
     closeChangeBankConfirm,
     handleConfirmChangeBank,
@@ -904,10 +856,6 @@ export const useFinancialLinkLogic = () => {
     isChangeBankConfirmOpen,
     isChangingBank,
     changeBankError,
-    /* Skip state */
-    isSkipConfirmOpen,
-    isSkipping,
-    skipError,
     /* Plaid consent gate */
     plaidConsentChecked,
     plaidConsentError,
