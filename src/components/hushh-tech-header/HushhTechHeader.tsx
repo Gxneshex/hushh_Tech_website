@@ -217,7 +217,7 @@ const HushhTechHeader: React.FC<HushhTechHeaderProps> = ({
       <SkipToContentLink />
 
       <header
-        className={`fixed left-0 right-0 top-0 z-50 transition-transform duration-300 ${className}`}
+        className={`fixed left-0 right-0 top-0 z-50 border-b border-[#1D1D1F]/[0.08] bg-white/80 backdrop-blur-xl transition-transform duration-300 ${className}`}
         data-hushh-header
       >
         <div className="pointer-events-none px-3 pt-[max(env(safe-area-inset-top),0.85rem)] sm:px-5">
