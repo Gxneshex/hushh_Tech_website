@@ -86,16 +86,16 @@ export const signNDA = async (
         error: 'Supabase client not initialized',
       };
     }
-    
-    // Avoid browser-side IP discovery so NDA signing does not depend on extra CSP hosts.
-    const signerIp = 'unknown';
-    
+
+    // The full electronic-signature evidence (real IP via x-forwarded-for, the
+    // device, and the signature ID) is captured + persisted server-side by the
+    // nda-signed-notification edge function — the browser is never trusted for it.
     const { data, error } = await config.supabaseClient
       .rpc('sign_global_nda', {
         p_signer_name: signerName,
         p_nda_version: ndaVersion,
         p_pdf_url: pdfUrl || null,
-        p_signer_ip: signerIp,
+        p_signer_ip: 'unknown',
         p_documents_acknowledged: documentsAcknowledged ?? [],
         p_consent_version: consentVersion ?? null,
       });
@@ -175,15 +175,26 @@ export const sendNDANotification = async (
   documentsAcknowledged?: string[],
   accessToken?: string,
   signerIp?: string,
+  evidence?: {
+    userAgent?: string;
+    signatureId?: string;
+    signedAtLocal?: string;
+    consentVersion?: string;
+  },
 ): Promise<{ success: boolean; error?: string }> => {
   try {
     // Identity (signerEmail / userId) is intentionally NOT sent — the edge
-    // function derives it from the caller's JWT. Display/metadata only.
+    // function derives it from the caller's JWT. The IP is captured server-side
+    // (x-forwarded-for); the client passes only the device + signature evidence.
     const payload: Record<string, unknown> = {
       signerName,
       signedAt,
       ndaVersion,
       signerIp: signerIp || 'Unknown',
+      ...(evidence?.userAgent ? { userAgent: evidence.userAgent } : {}),
+      ...(evidence?.signatureId ? { signatureId: evidence.signatureId } : {}),
+      ...(evidence?.signedAtLocal ? { signedAtLocal: evidence.signedAtLocal } : {}),
+      ...(evidence?.consentVersion ? { consentVersion: evidence.consentVersion } : {}),
     };
 
     // Include acknowledged fund documents list

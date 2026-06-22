@@ -8,7 +8,16 @@ import { buildSignedFundDocs } from "../supabase/functions/nda-signed-notificati
 // template tokens, across all four documents.
 describe("signFundDocs", () => {
   const SIGNER = "Ankit Kumar Singh";
-  const docs = buildSignedFundDocs({ signerName: SIGNER, signedAt: "2026-06-22T14:23:22Z" });
+  const docs = buildSignedFundDocs({
+    signerName: SIGNER,
+    signerEmail: "ankit@hushh.ai",
+    signedAt: "2026-06-22T14:23:22Z",
+    signedAtLocal: "June 22, 2026, 7:53 PM (Asia/Kolkata)",
+    ip: "2402:e280:3e9d:d8f:48cf:3498:f17:d1cb",
+    userAgent: "Mozilla/5.0 (Macintosh) Chrome/126",
+    signatureId: "sig_0a1b2c3d-4e5f-6789-abcd-ef0123456789",
+    consentVersion: "v1.0",
+  });
 
   const xmlOf = (base64: string): string => {
     const bytes = Uint8Array.from(Buffer.from(base64, "base64"));
@@ -48,6 +57,21 @@ describe("signFundDocs", () => {
       // No template tokens survive.
       expect(xml).not.toContain("{{");
       expect(xml).not.toContain("}}");
+    }
+  });
+
+  it("stamps the Electronic Signature Certificate (ESIGN/UETA evidence) on every doc", () => {
+    for (const d of docs) {
+      const xml = xmlOf(d.base64Data);
+      expect(xml).toContain("ELECTRONIC SIGNATURE CERTIFICATE");
+      expect(xml).toContain("ESIGN Act");
+      expect(xml).toContain("sig_0a1b2c3d-4e5f-6789-abcd-ef0123456789"); // signature ID
+      expect(xml).toContain("ankit@hushh.ai"); // signer email
+      expect(xml).toContain("2402:e280:3e9d:d8f:48cf:3498:f17:d1cb"); // IP
+      expect(xml).toContain("Mozilla/5.0 (Macintosh) Chrome/126"); // device
+      expect(xml).toContain("2026-06-22T14:23:22"); // signed-at UTC (ISO)
+      expect(xml).toContain("Document fingerprint (SHA-256)");
+      expect(xml).toMatch(/[0-9a-f]{64}/); // a sha-256 hex fingerprint is present
     }
   });
 

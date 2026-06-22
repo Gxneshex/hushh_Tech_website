@@ -362,6 +362,30 @@ const SignNDAPage: React.FC = () => {
       let generatedPdfUrl: string | undefined;
       let pdfBlob: Blob | undefined;
 
+      // Electronic-signature evidence (ESIGN/UETA). The IP is captured
+      // server-side (x-forwarded-for) by the notification edge function; here we
+      // capture the client-known parts and a unique signature ID shared across
+      // the NDA PDF, the signed fund docs, and the DB record.
+      const signatureId =
+        typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+          ? `sig_${crypto.randomUUID()}`
+          : `sig_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+      const signedAtIso = new Date().toISOString();
+      const signerUserAgent = typeof navigator !== 'undefined' ? navigator.userAgent : '';
+      let signedAtLocal = '';
+      try {
+        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        signedAtLocal = `${new Date(signedAtIso).toLocaleString()} (${tz})`;
+      } catch {
+        signedAtLocal = new Date(signedAtIso).toLocaleString();
+      }
+      const signEvidence = {
+        userAgent: signerUserAgent,
+        signatureId,
+        signedAtLocal,
+        consentVersion: NDA_CONSENT_VERSION,
+      };
+
       /* PDF generation — non-blocking */
       try {
         if (accessToken) {
@@ -369,9 +393,15 @@ const SignNDAPage: React.FC = () => {
             {
               signerName: trimmedName,
               signerEmail: userEmail || 'unknown@email.com',
-              signedAt: new Date().toISOString(),
+              signedAt: signedAtIso,
               ndaVersion: 'v1.0',
               userId,
+              // Electronic-signature evidence for the certificate on the PDF.
+              signatureId,
+              userAgent: signerUserAgent,
+              signedAtLocal,
+              consentVersion: NDA_CONSENT_VERSION,
+              signatureMethod: 'Typed name / click-to-sign',
             },
             accessToken
           );
@@ -409,12 +439,14 @@ const SignNDAPage: React.FC = () => {
         if (result.shouldNotify !== false) {
           sendNDANotification(
             trimmedName,
-            result.signedAt || new Date().toISOString(),
+            result.signedAt || signedAtIso,
             result.ndaVersion || NDA_CONSENT_VERSION,
             generatedPdfUrl,
             pdfBlob,
             acknowledgedDocs,
             accessToken,
+            undefined, // signerIp — captured server-side from x-forwarded-for
+            signEvidence,
           ).catch((err) => console.error('[SignNDA] Notification failed:', err));
         }
 

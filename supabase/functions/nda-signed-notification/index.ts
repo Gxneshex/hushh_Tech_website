@@ -35,6 +35,12 @@ interface NDANotificationPayload {
   pdfUrl?: string;
   pdfBase64?: string;
   documentsAcknowledged?: string[];
+  // Electronic-signature evidence captured client-side (IP is captured
+  // server-side from x-forwarded-for, never trusted from here).
+  userAgent?: string;
+  signatureId?: string;
+  signedAtLocal?: string;
+  consentVersion?: string;
 }
 
 /**
@@ -283,15 +289,25 @@ serve(async (req) => {
     const userId: string = auth.user.id;
     const signerEmail: string | null = auth.user.email ?? null;
 
+    // Authoritative source IP — captured SERVER-SIDE from the proxy chain
+    // (Google Cloud / Supabase set x-forwarded-for); never trusted from the body.
+    const clientIp =
+      req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+      req.headers.get('x-real-ip') ||
+      'Unknown';
+
     const payload: NDANotificationPayload = await req.json().catch(() => ({} as NDANotificationPayload));
     const {
       signerName,
       signedAt,
       ndaVersion,
-      signerIp = 'Unknown',
       pdfUrl,
       pdfBase64,
       documentsAcknowledged = [],
+      userAgent,
+      signatureId,
+      signedAtLocal,
+      consentVersion,
     } = payload;
 
     if (!signerName) {
@@ -314,8 +330,42 @@ serve(async (req) => {
       : null;
 
     // Signed copies of the four fund agreements (GP = Manish Sainani, LP = the
-    // signer + dates), generated locally from bundled templates — no runtime fetch.
-    const signedFundDocs = buildSignedFundDocs({ signerName, signedAt });
+    // signer), each carrying the Electronic Signature Certificate (ESIGN/UETA
+    // evidence). Generated locally from bundled templates — no runtime fetch.
+    const signedFundDocs = buildSignedFundDocs({
+      signerName,
+      signerEmail: signerEmail ?? undefined,
+      signedAt,
+      signedAtLocal,
+      ip: clientIp,
+      userAgent,
+      signatureId,
+      consentVersion: consentVersion ?? ndaVersion,
+    });
+
+    // Backfill the real, server-attested IP (the RPC stored 'unknown' — the
+    // browser can't be trusted for it). signer_ip already exists, so this always
+    // works and is the fix for "IP not collected".
+    try {
+      await supabase
+        .from('nda_signatures')
+        .update({ signer_ip: clientIp, updated_at: new Date().toISOString() })
+        .eq('user_id', userId);
+    } catch (e) {
+      console.warn('[nda-signed-notification] failed to persist signer IP:', e);
+    }
+    // Device + signature id go to the new columns — best-effort so the IP fix
+    // above still lands even if the additive migration hasn't been applied yet.
+    if (signatureId || userAgent) {
+      try {
+        const extra: Record<string, unknown> = {};
+        if (signatureId) extra.signature_id = signatureId;
+        if (userAgent) extra.signer_user_agent = userAgent;
+        await supabase.from('nda_signatures').update(extra).eq('user_id', userId);
+      } catch (e) {
+        console.warn('[nda-signed-notification] signature_id/user_agent not persisted (columns pending?):', e);
+      }
+    }
 
     // ── Admin notification — signed NDA + the signer's executed fund agreements
     // (the General Partner retains the counterpart signature pages). ──
@@ -324,7 +374,7 @@ serve(async (req) => {
       signerEmail: signerEmail ?? 'unknown',
       signedDate,
       ndaVersion,
-      signerIp,
+      signerIp: clientIp,
       pdfUrl,
       pdfBase64,
       userId,

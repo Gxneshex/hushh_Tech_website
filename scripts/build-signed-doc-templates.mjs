@@ -13,6 +13,7 @@
 // Run: node scripts/build-signed-doc-templates.mjs
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
+import { createHash } from "node:crypto";
 import { unzipSync, zipSync, strToU8, strFromU8 } from "fflate";
 
 const ROOT = process.cwd();
@@ -23,16 +24,55 @@ mkdirSync(OUT_DIR, { recursive: true });
 const FONT =
   'w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"';
 
-function para(text, { bold = false, italic = false, before = null, after = 200, jc = "both", pageBreak = false } = {}) {
+function para(text, { bold = false, italic = false, before = null, after = 200, jc = "both", pageBreak = false, sz = 24 } = {}) {
   const sp = `<w:spacing${before != null ? ` w:before="${before}"` : ""}${after != null ? ` w:after="${after}"` : ""}/>`;
   const pPr = `<w:pPr>${sp}<w:jc w:val="${jc}"/></w:pPr>`;
-  const rPr = `<w:rPr><w:rFonts ${FONT}/>${bold ? "<w:b/><w:bCs/>" : ""}${italic ? "<w:i/><w:iCs/>" : ""}<w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr>`;
+  const rPr = `<w:rPr><w:rFonts ${FONT}/>${bold ? "<w:b/><w:bCs/>" : ""}${italic ? "<w:i/><w:iCs/>" : ""}<w:sz w:val="${sz}"/><w:szCs w:val="${sz}"/></w:rPr>`;
   const brk = pageBreak ? `<w:r><w:br w:type="page"/></w:r>` : "";
   const run = text != null ? `<w:r>${rPr}<w:t xml:space="preserve">${text}</w:t></w:r>` : "";
   return `<w:p>${pPr}${brk}${run}</w:p>`;
 }
 function spacer(before = 400) {
   return `<w:p><w:pPr><w:spacing w:before="${before}"/></w:pPr></w:p>`;
+}
+
+// A small monospace-ish certificate line (9pt).
+function certLine(text, { bold = false, italic = false, after = 60, jc = "left" } = {}) {
+  return para(text, { bold, italic, after, jc, sz: 18 });
+}
+
+// Tokenized Electronic Signature Certificate appended to every signed document.
+// {{SIG_*}} tokens are filled per-signer at runtime; the document fingerprint is
+// the SHA-256 of the exact source document version, baked in here.
+function certificateBlock(docHashHex) {
+  return (
+    para("ELECTRONIC SIGNATURE CERTIFICATE", { bold: true, jc: "center", before: 0, after: 140, pageBreak: true }) +
+    certLine(
+      "This document was executed by electronic signature under the U.S. ESIGN Act (15 U.S.C. ch. 96) and the applicable Uniform Electronic Transactions Act (UETA). The signer adopted their typed name as their legally binding signature.",
+      { after: 160, jc: "both" }
+    ) +
+    certLine("Signature ID:        {{SIG_ID}}") +
+    certLine("Signer:              {{SIG_NAME}} ({{SIG_EMAIL}})") +
+    certLine("Signature method:    Typed name / click-to-sign (“Adopt and Sign”)") +
+    certLine("Signed (UTC):        {{SIG_SIGNED_UTC}}") +
+    certLine("Signed (local):      {{SIG_SIGNED_LOCAL}}") +
+    certLine("IP address:          {{SIG_IP}}") +
+    certLine("Device:              {{SIG_DEVICE}}") +
+    certLine("Electronic consent:  ACCEPTED — {{SIG_CONSENT}}") +
+    certLine("Document fingerprint (SHA-256):") +
+    certLine(docHashHex, { after: 160 }) +
+    certLine(
+      "This certificate, the IP address, device, and timestamps above form the audit record of this electronic signature.",
+      { italic: true, jc: "both" }
+    )
+  );
+}
+
+// Append the certificate before the body sectPr (so it lands last).
+function appendCertificate(xml, docHashHex) {
+  const sectIdx = xml.lastIndexOf("<w:sectPr");
+  if (sectIdx < 0) throw new Error("no body sectPr for certificate");
+  return xml.slice(0, sectIdx) + certificateBlock(docHashHex) + xml.slice(sectIdx);
 }
 
 // Tokenize an existing GP signature block + (optionally) an existing LP block.
@@ -103,12 +143,18 @@ const DOCS = [
   { key: "ppm", filename: "Private-Placement-Memorandum-Signed.docx", mode: "append", label: "Private Placement Memorandum" },
 ];
 
-const REQUIRED_TOKENS = ["{{GP_SIGNATURE}}", "{{GP_DATE}}", "{{LP_SIGNATURE}}", "{{LP_NAME}}", "{{LP_DATE}}"];
+const REQUIRED_TOKENS = [
+  "{{GP_SIGNATURE}}", "{{GP_DATE}}", "{{LP_SIGNATURE}}", "{{LP_NAME}}", "{{LP_DATE}}",
+  "{{SIG_ID}}", "{{SIG_NAME}}", "{{SIG_EMAIL}}", "{{SIG_SIGNED_UTC}}", "{{SIG_SIGNED_LOCAL}}",
+  "{{SIG_IP}}", "{{SIG_DEVICE}}", "{{SIG_CONSENT}}",
+];
 const manifest = [];
 let ok = true;
 
 for (const doc of DOCS) {
   const bytes = new Uint8Array(readFileSync(join(SRC_DIR, `${doc.key}.docx`)));
+  // SHA-256 of the exact source document version the signer is bound to.
+  const docHashHex = createHash("sha256").update(bytes).digest("hex");
   const files = unzipSync(bytes);
   let xml = strFromU8(files["word/document.xml"]);
 
@@ -121,27 +167,33 @@ for (const doc of DOCS) {
     xml = appendSignaturePage(xml, doc.label);
   }
 
-  // Verify every required token is present exactly once (or LP tokens >=1).
+  // Append the Electronic Signature Certificate (per-signer tokens + baked hash).
+  xml = appendCertificate(xml, docHashHex);
+
+  // Verify every required token is present.
   for (const tok of REQUIRED_TOKENS) {
     const n = xml.split(tok).length - 1;
     if (n < 1) { console.error(`  ✗ ${doc.key}: missing token ${tok}`); ok = false; }
-  }
-  if (/(By: )_{6,}/.test(xml.slice(xml.indexOf("SIGNATURE PAGE") >= 0 ? xml.indexOf("SIGNATURE PAGE") : 0))) {
-    // GP/LP By: should be tokenized; long blank By: remaining in sig region is a miss
   }
 
   files["word/document.xml"] = strToU8(xml);
   const outBytes = zipSync(files);
   writeFileSync(join(OUT_DIR, `${doc.key}.docx`), outBytes);
-  manifest.push({ key: doc.key, filename: doc.filename, base64: Buffer.from(outBytes).toString("base64") });
-  console.log(`  ✓ ${doc.key} -> ${doc.filename} (${outBytes.length} bytes, mode=${doc.mode})`);
+  manifest.push({
+    key: doc.key,
+    filename: doc.filename,
+    sha256: docHashHex,
+    base64: Buffer.from(outBytes).toString("base64"),
+  });
+  console.log(`  ✓ ${doc.key} -> ${doc.filename} (${outBytes.length} bytes, mode=${doc.mode}, sha256=${docHashHex.slice(0, 12)}…)`);
 }
 
 const ts =
   `// AUTO-GENERATED by scripts/build-signed-doc-templates.mjs — do not edit by hand.\n` +
-  `// Tokenized fund-document templates (base64 .docx). The runtime signer\n` +
-  `// (signFundDocs.ts) swaps {{GP_SIGNATURE}}/{{GP_DATE}}/{{LP_SIGNATURE}}/{{LP_NAME}}/{{LP_DATE}}.\n` +
-  `export interface FundDocTemplate { key: string; filename: string; base64: string; }\n` +
+  `// Tokenized fund-document templates (base64 .docx) + each source document's\n` +
+  `// SHA-256. The runtime signer (signFundDocs.ts) swaps GP/LP tokens + the\n` +
+  `// {{SIG_*}} electronic-signature certificate tokens.\n` +
+  `export interface FundDocTemplate { key: string; filename: string; sha256: string; base64: string; }\n` +
   `export const FUND_DOC_TEMPLATES: FundDocTemplate[] = ${JSON.stringify(manifest, null, 2)};\n`;
 writeFileSync(
   join(ROOT, "supabase", "functions", "nda-signed-notification", "fundDocTemplates.base64.ts"),

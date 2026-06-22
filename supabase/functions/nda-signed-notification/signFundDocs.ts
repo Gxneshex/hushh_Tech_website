@@ -52,15 +52,36 @@ function formatSignDate(signedAt?: string): string {
   return safe.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 }
 
+export interface SignFundDocsOptions {
+  signerName: string;
+  signerEmail?: string;
+  /** ISO timestamp of signing — drives the GP/LP date and the certificate UTC line. */
+  signedAt?: string;
+  /** Human-readable local time + timezone shown on the certificate (display only). */
+  signedAtLocal?: string;
+  /** Server-captured source IP (x-forwarded-for) — electronic-signature attribution. */
+  ip?: string;
+  /** Signer's browser user-agent. */
+  userAgent?: string;
+  /** Unique signature identifier (UUID), shared with the PDF + DB record. */
+  signatureId?: string;
+  /** Consent/version the signer accepted. */
+  consentVersion?: string;
+}
+
+function utcLine(signedAt?: string): string {
+  const d = signedAt ? new Date(signedAt) : new Date();
+  return (Number.isNaN(d.getTime()) ? new Date() : d).toISOString();
+}
+
 /**
- * Build signed copies of every fund document for this signer.
- * GP signature = "Manish Sainani"; LP signature/name = the signer's name; both dated.
+ * Build signed copies of every fund document for this signer, each carrying an
+ * Electronic Signature Certificate (ESIGN/UETA evidence: signer, signature ID,
+ * UTC + local time, IP, device, consent, document hash).
+ * GP signature = "Manish Sainani"; LP signature/name = the signer's name.
  * Never throws — a doc that fails to render is skipped (logged), so the email still sends.
  */
-export function buildSignedFundDocs(opts: {
-  signerName: string;
-  signedAt?: string;
-}): SignedDocAttachment[] {
+export function buildSignedFundDocs(opts: SignFundDocsOptions): SignedDocAttachment[] {
   const date = formatSignDate(opts.signedAt);
   const replacements: Record<string, string> = {
     "{{GP_SIGNATURE}}": xmlEscape(GENERAL_PARTNER_SIGNATORY),
@@ -68,6 +89,18 @@ export function buildSignedFundDocs(opts: {
     "{{LP_SIGNATURE}}": xmlEscape(opts.signerName),
     "{{LP_NAME}}": xmlEscape(opts.signerName),
     "{{LP_DATE}}": xmlEscape(date),
+    "{{SIG_ID}}": xmlEscape(opts.signatureId || "Not recorded"),
+    "{{SIG_NAME}}": xmlEscape(opts.signerName),
+    "{{SIG_EMAIL}}": xmlEscape(opts.signerEmail || "Not recorded"),
+    "{{SIG_SIGNED_UTC}}": xmlEscape(utcLine(opts.signedAt)),
+    "{{SIG_SIGNED_LOCAL}}": xmlEscape(opts.signedAtLocal || date),
+    "{{SIG_IP}}": xmlEscape(opts.ip || "Not recorded"),
+    "{{SIG_DEVICE}}": xmlEscape(opts.userAgent || "Not recorded"),
+    "{{SIG_CONSENT}}": xmlEscape(
+      opts.consentVersion
+        ? `Consent to electronic records & signatures (v${opts.consentVersion})`
+        : "Consent to electronic records & signatures",
+    ),
   };
 
   const out: SignedDocAttachment[] = [];
