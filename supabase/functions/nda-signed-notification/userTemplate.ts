@@ -22,6 +22,8 @@ export interface NDAUserConfirmationData {
   pdfAttached: boolean;
   pdfUrl?: string;
   documentsAcknowledged?: string[];
+  /** Fund documents offered as download links (not heavy attachments). */
+  fundDocuments?: { label: string; href: string }[];
   profileUrl: string;
 }
 
@@ -68,6 +70,7 @@ export function buildNDAUserConfirmationHtml({
   pdfAttached,
   pdfUrl,
   documentsAcknowledged = [],
+  fundDocuments = [],
   profileUrl,
 }: NDAUserConfirmationData): string {
   const detailRows = [
@@ -91,29 +94,28 @@ export function buildNDAUserConfirmationHtml({
       : []),
   ];
 
+  const ndaCopyLine = pdfAttached
+    ? "A copy of your signed NDA is attached to this email — keep it for your records."
+    : pdfUrl
+      ? `Your signed NDA is saved for you.<br/><br/><a href="${escapeAttribute(
+          pdfUrl
+        )}" style="color:${EMAIL_COLORS.bodyText};font-weight:700;text-decoration:underline;">View / Download your NDA</a>`
+      : "Your countersigned NDA copy is being prepared and will follow shortly — you can also download it anytime from your profile.";
+
+  const fundDocsLine =
+    fundDocuments.length > 0
+      ? `<br/><br/>The fund documents you reviewed are available to download anytime:<br/>${fundDocuments
+          .map(
+            (doc) =>
+              `<a href="${escapeAttribute(doc.href)}" style="color:${EMAIL_COLORS.bodyText};font-weight:700;text-decoration:underline;display:inline-block;margin-top:8px;">${escapeHtml(
+                doc.label
+              )}</a>`
+          )
+          .join("<br/>")}`
+      : "";
+
   const extraSections = [
-    pdfAttached
-      ? renderCard(
-          "Your signed copy",
-          renderSimpleCardBody(
-            "A copy of your signed NDA — together with the four fund documents you reviewed — is attached to this email. Keep them for your records."
-          )
-        )
-      : pdfUrl
-        ? renderCard(
-            "Your signed copy",
-            renderSimpleCardBody(
-              `Your signed NDA is saved for you, and the four fund documents are attached to this email.<br/><br/><a href="${escapeAttribute(
-                pdfUrl
-              )}" style="color:${EMAIL_COLORS.bodyText};font-weight:700;text-decoration:underline;">View / Download your NDA</a>`
-            )
-          )
-        : renderCard(
-            "Your signed copy",
-            renderSimpleCardBody(
-              "The four fund documents you reviewed are attached to this email. Your countersigned NDA copy is being prepared and will follow shortly — you can also download it anytime from your profile."
-            )
-          ),
+    renderCard("Your signed copy", renderSimpleCardBody(`${ndaCopyLine}${fundDocsLine}`)),
     documentsAcknowledged.length > 0
       ? renderCard("Documents you reviewed", renderDocumentsList(documentsAcknowledged))
       : "",

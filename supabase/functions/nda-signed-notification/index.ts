@@ -20,10 +20,10 @@ const corsHeaders = {
 // NDA list never drifts from who actually operates the fund).
 const NDA_NOTIFICATION_RECIPIENTS = FUND_ADMIN_ALLOWLIST;
 
-const DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-
-// The fund documents the signer acknowledged — attached to the SIGNER's copy,
-// fetched from OUR OWN site assets (never a client-supplied URL).
+// The fund documents the signer reviewed — offered as DOWNLOAD LINKS in the
+// signer's confirmation email (served from OUR OWN site assets). They are no
+// longer attached: a multi-attachment signer email was failing to send, so the
+// signer never received their copy.
 const FUND_DOCUMENTS_FN = [
   { filename: "Delaware-Feeder-LPA.docx", path: "/fund-documents/delaware-feeder-lpa.docx" },
   { filename: "Investment-Prospectus.docx", path: "/fund-documents/investment-prospectus.docx" },
@@ -35,36 +35,6 @@ interface EmailAttachment {
   filename: string;
   mimeType: string;
   base64Data: string;
-}
-
-function arrayBufferToBase64(buf: ArrayBuffer): string {
-  const bytes = new Uint8Array(buf);
-  let binary = "";
-  const chunk = 0x8000;
-  for (let i = 0; i < bytes.length; i += chunk) {
-    binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
-  }
-  return btoa(binary);
-}
-
-// Best-effort: fetch the four fund docs from our assets; a doc that fails is
-// skipped (never fatal), so the signer still gets whatever is available.
-async function fetchFundDocAttachments(): Promise<EmailAttachment[]> {
-  const base = getPrimarySiteUrl();
-  const out: EmailAttachment[] = [];
-  for (const doc of FUND_DOCUMENTS_FN) {
-    try {
-      const r = await fetch(`${base}${doc.path}`);
-      if (!r.ok) {
-        console.warn(`[nda-signed-notification] fund doc fetch ${r.status}: ${doc.path}`);
-        continue;
-      }
-      out.push({ filename: doc.filename, mimeType: DOCX_MIME, base64Data: arrayBufferToBase64(await r.arrayBuffer()) });
-    } catch (err) {
-      console.warn(`[nda-signed-notification] fund doc fetch failed: ${doc.path}`, err);
-    }
-  }
-  return out;
 }
 
 interface NDANotificationPayload {
@@ -380,11 +350,16 @@ serve(async (req) => {
     let signerError: string | null = null;
     const looksLikeEmail = signerEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(signerEmail);
     if (looksLikeEmail) {
-      const fundDocAttachments = await fetchFundDocAttachments();
-      const signerAttachments = [
-        ...(signedNdaAttachment ? [signedNdaAttachment] : []),
-        ...fundDocAttachments,
-      ];
+      // Signer copy carries ONLY the signed NDA PDF (small + reliable). The four
+      // fund documents are offered as DOWNLOAD LINKS in the body instead of heavy
+      // attachments — a multi-attachment signer email was failing to send, which
+      // is why signers previously never received their copy.
+      const siteBase = getPrimarySiteUrl();
+      const fundDocuments = FUND_DOCUMENTS_FN.map((doc) => ({
+        label: doc.filename.replace(/\.docx$/i, "").replace(/-/g, " "),
+        href: `${siteBase}${doc.path}`,
+      }));
+      const signerAttachments = signedNdaAttachment ? [signedNdaAttachment] : [];
       const userHtml = buildNDAUserConfirmationHtml({
         signerName,
         signerEmail: signerEmail as string,
@@ -393,7 +368,8 @@ serve(async (req) => {
         pdfAttached: Boolean(pdfBase64),
         pdfUrl,
         documentsAcknowledged,
-        profileUrl: `${getPrimarySiteUrl()}/hushh-user-profile`,
+        fundDocuments,
+        profileUrl: `${siteBase}/hushh-user-profile`,
       });
       const signerResult = await logNdaEmail(supabase, {
         userId,
