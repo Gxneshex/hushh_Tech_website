@@ -127,6 +127,7 @@ export default function OnboardingStep11() {
           <Eyebrow>Institutional Series</Eyebrow>
           <Display as="h1" size="xs" maxWidth="max-w-[500px]">
             Hushh Fund A multi-strategy alpha.
+            <RequiredAsterisk />
           </Display>
           <Lede className="max-w-[480px]">
             Choose the share class and optional recurring investment schedule that matches your allocation plan.

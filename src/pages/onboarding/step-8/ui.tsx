@@ -351,6 +351,7 @@ export default function OnboardingReviewStep() {
           <Eyebrow>Review</Eyebrow>
           <Display as="h1" size="xs" maxWidth="max-w-[500px]">
             Review your application.
+            <RequiredAsterisk />
           </Display>
           <Lede className="max-w-[500px]">
             Check the important investor details once. Edit anything that needs correction.

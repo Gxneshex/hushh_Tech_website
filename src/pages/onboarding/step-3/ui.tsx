@@ -108,6 +108,7 @@ export default function OnboardingStep3Combined() {
             <Eyebrow>Personal Details</Eyebrow>
             <Display as="h1" size="xs" maxWidth="max-w-[500px]">
               Confirm your details.
+              <RequiredAsterisk />
             </Display>
             <Lede className="max-w-[460px]">
               Add your legal name, date of birth, and residence so we can

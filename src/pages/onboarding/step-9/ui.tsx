@@ -24,6 +24,7 @@ import {
   Lede,
   appleFont,
 } from "../../../components/hushh-tech-ui/HushhAppleUI";
+import { RequiredAsterisk } from "../../../components/onboarding-field-marker/FieldMarkers";
 import ConsentCheckbox from "../../../components/consent/ConsentCheckbox";
 import { CONSENT_COPY, CONSENT_LINKS } from "../../../services/consent/consentConfig";
 
@@ -222,6 +223,7 @@ export default function OnboardingStep9() {
           <Eyebrow>Final Step</Eyebrow>
           <Display as="h1" size="xs" maxWidth="max-w-[500px]">
             Confirm your fund payment.
+            <RequiredAsterisk />
           </Display>
           <Lede className="max-w-[500px]">
             Stripe collects the first payment while Plaid continues to support
