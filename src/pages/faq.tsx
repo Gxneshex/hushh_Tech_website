@@ -107,10 +107,41 @@ const flatFaqs: FaqItem[] = faqCategories.flatMap((category) => category.items);
 
 const FaqPage: React.FC = () => {
   const [openIndex, setOpenIndex] = React.useState<number | null>(null);
+  const [activeCategory, setActiveCategory] = React.useState(0);
+  const sectionRefs = React.useRef<Array<HTMLElement | null>>([]);
 
   const toggleAccordion = (index: number) => {
     setOpenIndex(openIndex === index ? null : index);
   };
+
+  const goToCategory = (index: number) => {
+    sectionRefs.current[index]?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  // Scroll-spy: highlight the category currently in view (the "train" position).
+  React.useEffect(() => {
+    if (typeof IntersectionObserver === "undefined") return;
+    const sections = sectionRefs.current.filter(Boolean) as HTMLElement[];
+    if (!sections.length) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const inView = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+        if (inView[0]) {
+          const idx = Number(inView[0].target.getAttribute("data-cat-index"));
+          if (!Number.isNaN(idx)) setActiveCategory(idx);
+        }
+      },
+      // Top offset clears the fixed header; bottom margin flips the active
+      // item once a section reaches the upper portion of the viewport.
+      { rootMargin: "-170px 0px -55% 0px", threshold: 0 },
+    );
+
+    sections.forEach((section) => observer.observe(section));
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <div
@@ -132,13 +163,92 @@ const FaqPage: React.FC = () => {
         </AppleSection>
 
         <AppleSection tone="light" pad="normal" className="!pt-0">
-          <div className="mx-auto w-full max-w-[760px] px-5">
-            {faqCategories.map((category, categoryIndex) => (
-              <section
-                key={category.label}
-                aria-labelledby={`faq-category-${categoryIndex}`}
-                className={categoryIndex === 0 ? "" : "mt-14 md:mt-16"}
-              >
+          <div className="mx-auto w-full max-w-[1040px] px-5">
+            {/* Mobile category rail — horizontal, scrollable, sticky under the header */}
+            <nav
+              aria-label="FAQ categories"
+              className="sticky top-[140px] z-30 -mx-5 mb-8 border-b border-[#1D1D1F]/[0.08] bg-white/85 px-5 py-2.5 backdrop-blur-xl md:hidden"
+            >
+              <div className="flex gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                {faqCategories.map((category, i) => {
+                  const active = activeCategory === i;
+                  return (
+                    <button
+                      key={category.label}
+                      type="button"
+                      onClick={() => goToCategory(i)}
+                      aria-current={active ? "true" : undefined}
+                      className={`shrink-0 whitespace-nowrap rounded-full px-4 py-2 text-[13px] font-medium tracking-[-0.01em] transition ${
+                        active
+                          ? "bg-[#0066CC] text-white"
+                          : "bg-[#1D1D1F]/[0.05] text-[#1D1D1F]/65 hover:bg-[#1D1D1F]/[0.08]"
+                      }`}
+                    >
+                      {category.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </nav>
+
+            <div className="md:grid md:grid-cols-[210px_minmax(0,1fr)] md:gap-12 lg:gap-16">
+              {/* Desktop left rail — sticky "train" with connecting line + active dot */}
+              <nav aria-label="FAQ categories" className="hidden md:block">
+                <div className="sticky top-[170px]">
+                  <p className="mb-5 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#1D1D1F]/40">
+                    Categories
+                  </p>
+                  <ul className="relative flex flex-col gap-0.5">
+                    <span
+                      aria-hidden="true"
+                      className="absolute left-[5px] top-3 bottom-3 w-px bg-[#1D1D1F]/10"
+                    />
+                    {faqCategories.map((category, i) => {
+                      const active = activeCategory === i;
+                      return (
+                        <li key={category.label}>
+                          <button
+                            type="button"
+                            onClick={() => goToCategory(i)}
+                            aria-current={active ? "true" : undefined}
+                            className="group flex w-full items-start gap-3 py-2 text-left focus-visible:outline-none"
+                          >
+                            <span
+                              className={`relative z-[1] mt-[5px] h-[11px] w-[11px] shrink-0 rounded-full border-2 transition ${
+                                active
+                                  ? "border-[#0066CC] bg-[#0066CC] shadow-[0_0_0_4px_rgba(0,102,204,0.12)]"
+                                  : "border-[#1D1D1F]/25 bg-white group-hover:border-[#0066CC]/50"
+                              }`}
+                            />
+                            <span
+                              className={`text-[14px] leading-snug tracking-[-0.01em] transition ${
+                                active
+                                  ? "font-semibold text-[#1D1D1F]"
+                                  : "font-medium text-[#1D1D1F]/55 group-hover:text-[#1D1D1F]"
+                              }`}
+                            >
+                              {category.label}
+                            </span>
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              </nav>
+
+              {/* Right column — category sections */}
+              <div className="min-w-0">
+                {faqCategories.map((category, categoryIndex) => (
+                  <section
+                    key={category.label}
+                    ref={(el) => {
+                      sectionRefs.current[categoryIndex] = el;
+                    }}
+                    data-cat-index={categoryIndex}
+                    aria-labelledby={`faq-category-${categoryIndex}`}
+                    className={`scroll-mt-[150px] ${categoryIndex === 0 ? "" : "mt-14 md:mt-16"}`}
+                  >
                 <div className="mb-5 border-b border-[#1D1D1F]/[0.08] pb-4">
                   <h2
                     id={`faq-category-${categoryIndex}`}
@@ -217,8 +327,10 @@ const FaqPage: React.FC = () => {
                     );
                   })}
                 </ul>
-              </section>
-            ))}
+                  </section>
+                ))}
+              </div>
+            </div>
           </div>
         </AppleSection>
 
