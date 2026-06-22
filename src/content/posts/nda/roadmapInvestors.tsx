@@ -215,7 +215,7 @@ const InvestorMaterials = () => {
         </Box>
         <Box>
           <Heading as="h4" fontSize="md" mb={2}>
-            b. FAQs
+            b. FAQ
           </Heading>
           <List spacing={2} pl={4}>
             <ListItem>Address common investor concerns such as options strategies, bear market scenarios, and downside risk management.</ListItem>

@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import config from '../../../resources/config/config';
 import { upsertOnboardingData } from '../../../services/onboarding/upsertOnboardingData';
-import { trackCta, trackStepCompleted, trackStepSkipped } from '../../../services/onboarding/onboardingAnalytics';
+import { trackCta, trackStepCompleted } from '../../../services/onboarding/onboardingAnalytics';
 import {
   FINANCIAL_LINK_REVIEW_ROUTE,
   TOTAL_VISIBLE_ONBOARDING_STEPS,
@@ -91,7 +91,6 @@ export interface Step1Logic {
   setDetailQuery: (value: string) => void;
   selectDetail: (value: string) => void;
   handleContinue: () => Promise<void>;
-  handleSkip: () => Promise<void>;
   handleBack: () => void;
 }
 
@@ -203,19 +202,6 @@ export const useStep1Logic = (): Step1Logic => {
     }
   };
 
-  const handleSkip = async () => {
-    trackCta('skip', 'step-1');
-    trackStepSkipped('step-1');
-    if (isPreview) {
-      navigate(withLocalOnboardingPreview('/onboarding/step-2'));
-      return;
-    }
-    if (userId) {
-      await upsertOnboardingData(userId, { current_step: 2 });
-    }
-    navigate('/onboarding/step-2');
-  };
-
   const handleBack = () => {
     if (isPreview) {
       navigate(withLocalOnboardingPreview(FINANCIAL_LINK_REVIEW_ROUTE));
@@ -236,7 +222,6 @@ export const useStep1Logic = (): Step1Logic => {
     setDetailQuery,
     selectDetail,
     handleContinue,
-    handleSkip,
     handleBack,
   };
 };

@@ -54,7 +54,7 @@ const SITE_SEARCH_ITEMS = [
   { label: "Careers", hint: "Open roles and teams", path: "/career" },
   { label: "Benefits", hint: "Compensation, health, growth", path: "/benefits" },
   { label: "Contact", hint: "Get in touch with Hushh", path: "/contact" },
-  { label: "FAQs", hint: "Common investor questions", path: "/faq" },
+  { label: "FAQ", hint: "Common investor questions", path: "/faq" },
   { label: "Profile", hint: "Investor profile and onboarding", path: "/profile" },
   { label: "Disclosures", hint: "Risk disclosures", path: "/risk-disclosures" },
   { label: "Privacy", hint: "Website privacy policy", path: "/privacy-policy" },

@@ -76,10 +76,6 @@ const HushhTechFooter: React.FC<HushhTechFooterProps> = ({
   return (
     <>
       <div
-        aria-hidden="true"
-        className="h-[calc(7.25rem+env(safe-area-inset-bottom,0px))] shrink-0"
-      />
-      <div
         className={`fixed inset-x-0 bottom-0 z-50 pointer-events-none px-3 pb-[calc(env(safe-area-inset-bottom,0px)+0.85rem)] pt-4 sm:px-5 ${className}`}
       >
         <div

@@ -45,9 +45,11 @@ describe("legal and support footer pages", () => {
   it("keeps legal pages on the shared HushhTech legal shell, not Chakra pages", () => {
     const shell = read("src/components/hushh-tech-legal-page/HushhTechLegalPage.tsx");
 
+    // Legal shell now uses the home shell + design-system typography.
     expect(shell).toContain("appleDisplayFont");
-    expect(shell).toContain("text-[clamp(32px,4.6vw,54px)] font-semibold leading-[1.08] tracking-[-0.025em] text-[#1D1D1F]");
-    expect(shell).toContain("mb-[18px] text-[13px] font-bold uppercase leading-tight tracking-[0.14em]");
+    expect(shell).toContain("HushhTechHeader");
+    expect(shell).toContain("Display");
+    expect(shell).toContain("Eyebrow");
     expect(shell).not.toContain("text-[36px] font-medium leading-[1.06]");
 
     for (const path of [

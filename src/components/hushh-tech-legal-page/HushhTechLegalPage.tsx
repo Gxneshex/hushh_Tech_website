@@ -1,9 +1,13 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 
-import HushhTechBackHeader from "../hushh-tech-back-header/HushhTechBackHeader";
+import HushhTechFooter from "../hushh-tech-footer/HushhTechFooter";
+import HushhTechHeader from "../hushh-tech-header/HushhTechHeader";
 import {
+  Display,
+  Eyebrow,
   Icon,
+  Lede,
   SYS,
   appleDisplayFont,
   appleFont,
@@ -85,6 +89,8 @@ const ActionLink = ({
 export default function HushhTechLegalPage({
   eyebrow,
   title,
+  lede,
+  updated,
   sections,
   primaryAction,
   secondaryAction,
@@ -92,28 +98,30 @@ export default function HushhTechLegalPage({
 }: HushhTechLegalPageProps) {
   return (
     <div
-      className="min-h-screen bg-[#F5F5F7] text-[#1D1D1F] antialiased selection:bg-[#0066CC] selection:text-white"
+      className="min-h-screen bg-white text-[#1D1D1F] antialiased selection:bg-[#0066CC] selection:text-white"
       style={{ fontFamily: appleFont }}
     >
-      <HushhTechBackHeader rightLabel="FAQs" />
+      <HushhTechHeader showSearch={false} />
 
       <main
         id="main-content"
-        className="px-5 pb-[calc(7rem+env(safe-area-inset-bottom))] pt-10 sm:px-6 sm:pb-24"
+        className="px-5 pb-20 pt-12 sm:px-6 sm:pt-16"
       >
+        {/* Light hero */}
         <section className="mx-auto max-w-[760px] text-center">
-          <p className="mb-[18px] text-[13px] font-bold uppercase leading-tight tracking-[0.14em] text-[#0066CC]/85">
-            {eyebrow}
-          </p>
-          <h1
-            className="mx-auto max-w-[680px] text-[clamp(32px,4.6vw,54px)] font-semibold leading-[1.08] tracking-[-0.025em] text-[#1D1D1F]"
-            style={{ fontFamily: appleDisplayFont, textWrap: "balance" }}
-          >
+          <Eyebrow>{eyebrow}</Eyebrow>
+          <Display as="h1" size="sm" maxWidth="max-w-[680px]">
             {title}
-          </h1>
+          </Display>
+          {lede ? <Lede>{lede}</Lede> : null}
+          {updated ? (
+            <p className="mt-4 text-[13px] font-medium tracking-[-0.005em] text-[#1D1D1F]/45">
+              {updated}
+            </p>
+          ) : null}
 
           {primaryAction || secondaryAction ? (
-            <div className="mx-auto mt-7 flex max-w-[360px] flex-wrap justify-center gap-3 sm:max-w-none">
+            <div className="mx-auto mt-8 flex max-w-[360px] flex-wrap justify-center gap-3 sm:max-w-none">
               {primaryAction ? (
                 <ActionLink action={primaryAction} variant="primary" />
               ) : null}
@@ -124,58 +132,58 @@ export default function HushhTechLegalPage({
           ) : null}
         </section>
 
-        {children ? <div className="mx-auto mt-10 max-w-[900px]">{children}</div> : null}
+        {/* Optional custom content (e.g. FAQ blocks) */}
+        {children ? (
+          <div className="mx-auto mt-14 max-w-[760px]">{children}</div>
+        ) : null}
 
-        <section className="mx-auto mt-10 grid max-w-[900px] gap-3">
+        {/* Legal body — clean, readable, centered single column on a light background */}
+        <div className="mx-auto mt-14 max-w-[760px]">
           {sections.map((section, sectionIndex) => (
-            <article
+            <section
               key={`${section.title}-${sectionIndex}`}
-              className="relative overflow-hidden rounded-[22px] border border-[#1D1D1F]/[0.06] bg-white/75 p-5 shadow-[0_18px_50px_rgba(29,29,31,0.06)] backdrop-blur-xl sm:rounded-[24px] sm:p-6 md:p-8"
+              className={
+                sectionIndex === 0
+                  ? ""
+                  : "mt-10 border-t border-[#1D1D1F]/[0.08] pt-10"
+              }
             >
-              <div
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-0 rounded-[24px]"
-                style={{
-                  background:
-                    "linear-gradient(145deg, rgba(255,255,255,0.68) 0%, rgba(255,255,255,0.12) 48%, rgba(255,255,255,0.38) 100%)",
-                }}
-              />
-              <div className="relative z-[1]">
-                {section.eyebrow ? (
-                  <p className="mb-2 text-[10px] font-semibold uppercase tracking-[1.5px] text-[#0066CC]/75">
-                    {section.eyebrow}
-                  </p>
-                ) : null}
-                <h2
-                  className="text-[24px] font-semibold leading-[1.12] tracking-[-0.022em] text-[#1D1D1F] md:text-[30px]"
-                  style={{ fontFamily: appleDisplayFont }}
-                >
-                  {section.title}
-                </h2>
+              {section.eyebrow ? (
+                <p className="mb-2 text-[11px] font-semibold uppercase tracking-[1.5px] text-[#0066CC]/80">
+                  {section.eyebrow}
+                </p>
+              ) : null}
+              <h2
+                className="text-[22px] font-semibold leading-[1.18] tracking-[-0.02em] text-[#1D1D1F] md:text-[26px]"
+                style={{ fontFamily: appleDisplayFont }}
+              >
+                {section.title}
+              </h2>
 
-                {section.body?.length ? (
-                  <div className="mt-4 space-y-4 text-[15px] leading-[1.65] tracking-normal text-[#1D1D1F]/68 md:text-[16px]">
-                    {section.body.map((paragraph, index) => (
-                      <p key={index}>{paragraph}</p>
-                    ))}
-                  </div>
-                ) : null}
+              {section.body?.length ? (
+                <div className="mt-4 space-y-4 text-[16px] leading-[1.7] tracking-normal text-[#1D1D1F]/72 md:text-[17px]">
+                  {section.body.map((paragraph, index) => (
+                    <p key={index}>{paragraph}</p>
+                  ))}
+                </div>
+              ) : null}
 
-                {section.bullets?.length ? (
-                  <ul className="mt-5 space-y-3 text-[15px] leading-[1.55] text-[#1D1D1F]/68 md:text-[16px]">
-                    {section.bullets.map((item, index) => (
-                      <li key={index} className="flex gap-3">
-                        <span className="mt-[0.62em] h-1.5 w-1.5 shrink-0 rounded-full bg-[#0066CC]/70" />
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                ) : null}
-              </div>
-            </article>
+              {section.bullets?.length ? (
+                <ul className="mt-5 space-y-3 text-[16px] leading-[1.6] text-[#1D1D1F]/72 md:text-[17px]">
+                  {section.bullets.map((item, index) => (
+                    <li key={index} className="flex gap-3">
+                      <span className="mt-[0.62em] h-1.5 w-1.5 shrink-0 rounded-full bg-[#0066CC]/70" />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </section>
           ))}
-        </section>
+        </div>
       </main>
+
+      <HushhTechFooter />
     </div>
   );
 }

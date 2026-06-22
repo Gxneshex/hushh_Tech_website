@@ -21,7 +21,7 @@ export default function Footer() {
   };
 
   return (
-    <footer className="relative z-10 bg-[#0B0C10] border-t border-[#1F2937]">
+    <footer className="relative z-10 bg-[#0B0C10] border-t border-[#1F2937] pb-[calc(8rem+env(safe-area-inset-bottom,0px))]">
       {/* Top Section: Identity & Contact */}
       <div className="px-6 pt-10 pb-6 max-w-7xl mx-auto">
         {/* Brand */}
@@ -114,10 +114,10 @@ export default function Footer() {
                   Community
                 </a>
                 <a 
-                  href="/faq" 
+                  href="/faq"
                   className="py-2 text-gray-300 hover:text-white text-base font-medium flex items-center justify-between group block transition-colors duration-200"
                 >
-                  FAQs
+                  FAQ
                 </a>
                 <a 
                   href="/contact" 

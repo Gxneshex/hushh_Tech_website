@@ -19,7 +19,7 @@ interface HushhTechBackHeaderProps {
 const HushhTechBackHeader: React.FC<HushhTechBackHeaderProps> = ({
   onBackClick,
   rightType = "label",
-  rightLabel = "FAQs",
+  rightLabel = "FAQ",
   onRightClick,
   showRightButton = true,
   showTicker = false,
@@ -36,7 +36,7 @@ const HushhTechBackHeader: React.FC<HushhTechBackHeaderProps> = ({
       return;
     }
 
-    if (rightLabel?.toLowerCase() !== "faqs") return;
+    if (!["faq", "faqs"].includes(rightLabel?.toLowerCase() ?? "")) return;
 
     if (location.pathname.startsWith("/onboarding")) {
       setIsFaqOpen(true);

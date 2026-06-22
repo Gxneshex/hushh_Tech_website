@@ -26,8 +26,6 @@ import { RequiredAsterisk } from "../../../components/onboarding-field-marker/Fi
 
 const primaryCtaClass =
   "!rounded-full !border-[#0066CC] !bg-[#0066CC] !text-white !font-medium !tracking-[-0.01em] !shadow-none";
-const secondaryCtaClass =
-  "!rounded-full !border-[#1D1D1F]/15 !bg-white !text-[#1D1D1F] !font-medium !tracking-[-0.01em] !shadow-none";
 
 export default function OnboardingStep1() {
   const detailCardRef = useRef<HTMLDivElement | null>(null);
@@ -47,7 +45,6 @@ export default function OnboardingStep1() {
     setDetailQuery,
     selectDetail,
     handleContinue,
-    handleSkip,
     handleBack,
   } = useStep1Logic();
 
@@ -305,13 +302,6 @@ export default function OnboardingStep1() {
             className={primaryCtaClass}
           >
             {isLoading ? "Saving..." : "Continue"}
-          </HushhTechCta>
-          <HushhTechCta
-            variant={HushhTechCtaVariant.WHITE}
-            onClick={handleSkip}
-            className={secondaryCtaClass}
-          >
-            Skip for now
           </HushhTechCta>
         </section>
       </main>
