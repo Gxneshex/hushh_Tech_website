@@ -143,6 +143,7 @@ const SpotlightCard = ({
       title={post.title}
       slug={post.slug}
       className="h-56 w-full md:h-72"
+      rounded="rounded-none"
     />
     <div className="p-6 md:p-8">
       <div className="mb-3 flex flex-wrap items-center gap-3">
@@ -171,21 +172,29 @@ const SpotlightCard = ({
   </article>
 );
 
-/* ── Trending row — compact, small cover thumbnail ── */
+/* ── Trending row — ranked highlight: rank numeral · thumbnail · title ── */
 const TrendingRow = ({
   post,
   date,
   category,
   tint,
-  isLast,
+  rank,
 }: {
   post: CommunityPost;
   date: string;
   category: string;
   tint: string;
-  isLast: boolean;
+  rank: number;
 }) => (
-  <article className="relative flex items-center gap-4 py-3.5">
+  <article className="group/row flex items-center gap-3.5 py-4 sm:gap-5">
+    {/* Large muted rank numeral — hidden only on very narrow screens to protect the row */}
+    <span
+      aria-hidden="true"
+      className="block w-7 shrink-0 text-center text-[30px] font-semibold leading-none tracking-[-0.03em] text-[#1D1D1F]/18 transition-colors group-hover/row:text-[#1D1D1F]/30 max-[399px]:hidden sm:w-9 sm:text-[34px]"
+      style={{ fontFamily: appleDisplayFont }}
+    >
+      {rank}
+    </span>
     <CommunityCover
       category={category}
       title={post.title}
@@ -194,14 +203,14 @@ const TrendingRow = ({
       rounded="rounded-[12px]"
     />
     <div className="min-w-0 flex-1">
-      <div className="mb-1 flex flex-wrap items-center gap-2">
+      <div className="mb-1 flex flex-wrap items-center gap-x-2 gap-y-0.5">
         <span
-          className="text-[11px] font-semibold uppercase tracking-[0.05em]"
+          className="truncate text-[11px] font-semibold uppercase tracking-[0.05em]"
           style={{ color: tint, fontFamily: appleFont }}
         >
           {category}
         </span>
-        <span className="h-0.5 w-0.5 rounded-full bg-[#1D1D1F]/30" />
+        <span className="h-0.5 w-0.5 shrink-0 rounded-full bg-[#1D1D1F]/30" />
         <span
           className="text-[11px] font-medium uppercase tracking-[0.05em] text-[#1D1D1F]/50"
           style={{ fontFamily: appleFont }}
@@ -210,16 +219,15 @@ const TrendingRow = ({
         </span>
       </div>
       <h3
-        className="line-clamp-2 text-[15px] font-medium leading-[1.2] tracking-[-0.018em] text-[#1D1D1F]"
+        className="line-clamp-2 text-[15px] font-semibold leading-[1.25] tracking-[-0.018em] text-[#1D1D1F]"
         style={{ fontFamily: appleFont }}
       >
         {post.title}
       </h3>
     </div>
-    <span className="shrink-0 self-center">{Icon.chevronRight("rgba(60,60,67,0.25)", 13)}</span>
-    {!isLast ? (
-      <span className="absolute bottom-0 left-[104px] right-0 h-px bg-[#000000]/[0.08]" />
-    ) : null}
+    <span className="shrink-0 self-center transition-transform group-hover/row:translate-x-0.5">
+      {Icon.chevronRight("rgba(60,60,67,0.3)", 14)}
+    </span>
   </article>
 );
 
@@ -244,20 +252,21 @@ const ArticleCard = ({
       category={category}
       title={post.title}
       slug={post.slug}
-      className="h-40 w-full"
+      className="aspect-[16/10] w-full"
+      rounded="rounded-none"
     />
     <div className="flex flex-1 flex-col p-5">
       <div className="mb-2.5">
         <CategoryBadge label={category} tint={tint} />
       </div>
       <h3
-        className="mb-2 text-[17px] font-semibold leading-[1.15] tracking-[-0.02em] text-[#1D1D1F]"
+        className="mb-2 line-clamp-2 text-[17px] font-semibold leading-[1.2] tracking-[-0.02em] text-[#1D1D1F]"
         style={{ fontFamily: appleFont }}
       >
         {post.title}
       </h3>
       <p
-        className="mb-4 line-clamp-3 text-[13.5px] font-normal leading-[1.45] text-[#1D1D1F]/60"
+        className="mb-4 line-clamp-2 text-[13.5px] font-normal leading-[1.45] text-[#1D1D1F]/60"
         style={{ fontFamily: appleFont }}
       >
         {description}
@@ -539,7 +548,7 @@ export default function CommunityPage() {
                   {trending.length > 0 ? (
                     <section aria-labelledby="community-trending">
                       {sectionHeader("Trending", "#FF9500")}
-                      <div className="overflow-hidden rounded-[20px] bg-[#FFFFFF] px-5 shadow-[0_2px_12px_rgba(29,29,31,0.04),inset_0_0_0_0.5px_rgba(29,29,31,0.06)]">
+                      <div className="divide-y divide-[#1D1D1F]/[0.07] overflow-hidden rounded-[20px] bg-[#FFFFFF] px-4 shadow-[0_2px_12px_rgba(29,29,31,0.04),inset_0_0_0_0.5px_rgba(29,29,31,0.06)] sm:px-5">
                         {trending.map((post, index) =>
                           renderPostLink(
                             post,
@@ -548,9 +557,9 @@ export default function CommunityPage() {
                               date={formatDisplayDate(post.date)}
                               category={categoryOf(post)}
                               tint={tintFor(categoryOf(post))}
-                              isLast={index === trending.length - 1}
+                              rank={index + 1}
                             />,
-                            "block rounded-none"
+                            "block rounded-none transition-colors hover:bg-[#1D1D1F]/[0.015]"
                           )
                         )}
                       </div>

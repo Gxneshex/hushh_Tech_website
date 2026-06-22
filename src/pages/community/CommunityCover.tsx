@@ -1,12 +1,18 @@
 import React from "react";
 import { appleFont } from "../../components/hushh-tech-ui/HushhAppleUI";
+import { getCoverImage } from "./coverImages";
 
 /**
  * CommunityCover
  * --------------
- * Self-contained, on-brand cover art for community article cards.
- * No external images or network calls — everything is inline SVG + CSS gradients.
- * Deterministic per article: the same slug always yields the same art.
+ * On-brand cover art for community article cards.
+ * Renders a real photo when one is available for the article (via getCoverImage),
+ * and falls back to a self-contained, deterministic inline-SVG gradient when there
+ * is no photo or the photo fails to load. The SVG fallback is per-article stable:
+ * the same slug always yields the same art.
+ *
+ * Sizing is owned entirely by the caller via `className` (e.g. "h-40 w-full").
+ * The root only contributes position/overflow/rounding so caller sizing wins.
  */
 
 export interface CommunityCoverProps {
@@ -89,6 +95,12 @@ export default function CommunityCover({
 }: CommunityCoverProps): JSX.Element {
   const { accent, deep } = accentFor(category);
 
+  // Try to resolve a real photo for this article. May be null (use the SVG
+  // gradient fallback) and may fail to load at runtime (we then swap to it too).
+  const img = getCoverImage(category, slug, title);
+  const [failed, setFailed] = React.useState(false);
+  const showImage = Boolean(img) && !failed;
+
   // Derive deterministic variation from slug (fall back to title so empty slugs
   // still differ per article).
   const seed = hashString(slug || title || category || "hushh");
@@ -109,28 +121,52 @@ export default function CommunityCover({
   // Unique-ish ids so multiple covers on a page don't collide.
   const uid = `cc-${(seed % 0xffffff).toString(16)}`;
 
-  const rootClass = [
-    "relative h-full w-full overflow-hidden",
-    rounded,
-    className || "",
-  ]
-    .filter(Boolean)
-    .join(" ");
+  // The root must NOT carry h-full/w-full — sizing is owned by the caller's
+  // className. The root only provides position/overflow/rounding.
+  const rootClass = ["relative overflow-hidden", rounded, className || ""].join(
+    " "
+  );
 
   return (
     <div
       role="img"
-      aria-label={`${category} cover`}
+      aria-label={img?.alt ?? `${category} cover`}
       className={rootClass}
-      style={{ backgroundColor: BRAND.ink }}
+      style={{
+        backgroundColor: BRAND.ink,
+        boxShadow: "inset 0 0 0 0.5px rgba(0,0,0,0.06)",
+      }}
     >
-      <svg
-        aria-hidden="true"
-        className="absolute inset-0 h-full w-full"
-        viewBox="0 0 400 250"
-        preserveAspectRatio="xMidYMid slice"
-        xmlns="http://www.w3.org/2000/svg"
-      >
+      {showImage && img ? (
+        <>
+          <img
+            src={img.src}
+            srcSet={img.srcSet}
+            sizes="(max-width: 640px) 100vw, 400px"
+            alt=""
+            loading="lazy"
+            decoding="async"
+            className="absolute inset-0 h-full w-full object-cover"
+            onError={() => setFailed(true)}
+          />
+          {/* Subtle depth/cohesion overlay over the photo. */}
+          <span
+            aria-hidden
+            className="absolute inset-0"
+            style={{
+              background:
+                "linear-gradient(180deg, rgba(0,0,0,0) 55%, rgba(0,0,0,0.18) 100%)",
+            }}
+          />
+        </>
+      ) : (
+        <svg
+          aria-hidden="true"
+          className="absolute inset-0 h-full w-full"
+          viewBox="0 0 400 250"
+          preserveAspectRatio="xMidYMid slice"
+          xmlns="http://www.w3.org/2000/svg"
+        >
         <defs>
           {/* Background gradient — deep accent into brand ink for depth. */}
           <linearGradient
@@ -241,15 +277,16 @@ export default function CommunityCover({
           </g>
         )}
 
-        {/* Diagonal sheen on top for the glassy Apple feel. */}
-        <rect
-          x="0"
-          y="0"
-          width="400"
-          height="250"
-          fill={`url(#${uid}-sheen)`}
-        />
-      </svg>
+          {/* Diagonal sheen on top for the glassy Apple feel. */}
+          <rect
+            x="0"
+            y="0"
+            width="400"
+            height="250"
+            fill={`url(#${uid}-sheen)`}
+          />
+        </svg>
+      )}
     </div>
   );
 }
