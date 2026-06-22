@@ -11,6 +11,10 @@ vi.mock("../src/components/hushh-tech-header/HushhTechHeader", () => ({
   default: () => React.createElement("header", null, "HushhTechHeader"),
 }));
 
+vi.mock("../src/components/hushh-tech-footer/HushhTechFooter", () => ({
+  default: () => React.createElement("footer", null, "HushhTechFooter"),
+}));
+
 describe("Benefits feature rows", () => {
   let container: HTMLDivElement;
   let root: Root;
@@ -54,22 +58,20 @@ describe("Benefits feature rows", () => {
       root.render(React.createElement(BenefitsPage));
     });
 
-    const cardGrid = container.querySelector('[data-testid="benefits-card-grid"]');
+    // The four benefit category cards each render a feature list with roomy spacing.
     const featureLists = Array.from(container.querySelectorAll("ul"));
-    const ctaCard = Array.from(container.querySelectorAll("section")).at(-1);
-
-    expect(cardGrid?.className).toContain("grid");
-    expect(cardGrid?.className).toContain("gap-4");
-    expect(cardGrid?.className).toContain("sm:gap-5");
-    expect(cardGrid?.className).toContain("lg:grid-cols-2");
-    expect(cardGrid?.className).toContain("lg:gap-6");
-    expect(cardGrid?.className).toContain("xl:gap-8");
-    expect(ctaCard?.className).toContain("lg:col-span-2");
-
+    expect(featureLists).toHaveLength(4);
     featureLists.forEach((list) => {
       expect(list.className).toContain("gap-y-3");
       expect(list.className).toContain("sm:gap-y-3.5");
       expect(list.className).toContain("md:gap-y-4");
     });
+
+    // Cards are laid out in a responsive two-column grid.
+    const cardGrid = container.querySelector('[class*="lg:grid-cols-2"]');
+    expect(cardGrid).not.toBeNull();
+    expect(cardGrid?.className).toContain("grid");
+    expect(cardGrid?.className).toContain("gap-4");
+    expect(cardGrid?.className).toContain("sm:gap-5");
   });
 });

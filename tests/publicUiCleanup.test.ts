@@ -83,7 +83,7 @@ describe("public HushhTech UI cleanup", () => {
     expect(backHeader).toContain('location.pathname.startsWith("/onboarding")');
     expect(backHeader).toContain('navigate("/faq")');
     expect(backHeader).not.toContain("px-5 text-[12px] font-medium uppercase");
-    expect(faqPage).toContain("<HushhTechBackHeader showRightButton={false} />");
+    expect(faqPage).toContain("HushhTechHeader");
     expect(navDrawer).toContain('label: "FAQs", path: "/faq"');
     expect(footer).toContain("FAQs");
     expect(enLocale).toContain('"faq": "FAQs"');

@@ -1,18 +1,17 @@
 // @vitest-environment jsdom
 
 import React from "react";
-import { ChakraProvider } from "@chakra-ui/react";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
+import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("../src/components/hushh-tech-back-header/HushhTechBackHeader", () => ({
-  default: (props: { showRightButton?: boolean }) =>
-    React.createElement(
-      "header",
-      { "data-show-right-button": String(props.showRightButton) },
-      "HushhTechBackHeader",
-    ),
+vi.mock("../src/components/hushh-tech-header/HushhTechHeader", () => ({
+  default: () => React.createElement("header", null, "HushhTechHeader"),
+}));
+
+vi.mock("../src/components/hushh-tech-footer/HushhTechFooter", () => ({
+  default: () => React.createElement("footer", null, "HushhTechFooter"),
 }));
 
 import FaqPage from "../src/pages/faq";
@@ -39,16 +38,15 @@ describe("FAQ page", () => {
     await act(async () => {
       root.render(
         React.createElement(
-          ChakraProvider,
+          MemoryRouter,
           null,
           React.createElement(FaqPage),
         ),
       );
     });
 
-    expect(container.textContent).toContain("HushhTechBackHeader");
-    expect(container.querySelector("header")?.getAttribute("data-show-right-button")).toBe("false");
-    expect(container.textContent).toContain("Frequently Asked");
+    expect(container.textContent).toContain("HushhTechHeader");
+    expect(container.textContent).toContain("Frequently asked questions.");
     expect(container.textContent).not.toContain("Hu$$h");
 
     const buttons = Array.from(container.querySelectorAll("button"));

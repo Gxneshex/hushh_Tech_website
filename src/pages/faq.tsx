@@ -1,15 +1,15 @@
-import React from 'react';
+import React from "react";
+import { Link } from "react-router-dom";
+import HushhTechHeader from "../components/hushh-tech-header/HushhTechHeader";
+import HushhTechFooter from "../components/hushh-tech-footer/HushhTechFooter";
 import {
-  Container,
-  Box,
-  Heading,
-  Text,
-  VStack,
-  Icon,
-} from "@chakra-ui/react";
-import { ChevronDownIcon, ChevronUpIcon } from '@chakra-ui/icons';
-import HushhTechBackHeader from "../components/hushh-tech-back-header/HushhTechBackHeader";
-import { appleDisplayFont, appleFont } from "../components/hushh-tech-ui/HushhAppleUI";
+  AppleSection,
+  Display,
+  Eyebrow,
+  Lede,
+  PillButton,
+  appleFont,
+} from "../components/hushh-tech-ui/HushhAppleUI";
 
 interface FaqItem {
   question: string;
@@ -39,8 +39,8 @@ const faqs: FaqItem[] = [
   },
   {
     question: "What’s the biggest challenge Hushh faces, and how do you plan to address it?",
-    answer: "Our biggest challenge is managing growth without losing our soul. We’re gaining traction fast, and with that comes the risk of diluting our values as we scale. To address this, we’re committed to a few non-negotiables: transparency, ethical data use, and a human-centered approach. We’re building a strong core team that not only understands finance but is also deeply aligned with our vision. As we grow, we’ll be deliberate about who joins the Hu$$h family, ensuring that every addition strengthens our values rather than compromises them. Growth is only meaningful if it’s rooted in integrity."  
-  },  
+    answer: "Our biggest challenge is managing growth without losing our soul. We’re gaining traction fast, and with that comes the risk of diluting our values as we scale. To address this, we’re committed to a few non-negotiables: transparency, ethical data use, and a human-centered approach. We’re building a strong core team that not only understands finance but is also deeply aligned with our vision. As we grow, we’ll be deliberate about who joins the Hu$$h family, ensuring that every addition strengthens our values rather than compromises them. Growth is only meaningful if it’s rooted in integrity."
+  },
   {
     question: "Why should investors trust that Hushh’s results are sustainable over time?",
     answer: "Trust comes from discipline, and our discipline is unbreakable. We’re not just achieving returns by chasing the latest market trends; we’re doing it through structured, data-driven strategies that have proven resilient over time. Our options income strategy, our focus on high-free-cash-flow stocks, and our conservative approach to volatility capture are built to endure. We’re not promising the moon—we’re focused on realistic, consistent growth. Just as Apple created products that people could rely on, we’re creating a financial ecosystem that people can count on, year in and year out."
@@ -58,16 +58,16 @@ const faqs: FaqItem[] = [
     answer: "Being “human-first” isn’t a slogan for us—it’s a fundamental operational principle. Every decision we make has to answer the question: “Does this serve our users and investors?” For example, our privacy policies are designed to give users control over their data, not just because it’s compliant, but because it’s the right thing to do. Our platform features are designed to educate, empower, and support, not overwhelm or manipulate. In practical terms, “human-first” means transparency, simplicity, and a commitment to integrity in every interaction we have with our users and stakeholders"
   },
   {
-    question:"How will Hushh continue to attract and retain top talent as it scales?",
-    answer:"Talent is the backbone of any great company, and we’re committed to building a team of “learn-it-alls,” not “know-it-alls.” We look for people who are hungry, curious, and aligned with our mission. Our culture is built on transparency, accountability, and a love for innovation. We don’t just offer jobs; we offer a chance to be part of a movement that’s reshaping wealth creation. Like Apple’s approach to product design, we believe in investing in people who believe in our vision, creating an environment that fosters both excellence and creativity."
+    question: "How will Hushh continue to attract and retain top talent as it scales?",
+    answer: "Talent is the backbone of any great company, and we’re committed to building a team of “learn-it-alls,” not “know-it-alls.” We look for people who are hungry, curious, and aligned with our mission. Our culture is built on transparency, accountability, and a love for innovation. We don’t just offer jobs; we offer a chance to be part of a movement that’s reshaping wealth creation. Like Apple’s approach to product design, we believe in investing in people who believe in our vision, creating an environment that fosters both excellence and creativity."
   },
   {
-    question:"If Hushh could only achieve one thing, what would it be?",
-    answer:"To redefine wealth as something personal, empowering, and accessible. At the end of the day, we’re here to make sure that every person can see their data as an asset they own and control. If we can shift the world’s perspective—even a little—toward that vision, we’ll have succeeded beyond measure. We’re not just creating financial returns; we’re creating a legacy where data-driven wealth is human-centered and inclusive."
+    question: "If Hushh could only achieve one thing, what would it be?",
+    answer: "To redefine wealth as something personal, empowering, and accessible. At the end of the day, we’re here to make sure that every person can see their data as an asset they own and control. If we can shift the world’s perspective—even a little—toward that vision, we’ll have succeeded beyond measure. We’re not just creating financial returns; we’re creating a legacy where data-driven wealth is human-centered and inclusive."
   },
   {
-    question:"What’s the biggest risk you’re willing to take, and why?",
-    answer:"The biggest risk we’re willing to take is betting on the intelligence and autonomy of our users. We believe people are smarter and more capable than they’re often given credit for. By empowering them with the right tools, insights, and control over their data, we’re stepping away from the traditional “trust us, we know best” model. It’s a leap of faith, but it’s one we believe will pay off. Our users are our greatest asset, and betting on them to succeed is a risk we’re proud to take."
+    question: "What’s the biggest risk you’re willing to take, and why?",
+    answer: "The biggest risk we’re willing to take is betting on the intelligence and autonomy of our users. We believe people are smarter and more capable than they’re often given credit for. By empowering them with the right tools, insights, and control over their data, we’re stepping away from the traditional “trust us, we know best” model. It’s a leap of faith, but it’s one we believe will pay off. Our users are our greatest asset, and betting on them to succeed is a risk we’re proud to take."
   }
 ];
 
@@ -79,177 +79,114 @@ const FaqPage: React.FC = () => {
   };
 
   return (
-    <Box
-      bg="#F5F5F7"
-      color="#1D1D1F"
-      fontFamily={appleFont}
-      minH="100vh"
-      sx={{ WebkitFontSmoothing: "antialiased", MozOsxFontSmoothing: "grayscale" }}
+    <div
+      className="min-h-screen bg-white text-[#1D1D1F] antialiased selection:bg-[#0066CC] selection:text-white"
+      style={{ fontFamily: appleFont }}
     >
-      <HushhTechBackHeader showRightButton={false} />
-      <Box as="main" id="main-content">
-      <Container maxW="7xl" py={{ base: 10, md: 14, lg: 16 }} px={{ base: 4, sm: 6, lg: 8 }}>
-        <Box textAlign="center" mb={{ base: 12, md: 14 }}>
-          <Heading
-            as="h1"
-            fontFamily={appleDisplayFont}
-            fontWeight="600"
-            fontSize="clamp(32px, 4.6vw, 54px)"
-            lineHeight="1.08"
-            letterSpacing="-0.025em"
-            color="#1D1D1F"
-          >
-            Frequently Asked Questions.
-          </Heading>
+      <HushhTechHeader showSearch={false} />
 
-          <Text
-            fontSize="clamp(17px, 1.6vw, 20px)"
-            fontWeight="400"
-            maxW="46ch"
-            mx="auto"
-            color="rgba(0,0,0,0.62)"
-            mt="20px"
-            lineHeight="1.5"
-            letterSpacing="-0.01em"
-          >
-            Find answers to common questions about our investment strategies, processes, and
-            services.
-          </Text>
-        </Box>
+      <main id="main-content">
+        <AppleSection tone="light" pad="loose">
+          <Eyebrow>Support</Eyebrow>
+          <Display as="h1" size="lg" maxWidth="max-w-[760px]">
+            Frequently asked questions.
+          </Display>
+          <Lede>
+            Find answers to common questions about our investment strategies,
+            processes, and services.
+          </Lede>
+        </AppleSection>
 
-        <VStack
-          spacing={{ base: 5, md: 6 }}
-          align="stretch"
-          maxW="4xl"
-          mx="auto"
-          w="100%"
-          role="list"
-        >
-          {faqs.map((faq, index: number) => {
-            const isOpen = openIndex === index;
-            const panelId = `faq-panel-${index}`;
-            const triggerId = `faq-trigger-${index}`;
+        <AppleSection tone="light" pad="normal" className="!pt-0">
+          <div className="mx-auto w-full max-w-[760px] px-5">
+            <ul className="flex flex-col gap-3" role="list">
+              {faqs.map((faq, index) => {
+                const isOpen = openIndex === index;
+                const panelId = `faq-panel-${index}`;
+                const triggerId = `faq-trigger-${index}`;
 
-            return (
-            <Box
-              key={index}
-              role="listitem"
-              bg="whiteAlpha.800"
-              borderRadius="24px"
-              overflow="hidden"
-              borderWidth="1px"
-              borderColor="blackAlpha.100"
-              boxShadow={
-                isOpen
-                  ? "0 18px 50px rgba(29,29,31,0.08)"
-                  : "0 10px 32px rgba(29,29,31,0.05)"
-              }
-              transition="box-shadow 0.2s ease, border-color 0.2s ease"
-              _hover={{
-                borderColor: "rgba(0,102,204,0.24)",
-                boxShadow: "0 18px 48px rgba(29,29,31,0.08)",
-              }}
-            >
-              <Heading
-                as="h3"
-                m={0}
-                fontFamily={appleFont}
-                fontSize={{ base: "0.95rem", md: "1rem" }}
-                fontWeight="600"
-                lineHeight="snug"
-              >
-                <Box role="group" w="100%">
-                  <Box
-                    as="button"
-                    type="button"
-                    id={triggerId}
-                    aria-expanded={isOpen}
-                    aria-controls={panelId}
-                    onClick={() => toggleAccordion(index)}
-                    display="flex"
-                    w="100%"
-                    alignItems="flex-start"
-                    justifyContent="space-between"
-                    gap={4}
-                    px={{ base: 5, md: 6 }}
-                    py={{ base: 5, md: 6 }}
-                    cursor="pointer"
-                    border="none"
-                    bg="transparent"
-                    borderTopRadius="2xl"
-                    textAlign="left"
-                    font="inherit"
-                    color="gray.900"
-                    transition="background-color 0.2s ease, box-shadow 0.2s ease"
-                    _hover={{
-                      bg: "whiteAlpha.700",
-                      boxShadow: "inset 0 0 0 1px rgba(0, 0, 0, 0.04)",
-                    }}
-                    _active={{
-                      bg: "gray.100",
-                    }}
-                    _focus={{ outline: "none" }}
-                    _focusVisible={{
-                      boxShadow:
-                        "inset 0 0 0 1px rgba(0, 0, 0, 0.04), 0 0 0 3px rgba(0, 169, 224, 0.45)",
-                    }}
+                return (
+                  <li
+                    key={index}
+                    className={`overflow-hidden rounded-[18px] bg-white ring-1 transition-shadow duration-200 ${
+                      isOpen
+                        ? "ring-[#1D1D1F]/[0.12] shadow-[0_14px_40px_rgba(29,29,31,0.07)]"
+                        : "ring-[#1D1D1F]/[0.08] shadow-[0_2px_10px_rgba(29,29,31,0.03)] hover:ring-[#1D1D1F]/[0.14]"
+                    }`}
                   >
-                    <Box
-                      as="span"
-                      display="block"
-                      flex="1"
-                      pr={1}
-                      minW={0}
-                      overflowWrap="anywhere"
-                      wordBreak="normal"
-                      transition="color 0.2s ease"
-                      _groupHover={{ color: "black" }}
-                    >
-                      {faq.question}
-                    </Box>
-                    <Icon
-                      as={isOpen ? ChevronUpIcon : ChevronDownIcon}
-                      aria-hidden
-                      w={5}
-                      h={5}
-                      mt={0.5}
-                      flexShrink={0}
-                      color="gray.400"
-                      transition="color 0.2s ease, transform 0.2s ease"
-                      _groupHover={{
-                        color: "gray.600",
-                        transform: isOpen ? "translateY(-1px)" : "translateY(2px)",
-                      }}
-                    />
-                  </Box>
-                </Box>
-              </Heading>
+                    <h3 className="m-0">
+                      <button
+                        type="button"
+                        id={triggerId}
+                        aria-expanded={isOpen}
+                        aria-controls={panelId}
+                        onClick={() => toggleAccordion(index)}
+                        className="flex w-full items-start justify-between gap-4 px-5 py-5 text-left transition-colors duration-200 hover:bg-[#1D1D1F]/[0.015] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066CC]/40 md:px-6 md:py-6"
+                      >
+                        <span className="flex-1 text-[16px] font-semibold leading-snug tracking-[-0.01em] text-[#1D1D1F] md:text-[17px]">
+                          {faq.question}
+                        </span>
+                        <span
+                          aria-hidden="true"
+                          className={`mt-1 shrink-0 text-[#86868B] transition-transform duration-200 ${
+                            isOpen ? "rotate-180" : ""
+                          }`}
+                        >
+                          <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 16 16"
+                            fill="none"
+                          >
+                            <path
+                              d="M4 6l4 4 4-4"
+                              stroke="currentColor"
+                              strokeWidth="1.8"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        </span>
+                      </button>
+                    </h3>
 
-              {isOpen && (
-                <Box
-                  id={panelId}
-                  role="region"
-                  aria-labelledby={triggerId}
-                  px={{ base: 5, md: 6 }}
-                  pb={{ base: 5, md: 6 }}
-                  pt={4}
-                  borderTopWidth="1px"
-                  borderTopColor="gray.100"
-                  color="gray.600"
-                  fontSize={{ base: "0.9375rem", md: "1rem" }}
-                  fontWeight="400"
-                  lineHeight="tall"
-                >
-                  {faq.answer}
-                </Box>
-              )}
-            </Box>
-            );
-          })}
-        </VStack>
-      </Container>
-      </Box>
-    </Box>
+                    {isOpen && (
+                      <div
+                        id={panelId}
+                        role="region"
+                        aria-labelledby={triggerId}
+                        className="border-t border-[#1D1D1F]/[0.07] px-5 pb-5 pt-4 text-[15px] font-normal leading-[1.65] text-[#1D1D1F]/68 md:px-6 md:pb-6 md:text-[16px]"
+                      >
+                        {faq.answer}
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        </AppleSection>
+
+        <AppleSection tone="dark" pad="normal" last>
+          <Eyebrow tone="dark">Still have questions?</Eyebrow>
+          <Display as="h2" size="sm" tone="dark" maxWidth="max-w-[600px]">
+            We’re here to help.
+          </Display>
+          <Lede tone="dark">
+            Reach out and our team will get back to you with the answers you need.
+          </Lede>
+          <div className="mt-8 flex justify-center px-5">
+            <Link to="/contact">
+              <PillButton tone="dark" kind="filled">
+                Contact Us
+              </PillButton>
+            </Link>
+          </div>
+        </AppleSection>
+      </main>
+
+      <HushhTechFooter />
+    </div>
   );
 };
 

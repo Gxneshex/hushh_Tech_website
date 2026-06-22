@@ -83,8 +83,18 @@ export default function HushhTechTicker() {
 
   return (
     <section
-      className="mt-2 overflow-hidden border-y border-[#1D1D1F]/[0.06] bg-[#FFFFFF]/95 py-2 opacity-100 backdrop-blur-md"
+      className="mt-2 overflow-hidden border-y border-[#1D1D1F]/[0.06] py-2 opacity-100"
       data-hushh-ticker
+      style={{
+        // Liquid glass: translucent fill + blurred, saturated backdrop (vibrancy)
+        // + specular top edge — matches the header/GlassPill glass system.
+        background:
+          "linear-gradient(180deg, rgba(255,255,255,0.62) 0%, rgba(255,255,255,0.5) 100%)",
+        WebkitBackdropFilter: "blur(22px) saturate(180%)",
+        backdropFilter: "blur(22px) saturate(180%)",
+        boxShadow:
+          "inset 0 1px 0 rgba(255,255,255,0.7), inset 0 -0.5px 0 rgba(29,29,31,0.05)",
+      }}
     >
       <div className="mb-2 flex items-center justify-center gap-1.5">
         <span className="h-1.5 w-1.5 rounded-full bg-[#34C759]" />

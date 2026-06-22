@@ -9,8 +9,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import Leadership from "../src/components/Leadership";
 
-vi.mock("../src/components/hushh-tech-back-header/HushhTechBackHeader", () => ({
-  default: () => React.createElement("header", null, "HushhTechBackHeader"),
+vi.mock("../src/components/hushh-tech-header/HushhTechHeader", () => ({
+  default: () => React.createElement("header", null, "HushhTechHeader"),
+}));
+
+vi.mock("../src/components/hushh-tech-footer/HushhTechFooter", () => ({
+  default: () => React.createElement("footer", null, "HushhTechFooter"),
 }));
 
 describe("Leadership card grid", () => {
@@ -55,16 +59,17 @@ describe("Leadership card grid", () => {
     const leadershipHeading = Array.from(container.querySelectorAll("h2")).find((heading) =>
       heading.textContent?.includes("People behind the strategy."),
     );
-    const grid = leadershipHeading?.parentElement?.querySelector(".mt-8.grid");
-    const cards = Array.from(grid?.children || []);
+    expect(leadershipHeading).toBeTruthy();
 
-    expect(grid).not.toBeNull();
-    expect(cards).toHaveLength(2);
-    expect(grid?.className).toContain("md:grid-cols-2");
-    expect(grid?.textContent).toContain("Manish");
-    expect(grid?.textContent).toContain("Justin");
-    expect(grid?.textContent).toContain("Founder & CEO");
-    expect(grid?.textContent).toContain("Chief Scientist & Investment Strategist");
+    // Justin Donaldson has been removed — only Manish remains, in a single card.
+    const leaderCards = Array.from(container.querySelectorAll("article")).filter((article) =>
+      article.textContent?.includes("Founder & CEO"),
+    );
+
+    expect(leaderCards).toHaveLength(1);
+    expect(container.textContent).toContain("Manish");
+    expect(container.textContent).not.toContain("Justin");
+    expect(container.textContent).not.toContain("Chief Scientist & Investment Strategist");
   });
 
   it("keeps the strategy overview aligned to the home-page grid rhythm", () => {

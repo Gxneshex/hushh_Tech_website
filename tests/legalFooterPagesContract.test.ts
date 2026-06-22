@@ -76,9 +76,9 @@ describe("legal and support footer pages", () => {
   it("keeps standalone FAQ on the Apple font system", () => {
     const faq = read("src/pages/faq.tsx");
 
-    expect(faq).toContain("HushhTechBackHeader");
+    expect(faq).toContain("HushhTechHeader");
+    expect(faq).toContain("AppleSection");
     expect(faq).toContain("appleFont");
-    expect(faq).toContain("appleDisplayFont");
     expect(faq).not.toMatch(/Playfair|Manrope|font-serif/);
   });
 });

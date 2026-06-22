@@ -9,15 +9,13 @@ describe("Career page public styling", () => {
     const career = read("src/pages/career/index.tsx");
     const css = read("src/pages/career/Career.css");
 
-    expect(career).toContain("HushhTechBackHeader");
-    expect(career).toContain('rightType="hamburger"');
-    expect(career).not.toContain("HushhTechHeader");
+    // Careers index now uses the home shell (HushhTechHeader/Footer) + Apple section system.
+    expect(career).toContain("HushhTechHeader");
+    expect(career).toContain("HushhTechFooter");
+    expect(career).toContain("AppleSection");
+    expect(career).not.toContain("HushhTechBackHeader");
     expect(career).toContain("appleDisplayFont");
     expect(career).toContain("appleFont");
-    expect(career).toContain('fontSize="clamp(32px, 4.6vw, 54px)"');
-    expect(career).toContain('fontWeight="600"');
-    expect(career).toContain('letterSpacing="-0.025em"');
-    expect(career).toContain("glassCardChrome");
     expect(career).not.toMatch(/gradient-text|bgGradient|colorScheme="cyan"|font-serif|Playfair/);
     expect(css).not.toMatch(/gradient-text|benefits-button|job-card|data-career-heading/);
   });
