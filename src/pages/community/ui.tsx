@@ -3,7 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 
 import NDADocumentModal from "../../components/NDADocumentModal";
 import NDARequestModal from "../../components/NDARequestModal";
-import HushhTechBackHeader from "../../components/hushh-tech-back-header/HushhTechBackHeader";
+import HushhTechHeader from "../../components/hushh-tech-header/HushhTechHeader";
 import HushhTechFooter, {
   HushhFooterTab,
 } from "../../components/hushh-tech-footer/HushhTechFooter";
@@ -305,7 +305,6 @@ export default function CommunityPage() {
     ndaMetadata,
     session,
     onCategoryChange,
-    handleBackClick,
     handlePostClick,
     setNdaApproved,
     getPostDescription,
@@ -354,11 +353,7 @@ export default function CommunityPage() {
         description="Fund updates, market notes, and source-backed research from HushhTech — the AI-powered Berkshire Hathaway."
         path="/community"
       />
-      <HushhTechBackHeader
-        onBackClick={handleBackClick}
-        rightType="hamburger"
-        showTicker
-      />
+      <HushhTechHeader showSearch={false} />
 
       <main id="main-content" aria-busy={apiLoading}>
         <AppleSection tone="light" pad="tight" overflow="visible" className="z-30">

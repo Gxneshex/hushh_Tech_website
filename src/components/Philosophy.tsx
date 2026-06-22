@@ -1,4 +1,5 @@
-import HushhTechBackHeader from "./hushh-tech-back-header/HushhTechBackHeader";
+import HushhTechHeader from "./hushh-tech-header/HushhTechHeader";
+import HushhTechFooter from "./hushh-tech-footer/HushhTechFooter";
 import {
   AppleSection,
   Display,
@@ -42,7 +43,7 @@ export default function Philosophy() {
       className="min-h-screen bg-[#F5F5F7] text-[#1D1D1F] antialiased selection:bg-[#0066CC] selection:text-white"
       style={{ fontFamily: appleFont }}
     >
-      <HushhTechBackHeader rightType="hamburger" />
+      <HushhTechHeader showSearch={false} />
 
       <main id="main-content">
         <AppleSection tone="gray" pad="normal" overflow="visible">
@@ -117,6 +118,8 @@ export default function Philosophy() {
           </section>
         </AppleSection>
       </main>
+
+      <HushhTechFooter />
     </div>
   );
 }

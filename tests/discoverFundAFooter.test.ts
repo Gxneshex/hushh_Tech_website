@@ -90,7 +90,7 @@ vi.mock("../src/pages/discover-fund-a/logic", () => ({
   }),
 }));
 
-vi.mock("../src/components/hushh-tech-back-header/HushhTechBackHeader", () => ({
+vi.mock("../src/components/hushh-tech-header/HushhTechHeader", () => ({
   default: () => null,
 }));
 

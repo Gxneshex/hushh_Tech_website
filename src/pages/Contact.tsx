@@ -22,7 +22,8 @@ import {
   Link as ChakraLink,
 } from "@chakra-ui/react";
 import { MapPin, Phone, Clock, ArrowRight } from "lucide-react";
-import HushhTechBackHeader from "../components/hushh-tech-back-header/HushhTechBackHeader";
+import HushhTechHeader from "../components/hushh-tech-header/HushhTechHeader";
+import HushhTechFooter from "../components/hushh-tech-footer/HushhTechFooter";
 import { appleDisplayFont, appleFont } from "../components/hushh-tech-ui/HushhAppleUI";
 
 /** Greys aligned with `home/ui.tsx` Tailwind tokens (gray-*, ios-gray-bg). */
@@ -195,7 +196,7 @@ export default function Contact() {
 
   return (
     <Box bg={pageBg} minH="100vh" className="antialiased text-gray-900" style={{ fontFamily: appleFont }}>
-      <HushhTechBackHeader rightType="hamburger" showTicker />
+      <HushhTechHeader showSearch={false} />
       <Box
         as="main"
         id="main-content"
@@ -633,6 +634,7 @@ export default function Contact() {
         <ToastContainer />
       </Container>
       </Box>
+      <HushhTechFooter />
     </Box>
   );
 }

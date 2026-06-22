@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { useNavigate } from "react-router-dom";
 
-import HushhTechBackHeader from "../../components/hushh-tech-back-header/HushhTechBackHeader";
+import HushhTechHeader from "../../components/hushh-tech-header/HushhTechHeader";
 import HushhTechFooter, {
   HushhFooterTab,
 } from "../../components/hushh-tech-footer/HushhTechFooter";
@@ -308,7 +307,6 @@ const assetVisuals = [
 ];
 
 const FundA = () => {
-  const navigate = useNavigate();
   const {
     targetIRRLabel,
     targetIRRValue,
@@ -344,11 +342,7 @@ const FundA = () => {
         path="/discover-fund-a"
         jsonLd={FUND_A_SCHEMA}
       />
-      <HushhTechBackHeader
-        onBackClick={() => navigate("/")}
-        rightType="hamburger"
-        showTicker
-      />
+      <HushhTechHeader showSearch={false} />
 
       <main id="main-content">
         <section className="fa-sec" style={{ background: "#fff" }}>

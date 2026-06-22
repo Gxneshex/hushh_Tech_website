@@ -870,15 +870,9 @@ function PrinciplesSection() {
   );
 }
 
-function WhatYouGetSection({
-  onInvest,
-  onProspectus,
-}: {
-  onInvest: () => void;
-  onProspectus: () => void;
-}) {
+function WhatYouGetSection() {
   return (
-    <Section tone="dark" className="!pb-[150px] lg:!pb-[200px]">
+    <Section tone="dark">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute left-1/2 top-0 h-[58%] w-[min(92vw,1040px)] -translate-x-1/2"
@@ -918,27 +912,48 @@ function WhatYouGetSection({
             </Reveal>
           ))}
         </div>
+      </div>
+    </Section>
+  );
+}
 
-        <Reveal className="mt-[clamp(44px,6vw,62px)] flex flex-wrap justify-center gap-4">
+function FinalCtaSection({
+  onInvest,
+  onProspectus,
+}: {
+  onInvest: () => void;
+  onProspectus: () => void;
+}) {
+  return (
+    <Section tone="light">
+      <Reveal className="mx-auto max-w-[680px] text-center">
+        <Eyebrow className="mb-[18px]">Get started</Eyebrow>
+        <Heading>Start with Fund A.</Heading>
+        <Lead className="mx-auto mt-5 max-w-[46ch]">
+          Begin investing in Fund A, or read the full prospectus to understand
+          the strategy, terms, and risk framework.
+        </Lead>
+
+        <div className="mt-[clamp(32px,5vw,44px)] flex flex-wrap justify-center gap-4">
           <a
             href="/discover-fund-a"
             onClick={(event) => {
               event.preventDefault();
               onInvest();
             }}
-            className="inline-flex min-h-[52px] items-center justify-center rounded-full bg-white px-[30px] text-[17px] font-semibold text-[#1D1D1F] transition hover:-translate-y-px hover:bg-[#F0F0F2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2997FF]/50"
+            className="inline-flex min-h-[52px] items-center justify-center rounded-full bg-[#0071e3] px-[30px] text-[17px] font-semibold text-white transition hover:-translate-y-px hover:bg-[#0077ED] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0071e3]/45"
           >
             Invest in Fund A
           </a>
           <button
             type="button"
             onClick={onProspectus}
-            className="hh-btn--chevron inline-flex min-h-[52px] items-center justify-center gap-1 rounded-full border border-white/40 bg-transparent px-[30px] text-[17px] font-medium text-white transition hover:bg-white/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2997FF]/50"
+            className="hh-btn--chevron inline-flex min-h-[52px] items-center justify-center gap-1 rounded-full border border-[#1D1D1F]/20 bg-transparent px-[30px] text-[17px] font-medium text-[#1D1D1F] transition hover:bg-[#1D1D1F]/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0071e3]/45"
           >
             Read the fund prospectus
           </button>
-        </Reveal>
-      </div>
+        </div>
+      </Reveal>
     </Section>
   );
 }
@@ -1008,7 +1023,8 @@ export default function HomePage() {
         <FundStatsSection onInvest={() => onNavigate("/discover-fund-a")} />
         <TechnologySection />
         <PrinciplesSection />
-        <WhatYouGetSection
+        <WhatYouGetSection />
+        <FinalCtaSection
           onInvest={() => onNavigate("/discover-fund-a")}
           onProspectus={() =>
             onNavigate("/community/fund-documents/investment-prospectus")
