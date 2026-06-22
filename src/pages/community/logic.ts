@@ -25,6 +25,8 @@ import {
 /* ── Constants ── */
 export const NDA_OPTION = "Sensitive Documents (NDA approval Req.)";
 export const MARKET_UPDATES_OPTION = "Market Updates";
+export const NEWS_OPTION = "News";
+export const TECHNICAL_OPTION = "Technical";
 export const GENERAL_OPTION = "General";
 export const INVESTMENT_OPTION = "Investment";
 export const FUND_DOCUMENTS_OPTION = "Fund Documents";
@@ -37,13 +39,15 @@ export const PINNED_SLUGS = [
 ];
 
 const CATEGORY_VARIANT_ORDER = [
-  GENERAL_OPTION,
-  INVESTMENT_OPTION,
-  FUND_DOCUMENTS_OPTION,
-  FUND_UPDATES_OPTION,
-  INVESTOR_RELATIONS_OPTION,
-  PRODUCT_OPTION,
   MARKET_UPDATES_OPTION,
+  NEWS_OPTION,
+  TECHNICAL_OPTION,
+  INVESTMENT_OPTION,
+  INVESTOR_RELATIONS_OPTION,
+  FUND_UPDATES_OPTION,
+  FUND_DOCUMENTS_OPTION,
+  PRODUCT_OPTION,
+  GENERAL_OPTION,
 ];
 
 /* ── Types ── */
@@ -86,33 +90,272 @@ export const getPostUrl = (post: UnifiedPost): string => {
   return `/community/${post.slug}`;
 };
 
-const getCategoryVariant = (category = "") => {
+/**
+ * Content-aware category classifier.
+ *
+ * Routes a post into exactly one display category using its full content
+ * (title + description + tags + slug), NOT just the messy free-text
+ * `category` field. Runs on every post in the frontend, so it must work for
+ * both local posts and GCP/Firestore posts.
+ *
+ * Rules are applied in strict priority order (first match wins). The
+ * `category` field is only a weak fallback at the very end.
+ */
+interface ClassifiablePost {
+  title?: string;
+  description?: string;
+  tags?: string[];
+  slug?: string;
+  category?: string;
+}
+
+/* Explicit overrides — checked BEFORE the keyword rules to guarantee the
+ * maintainer's known examples land in the right bucket. */
+const CATEGORY_OVERRIDES: { test: (haystack: string) => boolean; variant: string }[] = [
+  {
+    test: (h) =>
+      h.includes("connect to openai") ||
+      h.includes("openai's large language models") ||
+      h.includes("openais large language models"),
+    variant: TECHNICAL_OPTION,
+  },
+  { test: (h) => h.includes("minimalist api design"), variant: TECHNICAL_OPTION },
+  { test: (h) => h.includes("the perpetual alpha engine"), variant: TECHNICAL_OPTION },
+  { test: (h) => h.includes("alphaagents"), variant: TECHNICAL_OPTION },
+  {
+    test: (h) =>
+      h.includes("minister of foreign trade") || h.includes("thani bin ahmed"),
+    variant: NEWS_OPTION,
+  },
+  { test: (h) => h.includes("wise in the uae"), variant: NEWS_OPTION },
+  { test: (h) => h.includes("former openai researcher"), variant: NEWS_OPTION },
+  { test: (h) => h.includes("market wrap"), variant: NEWS_OPTION },
+];
+
+const buildHaystack = (post: ClassifiablePost): string => {
+  const { title = "", description = "", tags = [], slug = "" } = post;
+  return `${title} ${description} ${(tags || []).join(" ")} ${slug}`.toLowerCase();
+};
+
+const includesAny = (haystack: string, needles: string[]): boolean =>
+  needles.some((n) => haystack.includes(n));
+
+export const getCategoryVariant = (post: ClassifiablePost = {}): string => {
+  const haystack = buildHaystack(post);
+  const slug = (post.slug || "").toLowerCase();
+  const title = (post.title || "").toLowerCase();
+
+  if (!haystack.trim()) {
+    // Nothing to classify on — fall back to the weak category field.
+    return weakCategoryFallback(post.category);
+  }
+
+  /* Explicit overrides win over everything. */
+  for (const ov of CATEGORY_OVERRIDES) {
+    if (ov.test(haystack)) return ov.variant;
+  }
+
+  /* 1) Fund Documents */
+  const hasCompanyProspectus =
+    haystack.includes("hushhtech-prospectus") ||
+    haystack.includes("company prospectus");
+  if (
+    slug.startsWith("fund-documents/") ||
+    (haystack.includes("prospectus") && !hasCompanyProspectus) ||
+    includesAny(haystack, [
+      "private placement",
+      "ppm",
+      "master lpa",
+      "feeder lpa",
+      " lpa",
+      "memorandum",
+      "suitability questionnaire",
+      "aml",
+      "kyc",
+      "limited partnership",
+    ])
+  ) {
+    return FUND_DOCUMENTS_OPTION;
+  }
+
+  /* 2) Technical */
+  if (
+    includesAny(haystack, [
+      "openai",
+      "large language model",
+      " llm",
+      "api gateway",
+      "api design",
+      "minimalist api",
+      "architecture",
+      "technical blueprint",
+      "multi-agent system",
+      "system design",
+      "developer",
+      "integration guide",
+      "perpetual alpha engine",
+      "alphaagents",
+    ])
+  ) {
+    return TECHNICAL_OPTION;
+  }
+
+  /* 3) News */
+  if (
+    includesAny(haystack, [
+      "market wrap",
+      "minister",
+      "profile of",
+      "tariff",
+      "former openai",
+      "wise in the uae",
+      "reportedly",
+      " appoints",
+      "regulation",
+      "trade hub",
+      "news:",
+    ])
+  ) {
+    return NEWS_OPTION;
+  }
+
+  /* 4) Investor Relations */
+  const titleIsFaqForInvestors =
+    title.includes("faq") &&
+    includesAny(haystack, ["investor", "lp ", "fund partner"]);
+  if (
+    includesAny(haystack, [
+      "investor faq",
+      "investor relations",
+      "investment perspectives",
+      "investor suitability",
+      "fund investor faq",
+      "lp –",
+      "lp -",
+      "munger",
+    ]) ||
+    (haystack.includes("letter to") && haystack.includes("partner")) ||
+    titleIsFaqForInvestors
+  ) {
+    return INVESTOR_RELATIONS_OPTION;
+  }
+
+  /* 5) Product */
+  if (
+    includesAny(haystack, [
+      "product update",
+      "hushh wallet",
+      "new features",
+      "hushhpda",
+      "hushh-pda",
+      "personal data assistant",
+      "personal data management",
+    ])
+  ) {
+    return PRODUCT_OPTION;
+  }
+
+  /* 6) Fund Updates */
+  const fundWithMetric =
+    haystack.includes("fund") &&
+    includesAny(haystack, ["nav", "overview", "executive summary"]);
+  const isDailyMarketUpdate =
+    haystack.includes("daily market") || haystack.includes("market update");
+  if (
+    includesAny(haystack, [
+      "nav update",
+      "earnings report",
+      "fund l.p.",
+      "technology fund",
+      "renaissance ai first fund",
+      "ai-native medallion",
+      "fund a hushh",
+    ]) ||
+    (fundWithMetric && !isDailyMarketUpdate)
+  ) {
+    return FUND_UPDATES_OPTION;
+  }
+
+  /* 7) Market Updates */
+  if (
+    includesAny(haystack, [
+      "daily market",
+      "market update",
+      "market snapshot",
+      "weekly report",
+      "weekly market",
+      "closing day",
+      "performance recap",
+      "performance & market",
+      "market & fund update",
+      "fund and market update",
+      "fund update report",
+      "market outlook",
+    ]) ||
+    slug.startsWith("market/") ||
+    slug.startsWith("market-updates/") ||
+    slug.startsWith("daily-market-update/") ||
+    slug.startsWith("updates/")
+  ) {
+    return MARKET_UPDATES_OPTION;
+  }
+
+  /* 8) Investment ("cash-free manifesto" intentionally stays General) */
+  if (
+    includesAny(haystack, [
+      "strategy",
+      "framework",
+      "thesis",
+      "playbook",
+      "portfolio",
+      "growth plan",
+      "sell the wall",
+      "medallion",
+      "berkshire",
+      "monarchy",
+      "holy grail",
+      "alpha bets",
+      "alpha 27",
+      "alphabets27",
+      "free cash flow",
+      "fcf aces",
+      "investment",
+    ])
+  ) {
+    return INVESTMENT_OPTION;
+  }
+
+  /* 9) General — fallback for everything else. */
+  return GENERAL_OPTION;
+};
+
+/* Weak fallback used only when there is no content to classify on. */
+const weakCategoryFallback = (category = ""): string => {
   const lower = category.trim().toLowerCase();
 
-  if (!lower) return "";
+  if (!lower) return GENERAL_OPTION;
   if (lower.includes("market")) return MARKET_UPDATES_OPTION;
-  if (lower.includes("investment")) return INVESTMENT_OPTION;
+  if (lower.includes("news")) return NEWS_OPTION;
+  if (lower.includes("technical")) return TECHNICAL_OPTION;
   if (lower.includes("document")) return FUND_DOCUMENTS_OPTION;
-  if (lower.includes("fund")) return FUND_UPDATES_OPTION;
   if (lower.includes("investor")) return INVESTOR_RELATIONS_OPTION;
+  if (lower.includes("fund")) return FUND_UPDATES_OPTION;
+  if (lower.includes("investment")) return INVESTMENT_OPTION;
   if (lower.includes("product")) return PRODUCT_OPTION;
   if (lower.includes("general")) return GENERAL_OPTION;
 
-  return "";
+  return GENERAL_OPTION;
 };
 
-const matchesCategoryVariant = (
-  post: { category?: string; slug?: string },
-  variant: string
-) => {
+const matchesCategoryVariant = (post: ClassifiablePost, variant: string) => {
   if (variant === MARKET_UPDATES_OPTION) {
     return (
-      getCategoryVariant(post.category) === MARKET_UPDATES_OPTION ||
-      post.slug?.toLowerCase().includes("market")
+      getCategoryVariant(post) === MARKET_UPDATES_OPTION ||
+      (post.slug?.toLowerCase().includes("market") ?? false)
     );
   }
 
-  return getCategoryVariant(post.category) === variant;
+  return getCategoryVariant(post) === variant;
 };
 
 /* ── Hook ── */
@@ -201,7 +444,7 @@ export const useCommunityListLogic = () => {
 
   const categoryVariants = useMemo(() => {
     const variants = new Set(
-      allContentSorted.map((p) => getCategoryVariant(p.category)).filter(Boolean)
+      allContentSorted.map((p) => getCategoryVariant(p)).filter(Boolean)
     );
 
     return CATEGORY_VARIANT_ORDER.filter((variant) => variants.has(variant));

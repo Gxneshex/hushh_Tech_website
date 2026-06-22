@@ -24,12 +24,16 @@ describe("Community Fund A document presentation", () => {
     expect(posts).toContain("accessLevel: 'Public'");
 
     expect(logic).toContain('export const FUND_DOCUMENTS_OPTION = "Fund Documents"');
-    expect(logic).toContain('if (lower.includes("document")) return FUND_DOCUMENTS_OPTION;');
+    // Content-aware classifier routes fund-documents/* posts to Fund Documents.
+    expect(logic).toContain('fund-documents/');
+    expect(logic).toContain('getCategoryVariant');
     expect(logic).toContain('post.accessLevel === "Public"');
     expect(logic).toContain("mergedBySlug.set(post.slug");
-    expect(ui).toContain('documents: { label: "Fund Documents"');
-    expect(ui).toContain('if (lower.includes("document")) return CATEGORY_META.documents;');
-    expect(ui).toContain("ArticleRow");
+    // Redesigned community UI derives category via the shared classifier and
+    // renders branded cover art on each card.
+    expect(ui).toContain('getCategoryVariant');
+    expect(ui).toContain('CommunityCover');
+    expect(ui).toContain("ArticleCard");
     expect(ui).not.toContain("FundAOfferingDocuments");
   });
 
