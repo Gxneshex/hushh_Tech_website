@@ -7,6 +7,7 @@ import { collectInlineAssets } from "../_shared/emailInlineAssets.ts";
 import { base64urlEncode, createMixedEmailMessage, createRelatedEmailMessage } from "../_shared/emailMime.ts";
 import { buildNDANotificationHtml, NDA_INLINE_ASSET_KEYS } from "./template.ts";
 import { buildNDAUserConfirmationHtml } from "./userTemplate.ts";
+import { buildSignedFundDocs } from "./signFundDocs.ts";
 import { createAdminClient, requireAuthenticatedUser } from "../_shared/fundStripe.ts";
 import { FUND_ADMIN_ALLOWLIST, getPrimarySiteUrl } from "../_shared/security.ts";
 
@@ -19,17 +20,6 @@ const corsHeaders = {
 // Admin recipients = the fund-admin allowlist (single source of truth, so the
 // NDA list never drifts from who actually operates the fund).
 const NDA_NOTIFICATION_RECIPIENTS = FUND_ADMIN_ALLOWLIST;
-
-// The fund documents the signer reviewed — offered as DOWNLOAD LINKS in the
-// signer's confirmation email (served from OUR OWN site assets). They are no
-// longer attached: a multi-attachment signer email was failing to send, so the
-// signer never received their copy.
-const FUND_DOCUMENTS_FN = [
-  { filename: "Delaware-Feeder-LPA.docx", path: "/fund-documents/delaware-feeder-lpa.docx" },
-  { filename: "Investment-Prospectus.docx", path: "/fund-documents/investment-prospectus.docx" },
-  { filename: "LP-Master-LPA.docx", path: "/fund-documents/lp-master-lpa.docx" },
-  { filename: "Private-Placement-Memorandum.docx", path: "/fund-documents/ppm.docx" },
-];
 
 interface EmailAttachment {
   filename: string;
@@ -323,7 +313,12 @@ serve(async (req) => {
       ? { filename: signedNdaFileName, mimeType: 'application/pdf', base64Data: pdfBase64 }
       : null;
 
-    // ── Admin notification — signed NDA only (admins already have the docs) ──
+    // Signed copies of the four fund agreements (GP = Manish Sainani, LP = the
+    // signer + dates), generated locally from bundled templates — no runtime fetch.
+    const signedFundDocs = buildSignedFundDocs({ signerName, signedAt });
+
+    // ── Admin notification — signed NDA + the signer's executed fund agreements
+    // (the General Partner retains the counterpart signature pages). ──
     const adminHtml = buildNDANotificationHtml({
       signerName,
       signerEmail: signerEmail ?? 'unknown',
@@ -341,25 +336,25 @@ serve(async (req) => {
       recipients: NDA_NOTIFICATION_RECIPIENTS,
       subject: `[Hushh NDA] Agreement Signed by ${signerName}`,
       html: adminHtml,
-      attachments: signedNdaAttachment ? [signedNdaAttachment] : [],
+      attachments: [
+        ...(signedNdaAttachment ? [signedNdaAttachment] : []),
+        ...signedFundDocs,
+      ],
       pdfMissing,
     });
 
-    // ── Signer confirmation — signed NDA + ALL FOUR fund documents attached ──
+    // ── Signer confirmation — signed NDA + the four SIGNED fund agreements ──
     let signerNotified = false;
     let signerError: string | null = null;
     const looksLikeEmail = signerEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(signerEmail);
     if (looksLikeEmail) {
-      // Signer copy carries ONLY the signed NDA PDF (small + reliable). The four
-      // fund documents are offered as DOWNLOAD LINKS in the body instead of heavy
-      // attachments — a multi-attachment signer email was failing to send, which
-      // is why signers previously never received their copy.
+      // Signer copy = signed NDA PDF + the four signed fund agreements (generated
+      // above). Generation is local (no runtime fetch), so the message is reliable.
       const siteBase = getPrimarySiteUrl();
-      const fundDocuments = FUND_DOCUMENTS_FN.map((doc) => ({
-        label: doc.filename.replace(/\.docx$/i, "").replace(/-/g, " "),
-        href: `${siteBase}${doc.path}`,
-      }));
-      const signerAttachments = signedNdaAttachment ? [signedNdaAttachment] : [];
+      const signerAttachments = [
+        ...(signedNdaAttachment ? [signedNdaAttachment] : []),
+        ...signedFundDocs,
+      ];
       const userHtml = buildNDAUserConfirmationHtml({
         signerName,
         signerEmail: signerEmail as string,
@@ -368,7 +363,9 @@ serve(async (req) => {
         pdfAttached: Boolean(pdfBase64),
         pdfUrl,
         documentsAcknowledged,
-        fundDocuments,
+        signedDocuments: signedFundDocs.map((d) =>
+          d.filename.replace(/-Signed\.docx$/i, "").replace(/-/g, " ")
+        ),
         profileUrl: `${siteBase}/hushh-user-profile`,
       });
       const signerResult = await logNdaEmail(supabase, {

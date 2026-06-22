@@ -6,6 +6,7 @@
     "strict": true
   },
   "imports": {
-    "std/": "https://deno.land/std@0.168.0/"
+    "std/": "https://deno.land/std@0.168.0/",
+    "fflate": "npm:fflate@0.8.2"
   }
 }

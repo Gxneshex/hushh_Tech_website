@@ -22,8 +22,8 @@ export interface NDAUserConfirmationData {
   pdfAttached: boolean;
   pdfUrl?: string;
   documentsAcknowledged?: string[];
-  /** Fund documents offered as download links (not heavy attachments). */
-  fundDocuments?: { label: string; href: string }[];
+  /** Friendly names of the signed fund agreements attached to this email. */
+  signedDocuments?: string[];
   profileUrl: string;
 }
 
@@ -70,7 +70,7 @@ export function buildNDAUserConfirmationHtml({
   pdfAttached,
   pdfUrl,
   documentsAcknowledged = [],
-  fundDocuments = [],
+  signedDocuments = [],
   profileUrl,
 }: NDAUserConfirmationData): string {
   const detailRows = [
@@ -102,20 +102,15 @@ export function buildNDAUserConfirmationHtml({
         )}" style="color:${EMAIL_COLORS.bodyText};font-weight:700;text-decoration:underline;">View / Download your NDA</a>`
       : "Your countersigned NDA copy is being prepared and will follow shortly — you can also download it anytime from your profile.";
 
-  const fundDocsLine =
-    fundDocuments.length > 0
-      ? `<br/><br/>The fund documents you reviewed are available to download anytime:<br/>${fundDocuments
-          .map(
-            (doc) =>
-              `<a href="${escapeAttribute(doc.href)}" style="color:${EMAIL_COLORS.bodyText};font-weight:700;text-decoration:underline;display:inline-block;margin-top:8px;">${escapeHtml(
-                doc.label
-              )}</a>`
-          )
-          .join("<br/>")}`
+  const signedDocsLine =
+    signedDocuments.length > 0
+      ? `<br/><br/>Your signed fund agreements are also attached, executed for your records: ${signedDocuments
+          .map((name) => escapeHtml(name))
+          .join(", ")}.`
       : "";
 
   const extraSections = [
-    renderCard("Your signed copy", renderSimpleCardBody(`${ndaCopyLine}${fundDocsLine}`)),
+    renderCard("Your signed copy", renderSimpleCardBody(`${ndaCopyLine}${signedDocsLine}`)),
     documentsAcknowledged.length > 0
       ? renderCard("Documents you reviewed", renderDocumentsList(documentsAcknowledged))
       : "",
