@@ -176,18 +176,31 @@ export default function OnboardingStep2() {
             <section className="mb-10 grid gap-3">
               {ACCOUNT_TYPE_OPTIONS.map((option) => {
                 const isSelected = s.selectedAccountType === option.value;
+                const comingSoon = option.comingSoon;
                 return (
                   <button
                     key={option.value}
                     type="button"
-                    onClick={() => s.setSelectedAccountType(option.value)}
+                    onClick={() => {
+                      if (comingSoon) return;
+                      s.setSelectedAccountType(option.value);
+                    }}
+                    disabled={comingSoon}
+                    aria-disabled={comingSoon}
+                    aria-label={comingSoon ? `${option.label} — under development` : option.label}
                     className={`flex w-full items-center gap-4 rounded-[20px] p-4 text-left transition-all sm:rounded-[22px] ${
-                      isSelected
+                      comingSoon
+                        ? "cursor-not-allowed bg-[#FAFAFA] shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.08)]"
+                        : isSelected
                         ? "bg-[#F5F5F7] shadow-[inset_0_0_0_1px_rgba(0,102,204,0.24)]"
                         : "bg-white shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.10)] hover:bg-[#F5F5F7]"
                     }`}
                   >
-                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[15px] bg-white text-[#1D1D1F]/70 shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.08)]">
+                    <span
+                      className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-[15px] bg-white shadow-[inset_0_0_0_0.5px_rgba(29,29,31,0.08)] ${
+                        comingSoon ? "text-[#1D1D1F]/35" : "text-[#1D1D1F]/70"
+                      }`}
+                    >
                       <span
                         className="material-symbols-outlined text-[20px]"
                         style={{ fontVariationSettings: "'wght' 400" }}
@@ -196,18 +209,30 @@ export default function OnboardingStep2() {
                       </span>
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block text-[16px] font-medium text-[#1D1D1F]">
+                      <span
+                        className={`block text-[16px] font-medium ${
+                          comingSoon ? "text-[#1D1D1F]/50" : "text-[#1D1D1F]"
+                        }`}
+                      >
                         {option.label}
                       </span>
-                      <span className="mt-1 block text-[12px] font-normal leading-[1.35] text-[#1D1D1F]/55">
+                      <span
+                        className={`mt-1 block text-[12px] font-normal leading-[1.35] ${
+                          comingSoon ? "text-[#1D1D1F]/40" : "text-[#1D1D1F]/55"
+                        }`}
+                      >
                         {option.description}
                       </span>
                     </span>
-                    {isSelected && (
+                    {comingSoon ? (
+                      <span className="shrink-0 whitespace-nowrap rounded-full bg-[#FF9500]/12 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.04em] text-[#9A6200]">
+                        Under development
+                      </span>
+                    ) : isSelected ? (
                       <span className="material-symbols-outlined text-[18px] text-[#0066CC]">
                         check
                       </span>
-                    )}
+                    ) : null}
                   </button>
                 );
               })}

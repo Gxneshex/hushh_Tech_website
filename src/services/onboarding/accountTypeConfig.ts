@@ -106,6 +106,11 @@ export interface AccountTypeOption {
   label: string;
   description: string;
   icon: string;
+  /**
+   * Still under development — shown in the Step 2 picker but disabled with an
+   * "Under development" pill. Only Individual is selectable today.
+   */
+  comingSoon: boolean;
 }
 
 const SIGNATORY_PRIMARY: SignatoryRule = {
@@ -258,10 +263,27 @@ export const ACCOUNT_TYPE_CONFIG: Record<UIAccountType, AccountTypeConfig> = {
 /** Ordered list of account types as shown in the Step 2 picker. */
 export const ACCOUNT_TYPE_ORDER: UIAccountType[] = ['individual', 'joint', 'retirement', 'trust'];
 
+/**
+ * Account types still under development. They appear in the Step 2 picker but are
+ * disabled with an "Under development" pill — only Individual can be selected
+ * today. To launch one, remove it from this set (no other change required).
+ */
+export const COMING_SOON_ACCOUNT_TYPES = new Set<UIAccountType>(['joint', 'retirement', 'trust']);
+
+/** Whether an account type can currently be selected in onboarding. */
+export const isAccountTypeAvailable = (value: UIAccountType): boolean =>
+  !COMING_SOON_ACCOUNT_TYPES.has(value);
+
 /** Options consumed by the Step 2 picker, derived from the config. */
 export const ACCOUNT_TYPE_OPTIONS: AccountTypeOption[] = ACCOUNT_TYPE_ORDER.map((value) => {
   const cfg = ACCOUNT_TYPE_CONFIG[value];
-  return { value: cfg.value, label: cfg.label, description: cfg.description, icon: cfg.icon };
+  return {
+    value: cfg.value,
+    label: cfg.label,
+    description: cfg.description,
+    icon: cfg.icon,
+    comingSoon: COMING_SOON_ACCOUNT_TYPES.has(value),
+  };
 });
 
 const VALID_ACCOUNT_TYPES = new Set<string>(ACCOUNT_TYPE_ORDER);

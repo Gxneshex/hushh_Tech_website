@@ -17,6 +17,7 @@ import type { UIAccountType } from '../../../types/onboarding';
 import {
   ACCOUNT_TYPE_OPTIONS,
   accountStructureFor,
+  isAccountTypeAvailable,
   type AccountTypeOption,
 } from '../../../services/onboarding/accountTypeConfig';
 
@@ -71,7 +72,14 @@ export const useStep2Logic = (): Step2Logic => {
         .eq('user_id', user.id)
         .maybeSingle();
       const validTypes: UIAccountType[] = ['individual', 'joint', 'retirement', 'trust'];
-      if (data?.account_type && validTypes.includes(data.account_type as UIAccountType)) {
+      // Only restore a previously-saved type if it is still selectable. Types
+      // under development (Joint/Retirement/Trust) are not restored, so a stale
+      // selection can't pre-enable Continue while the option is disabled.
+      if (
+        data?.account_type &&
+        validTypes.includes(data.account_type as UIAccountType) &&
+        isAccountTypeAvailable(data.account_type as UIAccountType)
+      ) {
         setSelectedAccountType(data.account_type as UIAccountType);
       }
     };
