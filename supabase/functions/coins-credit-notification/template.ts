@@ -11,6 +11,11 @@ import {
 } from "../_shared/emailTemplateChrome.ts";
 import { EMAIL_FOOTER_INLINE_ASSET_KEYS, type EmailInlineAssetKey } from "../_shared/emailInlineAssets.ts";
 
+// Website-exact font stacks, mirroring _shared/emailTemplateChrome.ts so this
+// template's inline-styled hero/footnote match the new chrome typography.
+const FONT_HEADLINE = "'Playfair Display', Georgia, 'Times New Roman', serif";
+const FONT_BODY = "'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif";
+
 export interface CoinsCreditTemplateData {
   recipientName: string;
   coinsAwarded: number;
@@ -43,17 +48,17 @@ export function buildCoinsCreditEmailHtml({
     ${renderHeroSection(`
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;">
         <tr>
-          <td align="center" style="font-family:Inter, Arial, Helvetica, sans-serif;font-size:18px;line-height:1.4;color:${EMAIL_COLORS.white};font-weight:400;padding:0 0 10px 0;">
+          <td align="center" style="font-family:${FONT_BODY};font-size:13px;line-height:1.4;color:${EMAIL_COLORS.gold};font-weight:700;letter-spacing:0.18em;text-transform:uppercase;padding:0 0 16px 0;">
             You've been credited.
           </td>
         </tr>
         <tr>
-          <td align="center" style="font-family:Inter, Arial, Helvetica, sans-serif;font-size:64px;line-height:1;color:${EMAIL_COLORS.white};font-weight:700;letter-spacing:-0.04em;padding:0 0 8px 0;">
+          <td align="center" style="font-family:${FONT_HEADLINE};font-size:64px;line-height:1;color:${EMAIL_COLORS.white};font-weight:600;letter-spacing:-0.02em;padding:0 0 10px 0;">
             ${amountLabel}
           </td>
         </tr>
         <tr>
-          <td align="center" style="font-family:Inter, Arial, Helvetica, sans-serif;font-size:20px;line-height:1.3;color:${EMAIL_COLORS.gold};font-weight:600;padding:0;">
+          <td align="center" style="font-family:${FONT_BODY};font-size:13px;line-height:1.3;color:${EMAIL_COLORS.white};font-weight:600;letter-spacing:0.24em;text-transform:uppercase;padding:0;">
             Hushh Coins
           </td>
         </tr>
@@ -75,7 +80,7 @@ export function buildCoinsCreditEmailHtml({
     `)}
     ${renderBodySection(`
       <div style="padding-top:42px;padding-bottom:10px;">
-        <div style="font-family:Inter, Arial, Helvetica, sans-serif;font-size:11px;line-height:1.4;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:${EMAIL_COLORS.bodyText};padding-bottom:24px;">
+        <div style="font-family:${FONT_BODY};font-size:11px;line-height:1.4;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:${EMAIL_COLORS.bodyText};padding-bottom:24px;">
           Your Exclusive Coin Rewards
         </div>
         ${renderFeatureList([
@@ -112,7 +117,7 @@ export function buildCoinsCreditEmailHtml({
       </div>
     `)}
     ${renderBodySection(`
-      <div style="padding-top:22px;padding-bottom:54px;font-family:Inter, Arial, Helvetica, sans-serif;font-size:10px;line-height:1.7;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:#B6B6B6;text-align:center;">
+      <div style="padding-top:22px;padding-bottom:54px;font-family:${FONT_BODY};font-size:10px;line-height:1.7;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:${EMAIL_COLORS.fineText};text-align:center;">
         Hushh Coins are for internal ecosystem use only.
       </div>
     `)}

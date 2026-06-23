@@ -120,21 +120,25 @@ export function buildVaultAccessNotificationHtml({
   const copy = getVaultAccessEventCopy(eventType);
   const hasAction = Boolean(actionUrl);
 
+  // Website-exact font stacks (mirrors _shared/emailTemplateChrome.ts).
+  const FONT_HEADLINE = "'Playfair Display', Georgia, 'Times New Roman', serif";
+  const FONT_BODY = "'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif";
+
   return renderEmailDocument(`
     ${renderHeroSection(`
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;">
         <tr>
-          <td align="center" style="font-family:Inter, Arial, Helvetica, sans-serif;font-size:11px;line-height:1.4;color:${EMAIL_COLORS.gold};font-weight:700;letter-spacing:0.18em;text-transform:uppercase;padding:0 0 16px 0;">
+          <td align="center" style="font-family:${FONT_BODY};font-size:11px;line-height:1.4;color:${EMAIL_COLORS.gold};font-weight:700;letter-spacing:0.18em;text-transform:uppercase;padding:0 0 18px 0;">
             ${copy.eyebrow}
           </td>
         </tr>
         <tr>
-          <td align="center" style="font-family:Inter, Arial, Helvetica, sans-serif;font-size:42px;line-height:1.05;color:${EMAIL_COLORS.white};font-weight:700;padding:0 0 14px 0;">
+          <td align="center" style="font-family:${FONT_HEADLINE};font-size:40px;line-height:1.1;color:${EMAIL_COLORS.white};font-weight:600;padding:0 0 16px 0;">
             ${copy.headline}
           </td>
         </tr>
         <tr>
-          <td align="center" style="font-family:Inter, Arial, Helvetica, sans-serif;font-size:14px;line-height:1.7;color:${EMAIL_COLORS.white};font-weight:400;padding:0;">
+          <td align="center" style="font-family:${FONT_BODY};font-size:15px;line-height:1.7;color:${EMAIL_COLORS.white};font-weight:400;padding:0;">
             ${copy.intro}
           </td>
         </tr>
@@ -160,7 +164,7 @@ export function buildVaultAccessNotificationHtml({
     `)}
     ${renderBodySection(`
       <div style="padding-top:42px;padding-bottom:10px;">
-        <div style="font-family:Inter, Arial, Helvetica, sans-serif;font-size:11px;line-height:1.4;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:${EMAIL_COLORS.bodyText};padding-bottom:24px;">
+        <div style="font-family:${FONT_BODY};font-size:11px;line-height:1.4;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:${EMAIL_COLORS.bodyText};padding-bottom:24px;">
           Privacy Boundary
         </div>
         ${renderFeatureList([

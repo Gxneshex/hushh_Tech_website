@@ -14,13 +14,17 @@ import {
 
 function expectEmailSafeMarkup(html: string) {
   expect(html).not.toMatch(/tailwindcss/i);
-  expect(html).not.toMatch(/fonts\.googleapis/i);
   expect(html).not.toMatch(/material-symbols/i);
   expect(html).not.toMatch(/hover:/i);
   expect(html).not.toContain("<svg");
   expect(html).not.toContain("https://hushhtech.com/images/email-icons/");
   expect(html).toContain('name="color-scheme" content="light"');
   expect(html).toContain('name="supported-color-schemes" content="light"');
+  // Website fonts (Playfair Display / Manrope / JetBrains Mono) are intentionally
+  // loaded via Google Fonts with email-safe fallback chains.
+  expect(html).toMatch(/fonts\.googleapis/i);
+  expect(html).toContain("Playfair Display");
+  expect(html).toContain("Manrope");
 }
 
 describe("Email template builders", () => {

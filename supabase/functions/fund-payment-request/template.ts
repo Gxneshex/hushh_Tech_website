@@ -17,6 +17,12 @@ export const FUND_PAYMENT_INLINE_ASSET_KEYS: EmailInlineAssetKey[] = [
   ...EMAIL_FOOTER_INLINE_ASSET_KEYS,
 ];
 
+// Website-exact font stacks, mirrored from _shared/emailTemplateChrome.ts so this
+// template renders in the same Playfair / Manrope / JetBrains Mono family as the chrome.
+const FONT_HEADLINE = "'Playfair Display', Georgia, 'Times New Roman', serif";
+const FONT_BODY = "'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif";
+const FONT_MONO = "'JetBrains Mono', SFMono-Regular, Menlo, Consolas, monospace";
+
 export interface FundPaymentEmailData {
   recipientName?: string | null;
   userEmail?: string | null;
@@ -41,7 +47,7 @@ export interface FundPaymentEmailData {
 
 function renderParagraph(value: string): string {
   return `
-    <p style="margin:0;font-family:Inter, Arial, Helvetica, sans-serif;font-size:13px;line-height:1.8;color:${EMAIL_COLORS.mutedText};">
+    <p style="margin:0;font-family:${FONT_BODY};font-size:15px;line-height:1.7;font-weight:400;color:${EMAIL_COLORS.bodyText};">
       ${escapeHtml(value)}
     </p>
   `;
@@ -79,12 +85,12 @@ export function buildFundPaymentRequestUserHtml(data: FundPaymentEmailData): str
     ${renderHeroSection(`
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;">
         <tr>
-          <td align="center" style="font-family:Inter, Arial, Helvetica, sans-serif;font-size:42px;line-height:1.05;color:${EMAIL_COLORS.white};font-weight:700;padding:0 0 12px 0;">
+          <td align="center" style="font-family:${FONT_HEADLINE};font-size:40px;line-height:1.1;color:${EMAIL_COLORS.white};font-weight:600;padding:0 0 14px 0;">
             Hushh Fund Payment Link
           </td>
         </tr>
         <tr>
-          <td align="center" style="font-family:Inter, Arial, Helvetica, sans-serif;font-size:11px;line-height:1.4;color:${EMAIL_COLORS.gold};font-weight:600;letter-spacing:0.24em;text-transform:uppercase;">
+          <td align="center" style="font-family:${FONT_BODY};font-size:11px;line-height:1.4;color:${EMAIL_COLORS.gold};font-weight:700;letter-spacing:0.24em;text-transform:uppercase;">
             Investor Review Step
           </td>
         </tr>
@@ -124,7 +130,7 @@ export function buildFundPaymentRequestTeamHtml(data: FundPaymentEmailData): str
     ...(data.userEmail
       ? [{
           label: "Email",
-          htmlValue: `<a href="mailto:${escapeAttribute(data.userEmail)}" style="font-family:SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;font-size:13px;line-height:1.55;font-weight:700;color:${EMAIL_COLORS.monoText};text-decoration:none;word-break:break-word;overflow-wrap:anywhere;">${escapeHtml(data.userEmail)}</a>`,
+          htmlValue: `<a href="mailto:${escapeAttribute(data.userEmail)}" style="font-family:${FONT_MONO};font-size:13px;line-height:1.55;font-weight:500;letter-spacing:0.01em;color:${EMAIL_COLORS.monoText};text-decoration:none;word-break:break-word;overflow-wrap:anywhere;">${escapeHtml(data.userEmail)}</a>`,
         }]
       : []),
     ...(data.userId ? [{ label: "User ID", value: data.userId, monospace: true, breakAll: true }] : []),
@@ -138,12 +144,12 @@ export function buildFundPaymentRequestTeamHtml(data: FundPaymentEmailData): str
     ${renderHeroSection(`
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;">
         <tr>
-          <td align="center" style="font-family:Inter, Arial, Helvetica, sans-serif;font-size:42px;line-height:1.05;color:${EMAIL_COLORS.white};font-weight:700;padding:0 0 12px 0;">
+          <td align="center" style="font-family:${FONT_HEADLINE};font-size:40px;line-height:1.1;color:${EMAIL_COLORS.white};font-weight:600;padding:0 0 14px 0;">
             Fund Payment Event
           </td>
         </tr>
         <tr>
-          <td align="center" style="font-family:Inter, Arial, Helvetica, sans-serif;font-size:11px;line-height:1.4;color:${EMAIL_COLORS.gold};font-weight:600;letter-spacing:0.24em;text-transform:uppercase;">
+          <td align="center" style="font-family:${FONT_BODY};font-size:11px;line-height:1.4;color:${EMAIL_COLORS.gold};font-weight:700;letter-spacing:0.24em;text-transform:uppercase;">
             Operations Notification
           </td>
         </tr>

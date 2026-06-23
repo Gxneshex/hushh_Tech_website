@@ -43,13 +43,18 @@ export function buildCoinsDeductionEmailHtml({
     ${renderHeroSection(`
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;">
         <tr>
-          <td align="center" style="font-family:Inter, Arial, Helvetica, sans-serif;font-size:30px;line-height:1.1;color:${EMAIL_COLORS.white};font-weight:700;padding:0 0 12px 0;">
+          <td align="left" style="font-family:'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;font-size:10px;line-height:1.4;color:${EMAIL_COLORS.gold};font-weight:700;letter-spacing:0.2em;text-transform:uppercase;padding:0 0 14px 0;">
             Meeting Confirmed
           </td>
         </tr>
         <tr>
-          <td align="center" style="font-family:Inter, Arial, Helvetica, sans-serif;font-size:14px;line-height:1.55;color:${EMAIL_COLORS.gold};font-weight:400;padding:0;">
+          <td align="left" style="font-family:'Playfair Display', Georgia, 'Times New Roman', serif;font-size:30px;line-height:1.15;color:${EMAIL_COLORS.white};font-weight:600;padding:0 0 12px 0;">
             Your consultation has been successfully scheduled
+          </td>
+        </tr>
+        <tr>
+          <td align="left" style="font-family:'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;font-size:15px;line-height:1.6;color:#C9C9C9;font-weight:400;padding:0;">
+            Your private session with the fund team has been booked. Here are the details.
           </td>
         </tr>
       </table>
@@ -82,7 +87,7 @@ export function buildCoinsDeductionEmailHtml({
     `)}
     ${renderBodySection(`
       <div style="padding-top:34px;padding-bottom:54px;">
-        <div style="font-family:Inter, Arial, Helvetica, sans-serif;font-size:11px;line-height:1.4;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:${EMAIL_COLORS.bodyText};padding-bottom:24px;">
+        <div style="font-family:'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;font-size:10px;line-height:1.4;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:${EMAIL_COLORS.fineText};padding-bottom:24px;">
           Prepare For Your Session
         </div>
         ${renderFeatureList([
