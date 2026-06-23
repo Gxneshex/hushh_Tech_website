@@ -1032,6 +1032,52 @@ export default function HomePage() {
         />
       </main>
 
+      {/* Legal disclosure band — SEC adviser notice + legal links, shown above
+          the footer (matches the discover-fund-a band; same links). */}
+      <section
+        aria-label="Legal disclosures"
+        style={{
+          background: "#f5f5f7",
+          borderTop: "1px solid rgba(0,0,0,.08)",
+          padding: "clamp(48px,6vw,72px) 40px calc(clamp(48px,6vw,72px) + 96px)",
+          textAlign: "center",
+        }}
+      >
+        <div style={{ maxWidth: 1000, margin: "0 auto" }}>
+          <p style={{ margin: "0 auto", maxWidth: "74ch", fontSize: 13, lineHeight: 1.6, color: "rgba(0,0,0,.45)" }}>
+            Investing involves risk, including loss of principal. Past performance does not guarantee future results. Hushh Technologies,
+            Inc. is an SEC-registered investment adviser.
+          </p>
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "10px 30px",
+              justifyContent: "center",
+              margin: "26px 0 24px",
+              fontSize: 14,
+              fontWeight: 500,
+            }}
+          >
+            <a href="/risk-disclosures" style={{ color: "#0066cc" }}>
+              Disclosures
+            </a>
+            <a href="/privacy-policy" style={{ color: "#0066cc" }}>
+              Privacy
+            </a>
+            <a href="/terms" style={{ color: "#0066cc" }}>
+              Terms
+            </a>
+            <a href="/support" style={{ color: "#0066cc" }}>
+              Support
+            </a>
+          </div>
+          <div style={{ fontSize: 12, color: "rgba(0,0,0,.4)" }}>
+            &copy; 2026 Hushh All Rights Reserved.
+          </div>
+        </div>
+      </section>
+
       <HushhTechFooter activeTab={HushhFooterTab.HOME} />
     </div>
   );
