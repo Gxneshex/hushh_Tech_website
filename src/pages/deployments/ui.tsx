@@ -150,7 +150,7 @@ export default function DeploymentsPage() {
       style={{ fontFamily: appleFont }}
     >
       <SeoHead title="Deployments" description="Internal deployments dashboard." path="/deployments" />
-      <HushhTechHeader showSearch={false} />
+      <HushhTechHeader showSearch={false} showTicker={false} />
 
       <main id="main-content">
         {!isAuthed ? (
