@@ -24,7 +24,7 @@ async function bundle(entry) {
 
 function inlineIcons(html, assetsMod) {
   // map cid:<contentId> -> data:image/png;base64,<...>
-  const keys = ["home", "x", "youtube", "linkedin", "facebook", "calendar", "bank", "shield", "analytics", "quiz", "calendar-check"];
+  const keys = ["logo", "home", "x", "youtube", "linkedin", "facebook", "calendar", "bank", "shield", "analytics", "quiz", "calendar-check"];
   let out = html;
   for (const k of keys) {
     const a = assetsMod.getInlineAsset(k);

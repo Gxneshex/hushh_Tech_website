@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import Stripe from "https://esm.sh/stripe@14.5.0?target=deno";
 import { sendGmailEmail } from "./gmail.ts";
+import { collectInlineAssets, EMAIL_FOOTER_INLINE_ASSET_KEYS } from "./emailInlineAssets.ts";
 import { getTrustedOrigin } from "./security.ts";
 
 export const MIN_FIRST_PAYMENT_CENTS = 100;
@@ -210,7 +211,13 @@ export async function logAndSendFundEmail(params: {
     .select("id")
     .maybeSingle();
 
-  const result = await sendGmailEmail(params.recipients, params.subject, params.html);
+  const result = await sendGmailEmail(
+    params.recipients,
+    params.subject,
+    params.html,
+    undefined,
+    collectInlineAssets(EMAIL_FOOTER_INLINE_ASSET_KEYS),
+  );
   await params.supabase
     .from("fund_payment_notifications")
     .update({

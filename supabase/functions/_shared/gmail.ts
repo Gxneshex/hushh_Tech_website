@@ -1,3 +1,6 @@
+import { createRelatedEmailMessage } from "./emailMime.ts";
+import type { EmailInlineAsset } from "./emailInlineAssets.ts";
+
 function base64urlEncode(data: Uint8Array | string): string {
   const bytes = typeof data === 'string' ? new TextEncoder().encode(data) : data;
   let binary = '';
@@ -88,6 +91,7 @@ export async function sendGmailEmail(
   subject: string,
   htmlContent: string,
   fromName = 'Hushh Fund Operations',
+  inlineAssets: readonly EmailInlineAsset[] = [],
 ): Promise<{ success: boolean; messageId?: string; error?: string }> {
   try {
     const serviceAccountEmail = Deno.env.get('GOOGLE_SERVICE_ACCOUNT_EMAIL');
@@ -102,16 +106,28 @@ export async function sendGmailEmail(
       privateKey.replace(/\\n/g, '\n'),
       senderEmail,
     );
-    const rawMessage = [
-      `From: ${fromName} <${senderEmail}>`,
-      `To: ${recipients.join(', ')}`,
-      `Subject: ${encodeSubject(subject)}`,
-      'MIME-Version: 1.0',
-      'Content-Type: text/html; charset="UTF-8"',
-      'Content-Transfer-Encoding: base64',
-      '',
-      encodeBase64WithLineBreaks(htmlContent),
-    ].join('\r\n');
+    // With inline assets (e.g. the brand logo + footer social icons) build a
+    // multipart/related message so the cid: images render; otherwise keep the
+    // plain text/html message for callers that don't ship inline assets.
+    const rawMessage = inlineAssets.length > 0
+      ? createRelatedEmailMessage({
+          fromLabel: fromName,
+          fromEmail: senderEmail,
+          recipients,
+          subject,
+          htmlContent,
+          inlineAssets,
+        })
+      : [
+          `From: ${fromName} <${senderEmail}>`,
+          `To: ${recipients.join(', ')}`,
+          `Subject: ${encodeSubject(subject)}`,
+          'MIME-Version: 1.0',
+          'Content-Type: text/html; charset="UTF-8"',
+          'Content-Transfer-Encoding: base64',
+          '',
+          encodeBase64WithLineBreaks(htmlContent),
+        ].join('\r\n');
 
     const response = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
       method: 'POST',

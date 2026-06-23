@@ -158,12 +158,17 @@ export function renderEmailDocument(contentHtml: string): string {
 }
 
 export function renderBrandBadge(): string {
+  // Mirrors the website header: the Hushh mark + "hushh" / "Technologies"
+  // wordmark, adapted for the dark hero/footer background.
   return `
     <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
       <tr>
-        <td valign="middle" style="font-size:15px;line-height:1;padding-right:9px;">&#129323;</td>
-        <td valign="middle" style="font-family:${FONT_BODY};font-size:13px;line-height:13px;font-weight:700;letter-spacing:0.34em;color:${EMAIL_COLORS.gold};text-transform:uppercase;">
-          HUSHH
+        <td valign="middle" style="padding-right:11px;line-height:0;">
+          <img src="${escapeAttribute(getInlineAssetCid("logo"))}" alt="Hushh Technologies" width="36" height="36" style="display:block;width:36px;height:36px;border:0;outline:none;text-decoration:none;border-radius:9px;" />
+        </td>
+        <td valign="middle">
+          <div style="font-family:${FONT_BODY};font-size:17px;line-height:1;font-weight:600;letter-spacing:-0.015em;color:${EMAIL_COLORS.white};">hushh</div>
+          <div style="font-family:${FONT_BODY};font-size:9px;line-height:1;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:${EMAIL_COLORS.gold};padding-top:5px;">Technologies</div>
         </td>
       </tr>
     </table>
