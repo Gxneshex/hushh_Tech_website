@@ -241,9 +241,11 @@ jobs:
           runtime_secrets+=",SEARCH_CONSOLE_TYPE=hushh-tech-metrics-search-console-type:latest"
           runtime_secrets+=",SEARCH_CONSOLE_DATA_STATE=hushh-tech-metrics-search-console-data-state:latest"
           runtime_secrets+=",SEARCH_CONSOLE_ROW_LIMIT=hushh-tech-metrics-search-console-row-limit:latest"
+          build_tag="build-$(echo '${{ steps.resolve-sha.outputs.sha }}' | cut -c1-8)"
           gcloud run deploy hushh-tech-website \
             --source . \
             --project=hushh-tech-uat \
+            --tag="$build_tag" \
             --region=us-central1 \
             --platform=managed \
             --allow-unauthenticated \

@@ -82,6 +82,7 @@ import { AuthSessionProvider, useAuthSession } from './auth/AuthSessionProvider'
 import AuthRequiredRoute from './components/AuthRequiredRoute';
 import HushhHackathonPage from './pages/hushh-hackathon/ui';
 import MetricsPage from './pages/metrics';
+import DeploymentsPage from './pages/deployments/ui';
 import NotFound from './pages/NotFound';
 import FundAdminPage from './pages/fund-admin/ui';
 import FundAdminInvestorDetail from './pages/fund-admin/detail/ui';
@@ -118,6 +119,7 @@ const ContentWrapper = ({ children }: { children: ReactNode }) => {
   const isHushhHackathon = location.pathname === '/hushh-hackathon';
   const isMetrics = location.pathname === '/metrics' || location.pathname === '/metric';
   const isFundAdmin = location.pathname.startsWith('/fund-admin');
+  const isDeployments = location.pathname.startsWith('/deployments');
   const isLegalPublicPage =
     location.pathname === '/privacy-policy' ||
     location.pathname === '/privacy' ||
@@ -135,7 +137,7 @@ const ContentWrapper = ({ children }: { children: ReactNode }) => {
     location.pathname === '/about/philosophy';
 
   return (
-    <div className={`${isHomePage || isAuthCallback || isUserRegistration || isOnboarding || isInvestorGuide || isHushhAI || isKai || isStudio || isHushhUserProfile || isSignNda || isMyDocuments || isDocumentViewer || isInvestorProfile || isPublicInvestorProfile || isDiscoverFundA || isCommunity || isDeleteAccount || isLogin || isSignup || isProfile || isCareer || isBenefits || isHushhHackathon || isMetrics || isFundAdmin || isLegalPublicPage || isModernPublicPage ? '' : 'mt-20'}`}>
+    <div className={`${isHomePage || isAuthCallback || isUserRegistration || isOnboarding || isInvestorGuide || isHushhAI || isKai || isStudio || isHushhUserProfile || isSignNda || isMyDocuments || isDocumentViewer || isInvestorProfile || isPublicInvestorProfile || isDiscoverFundA || isCommunity || isDeleteAccount || isLogin || isSignup || isProfile || isCareer || isBenefits || isHushhHackathon || isMetrics || isFundAdmin || isDeployments || isLegalPublicPage || isModernPublicPage ? '' : 'mt-20'}`}>
       {children}
     </div>
   );
@@ -187,7 +189,8 @@ const useLayoutVisibility = () => {
   const isHushhHackathon = location.pathname === '/hushh-hackathon';
   const isMetrics = location.pathname === '/metrics' || location.pathname === '/metric';
   const isFundAdmin = location.pathname.startsWith('/fund-admin');
-  const hideOld = isHushhAI || isKai || isStudio || isHomePage || isOnboarding || isInvestorGuide || isProfile || isFundA || isCommunity || isDeleteAccount || isLogin || isSignup || isSignNda || isMyDocuments || isDocumentViewer || isHushhUserProfile || isCareer || isBenefits || isLegalPublicPage || isModernPublicPage || isPublicInvestorProfile || isHushhHackathon || isMetrics || isFundAdmin;
+  const isDeployments = location.pathname.startsWith('/deployments');
+  const hideOld = isHushhAI || isKai || isStudio || isHomePage || isOnboarding || isInvestorGuide || isProfile || isFundA || isCommunity || isDeleteAccount || isLogin || isSignup || isSignNda || isMyDocuments || isDocumentViewer || isHushhUserProfile || isCareer || isBenefits || isLegalPublicPage || isModernPublicPage || isPublicInvestorProfile || isHushhHackathon || isMetrics || isFundAdmin || isDeployments;
   const showPublicWebsiteFooter =
     isHomePage ||
     isFundA ||
@@ -447,6 +450,7 @@ function App() {
             <Route path='/document-viewer' element={<DocumentViewerPage />} />
             {/* NDA Admin Page - Password protected view of all NDA agreements */}
             <Route path='/nda-admin' element={<NDAAdminPage />} />
+            <Route path='/deployments' element={<DeploymentsPage />} />
             {/* Hushh Fund investor verification — team-gated (Supabase auth + allowlist) */}
             <Route path='/fund-admin' element={
               <FundAdminRoute>

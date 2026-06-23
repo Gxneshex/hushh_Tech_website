@@ -93,6 +93,7 @@ app.all('/api/community/posts/*', async (req, res) => wrapHandler(await loadApi(
 app.all('/api/community/assets/*', async (req, res) => wrapHandler(await loadApi('community/asset'))(req, res));
 app.all('/api/metrics/summary', async (req, res) => wrapHandler(await loadApi('metrics/summary'))(req, res));
 app.all('/api/metrics/send-report', async (req, res) => wrapHandler(await loadApi('metrics/send-report'))(req, res));
+app.all('/api/deployments', async (req, res) => wrapHandler(await loadApi('deployments'))(req, res));
 app.all('/api/public-investor-profile', async (req, res) => wrapHandler(await loadApi('public-investor-profile'))(req, res));
 app.all('/api/send-email-notification', async (req, res) => wrapHandler(await loadApi('send-email-notification'))(req, res));
 app.all('/api/contact-notification', async (req, res) => wrapHandler(await loadApi('contact-notification'))(req, res));
@@ -135,7 +136,7 @@ app.use(express.static(DIST_DIR, {
 // No-cache pages (auth, profile, onboarding, etc.)
 const NO_CACHE_PATHS = [
   '/login', '/signup', '/onboarding', '/hushh-user-profile',
-  '/discover-fund-a', '/profile', '/community', '/delete-account', '/sign-nda', '/metric', '/metrics',
+  '/discover-fund-a', '/profile', '/community', '/delete-account', '/sign-nda', '/metric', '/metrics', '/deployments',
 ];
 
 app.get('/metric', (_req, res) => {
