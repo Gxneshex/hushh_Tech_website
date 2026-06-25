@@ -130,7 +130,7 @@ const FaqPage: React.FC = () => {
         <AppleSection tone="light" pad="normal">
           <Eyebrow>Support</Eyebrow>
           <Display as="h1" size="md" maxWidth="max-w-[720px]">
-            FAQ.
+            FAQ
           </Display>
           <Lede>
             Find answers to common questions about our investment strategies,
