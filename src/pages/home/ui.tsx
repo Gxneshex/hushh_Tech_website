@@ -296,11 +296,16 @@ function HomeStyles() {
         border-color: rgba(255,255,255,.7);
       }
       .hh-perf {
-        background: #000;
+        background:
+          radial-gradient(ellipse at 50% 0%, rgba(0,113,227,.18), rgba(0,113,227,0) 56%),
+          linear-gradient(180deg, #050506 0%, #000 100%);
         color: #fff;
+        overflow: hidden;
       }
       .hh-perf__head {
         max-width: 760px;
+        margin: 0 auto;
+        text-align: center;
       }
       .hh-chip {
         display: inline-flex;
@@ -325,6 +330,8 @@ function HomeStyles() {
       }
       .hh-perf__sub {
         margin-top: 22px;
+        margin-left: auto;
+        margin-right: auto;
         max-width: 42ch;
         font-weight: 300;
         font-size: clamp(18px, 1.6vw, 24px);
@@ -333,20 +340,51 @@ function HomeStyles() {
       }
       .hh-stats {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        grid-template-columns: minmax(260px, 1.18fr) minmax(220px, 1fr) minmax(220px, .94fr);
+        gap: 0;
         margin-top: clamp(56px, 7vw, 88px);
+        padding: clamp(18px, 2.5vw, 28px);
+        border: 1px solid rgba(255,255,255,.1);
+        border-radius: 32px;
+        background:
+          linear-gradient(135deg, rgba(255,255,255,.075), rgba(255,255,255,.025)),
+          rgba(15,15,17,.82);
+        box-shadow:
+          0 34px 100px rgba(0,0,0,.48),
+          0 0 0 1px rgba(255,255,255,.035) inset;
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
       }
       .hh-stat {
-        padding: 8px clamp(20px, 3vw, 44px);
+        position: relative;
+        min-height: 188px;
+        padding: clamp(22px, 3vw, 34px) clamp(20px, 3vw, 44px);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
       }
       .hh-stat + .hh-stat {
         border-left: 1px solid rgba(255,255,255,.14);
       }
       .hh-stat__num {
         font-weight: 600;
-        font-size: clamp(52px, 7vw, 90px);
+        font-size: clamp(48px, 7vw, 86px);
         line-height: .95;
         letter-spacing: -.03em;
+      }
+      .hh-stat--primary {
+        border-radius: 24px;
+        background:
+          radial-gradient(circle at 22% 18%, rgba(41,151,255,.18), transparent 38%),
+          rgba(255,255,255,.035);
+      }
+      .hh-stat__caption {
+        margin-bottom: 14px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: .16em;
+        text-transform: uppercase;
+        color: rgba(255,255,255,.38);
       }
       .hh-stat__num small {
         font-size: .5em;
@@ -484,9 +522,13 @@ function HomeStyles() {
         }
         .hh-stats {
           margin-top: 42px;
+          grid-template-columns: 1fr;
+          padding: 14px;
+          border-radius: 26px;
         }
         .hh-stat {
-          padding: 26px 0;
+          min-height: auto;
+          padding: 26px 20px;
         }
         .hh-stat + .hh-stat {
           border-left: 0;
@@ -738,7 +780,8 @@ function FundStatsSection({
 
         <Reveal>
           <div ref={ref} className="hh-stats">
-              <div className="hh-stat">
+              <div className="hh-stat hh-stat--primary">
+                <div className="hh-stat__caption">Performance</div>
                 <div className="hh-stat__num" style={{ color: "#2997ff" }}>
                   +
                   <span data-count="21.4" data-dec="1">
@@ -751,6 +794,7 @@ function FundStatsSection({
             </div>
 
               <div className="hh-stat">
+                <div className="hh-stat__caption">Target</div>
                 <div className="hh-stat__num">
                   <span data-count="18">
                     <CountUp value={18} active={visible} />
@@ -765,6 +809,7 @@ function FundStatsSection({
             </div>
 
             <div className="hh-stat">
+              <div className="hh-stat__caption">Liquidity</div>
               <div
                 className="hh-stat__num"
                 style={{ fontSize: "clamp(40px,5vw,66px)", lineHeight: 1.1 }}
@@ -1031,52 +1076,6 @@ export default function HomePage() {
           }
         />
       </main>
-
-      {/* Legal disclosure band — SEC adviser notice + legal links, shown above
-          the footer (matches the discover-fund-a band; same links). */}
-      <section
-        aria-label="Legal disclosures"
-        style={{
-          background: "#f5f5f7",
-          borderTop: "1px solid rgba(0,0,0,.08)",
-          padding: "clamp(48px,6vw,72px) 40px calc(clamp(48px,6vw,72px) + 96px)",
-          textAlign: "center",
-        }}
-      >
-        <div style={{ maxWidth: 1000, margin: "0 auto" }}>
-          <p style={{ margin: "0 auto", maxWidth: "74ch", fontSize: 13, lineHeight: 1.6, color: "rgba(0,0,0,.45)" }}>
-            Investing involves risk, including loss of principal. Past performance does not guarantee future results. Hushh Technologies,
-            Inc. is an SEC-registered investment adviser.
-          </p>
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: "10px 30px",
-              justifyContent: "center",
-              margin: "26px 0 24px",
-              fontSize: 14,
-              fontWeight: 500,
-            }}
-          >
-            <a href="/risk-disclosures" style={{ color: "#0066cc" }}>
-              Disclosures
-            </a>
-            <a href="/privacy-policy" style={{ color: "#0066cc" }}>
-              Privacy
-            </a>
-            <a href="/terms" style={{ color: "#0066cc" }}>
-              Terms
-            </a>
-            <a href="/support" style={{ color: "#0066cc" }}>
-              Support
-            </a>
-          </div>
-          <div style={{ fontSize: 12, color: "rgba(0,0,0,.4)" }}>
-            &copy; 2026 Hushh All Rights Reserved.
-          </div>
-        </div>
-      </section>
 
       <HushhTechFooter activeTab={HushhFooterTab.HOME} />
     </div>
