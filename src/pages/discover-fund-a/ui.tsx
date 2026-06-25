@@ -75,6 +75,43 @@ function FundAStyles() {
       [data-page="fund-a"] h3 { margin: 0; text-wrap: balance; }
       [data-page="fund-a"] p { margin: 0; text-wrap: pretty; }
       .fa-sec { padding: clamp(96px,12vw,150px) 40px; }
+      .fa-flagship {
+        position: relative;
+        padding: clamp(84px,9vw,118px) 40px clamp(74px,8vw,104px);
+        overflow: hidden;
+      }
+      .fa-flagship::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(ellipse at 50% 8%, rgba(0,113,227,.1), rgba(0,113,227,0) 58%),
+          linear-gradient(180deg, #fff 0%, #fbfcff 100%);
+        pointer-events: none;
+      }
+      .fa-flagship__inner {
+        position: relative;
+        z-index: 1;
+        max-width: 1100px;
+        margin: 0 auto;
+      }
+      .fa-flagship__intro {
+        max-width: 720px;
+        margin: 0 auto clamp(36px,5vw,52px);
+      }
+      .fa-flagship__metric {
+        max-width: 620px;
+        margin: 0 auto;
+        padding: clamp(28px,4vw,42px);
+        border: 1px solid rgba(0,113,227,.1);
+        border-radius: 30px;
+        background: rgba(255,255,255,.72);
+        box-shadow:
+          0 24px 70px rgba(0,0,0,.055),
+          0 0 0 1px rgba(255,255,255,.78) inset;
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+      }
       .fa-head-c { text-align: center; margin-left: auto; margin-right: auto; }
       .fa-eyebrow {
         font-size: 13px;
@@ -148,6 +185,8 @@ function FundAStyles() {
       @media (max-width: 640px) {
         .fa-r2 { grid-template-columns: 1fr; }
         .fa-sec { padding: 72px 20px; }
+        .fa-flagship { padding: 76px 20px 68px; }
+        .fa-flagship__metric { border-radius: 24px; padding: 26px 20px; }
         .fa-framework-row { gap: 16px; }
         .fa-framework-num { min-width: 38px; }
         .fa-card { border-radius: 22px; }
@@ -345,10 +384,10 @@ const FundA = () => {
       <HushhTechHeader showSearch={false} />
 
       <main id="main-content">
-        <section className="fa-sec" style={{ background: "#fff" }}>
-          <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+        <section className="fa-flagship" style={{ background: "#fff" }}>
+          <div className="fa-flagship__inner">
             <Reveal className="fa-head-c">
-              <div style={{ maxWidth: 720, margin: "0 auto clamp(48px,6vw,66px)" }}>
+              <div className="fa-flagship__intro">
                 <div className="fa-eyebrow" style={{ color: "#0071e3", marginBottom: 18 }}>
                   Flagship Fund
                 </div>
@@ -371,34 +410,36 @@ const FundA = () => {
               </div>
             </Reveal>
             <Reveal className="fa-head-c">
-              <div className="fa-eyebrow" style={{ color: "#0071e3", marginBottom: 14 }}>
-                {targetIRRLabel}
+              <div className="fa-flagship__metric">
+                <div className="fa-eyebrow" style={{ color: "#0071e3", marginBottom: 14 }}>
+                  {targetIRRLabel}
+                </div>
+                <div
+                  style={{
+                    fontWeight: 700,
+                    fontSize: "clamp(52px,8vw,92px)",
+                    lineHeight: .98,
+                    letterSpacing: "-.04em",
+                    color: "#0071e3",
+                  }}
+                >
+                  {targetIRRValue.replace("-", "–")}
+                </div>
+                <div style={{ marginTop: 10, fontSize: 15, color: "rgba(0,0,0,.5)" }}>
+                  {targetIRRPeriod}
+                </div>
+                <p
+                  style={{
+                    margin: "22px auto 0",
+                    maxWidth: "48ch",
+                    fontSize: 13,
+                    lineHeight: 1.5,
+                    color: "rgba(0,0,0,.38)",
+                  }}
+                >
+                  {targetIRRDisclaimer}
+                </p>
               </div>
-              <div
-                style={{
-                  fontWeight: 700,
-                  fontSize: "clamp(56px,9vw,104px)",
-                  lineHeight: .98,
-                  letterSpacing: "-.04em",
-                  color: "#0071e3",
-                }}
-              >
-                {targetIRRValue.replace("-", "–")}
-              </div>
-              <div style={{ marginTop: 10, fontSize: 15, color: "rgba(0,0,0,.5)" }}>
-                {targetIRRPeriod}
-              </div>
-              <p
-                style={{
-                  margin: "24px auto 0",
-                  maxWidth: "48ch",
-                  fontSize: 13,
-                  lineHeight: 1.5,
-                  color: "rgba(0,0,0,.38)",
-                }}
-              >
-                {targetIRRDisclaimer}
-              </p>
             </Reveal>
           </div>
         </section>
@@ -893,49 +934,6 @@ const FundA = () => {
           </div>
         </section>
       </main>
-
-      <footer
-        style={{
-          background: "#f5f5f7",
-          borderTop: "1px solid rgba(0,0,0,.08)",
-          padding: "clamp(48px,6vw,72px) 40px calc(clamp(48px,6vw,72px) + 96px)",
-          textAlign: "center",
-        }}
-      >
-        <div style={{ maxWidth: 1000, margin: "0 auto" }}>
-          <p style={{ margin: "0 auto", maxWidth: "74ch", fontSize: 13, lineHeight: 1.6, color: "rgba(0,0,0,.45)" }}>
-            Investing involves risk, including loss of principal. Past performance does not guarantee future results. Hushh Technologies,
-            Inc. is an SEC-registered investment adviser.
-          </p>
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: "10px 30px",
-              justifyContent: "center",
-              margin: "26px 0 24px",
-              fontSize: 14,
-              fontWeight: 500,
-            }}
-          >
-            <a href="/risk-disclosures" style={{ color: "#0066cc" }}>
-              Disclosures
-            </a>
-            <a href="/privacy-policy" style={{ color: "#0066cc" }}>
-              Privacy
-            </a>
-            <a href="/terms" style={{ color: "#0066cc" }}>
-              Terms
-            </a>
-            <a href="/support" style={{ color: "#0066cc" }}>
-              Support
-            </a>
-          </div>
-          <div style={{ fontSize: 12, color: "rgba(0,0,0,.4)" }}>
-            &copy; 2026 Hushh. All Rights Reserved.
-          </div>
-        </div>
-      </footer>
 
       <HushhTechFooter activeTab={HushhFooterTab.FUND_A} />
     </div>

@@ -10,11 +10,11 @@ describe("legal and support footer pages", () => {
     const app = read("src/App.tsx");
 
     expect(footer).toContain('href="/risk-disclosures"');
-    expect(footer).toContain("Risk Disclosures");
+    expect(footer).toContain("Disclosures");
     expect(footer).toContain('href="/privacy-policy"');
-    expect(footer).toContain("Website Privacy Policy");
+    expect(footer).toContain("Privacy");
     expect(footer).toContain('href="/terms"');
-    expect(footer).toContain("Website Terms of Use");
+    expect(footer).toContain("Terms");
     expect(footer).toContain('href="/support"');
     expect(footer).toContain("Support");
 

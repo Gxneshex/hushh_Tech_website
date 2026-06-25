@@ -143,40 +143,22 @@ export default function Footer() {
           </h3>
           <nav className="flex flex-col gap-0 border-l border-[#1F2937] pl-4">
             <a 
+              href="/risk-disclosures" 
+              className="py-2 text-gray-300 hover:text-white text-base font-medium flex items-center justify-between group transition-colors duration-200"
+            >
+              Disclosures
+            </a>
+            <a 
               href="/privacy-policy" 
               className="py-2 text-gray-300 hover:text-white text-base font-medium flex items-center justify-between group transition-colors duration-200"
             >
-              Website Privacy Policy
+              Privacy
             </a>
             <a 
-              href="/eu-uk-jobs-privacy-policy" 
+              href="/terms" 
               className="py-2 text-gray-300 hover:text-white text-base font-medium flex items-center justify-between group transition-colors duration-200"
             >
-              EU and UK Privacy Policies
-            </a>
-            <a 
-              href="/california-privacy-policy" 
-              className="py-2 text-gray-300 hover:text-white text-base font-medium flex items-center justify-between group transition-colors duration-200"
-            >
-              California Privacy Policy
-            </a>
-            <a
-              href="/career-privacy-policy"
-              className="py-2 text-gray-300 hover:text-white text-base font-medium flex items-center justify-between group transition-colors duration-200"
-            >
-              Careers Site Privacy Notice
-            </a>
-            <a
-              href="/terms"
-              className="py-2 text-gray-300 hover:text-white text-base font-medium flex items-center justify-between group transition-colors duration-200"
-            >
-              Website Terms of Use
-            </a>
-            <a
-              href="/risk-disclosures"
-              className="py-2 text-gray-300 hover:text-white text-base font-medium flex items-center justify-between group transition-colors duration-200"
-            >
-              Risk Disclosures
+              Terms
             </a>
             <a
               href="/support"
@@ -225,7 +207,7 @@ export default function Footer() {
         {/* Disclaimer */}
         <div className="p-4 rounded-xl bg-[#161d2b]/50 border border-[#1F2937]/50">
           <p className="text-gray-300 text-xs leading-5">
-            <span className="font-bold text-gray-200">Disclaimer:</span> Investment involves risk, including the possible loss of principal. Past performance does not guarantee future results. Please consult with a financial advisor before making investment decisions.
+            <span className="font-bold text-gray-200">Disclaimer:</span> Investing involves risk, including loss of principal. Past performance does not guarantee future results. Hushh Technologies, Inc. is an SEC-registered investment adviser. Please consult with a financial advisor before making investment decisions.
           </p>
         </div>
       </div>
