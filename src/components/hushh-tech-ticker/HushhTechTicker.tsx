@@ -11,7 +11,7 @@ const logoTint = [
   "#F4ECFF",
 ];
 
-const TICKER_SCROLL_PIXELS_PER_SECOND = 136;
+const TICKER_SCROLL_PIXELS_PER_SECOND = 168;
 
 const TickerChip = ({
   quote,

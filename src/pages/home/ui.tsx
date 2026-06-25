@@ -1059,7 +1059,7 @@ export default function HomePage() {
             </Reveal>
             <Reveal immediate delay={280}>
               <div className="hh-hero__trust">
-                SEC Registered &nbsp;&middot;&nbsp; Bank-Level Security
+                SEC Registered &nbsp;&middot;&nbsp; 256-bit encryption
               </div>
             </Reveal>
           </div>

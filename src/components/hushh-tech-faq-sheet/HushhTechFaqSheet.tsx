@@ -22,67 +22,54 @@ const FAQ_DATA: FaqCategory[] = [
     title: "Onboarding",
     items: [
       {
-        q: "What is KYC verification?",
-        a: "KYC (Know Your Customer) is a regulatory requirement that verifies your identity before you can invest. We collect basic personal and financial information to ensure compliance with SEC regulations.",
+        q: "What information do I need?",
+        a: "You will need your legal name, date of birth, residence details, tax information, contact number, and the investment amount you want reviewed.",
       },
       {
         q: "How long does onboarding take?",
-        a: "Most users complete the full onboarding process in under 5 minutes. If you need to gather documents, you can save your progress and return anytime.",
+        a: "Most investors can complete the flow in a few minutes. Additional review may be required after you submit your application.",
       },
       {
         q: "Can I skip steps and come back later?",
-        a: "Yes — some steps can be skipped. However, all required verifications must be completed before you can make your first investment.",
+        a: "Yes. You can leave and return, but all required details must be complete before investor review can finish.",
       },
       {
-        q: "What are Hushh Coins?",
-        a: "Hushh Coins are reward tokens you earn during onboarding and by engaging with the platform. They can be redeemed for premium features and reduced fees.",
+        q: "Why do you ask for identity details?",
+        a: "Identity and tax details help us complete KYC, eligibility, and compliance checks before accepting any investment.",
       },
     ],
   },
   {
-    title: "Investment",
+    title: "Fund A",
     items: [
       {
         q: "What is Hushh Fund A?",
-        a: "Hushh Fund A (27FCF) is our flagship AI-driven quantitative fund. It uses proprietary algorithms to identify market opportunities while managing risk through diversification.",
+        a: "Hushh Fund A is our flagship AI-driven value strategy for qualified investors.",
       },
       {
         q: "What is the minimum investment?",
-        a: "The minimum investment varies by investor type. Accredited investors can start with as little as $25,000. Please refer to the fund documents for full details.",
+        a: "The minimum investment is $1 million. Final eligibility and allocation are reviewed during onboarding.",
       },
       {
-        q: "How do I track my investment performance?",
-        a: "Once invested, you'll have access to a real-time dashboard showing your portfolio performance, returns, and detailed analytics — all from your profile.",
-      },
-    ],
-  },
-  {
-    title: "Security & Privacy",
-    items: [
-      {
-        q: "How is my data protected?",
-        a: "All data is encrypted with 256-bit AES encryption in transit and at rest. We use bank-grade security infrastructure and are fully GDPR and SOC 2 compliant.",
-      },
-      {
-        q: "Who can see my financial information?",
-        a: "Your financial data is strictly confidential. Only authorized compliance personnel can access it for regulatory purposes. It is never shared with third parties for marketing.",
-      },
-      {
-        q: "What is the NDA I signed?",
-        a: "The Non-Disclosure Agreement protects confidential investment strategies and fund performance data shared with you. It's standard practice for private investment funds.",
+        q: "What are Hushh Coins?",
+        a: "Hushh Coins are onboarding rewards that help introduce the Hushh experience before you complete investor review.",
       },
     ],
   },
   {
-    title: "Account",
+    title: "Verification",
     items: [
       {
-        q: "How do I update my profile?",
-        a: "Navigate to your Profile from the bottom navigation bar. You can edit your personal details, investment preferences, and notification settings at any time.",
+        q: "Why connect a bank account?",
+        a: "Bank connection helps verify account, balance, identity, and investment data for review. You authorize this before Plaid opens.",
       },
       {
-        q: "Can I delete my account?",
-        a: "Yes. Go to Profile → Settings → Delete Account. Please note that active investments must be redeemed before account deletion can be processed.",
+        q: "Is my data protected?",
+        a: "Sensitive data is encrypted and used for verification, review, compliance, and account support.",
+      },
+      {
+        q: "Can I review before submitting?",
+        a: "Yes. The review step shows your key responses so you can go back and correct anything before submission.",
       },
     ],
   },
@@ -184,13 +171,13 @@ const HushhTechFaqSheet: React.FC<HushhTechFaqSheetProps> = ({
             id="hushh-tech-faq-title"
             className="text-[24px] font-semibold leading-[1.05] tracking-[-0.035em] text-[#1D1D1F]"
           >
-            Frequently Asked Questions
+            FAQ
           </h2>
           <button
             ref={closeButtonRef}
             onClick={handleBackdropClick}
             className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors"
-            aria-label="Close FAQs"
+            aria-label="Close FAQ"
           >
             {Icon.close("#6E6E73", 14)}
           </button>

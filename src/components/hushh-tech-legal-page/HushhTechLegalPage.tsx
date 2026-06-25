@@ -7,7 +7,6 @@ import {
   Display,
   Eyebrow,
   Icon,
-  Lede,
   SYS,
   appleDisplayFont,
   appleFont,
@@ -28,7 +27,7 @@ interface LegalAction {
 interface HushhTechLegalPageProps {
   eyebrow: string;
   title: string;
-  lede: string;
+  lede?: string;
   updated?: string;
   sections: LegalSection[];
   primaryAction?: LegalAction;
@@ -89,8 +88,6 @@ const ActionLink = ({
 export default function HushhTechLegalPage({
   eyebrow,
   title,
-  lede,
-  updated,
   sections,
   primaryAction,
   secondaryAction,
@@ -113,12 +110,6 @@ export default function HushhTechLegalPage({
           <Display as="h1" size="sm" maxWidth="max-w-[680px]">
             {title}
           </Display>
-          {lede ? <Lede>{lede}</Lede> : null}
-          {updated ? (
-            <p className="mt-4 text-[13px] font-medium tracking-[-0.005em] text-[#1D1D1F]/45">
-              {updated}
-            </p>
-          ) : null}
 
           {primaryAction || secondaryAction ? (
             <div className="mx-auto mt-8 flex max-w-[360px] flex-wrap justify-center gap-3 sm:max-w-none">

@@ -76,7 +76,7 @@ const HushhTechFooter: React.FC<HushhTechFooterProps> = ({
   return (
     <>
       <div
-        className={`fixed inset-x-0 bottom-0 z-50 pointer-events-none px-3 pb-[calc(env(safe-area-inset-bottom,0px)+0.85rem)] pt-4 sm:px-5 ${className}`}
+        className={`fixed inset-x-0 bottom-0 z-50 pointer-events-none px-3 pb-[calc(env(safe-area-inset-bottom,0px)+0.85rem)] pt-4 sm:px-5 md:hidden ${className}`}
       >
         <div
           className="pointer-events-auto relative mx-auto w-full max-w-[26rem] overflow-hidden rounded-full"
