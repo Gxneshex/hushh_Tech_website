@@ -36,48 +36,6 @@ const RoutedBrandButton = () => {
   return <BrandButton onClick={() => navigate("/")} />;
 };
 
-const DESKTOP_NAV_ITEMS = [
-  { label: "Home", path: "/" },
-  { label: "Fund A", path: "/discover-fund-a" },
-  { label: "Community", path: "/community" },
-  { label: "Profile", path: "/profile" },
-] as const;
-
-const DesktopNav = ({ onNavigate }: { onNavigate: (path: string) => void }) => (
-  <nav
-    aria-label="Primary"
-    className="hidden items-center gap-1 rounded-full border border-[#1D1D1F]/[0.08] bg-white/72 p-1.5 shadow-[0_12px_30px_rgba(29,29,31,0.08),inset_0_1px_0_rgba(255,255,255,0.9)] md:flex"
-    style={{
-      WebkitBackdropFilter: "blur(22px) saturate(180%)",
-      backdropFilter: "blur(22px) saturate(180%)",
-      fontFamily: appleFont,
-    }}
-  >
-    {DESKTOP_NAV_ITEMS.map((item) => (
-      <button
-        key={item.path}
-        type="button"
-        onClick={() => onNavigate(item.path)}
-        className="h-10 rounded-full px-5 text-[14px] font-semibold tracking-[-0.01em] text-[#1D1D1F] transition hover:bg-[#F5F5F7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066CC]/35"
-      >
-        {item.label}
-      </button>
-    ))}
-    <button
-      type="button"
-      onClick={() => onNavigate("/profile")}
-      className="ml-1 h-10 rounded-full bg-[#0071E3] px-6 text-[14px] font-semibold tracking-[-0.01em] text-white shadow-[0_8px_22px_rgba(0,113,227,0.24)] transition hover:bg-[#0077ED] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066CC]/35"
-    >
-      Start investing
-    </button>
-  </nav>
-);
-
-const RoutedDesktopNav = () => {
-  const navigate = useNavigate();
-  return <DesktopNav onNavigate={(path) => navigate(path)} />;
-};
-
 const SearchButton = ({ onClick }: { onClick: () => void }) => (
   <button
     type="button"
@@ -259,19 +217,8 @@ const HushhTechHeader: React.FC<HushhTechHeaderProps> = ({
       <SkipToContentLink />
 
       <header
-        className={`fixed left-0 right-0 top-0 z-50 border-b border-[#1D1D1F]/[0.08] transition-transform duration-300 ${className}`}
+        className={`fixed left-0 right-0 top-0 z-50 transition-transform duration-300 ${className}`}
         data-hushh-header
-        style={{
-          // Apple "Liquid Glass": translucent fill + blurred, saturated backdrop
-          // (vibrancy), a bright specular top edge, and a soft drop shadow for
-          // depth. Matches the GlassPill glass system used by the floating pills.
-          background:
-            "linear-gradient(180deg, rgba(255,255,255,0.66) 0%, rgba(255,255,255,0.52) 100%)",
-          WebkitBackdropFilter: "blur(24px) saturate(180%)",
-          backdropFilter: "blur(24px) saturate(180%)",
-          boxShadow:
-            "0 12px 34px rgba(29,29,31,0.10), inset 0 1px 0 rgba(255,255,255,0.92), inset 0 -0.5px 0 rgba(29,29,31,0.05)",
-        }}
       >
         <div className="pointer-events-none px-3 pt-[max(env(safe-area-inset-top),0.85rem)] sm:px-5">
           <div className="pointer-events-auto flex items-center justify-between gap-3">
@@ -283,13 +230,7 @@ const HushhTechHeader: React.FC<HushhTechHeaderProps> = ({
               )}
             </GlassPill>
 
-            {hasRouter ? (
-              <RoutedDesktopNav />
-            ) : (
-              <DesktopNav onNavigate={(path) => window.location.assign(path)} />
-            )}
-
-            <div className="flex shrink-0 items-center gap-1.5 md:hidden">
+            <div className="flex shrink-0 items-center gap-1.5">
               {showSearch ? (
                 <GlassPill>
                   <SearchButton onClick={() => setIsSearchOpen(true)} />
