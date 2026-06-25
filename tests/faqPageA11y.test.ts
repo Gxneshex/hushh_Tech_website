@@ -46,7 +46,7 @@ describe("FAQ page", () => {
     });
 
     expect(container.textContent).toContain("HushhTechHeader");
-    expect(container.textContent).toContain("Frequently asked questions.");
+    expect(container.textContent).toContain("FAQ.");
     expect(container.textContent).not.toContain("Hu$$h");
 
     const buttons = Array.from(container.querySelectorAll("button"));

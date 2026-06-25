@@ -21,7 +21,7 @@ export default function Footer() {
   };
 
   return (
-    <footer className="relative z-10 bg-[#0B0C10] border-t border-[#1F2937] pb-[calc(8rem+env(safe-area-inset-bottom,0px))]">
+    <footer className="relative z-10 bg-[#0B0C10] border-t border-[#1F2937] pb-[calc(8rem+env(safe-area-inset-bottom,0px))] md:pb-0">
       {/* Top Section: Identity & Contact */}
       <div className="px-6 pt-10 pb-6 max-w-7xl mx-auto">
         {/* Brand */}
