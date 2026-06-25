@@ -33,26 +33,18 @@ const FAQ_DATA: FaqCategory[] = [
         q: "Can I skip steps and come back later?",
         a: "Yes. You can leave and return, but all required details must be complete before investor review can finish.",
       },
-      {
-        q: "Why do you ask for identity details?",
-        a: "Identity and tax details help us complete KYC, eligibility, and compliance checks before accepting any investment.",
-      },
     ],
   },
   {
-    title: "Fund A",
+    title: "Investor Review",
     items: [
-      {
-        q: "What is Hushh Fund A?",
-        a: "Hushh Fund A is our flagship AI-driven value strategy for qualified investors.",
-      },
       {
         q: "What is the minimum investment?",
         a: "The minimum investment is $1 million. Final eligibility and allocation are reviewed during onboarding.",
       },
       {
-        q: "What are Hushh Coins?",
-        a: "Hushh Coins are onboarding rewards that help introduce the Hushh experience before you complete investor review.",
+        q: "Can I review before submitting?",
+        a: "Yes. The review step shows your key responses so you can go back and correct anything before submission.",
       },
     ],
   },
@@ -60,16 +52,16 @@ const FAQ_DATA: FaqCategory[] = [
     title: "Verification",
     items: [
       {
+        q: "Why do you ask for identity details?",
+        a: "Identity and tax details help us complete KYC, eligibility, and compliance checks before accepting any investment.",
+      },
+      {
         q: "Why connect a bank account?",
         a: "Bank connection helps verify account, balance, identity, and investment data for review. You authorize this before Plaid opens.",
       },
       {
         q: "Is my data protected?",
         a: "Sensitive data is encrypted and used for verification, review, compliance, and account support.",
-      },
-      {
-        q: "Can I review before submitting?",
-        a: "Yes. The review step shows your key responses so you can go back and correct anything before submission.",
       },
     ],
   },
