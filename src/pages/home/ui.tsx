@@ -338,69 +338,124 @@ function HomeStyles() {
         line-height: 1.4;
         color: rgba(255,255,255,.56);
       }
-      .hh-stats {
-        display: grid;
-        grid-template-columns: minmax(260px, 1.18fr) minmax(220px, 1fr) minmax(220px, .94fr);
-        gap: 0;
-        margin-top: clamp(56px, 7vw, 88px);
-        padding: clamp(18px, 2.5vw, 28px);
-        border: 1px solid rgba(255,255,255,.1);
-        border-radius: 32px;
-        background:
-          linear-gradient(135deg, rgba(255,255,255,.075), rgba(255,255,255,.025)),
-          rgba(15,15,17,.82);
-        box-shadow:
-          0 34px 100px rgba(0,0,0,.48),
-          0 0 0 1px rgba(255,255,255,.035) inset;
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-      }
-      .hh-stat {
+      .hh-fund-ring {
         position: relative;
-        min-height: 188px;
-        padding: clamp(22px, 3vw, 34px) clamp(20px, 3vw, 44px);
+        width: min(100%, 440px);
+        margin: clamp(48px, 6vw, 72px) auto 0;
+        text-align: center;
+      }
+      .hh-fund-ring::before {
+        content: "";
+        position: absolute;
+        inset: 4% 3% auto;
+        height: 74%;
+        border-radius: 50%;
+        background:
+          radial-gradient(circle at 50% 54%, rgba(41,151,255,.18), transparent 54%),
+          radial-gradient(circle at 50% 50%, rgba(48,209,88,.09), transparent 62%);
+        filter: blur(22px);
+        opacity: .78;
+        pointer-events: none;
+      }
+      .hh-fund-ring__dial {
+        position: relative;
+        width: clamp(230px, 26vw, 278px);
+        height: clamp(230px, 26vw, 278px);
+        margin: 0 auto;
+      }
+      .hh-fund-ring__svg {
+        display: block;
+        width: 100%;
+        height: 100%;
+        transform: rotate(-90deg);
+      }
+      .hh-fund-ring__track {
+        fill: none;
+        stroke: rgba(235,235,245,.08);
+        stroke-width: 19;
+      }
+      .hh-fund-ring__progress {
+        fill: none;
+        stroke: #30D158;
+        stroke-width: 19;
+        stroke-linecap: round;
+        filter: drop-shadow(0 0 10px rgba(48,209,88,.42));
+        transition: stroke-dashoffset 1.25s cubic-bezier(.34,.85,.3,1);
+      }
+      .hh-fund-ring__center {
+        position: absolute;
+        inset: 0;
         display: flex;
         flex-direction: column;
+        align-items: center;
         justify-content: center;
       }
-      .hh-stat + .hh-stat {
-        border-left: 1px solid rgba(255,255,255,.14);
-      }
-      .hh-stat__num {
+      .hh-fund-ring__number {
+        display: flex;
+        align-items: baseline;
         font-weight: 600;
-        font-size: clamp(48px, 7vw, 86px);
-        line-height: .95;
-        letter-spacing: -.03em;
+        line-height: 1;
+        letter-spacing: -1.7px;
+        color: #fff;
+        font-variant-numeric: tabular-nums;
       }
-      .hh-stat--primary {
-        border-radius: 24px;
-        background:
-          radial-gradient(circle at 22% 18%, rgba(41,151,255,.18), transparent 38%),
-          rgba(255,255,255,.035);
+      .hh-fund-ring__plus {
+        margin-right: 2px;
+        font-size: clamp(30px, 4vw, 40px);
+        color: #30D158;
       }
-      .hh-stat__caption {
-        margin-bottom: 14px;
-        font-size: 11px;
-        font-weight: 700;
-        letter-spacing: .16em;
+      .hh-fund-ring__value {
+        font-size: clamp(48px, 6vw, 64px);
+      }
+      .hh-fund-ring__percent {
+        margin-left: 1px;
+        font-size: clamp(22px, 3vw, 28px);
+        font-weight: 500;
+        color: rgba(235,235,245,.55);
+      }
+      .hh-fund-ring__caption {
+        margin-top: 8px;
+        font-size: 13px;
+        font-weight: 400;
+        letter-spacing: -.06px;
+        color: rgba(235,235,245,.52);
+      }
+      .hh-fund-ring__meta {
+        margin-top: 22px;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 1.35px;
         text-transform: uppercase;
-        color: rgba(255,255,255,.38);
+        color: rgba(235,235,245,.48);
       }
-      .hh-stat__num small {
-        font-size: .5em;
+      .hh-fund-ring__facts {
+        display: grid;
+        grid-template-columns: 1fr 1px 1fr;
+        align-items: start;
+        max-width: 400px;
+        margin: 30px auto 0;
+        padding-top: 27px;
+        border-top: 1px solid rgba(235,235,245,.13);
       }
-      .hh-stat__label {
-        margin-top: 18px;
-        font-size: 15px;
-        line-height: 1.45;
-        color: rgba(255,255,255,.6);
+      .hh-fund-ring__divider {
+        height: 44px;
+        background: rgba(235,235,245,.13);
       }
-      .hh-stat__meta {
-        margin-top: 6px;
+      .hh-fund-ring__fact-value {
+        font-size: clamp(20px, 2.5vw, 24px);
+        font-weight: 600;
+        line-height: 1;
+        letter-spacing: -.5px;
+        color: #fff;
+        font-variant-numeric: tabular-nums;
+      }
+      .hh-fund-ring__fact-label {
+        margin-top: 12px;
         font-size: 11px;
-        letter-spacing: .14em;
+        font-weight: 600;
+        letter-spacing: .6px;
         text-transform: uppercase;
-        color: rgba(255,255,255,.4);
+        color: rgba(235,235,245,.43);
       }
       .hh-tech__grid {
         display: grid;
@@ -520,25 +575,20 @@ function HomeStyles() {
           max-width: 31ch;
           font-size: clamp(17px, 4.7vw, 20px);
         }
-        .hh-stats {
-          margin-top: 42px;
-          grid-template-columns: 1fr;
-          padding: 14px;
-          border-radius: 26px;
+        .hh-fund-ring {
+          margin-top: 40px;
         }
-        .hh-stat {
-          min-height: auto;
-          padding: 26px 20px;
+        .hh-fund-ring__dial {
+          width: min(72vw, 248px);
+          height: min(72vw, 248px);
         }
-        .hh-stat + .hh-stat {
-          border-left: 0;
-          border-top: 1px solid rgba(255,255,255,.14);
+        .hh-fund-ring__track,
+        .hh-fund-ring__progress {
+          stroke-width: 17;
         }
-        .hh-stat__num {
-          font-size: clamp(46px, 15.5vw, 62px);
-        }
-        .hh-stat__label {
-          margin-top: 12px;
+        .hh-fund-ring__facts {
+          margin-top: 26px;
+          padding-top: 24px;
         }
         .hh-tech__grid {
           gap: 34px;
@@ -763,6 +813,13 @@ function FundStatsSection({
   onInvest: () => void;
 }) {
   const { ref, visible } = useInViewOnce<HTMLDivElement>(0.35);
+  const ringSize = 270;
+  const ringCenter = ringSize / 2;
+  const ringStroke = 19;
+  const ringRadius = (ringSize - ringStroke) / 2 - 6;
+  const circumference = 2 * Math.PI * ringRadius;
+  const progress = 0.86;
+  const dash = circumference * progress;
 
   return (
     <section id="fund" className="hh-section hh-perf" style={{ fontFamily: homeFont }}>
@@ -779,44 +836,48 @@ function FundStatsSection({
         </Reveal>
 
         <Reveal>
-          <div ref={ref} className="hh-stats">
-              <div className="hh-stat hh-stat--primary">
-                <div className="hh-stat__caption">Performance</div>
-                <div className="hh-stat__num" style={{ color: "#2997ff" }}>
-                  +
-                  <span data-count="21.4" data-dec="1">
+          <div ref={ref} className="hh-fund-ring" aria-label="Fund A FY 2025 net return 21.4 percent">
+            <div className="hh-fund-ring__dial">
+              <svg className="hh-fund-ring__svg" viewBox={`0 0 ${ringSize} ${ringSize}`} aria-hidden="true">
+                <circle
+                  className="hh-fund-ring__track"
+                  cx={ringCenter}
+                  cy={ringCenter}
+                  r={ringRadius}
+                />
+                <circle
+                  className="hh-fund-ring__progress"
+                  cx={ringCenter}
+                  cy={ringCenter}
+                  r={ringRadius}
+                  strokeDasharray={`${dash} ${circumference}`}
+                  strokeDashoffset={visible ? 0 : dash}
+                />
+              </svg>
+              <div className="hh-fund-ring__center">
+                <div className="hh-fund-ring__number">
+                  <span className="hh-fund-ring__plus">+</span>
+                  <span className="hh-fund-ring__value" data-count="21.4" data-dec="1">
                     <CountUp value={21.4} active={visible} decimals={1} />
                   </span>
-                  <small>%</small>
+                  <span className="hh-fund-ring__percent">%</span>
                 </div>
-              <div className="hh-stat__label">Net of fees</div>
-              <div className="hh-stat__meta">FY 2025</div>
-            </div>
-
-              <div className="hh-stat">
-                <div className="hh-stat__caption">Target</div>
-                <div className="hh-stat__num">
-                  <span data-count="18">
-                    <CountUp value={18} active={visible} />
-                  </span>
-                  &ndash;
-                  <span data-count="23">
-                    <CountUp value={23} active={visible} />
-                  </span>
-                  <small>%</small>
-                </div>
-              <div className="hh-stat__label">Target internal rate of return</div>
-            </div>
-
-            <div className="hh-stat">
-              <div className="hh-stat__caption">Liquidity</div>
-              <div
-                className="hh-stat__num"
-                style={{ fontSize: "clamp(40px,5vw,66px)", lineHeight: 1.1 }}
-              >
-                Quarterly
+                <div className="hh-fund-ring__caption">Net of fees</div>
               </div>
-              <div className="hh-stat__label">Redemption liquidity windows</div>
+            </div>
+            <div className="hh-fund-ring__meta">FY 2025</div>
+            <div className="hh-fund-ring__facts">
+              <div>
+                <div className="hh-fund-ring__fact-value">
+                  <span data-count="18">18</span>&ndash;<span data-count="23"><CountUp value={23} active={visible} /></span>%
+                </div>
+                <div className="hh-fund-ring__fact-label">Target internal rate of return</div>
+              </div>
+              <div className="hh-fund-ring__divider" />
+              <div>
+                <div className="hh-fund-ring__fact-value">Quarterly</div>
+                <div className="hh-fund-ring__fact-label">Redemption liquidity windows</div>
+              </div>
             </div>
           </div>
         </Reveal>
